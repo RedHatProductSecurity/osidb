@@ -77,3 +77,27 @@ class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
         null=True,
         blank=True,
     )
+
+    @property
+    def is_active(self):
+        return self.active_to_ps_module is not None
+
+    @property
+    def is_default(self):
+        return self.default_to_ps_module is not None
+
+    @property
+    def is_unacked(self):
+        return self.unacked_to_ps_module is not None
+
+    @property
+    def is_eus(self):
+        return self.eus_to_ps_module is not None
+
+    @property
+    def is_aus(self):
+        return self.aus_to_ps_module is not None
+
+    @property
+    def is_moderate(self):
+        return self.moderate_to_ps_module is not None

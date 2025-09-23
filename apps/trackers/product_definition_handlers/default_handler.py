@@ -1,4 +1,4 @@
-from osidb.models import Affect, Impact, PsModule
+from osidb.models import Affect, Impact, PsUpdateStream
 
 from .base import ProductDefinitionHandler
 
@@ -12,7 +12,9 @@ class DefaultHandler(ProductDefinitionHandler):
     DEFAULT_IMPACT_APPLICABLE = [Impact.CRITICAL, Impact.IMPORTANT]
 
     @staticmethod
-    def is_applicable(affect: Affect, impact: Impact, ps_module: PsModule) -> bool:
+    def is_applicable(
+        affect: Affect, impact: Impact, ps_update_stream: PsUpdateStream
+    ) -> bool:
         """
         check whether the hanler is applicable to the given affect
         the caller is responsible for checking the applicability before getting the offer
@@ -20,11 +22,15 @@ class DefaultHandler(ProductDefinitionHandler):
         return impact in DefaultHandler.DEFAULT_IMPACT_APPLICABLE
 
     @staticmethod
-    def get_offer(affect: Affect, impact: Impact, ps_module: PsModule, offers):
+    def get_offer(
+        affect: Affect, impact: Impact, ps_update_stream: PsUpdateStream, offer
+    ):
         """
         pre-select the streams
         """
-        for stream in ps_module.default_ps_update_streams.all():
-            if stream.name in offers:
-                offers[stream.name]["selected"] = True
-        return offers
+        if (
+            ps_update_stream.is_default
+            and offer["ps_update_stream"] == ps_update_stream.name
+        ):
+            offer["selected"] = True
+        return offer

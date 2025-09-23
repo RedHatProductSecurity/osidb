@@ -45,14 +45,14 @@ class TestTrackerSaver:
             flaw=flaw1,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
         affect2 = AffectFactory(
             flaw=flaw2,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=affect1.ps_module,
+            ps_update_stream=ps_update_stream.name,
             ps_component=affect1.ps_component,
         )
 
@@ -79,7 +79,7 @@ class TestTrackerSaver:
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
 
@@ -105,7 +105,7 @@ class TestTrackerSaver:
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
 
@@ -132,7 +132,7 @@ class TestTrackerSaver:
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
 
@@ -159,7 +159,7 @@ class TestTrackerSaver:
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
 
@@ -190,7 +190,7 @@ class TestTrackerSaver:
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
             flaw=flaw,
         )
@@ -225,7 +225,7 @@ class TestTrackerModelSave:
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
 
@@ -259,7 +259,7 @@ class TestTrackerModelSave:
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
 
@@ -298,7 +298,7 @@ class TestTrackerModelSave:
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
 
@@ -330,7 +330,7 @@ class TestTrackerModelSave:
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
 
@@ -382,7 +382,7 @@ class TestTrackerJiraSaverIssuetype:
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
 

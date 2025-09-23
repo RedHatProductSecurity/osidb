@@ -46,7 +46,7 @@ class TestTrackerQueryBuilderSummary:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -128,7 +128,7 @@ class TestTrackerQueryBuilderSummary:
                     flaw=flaw,
                     affectedness=Affect.AffectAffectedness.AFFECTED,
                     resolution=Affect.AffectResolution.DELEGATED,
-                    ps_module=ps_module.name,
+                    ps_update_stream=ps_update_stream.name,
                     ps_component="large-component",
                 )
             )
@@ -171,7 +171,7 @@ class TestTrackerQueryBuilderSummary:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -274,7 +274,7 @@ class TestTrackerQueryBuilderSummary:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -322,7 +322,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -365,7 +365,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -396,7 +396,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -425,7 +425,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=ps_component,
         )
         tracker = TrackerFactory(
@@ -462,7 +462,7 @@ class TestTrackerQueryBuilderDescription:
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 ps_component="large-component",
                 # created datetime defines the query result
                 # ordering which is later reflected in description
@@ -512,7 +512,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -561,7 +561,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -602,7 +602,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=ps_component,
         )
         tracker = TrackerFactory(
@@ -639,7 +639,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -670,7 +670,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -702,7 +702,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -756,14 +756,14 @@ class TestTrackerQueryBuilderSLA:
             bts_key="BZPROJECT",
             bts_name="bugzilla",
         )
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module1)
         affect1 = AffectFactory(
             flaw=flaw,
             impact=Impact.NOVALUE,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module1.name,
+            ps_update_stream=ps_update_stream1.name,
         )
-        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module1)
         tracker1 = TrackerFactory(
             affects=[affect1],
             embargoed=flaw.embargoed,
@@ -777,14 +777,14 @@ class TestTrackerQueryBuilderSLA:
             bts_name="jboss",
             private_trackers_allowed=False,
         )
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
         affect2 = AffectFactory(
             flaw=flaw,
             impact=Impact.NOVALUE,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module2.name,
+            ps_update_stream=ps_update_stream2.name,
         )
-        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
         tracker2 = TrackerFactory(
             affects=[affect2],
             embargoed=flaw.embargoed,

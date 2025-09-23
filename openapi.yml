@@ -11154,6 +11154,53 @@ paths:
             application/json:
               schema:
                 allOf:
+                - $ref: '#/components/schemas/TrackerSuggestionV1'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /trackers/api/v2/file:
+    post:
+      operationId: trackers_api_v2_file_create
+      description: Given a list of flaws, generates a list of suggested trackers to
+        file.
+      parameters:
+      - in: query
+        name: exclude_existing_trackers
+        schema:
+          type: boolean
+        description: Filter to only show trackers that don't already exist for the
+          given flaws
+      tags:
+      - trackers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawUUIDListRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawUUIDListRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawUUIDListRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
                 - $ref: '#/components/schemas/TrackerSuggestion'
                 - type: object
                   properties:
@@ -11419,7 +11466,6 @@ components:
       - delegated_not_affected_justification
       - delegated_resolution
       - embargoed
-      - flaw
       - ps_product
       - ps_update_stream
       - resolved_dt
@@ -11485,7 +11531,6 @@ components:
             it is used to detect mit-air collisions.
       required:
       - embargoed
-      - flaw
       - ps_update_stream
       - updated_dt
       - uuid
@@ -11727,7 +11772,6 @@ components:
             access to the resource.
       required:
       - embargoed
-      - flaw
       - ps_update_stream
     AffectReportData:
       type: object
@@ -11797,7 +11841,6 @@ components:
             it is used to detect mit-air collisions.
       required:
       - embargoed
-      - flaw
       - ps_update_stream
       - updated_dt
     AffectV1:
@@ -14416,6 +14459,25 @@ components:
       - SKIP
       - DONE
       type: string
+    StreamComponent:
+      type: object
+      properties:
+        ps_update_stream:
+          type: string
+        ps_component:
+          type: string
+        offer:
+          $ref: '#/components/schemas/PsStreamSelection'
+        selected:
+          type: boolean
+        affect:
+          $ref: '#/components/schemas/Affect'
+      required:
+      - affect
+      - offer
+      - ps_component
+      - ps_update_stream
+      - selected
     SupportedProducts:
       type: object
       properties:
@@ -14731,6 +14793,20 @@ components:
       - embargoed
       - updated_dt
     TrackerSuggestion:
+      type: object
+      properties:
+        streams_components:
+          type: array
+          items:
+            $ref: '#/components/schemas/StreamComponent'
+        not_applicable:
+          type: array
+          items:
+            $ref: '#/components/schemas/Affect'
+      required:
+      - not_applicable
+      - streams_components
+    TrackerSuggestionV1:
       type: object
       properties:
         modules_components:

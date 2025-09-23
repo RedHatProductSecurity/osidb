@@ -1,7 +1,7 @@
 import pytest
 
 from apps.sla.framework import SLAPolicy
-from apps.trackers.constants import TRACKERS_API_VERSION
+from apps.trackers.constants import TRACKERS_API_V1, TRACKERS_API_VERSION
 from apps.trackers.models import JiraProjectFields
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from osidb.models import Affect, Flaw, Impact, PsModule, PsUpdateStream, Tracker
@@ -53,8 +53,18 @@ def api_version() -> str:
 
 
 @pytest.fixture
+def api_version_v1() -> str:
+    return TRACKERS_API_V1
+
+
+@pytest.fixture
 def test_app_api_uri(test_app_scheme_host, api_version) -> str:
     return f"{test_app_scheme_host}/api/{api_version}"
+
+
+@pytest.fixture
+def test_app_api_v1_uri(test_app_scheme_host, api_version_v1) -> str:
+    return f"{test_app_scheme_host}/api/{api_version_v1}"
 
 
 @pytest.fixture()
@@ -173,10 +183,10 @@ def flaw_dummy():
 
 
 @pytest.fixture
-def affect_dummy(flaw_dummy: Flaw):
+def affect_dummy(flaw_dummy: Flaw, ps_update_stream_dummy: PsUpdateStream):
     return AffectFactory(
         flaw=flaw_dummy,
-        ps_module="foo-module",
+        ps_update_stream="bar-1.2.3",
         ps_component="foo-component",
         affectedness=Affect.AffectAffectedness.AFFECTED,
         impact=Impact.MODERATE,
@@ -196,13 +206,11 @@ def ps_update_stream_dummy(ps_module_dummy_jira: PsModule):
 
 
 @pytest.fixture
-def tracker_dummy(
-    flaw_dummy: Flaw, affect_dummy: Affect, ps_update_stream_dummy: PsUpdateStream
-):
+def tracker_dummy(flaw_dummy: Flaw, affect_dummy: Affect):
     return TrackerFactory(
         affects=[affect_dummy],
         type=Tracker.TrackerType.JIRA,
-        ps_update_stream=ps_update_stream_dummy.name,
+        ps_update_stream=affect_dummy.ps_update_stream,
         embargoed=flaw_dummy.is_embargoed,
     )
 

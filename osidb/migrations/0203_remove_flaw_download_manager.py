@@ -8,7 +8,7 @@ import pgtrigger.migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0200_affect_v1_view'),
+        ('osidb', '0202_affect_v1_view'),
     ]
 
     operations = [
