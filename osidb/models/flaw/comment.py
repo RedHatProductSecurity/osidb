@@ -33,9 +33,6 @@ class FlawComment(
     # For bbsync/query.py to mark whether it was sent to BZ
     synced_to_bz = models.BooleanField(default=False)
 
-    # explicitly define comment ordering, from BZ comment 'count'
-    order = models.IntegerField(blank=True, null=True)
-
     # text of the comment
     text = models.TextField()
 
@@ -57,9 +54,7 @@ class FlawComment(
         """define meta"""
 
         ordering = (
-            "order",
             "external_system_id",
-            "uuid",
             "created_dt",
         )
 
@@ -68,17 +63,14 @@ class FlawComment(
         ]
 
         # Ensure that it's not possible to have two bzimports running concurrently
-        # and succeed while creating numbering conditions impossible to handle later.
+        # and succeed while creating ordering conditions impossible to handle later.
 
-        """
-        TODO: Re-enable this constraint once the "order" field is removed from the model.
-              Keep in mind that the "order" field is used in the ordering of the comments and should be updated
-        """
-        # constraints = [
-        #    models.UniqueConstraint(
-        #        fields=["flaw", "order"], name="unique_per_flaw_comment_nums"
-        #    ),
-        # ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["flaw", "external_system_id", "created_dt"],
+                name="unique_per_flaw_comment",
+            ),
+        ]
 
     def bzsync(self, *args, bz_api_key=None, **kwargs):
         """
