@@ -1,9 +1,12 @@
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
+from freezegun import freeze_time
 from rest_framework import status
 
 from apps.trackers.save import TrackerJiraSaver
+from apps.workflows.workflow import WorkflowModel
 from osidb.models import Affect, AffectCVSS, PsUpdateStream, Tracker
 from osidb.tests.factories import (
     AffectCVSSFactory,
@@ -764,6 +767,62 @@ class TestEndpointsAffectsBulk:
 
         assert response.status_code == 200
         assert Affect.objects.count() == 0
+
+    def test_embargoed_deadlock(self, auth_client, test_api_uri):
+        flaw = FlawFactory(
+            embargoed=True,
+            workflow_state=WorkflowModel.WorkflowState.TRIAGE,
+        )
+
+        flaw.unembargo_dt = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        flaw.save(raise_validation_error=False)
+
+        with freeze_time(datetime(2025, 1, 1, tzinfo=timezone.utc)):
+            ps_module = PsModuleFactory()
+            affects_data = [
+                {
+                    "flaw": str(flaw.uuid),
+                    "affectedness": "NEW",
+                    "resolution": "",
+                    "ps_module": ps_module.name,
+                    "ps_component": "kernel",
+                    "impact": "MODERATE",
+                    "embargoed": True,
+                }
+            ]
+
+            res1 = auth_client().post(
+                f"{test_api_uri}/affects/bulk",
+                affects_data,
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+
+            assert res1.status_code == 200
+            assert flaw.affects.count() == 1
+
+            flaw.refresh_from_db()
+            res2 = auth_client().put(
+                f"{test_api_uri}/flaws/{flaw.uuid}",
+                {
+                    "title": flaw.title,
+                    "comment_zero": flaw.comment_zero,
+                    "embargoed": True,
+                    "unembargo_dt": datetime(
+                        2027, 1, 1, tzinfo=timezone.utc
+                    ).isoformat(),
+                    "updated_dt": flaw.updated_dt.isoformat(),
+                },
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+
+            flaw.refresh_from_db()
+            assert res2.status_code == 200
+            assert flaw.embargoed
+            assert flaw.unembargo_dt == datetime(2027, 1, 1, tzinfo=timezone.utc)
 
 
 class TestEndpointsAffectsUpdateTrackers:

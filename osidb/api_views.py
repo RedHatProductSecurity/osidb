@@ -14,6 +14,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from djangoql.serializers import SuggestionsAPISerializer
 from djangoql.views import SuggestionsAPIView
@@ -1144,7 +1145,23 @@ class AffectView(
 
         # Third, proxy the update to Bugzilla
         flaw = Flaw.objects.get(uuid=next(iter(flaws)))
-        flaw.save(bz_api_key=bz_api_key)
+
+        # Temporarily disables the _validate_future_unembargo_date validation
+        # to resolve a deadlock that happens when the flaw has no affects (for certain workflows).
+        if (
+            flaw.is_embargoed
+            and flaw.unembargo_dt is not None
+            and flaw.unembargo_dt.date() < timezone.now().date()
+        ):
+            unembargo_date_validation = flaw._validate_future_unembargo_date
+            flaw._validate_future_unembargo_date = lambda **kwargs: None
+
+            try:
+                flaw.save(bz_api_key=bz_api_key)
+            finally:
+                flaw._validate_future_unembargo_date = unembargo_date_validation
+        else:
+            flaw.save(bz_api_key=bz_api_key)
 
         return Response({"results": ret})
 
