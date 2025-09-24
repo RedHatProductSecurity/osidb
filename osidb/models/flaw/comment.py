@@ -33,9 +33,6 @@ class FlawComment(
     # For bbsync/query.py to mark whether it was sent to BZ
     synced_to_bz = models.BooleanField(default=False)
 
-    # explicitly define comment ordering, from BZ comment 'count'
-    order = models.IntegerField(blank=True, null=True)
-
     # text of the comment
     text = models.TextField()
 
@@ -57,7 +54,6 @@ class FlawComment(
         """define meta"""
 
         ordering = (
-            "order",
             "external_system_id",
             "uuid",
             "created_dt",
