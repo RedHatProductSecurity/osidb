@@ -1982,17 +1982,15 @@ class TestFlawValidators:
 
     def test_validate_flaw_without_affect(self):
         """
-        test that flaws without affect raises an error on editing,
-        unless it is in a new workflow state
+        test that flaws without affect raises an error-level alert on editing
         """
         flaw1 = FlawFactory()
         AffectFactory(flaw=flaw1)
         assert flaw1.save() is None
 
         flaw2 = FlawFactory(workflow_state=WorkflowModel.WorkflowState.TRIAGE)
-        with pytest.raises(ValidationError) as e:
-            flaw2.save()
-        assert "Flaw does not contain any affects." in str(e)
+        assert flaw2.save() is None
+        assert flaw2.valid_alerts.filter(name="_validate_flaw_without_affect").exists()
 
         # Flaws in the 'new' state can be edited without any affects, but
         # an alert is raised
