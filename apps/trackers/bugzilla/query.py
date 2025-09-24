@@ -1,14 +1,13 @@
 import json
 import logging
 
-from apps.bbsync.cc import AffectCCBuilder, RHSCLAffectCCBuilder
 from apps.bbsync.constants import DATE_FMT
 from apps.bbsync.exceptions import ProductDataError
 from apps.bbsync.models import BugzillaComponent
 from apps.bbsync.query import BugzillaQueryBuilder
 from apps.sla.framework import sla_classify
 from apps.trackers.common import TrackerQueryBuilder
-from osidb.cc import BugzillaAffectCCBuilder
+from osidb.cc import BugzillaAffectCCBuilder, RHSCLBugzillaAffectCCBuilder
 from osidb.models import Flaw
 
 logger = logging.getLogger(__name__)
@@ -139,7 +138,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         """
         # (1) RHSCL special component handling
         if self.ps_module.is_rhscl:
-            collection, self._query["component"] = RHSCLAffectCCBuilder(
+            collection, self._query["component"] = RHSCLBugzillaAffectCCBuilder(
                 self.tracker.affects.first(),
                 None,  # embargoed is unused here
             ).collection_component()
@@ -158,7 +157,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
 
         # (2) common component handling
         else:
-            self._query["component"] = AffectCCBuilder(
+            self._query["component"] = BugzillaAffectCCBuilder(
                 self.tracker.affects.first(),
                 None,  # embargoed is unused here
             ).ps2bz_component()
