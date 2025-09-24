@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0205_remove_deprecated_fields_and_models'),
+        ('osidb', '0206_remove_deprecated_fields_and_models'),
     ]
 
     operations = [
