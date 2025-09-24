@@ -12,7 +12,6 @@ import pghistory
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import BadRequest
-from django.db.models import Max
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
@@ -938,7 +937,6 @@ class CommentSerializer(AlertMixinSerializer, TrackingMixinSerializer):
                 "uuid",
                 "text",
                 "external_system_id",
-                "order",
                 "creator",
                 "is_private",
             ]
@@ -1454,19 +1452,15 @@ class TrackerV1Serializer(TrackerSerializer):
         ).values_list("uuid", flat=True)
 
 
-@extend_schema_serializer(deprecate_fields=["status"])
 class PackageVerSerializer(serializers.ModelSerializer):
     """
     PackageVer model serializer for read-only use in FlawSerializer via
     PackageVerSerializer.
     """
 
-    # Deprecated field, kept for schema backwards compatibility.
-    status = serializers.ReadOnlyField(default="UNAFFECTED")
-
     class Meta:
         model = PackageVer
-        fields = ["version", "status"]
+        fields = ["version"]
 
 
 class PackageSerializer(AlertMixinSerializer):
@@ -2353,7 +2347,6 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
 
-@extend_schema_serializer(deprecate_fields=["order"])
 class FlawCommentSerializer(
     CommentSerializer,
     ACLMixinSerializer,
@@ -2362,21 +2355,10 @@ class FlawCommentSerializer(
 ):
     """FlawComment serializer for use by flaw_comments endpoint"""
 
-    order = serializers.IntegerField(required=False)
-
     def create(self, validated_data):
         """
         Create FlawComment instance by deserializing input.
-
-        Force sequential order. This is required by bzimport. Also makes
-        ordering exact.
         """
-
-        flaw = validated_data["flaw"]
-        next_order = 1
-        if flaw.comments.exists():
-            next_order = 1 + flaw.comments.aggregate(Max("order"))["order__max"]
-        validated_data["order"] = next_order
         return super().create(validated_data)
 
     class Meta:
@@ -2396,9 +2378,7 @@ class FlawCommentSerializer(
         ]
 
 
-@extend_schema_serializer(
-    exclude_fields=["external_system_id", "flaw", "order", "updated_dt"]
-)
+@extend_schema_serializer(exclude_fields=["external_system_id", "flaw", "updated_dt"])
 class FlawCommentPostSerializer(FlawCommentSerializer):
     # Extra serializer for POST request because some fields are not
     # submittable by the client and their submit values are hardwired

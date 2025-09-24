@@ -146,14 +146,13 @@ class TestFlaw:
         assert affect1 in all_affects
         assert affect2 in all_affects
 
-        comment1 = FlawCommentFactory(flaw=vuln_1, order=0)
+        comment1 = FlawCommentFactory(flaw=vuln_1)
         comment2 = FlawComment(
             flaw=vuln_1,
             external_system_id="9999991",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             text="some comment text",
-            order=1,
         )
         comment2.save()
         all_comments = vuln_1.comments.all()

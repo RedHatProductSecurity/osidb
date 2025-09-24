@@ -1691,11 +1691,10 @@ class TestEndpointsFlaws:
             assert not FlawComment._base_manager.filter(flaw=flaw).exists()
             return flaw
 
-        def get_response(flaw, new_comment, order):
+        def get_response(flaw, new_comment):
             return auth_client().post(
                 f"{test_api_uri}/flaws/{flaw.uuid}/comments",
                 {
-                    "order": order,
                     "embargoed": False,
                     "text": new_comment,
                 },
@@ -1706,7 +1705,7 @@ class TestEndpointsFlaws:
 
         flaw = new_flaw()
         assert not FlawComment.objects.filter(flaw=flaw).exists()
-        response = get_response(flaw, "HELLO WORLD COMMENT", 1)
+        response = get_response(flaw, "HELLO WORLD COMMENT")
         assert response.status_code == 201
 
         # NOTE: In this test, `SYNC_TO_BZ and bz_api_key is not None` is False in BugzillaSyncMixin.
@@ -1721,7 +1720,7 @@ class TestEndpointsFlaws:
         assert first_comment == FlawComment.objects.get(external_system_id="")
 
         # Behaves like an ordinary non-idempotent POST endpoint. You can just simply post comments.
-        response = get_response(flaw, "ANOTHER HELLO WORLD COMMENT", 2)
+        response = get_response(flaw, "ANOTHER HELLO WORLD COMMENT")
         assert response.status_code == 201
         response = auth_client().post(
             f"{test_api_uri}/flaws/{flaw.uuid}/comments",
