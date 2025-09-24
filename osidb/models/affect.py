@@ -526,7 +526,7 @@ class Affect(
         Alternatively, the PSComponent should have an override set in Product Definitions.
         The used PSComponent is either misspelled or the override is missing.
         """
-        from apps.bbsync.cc import AffectCCBuilder, RHSCLAffectCCBuilder
+        from osidb.cc import BugzillaAffectCCBuilder, RHSCLBugzillaAffectCCBuilder
 
         if not self.ps_component:
             return
@@ -541,10 +541,14 @@ class Affect(
             return
 
         if self.is_rhscl:
-            cc_affect = RHSCLAffectCCBuilder(affect=self, embargoed=self.is_embargoed)
+            cc_affect = RHSCLBugzillaAffectCCBuilder(
+                affect=self, embargoed=self.is_embargoed
+            )
             _, component = cc_affect.collection_component()
         else:
-            cc_affect = AffectCCBuilder(affect=self, embargoed=self.is_embargoed)
+            cc_affect = BugzillaAffectCCBuilder(
+                affect=self, embargoed=self.is_embargoed
+            )
             component = cc_affect.ps2bz_component()
 
         if not cc_affect.is_bugzilla:

@@ -2,10 +2,14 @@ import json
 
 import pytest
 
-from apps.bbsync.cc import AffectCCBuilder, CCBuilder, RHSCLAffectCCBuilder
 from apps.bbsync.constants import RHSCL_BTS_KEY, USER_BLACKLIST
 from apps.bbsync.tests.factories import BugzillaComponentFactory, BugzillaProductFactory
-from osidb.cc import JiraAffectCCBuilder
+from osidb.cc import (
+    BugzillaAffectCCBuilder,
+    BugzillaFlawCCBuilder,
+    JiraAffectCCBuilder,
+    RHSCLBugzillaAffectCCBuilder,
+)
 from osidb.models import Affect, Flaw, PsModule, PsUpdateStream
 from osidb.tests.factories import (
     AffectFactory,
@@ -133,7 +137,7 @@ class TestCCBuilder:
         """
         flaw = FlawFactory()
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -149,7 +153,7 @@ class TestCCBuilder:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -172,7 +176,7 @@ class TestCCBuilder:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -210,7 +214,7 @@ class TestCCBuilder:
             resolution=Affect.AffectResolution.WONTFIX,
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == cc
         assert not remove_cc
@@ -239,7 +243,7 @@ class TestCCBuilder:
             old_cc=old_cc,
         )
 
-        cc_builder = CCBuilder(flaw, old_cc)
+        cc_builder = BugzillaFlawCCBuilder(flaw, old_cc)
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -256,7 +260,7 @@ class TestCCBuilder:
             ],
         )
 
-        cc_builder = CCBuilder(new_flaw, old_cc)
+        cc_builder = BugzillaFlawCCBuilder(new_flaw, old_cc)
         add_cc, remove_cc = cc_builder.content
         assert add_cc == ["rhel-7.openssl@redhat.com"]
         assert not remove_cc
@@ -275,7 +279,7 @@ class TestCCBuilder:
             ],
         )
 
-        cc_builder = CCBuilder(new_flaw, old_cc)
+        cc_builder = BugzillaFlawCCBuilder(new_flaw, old_cc)
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -307,7 +311,7 @@ class TestAffectCCBuilder:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == cc
         assert not remove_cc
@@ -329,7 +333,7 @@ class TestAffectCCBuilder:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == ["you@redhat.com"]
         assert not remove_cc
@@ -351,7 +355,7 @@ class TestAffectCCBuilder:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == ["you@redhat.com"]
         assert not remove_cc
@@ -380,7 +384,7 @@ class TestAffectCCBuilder:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        cc_builder = AffectCCBuilder(affect, False)
+        cc_builder = BugzillaAffectCCBuilder(affect, False)
         cc_list = set(cc_builder.cc)
         if ps_module.bts_name == "bugzilla":
             assert cc_list == {
@@ -434,14 +438,14 @@ class TestAffectCCBuilder:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        cc_builder1 = AffectCCBuilder(affect1, False)
+        cc_builder1 = BugzillaAffectCCBuilder(affect1, False)
         cc_list1 = set(cc_builder1.cc)
         assert cc_list1 == {
             "catfish@email.org",
             "duck@fedora.org",
         }
 
-        cc_builder2 = AffectCCBuilder(affect2, False)
+        cc_builder2 = BugzillaAffectCCBuilder(affect2, False)
         cc_list2 = set(cc_builder2.cc)
         assert cc_list2 == {
             "horse@redhat.com",
@@ -486,7 +490,7 @@ class TestAffectCCBuilder:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert set(add_cc) == {
             "catfish@email.org",
@@ -524,7 +528,7 @@ class TestAffectCCBuilder:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == expected_cc
         assert not remove_cc
@@ -548,9 +552,11 @@ class TestAffectCCBuilder:
         )
 
         # no private tracker CC is expected for the flaw
-        assert not AffectCCBuilder(affect, flaw.embargoed, destination="flaw").cc
+        assert not BugzillaAffectCCBuilder(
+            affect, flaw.embargoed, destination="flaw"
+        ).cc
         assert sorted(
-            AffectCCBuilder(affect, flaw.embargoed, destination="tracker").cc
+            BugzillaAffectCCBuilder(affect, flaw.embargoed, destination="tracker").cc
         ) == ["me@redhat.com", "you@redhat.com"]
 
     @pytest.mark.parametrize(
@@ -646,7 +652,7 @@ class TestAffectCCBuilder:
             ps_component=ps_component,
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == (
             ["me@redhat.com"] if component_overrides and component_cc else []
@@ -712,7 +718,7 @@ class TestAffectCCBuilder:
             ps_component="brick",
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == expected_cc
         assert not remove_cc
@@ -750,7 +756,7 @@ class TestAffectCCBuilder:
             product=bz_product,
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == expected_cc
         assert not remove_cc
@@ -813,7 +819,7 @@ class TestRHSCLAffectCCBuilder:
             ps_component="apple-juice",
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == ["dog@redhat.com", "me@redhat.com", "you@redhat.com"]
         assert not remove_cc
@@ -847,9 +853,9 @@ class TestRHSCLAffectCCBuilder:
             ps_component="stick",
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
-        assert RHSCLAffectCCBuilder(affect, flaw.embargoed).collection is None
+        assert RHSCLBugzillaAffectCCBuilder(affect, flaw.embargoed).collection is None
         assert add_cc == ["her@redhat.com", "you@redhat.com"]
         assert not remove_cc
 
@@ -883,9 +889,9 @@ class TestRHSCLAffectCCBuilder:
             ps_component="stick-brick",
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
-        assert RHSCLAffectCCBuilder(affect, flaw.embargoed).collection is None
+        assert RHSCLBugzillaAffectCCBuilder(affect, flaw.embargoed).collection is None
         assert add_cc == ["you@redhat.com"]
         assert not remove_cc
 

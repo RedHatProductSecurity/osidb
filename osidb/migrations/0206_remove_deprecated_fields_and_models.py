@@ -8,7 +8,7 @@ import pgtrigger.migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0204_denormalize_flaw_labels'),
+        ('osidb', '0205_denormalize_flaw_labels'),
     ]
 
     operations = [
