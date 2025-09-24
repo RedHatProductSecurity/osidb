@@ -11,7 +11,6 @@ from typing import Optional
 
 from django.utils.timezone import make_aware
 
-from apps.sla.framework import sla_classify
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
     ComponentUnavailableError,
@@ -27,6 +26,7 @@ from apps.trackers.exceptions import (
     TrackerCreationError,
 )
 from apps.trackers.models import JiraProjectFields
+from apps.sla.models import SLAPolicy
 from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
 from osidb.cc import JiraAffectCCBuilder
 from osidb.models import Affect, AffectCVSS, Flaw, FlawCVSS, FlawSource, Impact
@@ -372,7 +372,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             project_key=self.ps_module.bts_key, field_name="Target start"
         )
 
-        sla_context = sla_classify(self.tracker)
+        sla_context = SLAPolicy.classify(self.tracker)
         # the tracker may or may not be under SLA
         if sla_context.sla is not None:
             self._query["fields"]["duedate"] = sla_context.end.isoformat()
