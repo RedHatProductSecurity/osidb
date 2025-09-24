@@ -11416,6 +11416,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/Tracker'
           readOnly: true
+          nullable: true
         delegated_resolution:
           type: string
           readOnly: true
@@ -11466,6 +11467,7 @@ components:
       - delegated_not_affected_justification
       - delegated_resolution
       - embargoed
+      - flaw
       - ps_product
       - ps_update_stream
       - resolved_dt
@@ -11531,6 +11533,7 @@ components:
             it is used to detect mit-air collisions.
       required:
       - embargoed
+      - flaw
       - ps_update_stream
       - updated_dt
       - uuid
@@ -11772,6 +11775,7 @@ components:
             access to the resource.
       required:
       - embargoed
+      - flaw
       - ps_update_stream
     AffectReportData:
       type: object
@@ -11841,6 +11845,7 @@ components:
             it is used to detect mit-air collisions.
       required:
       - embargoed
+      - flaw
       - ps_update_stream
       - updated_dt
     AffectV1:
