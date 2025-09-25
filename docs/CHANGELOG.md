@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add query for finding flaw whose non-community affects are missing trackers (OSIDB-4104)
+- Support unmbargoing for closed trackers (OSIDB-3729)
 
 ## [4.16.0] - 2025-09-16
 ### Fixed
