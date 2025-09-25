@@ -85,8 +85,16 @@ class TrackerJiraSaver(JiraQuerier):
         """
         update an existing representation of tracker model in Jira
         """
-        builder = self.get_builder()
-        query = builder(tracker).query
+        builder = self.get_builder()(tracker)
+
+        if tracker.is_closed:
+            if isinstance(builder, TrackerJiraQueryBuilder):
+                builder.generate_only_embargo_and_security_level()
+            else:
+                builder.generate_only_security()
+
+        query = builder.query
+
         url = f"{self.jira_conn._get_url('issue')}/{query['key']}"
         self.jira_conn._session.put(url, json.dumps(query))
         return tracker
