@@ -15,6 +15,10 @@ class LastStateException(WorkflowsException):
     """exception for trying to promote further when in the last possible state"""
 
 
+class InitialStateException(WorkflowsException):
+    """exception for trying to revert further when in the first possible state"""
+
+
 class MissingRequirementsException(WorkflowsException):
     """exception for trying to change state without requirements"""
 
