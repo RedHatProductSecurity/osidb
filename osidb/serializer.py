@@ -1164,7 +1164,7 @@ class AffectSerializer(
         "resolution",
     )
 
-    tracker = serializers.SerializerMethodField()
+    tracker = serializers.SerializerMethodField(allow_null=True)
     meta_attr = serializers.SerializerMethodField()
     cvss_scores = AffectCVSSSerializer(many=True, read_only=True)
     # at least one of ps_component or purl is required
