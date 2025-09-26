@@ -174,7 +174,7 @@ def test_api_uri(test_scheme_host, api_version):
 
 @pytest.fixture
 def test_api_v2_uri(test_scheme_host):
-    return f"{test_scheme_host}/api/v2beta"
+    return f"{test_scheme_host}/api/v2"
 
 
 @pytest.fixture

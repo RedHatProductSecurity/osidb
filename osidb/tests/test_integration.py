@@ -47,5 +47,5 @@ class TestIntegration(object):
 
     def test_flaws_with_curl_v2(self, command_curl, live_server):
         """access flaw api v2 using curl"""
-        json_body = self._test_with_curl(command_curl, live_server, "api/v2beta/flaws")
+        json_body = self._test_with_curl(command_curl, live_server, "api/v2/flaws")
         assert "count" in json_body
