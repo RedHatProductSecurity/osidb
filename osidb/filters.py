@@ -1278,7 +1278,6 @@ class FlawCommentFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
         model = FlawComment
         fields = {
             "uuid": ["exact"],
-            "order": ["exact"],
             "external_system_id": ["exact"],
             "creator": ["exact"],
         }
