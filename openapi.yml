@@ -706,9 +706,9 @@ paths:
                     version:
                       type: string
           description: ''
-  /exploits/api/v2beta/flaw_data:
+  /exploits/api/v2/flaw_data:
     get:
-      operationId: exploits_api_v2beta_flaw_data_list
+      operationId: exploits_api_v2_flaw_data_list
       description: Flaw, affect v2, and tracker data for Exploits
       parameters:
       - name: limit
@@ -746,9 +746,9 @@ paths:
                     version:
                       type: string
           description: ''
-  /exploits/api/v2beta/report/date/{date}:
+  /exploits/api/v2/report/date/{date}:
     get:
-      operationId: exploits_api_v2beta_report_date_retrieve
+      operationId: exploits_api_v2_report_date_retrieve
       description: |-
         API endpoint for getting date based report for Incident Response.
 
@@ -811,9 +811,9 @@ paths:
                   version:
                     type: string
           description: ''
-  /exploits/api/v2beta/report/explanations:
+  /exploits/api/v2/report/explanations:
     get:
-      operationId: exploits_api_v2beta_report_explanations_retrieve
+      operationId: exploits_api_v2_report_explanations_retrieve
       description: |-
         API endpoint for getting a report of all CVEs with exploit and their status
         for Incident Response.
@@ -852,9 +852,9 @@ paths:
                   version:
                     type: string
           description: ''
-  /exploits/api/v2beta/report/pending:
+  /exploits/api/v2/report/pending:
     get:
-      operationId: exploits_api_v2beta_report_pending_retrieve
+      operationId: exploits_api_v2_report_pending_retrieve
       description: |-
         API endpoint for getting a report of pending actions for Incident Response.
 
@@ -6849,9 +6849,9 @@ paths:
                     version:
                       type: string
           description: ''
-  /osidb/api/v2beta/affects:
+  /osidb/api/v2/affects:
     get:
-      operationId: osidb_api_v2beta_affects_list
+      operationId: osidb_api_v2_affects_list
       parameters:
       - in: query
         name: affectedness
@@ -7655,7 +7655,7 @@ paths:
                       type: string
           description: ''
     post:
-      operationId: osidb_api_v2beta_affects_create
+      operationId: osidb_api_v2_affects_create
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -7702,9 +7702,9 @@ paths:
                     version:
                       type: string
           description: ''
-  /osidb/api/v2beta/affects/{affect_id}/cvss-scores:
+  /osidb/api/v2/affects/{affect_id}/cvss-scores:
     get:
-      operationId: osidb_api_v2beta_affects_cvss_scores_list
+      operationId: osidb_api_v2_affects_cvss_scores_list
       parameters:
       - in: path
         name: affect_id
@@ -7879,7 +7879,7 @@ paths:
                       type: string
           description: ''
     post:
-      operationId: osidb_api_v2beta_affects_cvss_scores_create
+      operationId: osidb_api_v2_affects_cvss_scores_create
       parameters:
       - in: path
         name: affect_id
@@ -7922,9 +7922,9 @@ paths:
                     version:
                       type: string
           description: ''
-  /osidb/api/v2beta/affects/{affect_id}/cvss-scores/{id}:
+  /osidb/api/v2/affects/{affect_id}/cvss-scores/{id}:
     get:
-      operationId: osidb_api_v2beta_affects_cvss_scores_retrieve
+      operationId: osidb_api_v2_affects_cvss_scores_retrieve
       parameters:
       - in: path
         name: affect_id
@@ -7980,7 +7980,7 @@ paths:
                       type: string
           description: ''
     put:
-      operationId: osidb_api_v2beta_affects_cvss_scores_update
+      operationId: osidb_api_v2_affects_cvss_scores_update
       parameters:
       - in: path
         name: affect_id
@@ -8029,7 +8029,7 @@ paths:
                       type: string
           description: ''
     delete:
-      operationId: osidb_api_v2beta_affects_cvss_scores_destroy
+      operationId: osidb_api_v2_affects_cvss_scores_destroy
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -8068,9 +8068,9 @@ paths:
                   version:
                     type: string
           description: ''
-  /osidb/api/v2beta/affects/{uuid}:
+  /osidb/api/v2/affects/{uuid}:
     get:
-      operationId: osidb_api_v2beta_affects_retrieve
+      operationId: osidb_api_v2_affects_retrieve
       parameters:
       - in: query
         name: exclude_fields
@@ -8140,7 +8140,7 @@ paths:
                       type: string
           description: ''
     put:
-      operationId: osidb_api_v2beta_affects_update
+      operationId: osidb_api_v2_affects_update
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -8195,7 +8195,7 @@ paths:
                       type: string
           description: ''
     delete:
-      operationId: osidb_api_v2beta_affects_destroy
+      operationId: osidb_api_v2_affects_destroy
       description: Destroy the instance and proxy the delete to Bugzilla
       parameters:
       - in: header
@@ -8231,9 +8231,9 @@ paths:
                   version:
                     type: string
           description: ''
-  /osidb/api/v2beta/affects/bulk:
+  /osidb/api/v2/affects/bulk:
     post:
-      operationId: osidb_api_v2beta_affects_bulk_create
+      operationId: osidb_api_v2_affects_bulk_create
       description: Bulk create endpoint. Expects a list of dict Affect objects.
       parameters:
       - in: header
@@ -8283,7 +8283,7 @@ paths:
                       type: string
           description: ''
     put:
-      operationId: osidb_api_v2beta_affects_bulk_update
+      operationId: osidb_api_v2_affects_bulk_update
       description: Bulk update endpoint. Expects a list of dict Affect objects.
       parameters:
       - in: header
@@ -8338,7 +8338,7 @@ paths:
                       type: string
           description: ''
     delete:
-      operationId: osidb_api_v2beta_affects_bulk_destroy
+      operationId: osidb_api_v2_affects_bulk_destroy
       description: Bulk delete endpoint. Expects a list of Affect uuids.
       parameters:
       - in: header
@@ -8367,9 +8367,9 @@ paths:
                   version:
                     type: string
           description: ''
-  /osidb/api/v2beta/flaws:
+  /osidb/api/v2/flaws:
     get:
-      operationId: osidb_api_v2beta_flaws_list
+      operationId: osidb_api_v2_flaws_list
       parameters:
       - in: query
         name: acknowledgments__affiliation
@@ -9633,7 +9633,7 @@ paths:
                       type: string
           description: ''
     post:
-      operationId: osidb_api_v2beta_flaws_create
+      operationId: osidb_api_v2_flaws_create
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -9680,9 +9680,9 @@ paths:
                     version:
                       type: string
           description: ''
-  /osidb/api/v2beta/flaws/{flaw_id}/cvss-scores:
+  /osidb/api/v2/flaws/{flaw_id}/cvss-scores:
     get:
-      operationId: osidb_api_v2beta_flaws_cvss_scores_list
+      operationId: osidb_api_v2_flaws_cvss_scores_list
       parameters:
       - in: query
         name: comment
@@ -9857,7 +9857,7 @@ paths:
                       type: string
           description: ''
     post:
-      operationId: osidb_api_v2beta_flaws_cvss_scores_create
+      operationId: osidb_api_v2_flaws_cvss_scores_create
       parameters:
       - in: path
         name: flaw_id
@@ -9900,9 +9900,9 @@ paths:
                     version:
                       type: string
           description: ''
-  /osidb/api/v2beta/flaws/{flaw_id}/cvss-scores/{id}:
+  /osidb/api/v2/flaws/{flaw_id}/cvss-scores/{id}:
     get:
-      operationId: osidb_api_v2beta_flaws_cvss_scores_retrieve
+      operationId: osidb_api_v2_flaws_cvss_scores_retrieve
       parameters:
       - in: query
         name: exclude_fields
@@ -9958,7 +9958,7 @@ paths:
                       type: string
           description: ''
     put:
-      operationId: osidb_api_v2beta_flaws_cvss_scores_update
+      operationId: osidb_api_v2_flaws_cvss_scores_update
       parameters:
       - in: path
         name: flaw_id
@@ -10007,7 +10007,7 @@ paths:
                       type: string
           description: ''
     delete:
-      operationId: osidb_api_v2beta_flaws_cvss_scores_destroy
+      operationId: osidb_api_v2_flaws_cvss_scores_destroy
       description: Destroy the instance and proxy the delete to Bugzilla
       parameters:
       - in: header
@@ -10047,9 +10047,9 @@ paths:
                   version:
                     type: string
           description: ''
-  /osidb/api/v2beta/flaws/{id}:
+  /osidb/api/v2/flaws/{id}:
     get:
-      operationId: osidb_api_v2beta_flaws_retrieve
+      operationId: osidb_api_v2_flaws_retrieve
       parameters:
       - in: query
         name: exclude_fields
@@ -10134,7 +10134,7 @@ paths:
                       type: string
           description: ''
     put:
-      operationId: osidb_api_v2beta_flaws_update
+      operationId: osidb_api_v2_flaws_update
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -10194,9 +10194,9 @@ paths:
                     version:
                       type: string
           description: ''
-  /osidb/api/v2beta/trackers:
+  /osidb/api/v2/trackers:
     get:
-      operationId: osidb_api_v2beta_trackers_list
+      operationId: osidb_api_v2_trackers_list
       parameters:
       - in: query
         name: affects__affectedness
@@ -10837,7 +10837,7 @@ paths:
                       type: string
           description: ''
     post:
-      operationId: osidb_api_v2beta_trackers_create
+      operationId: osidb_api_v2_trackers_create
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -10884,9 +10884,9 @@ paths:
                     version:
                       type: string
           description: ''
-  /osidb/api/v2beta/trackers/{uuid}:
+  /osidb/api/v2/trackers/{uuid}:
     get:
-      operationId: osidb_api_v2beta_trackers_retrieve
+      operationId: osidb_api_v2_trackers_retrieve
       parameters:
       - in: query
         name: exclude_fields
@@ -10950,7 +10950,7 @@ paths:
                       type: string
           description: ''
     put:
-      operationId: osidb_api_v2beta_trackers_update
+      operationId: osidb_api_v2_trackers_update
       parameters:
       - in: header
         name: Bugzilla-Api-Key
