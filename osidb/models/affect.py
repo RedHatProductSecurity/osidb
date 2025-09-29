@@ -229,6 +229,10 @@ class Affect(
     # non operational meta data
     meta_attr = HStoreField(default=dict)
 
+    # Denormalized labels that this affect would generate
+    # Stored as list of label names: ["label1", "label2", ...]
+    labels = models.JSONField(default=list, blank=True)
+
     # A Flaw can have many Affects
     flaw = models.ForeignKey(Flaw, on_delete=models.CASCADE, related_name="affects")
 
@@ -274,6 +278,22 @@ class Affect(
                 raise
             else:
                 pass
+
+    def update_denormalized_labels(self):
+        """Update the denormalized labels field based on current ps_module and ps_component."""
+        from osidb.models.flaw.label import FlawLabel
+
+        if not self.ps_module or not self.ps_component:
+            self.labels = []
+            return
+
+        # Get matching labels using the existing manager logic
+        matching_labels = FlawLabel.objects.get_filtered(
+            [self.ps_module], [self.ps_component]
+        )
+
+        # Store as list of label names
+        self.labels = [label.name for label in matching_labels]
 
     def save(self, *args, **kwargs):
         if self.purl and not self.ps_component:

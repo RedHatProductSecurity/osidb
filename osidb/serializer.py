@@ -1174,6 +1174,7 @@ class AffectSerializer(
     purl = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     resolved_dt = serializers.DateTimeField(read_only=True, allow_null=True)
     cve_id = serializers.CharField(allow_blank=True, read_only=True)
+    labels = serializers.ListField(child=serializers.CharField(), read_only=True)
 
     @extend_schema_field(
         {
@@ -1225,6 +1226,7 @@ class AffectSerializer(
                 "not_affected_justification",
                 "delegated_not_affected_justification",
                 "resolved_dt",
+                "labels",
             ]
             + ACLMixinSerializer.Meta.fields
             + AlertMixinSerializer.Meta.fields

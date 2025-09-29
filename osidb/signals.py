@@ -267,3 +267,21 @@ def mirror_parent_cve_id(sender, instance, **kwargs):
         parent = instance.affects.first()
     if parent:
         instance.cve_id = parent.cve_id
+
+
+@receiver(pre_save, sender=Affect)
+def update_denormalized_labels_on_affect_change(sender, instance, **kwargs):
+    """
+    Update denormalized labels when ps_module or ps_component change.
+    """
+    if instance._state.adding:
+        # New affect - always update labels
+        instance.update_denormalized_labels()
+    else:
+        # Existing affect - check if ps_module or ps_component changed
+        db_instance = Affect.objects.get(pk=instance.pk)
+        if (
+            instance.ps_module != db_instance.ps_module
+            or instance.ps_component != db_instance.ps_component
+        ):
+            instance.update_denormalized_labels()
