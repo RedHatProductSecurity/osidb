@@ -89,6 +89,29 @@ class FlawManager(ACLMixinManager, TrackingMixinManager, WorkflowModelManager):
         # Search default Flaw fields (title, comment_zero, cve_description, statement) with default weights
         # If search has no results, this will now return an empty queryset
 
+    @staticmethod
+    def get_by_identifier(id, queryset=None):
+        """
+        Get a flaw by its identifier: CVE ID or UUID.
+        Match CVE ID case-insensitively and default to UUID if CVE does not match.
+
+        Optionally accepts a custom Flaw queryset to fetch from.
+        """
+        from osidb.validators import CVE_RE_STR
+
+        if queryset is None:
+            queryset = Flaw.objects
+        elif queryset.model != Flaw:
+            raise ValidationError("queryset must be a Flaw queryset")
+
+        id_upper = id.upper()
+        cve_match = CVE_RE_STR.match(id_upper)
+
+        if cve_match:
+            return queryset.get(cve_id=id_upper)
+
+        return queryset.get(pk=id)
+
 
 @pghistory.track(
     pghistory.InsertEvent(),

@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Remove deprecated fields/models: `PsProduct`'s `team`, `FlawComment`'s `order` 
   and models in `package_versions.py` (OSIDB-3552)
+- Make CVE ID case insensitive for flaw queries (OSIDB-3766)
 
 ## [4.16.0] - 2025-09-16
 ### Fixed
