@@ -12,7 +12,7 @@ WITH ranked_affects AS (
     SELECT
         *,
         ROW_NUMBER() OVER (
-            PARTITION BY flaw_id, ps_module
+            PARTITION BY flaw_id, ps_module, ps_component
             ORDER BY
                 -- Affected affects take priority
                 CASE WHEN affectedness = 'NOTAFFECTED' THEN 2 ELSE 1 END,
