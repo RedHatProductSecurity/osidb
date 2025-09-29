@@ -50,10 +50,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.workflows.workflow import WorkflowModel
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 from osidb.core import set_user_acls
-from osidb.helpers import get_bugzilla_api_key
+from osidb.helpers import get_bugzilla_api_key, get_flaw_or_404
 from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import Affect, AffectCVSS, Flaw, FlawLabel, Tracker
 from osidb.models.flaw.cvss import FlawCVSS
+from osidb.validators import CVE_RE_STR
 
 from .constants import OSIDB_API_VERSION, PYPI_URL
 from .filters import (
@@ -111,7 +112,6 @@ from .serializer import (
     TrackerSerializer,
     UserSerializer,
 )
-from .validators import CVE_RE_STR
 
 # Use only for RudimentaryUserPathLoggingMixin
 api_logger = logging.getLogger("api_req")
@@ -608,10 +608,8 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         """get flaw object instance"""
         queryset = self.get_queryset()
         pk = self.kwargs[self.lookup_url_kwarg]
-        if CVE_RE_STR.match(pk):
-            obj = get_object_or_404(queryset, cve_id=pk)
-        else:
-            obj = get_object_or_404(queryset, uuid=pk)
+
+        obj = get_flaw_or_404(pk, queryset=queryset)
         self.check_object_permissions(self.request, obj)
         return obj
 
@@ -649,10 +647,8 @@ class SubFlawViewGetMixin:
         Gets the flaw instance associated with the requested model instance.
         """
         pk = self.kwargs["flaw_id"]
-        if CVE_RE_STR.match(pk):
-            obj = get_object_or_404(Flaw, cve_id=pk)
-        else:
-            obj = get_object_or_404(Flaw, uuid=pk)
+
+        obj = Flaw.objects.get_by_identifier(pk)
         self.check_object_permissions(self.request, obj)
         return obj
 
@@ -855,12 +851,13 @@ def flaw_available(request: Request, *args, **kwargs) -> Response:
     """
 
     cve_id = kwargs["cve_id"]
-    if not CVE_RE_STR.match(cve_id):
+    valid_cve_id = CVE_RE_STR.match(cve_id.upper())
+    if not valid_cve_id:
         return Response(status=HTTP_400_BAD_REQUEST)
 
     try:
         set_user_acls(settings.ALL_GROUPS)
-        flaw = Flaw.objects.get(cve_id=cve_id)
+        flaw = Flaw.objects.get(cve_id=cve_id.upper())
         set_user_acls([])
     except Flaw.DoesNotExist:
         set_user_acls([])
