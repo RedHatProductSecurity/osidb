@@ -381,11 +381,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         if sla_context.policy is not None:
             if sla_date_field:
                 self._query["fields"][sla_date_field.field_id] = (
-                    sla_context.end.isoformat()
-                )
-            if target_start.exists():
-                self._query["fields"][target_start.first().field_id] = (
-                    sla_context.start.isoformat()
+                    sla_context.end.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+0000"
                 )
         else:
             # explicitly set the empty dates so they are cleared
