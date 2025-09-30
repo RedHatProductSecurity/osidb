@@ -20,10 +20,11 @@ class TestQuerySetRegression:
     executed by the endpoint to a known good value.
     """
 
-    def test_flaw_list(self, auth_client, test_api_uri):
+    @pytest.mark.parametrize("embargoed", [False, True])
+    def test_flaw_list(self, auth_client, test_api_uri, embargoed):
         for _ in range(3):
             flaw = FlawFactory(
-                embargoed=False,
+                embargoed=embargoed,
                 impact=Impact.LOW,
                 major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             )
@@ -34,7 +35,7 @@ class TestQuerySetRegression:
                 resolution=Affect.AffectResolution.DELEGATED,
                 impact=Impact.MODERATE,
             )
-        with assertNumQueries(84):  # initial value -> 113
+        with assertNumQueries(72):  # initial value -> 113
             response = auth_client().get(f"{test_api_uri}/flaws")
             assert response.status_code == 200
 
@@ -68,7 +69,7 @@ class TestQuerySetRegression:
             impact=Impact.LOW,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
-        with assertNumQueries(59):  # initial value -> 60
+        with assertNumQueries(58):  # initial value -> 60
             response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
@@ -86,7 +87,7 @@ class TestQuerySetRegression:
             impact=Impact.MODERATE,
         )
 
-        with assertNumQueries(67):  # initial value -> 78
+        with assertNumQueries(63):  # initial value -> 78
             response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
@@ -104,7 +105,7 @@ class TestQuerySetRegression:
             impact=Impact.MODERATE,
         )
 
-        with assertNumQueries(68):  # initial value -> 82
+        with assertNumQueries(64):  # initial value -> 82
             response = auth_client().get(
                 f"{test_api_uri}/flaws/{flaw.uuid}?include_history=true"
             )
@@ -133,7 +134,7 @@ class TestQuerySetRegression:
                     ps_update_stream=ps_update_stream.name,
                     type=Tracker.BTS2TYPE[ps_module.bts_name],
                 )
-        with assertNumQueries(76):  # initial value -> 93
+        with assertNumQueries(75):  # initial value -> 93
             response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
@@ -144,6 +145,6 @@ class TestQuerySetRegression:
                 resolution=Affect.AffectResolution.DELEGATED,
             )
 
-        with assertNumQueries(60):  # initial value -> 69
+        with assertNumQueries(57):  # initial value -> 69
             response = auth_client().get(f"{test_api_uri}/affects")
             assert response.status_code == 200

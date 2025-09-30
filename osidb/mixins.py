@@ -622,6 +622,14 @@ class ACLMixin(models.Model):
 class AlertManager(ACLMixinManager):
     """Alert manager"""
 
+    def get_queryset(self):
+        """Add content_type select_related to avoid N+1 queries"""
+        return (
+            super()
+            .get_queryset()
+            .select_related("content_type")  # This fixes the ContentType N+1 issue
+        )
+
     @staticmethod
     def create_alert(name, object_id, content_type, **extra_fields):
         """
