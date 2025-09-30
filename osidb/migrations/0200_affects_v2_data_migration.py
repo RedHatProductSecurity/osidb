@@ -79,7 +79,7 @@ def forwards_func(apps, schema_editor):
     create_batch = []
     new_affects_with_cvss = []
 
-    affects_v1 = Affect.objects.all().prefetch_related("cvss_scores", "trackers")
+    affects_v1 = Affect.objects.all().prefetch_related("cvss_scores", "trackers").iterator(chunk_size=BATCH_SIZE)
     for affect in affects_v1:
         v1_affects_processed += 1
 
