@@ -367,17 +367,17 @@ assert response.ok
 
 Now when we know how to perform basic filtering on the flaw fields we can jump into more advanced filtering. The previous filtering
 methods were filtering only the fields that exists directly on the Flaw model. However Flaw also has some related models like Affects
-or Affects Trackers and we would like to filter also on these related models.
+or Trackers and we would like to filter also on these related models.
 
 For this purpose, we will use the same three query parameters as we used in the previous section, however we will use the dot-notation to
 specify fields on realated models to filter.
 
 - `include_fields`/`exclude_fields` -- to filter fields on related models of a flaw all you have to do is write the name of the field
-which represents the related model you want to filter on and the name of the field on the related model separated by a dot, eg. `?include_fields=affects.ps_module` (include only `ps_module` field of all the Affects) or `exclude_fields=affects.trackers.external_system_id` (exclude `external_system_id` field of all the Trackers of all the Affects).
+which represents the related model you want to filter on and the name of the field on the related model separated by a dot, eg. `?include_fields=affects.ps_update_stream` (include only `ps_update_stream` field of all the Affects) or `exclude_fields=affects.tracker.external_system_id` (exclude `external_system_id` field of each Tracker of all the Affects).
 
 - `include_meta_attr` -- related models of a Flaw also have a `meta_attr` field hidden by default as well. To specify which keys of these
 `meta_attr` fields you would like to retrieve just simply write a name of the field which represents the related model whose `meta_attr`
-you would like to show and the name of the `meta_attr` key you would like to show separated by a dot, eg. `?include_meta_attr=affects.component` (to retrieve key `component` from affects `meta_attr` field) or `?include_meta_attr=affects.trackers.bz_id` (to retrieve key `bz_id` from trackers `meta_attr` field). `*` wildcard for retrieving all the keys on related models is supported as well, eg, `include_meta_attr=affects.*,affects.trackers.*` (to get all keys from the affects `meta_attr` and all the keys from affects trackers `meta_attr`)
+you would like to show and the name of the `meta_attr` key you would like to show separated by a dot, eg. `?include_meta_attr=affects.component` (to retrieve key `component` from affects `meta_attr` field) or `?include_meta_attr=affects.tracker.bz_id` (to retrieve key `bz_id` from trackers `meta_attr` field). `*` wildcard for retrieving all the keys on related models is supported as well, eg, `include_meta_attr=affects.*,affects.tracker.*` (to get all keys from the affects `meta_attr` and all the keys from affects trackers `meta_attr`)
 
 Currently supported Flaw related models for advanced filtering: Affects, Trackers
 
@@ -385,17 +385,17 @@ With cURL
 
 ```bash
 $ curl -H "Authorization: Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847" \
-       ${SERVICE_URL}/osidb/api/v1/flaws?include_fields=affects.ps_module
+       ${SERVICE_URL}/osidb/api/v1/flaws?include_fields=affects.ps_update_stream
 ```
 
 ```bash
 $ curl -H "Authorization: Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847" \
-       ${SERVICE_URL}/osidb/api/v1/flaws?exclude_fields=affects.trackers.external_system_id
+       ${SERVICE_URL}/osidb/api/v1/flaws?exclude_fields=affects.tracker.external_system_id
 ```
 
 ```bash
 $ curl -H "Authorization: Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847" \
-       ${SERVICE_URL}/osidb/api/v1/flaws?include_meta_attr=affects.*,affects.trackers.bz_id
+       ${SERVICE_URL}/osidb/api/v1/flaws?include_meta_attr=affects.*,affects.tracker.bz_id
 ```
 
 With python
@@ -430,7 +430,7 @@ assert response.ok
 ### Filtering the flaws related only to specific trackers
 
 Sometimes user can be interested in Trackers and its related Flaws (through Affects). To be able to filter only Flaws, that are connected
-to a specific tracker(s), you can use query parameter `tracker_ids` which expects ID or comma-separated list of IDs (BZ IDs for Bugzilla trackers or Jira IDs for Jira trackers). In addition only only Affects that are related to specified tracker(s) will be shown.
+to a specific tracker(s), you can use query parameter `tracker_ids` which expects ID or comma-separated list of IDs (BZ IDs for Bugzilla trackers or Jira IDs for Jira trackers). In addition only Affects that are related to specified tracker(s) will be shown.
 
 With cURL
 
@@ -468,7 +468,7 @@ $ curl -H "Authorization: Bearer <access_token>" \
               "title": "Retrieve the water chip",
               "comment_zero": "We need the water chip to survive, explore the wasteland and find a replacement",
        }'
-       ${SERVICE_URL}/osidb/api/v1/flaws
+       ${SERVICE_URL}/osidb/api/v2/flaws
 ```
 
 With python
@@ -486,7 +486,7 @@ data = {
     "title": "Retrieve the water chip",
     "comment_zero": "We need the water chip to survive, explore the wasteland and find a replacement",
 }
-response = requests.post("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, json=data)
+response = requests.post("${SERVICE_URL}/osidb/api/v2/flaws", headers=headers, json=data)
 assert response.ok
 ```
 
@@ -508,7 +508,7 @@ $ curl -H "Authorization: Bearer <access_token>" \
               "title": "Retrieve the water chip",
               "comment_zero": "We need the water chip to survive, explore the wasteland and find a replacement",
        }'
-       ${SERVICE_URL}/osidb/api/v1/flaws/CVE-2161-0013
+       ${SERVICE_URL}/osidb/api/v2/flaws/CVE-2161-0013
 ```
 
 With python
@@ -526,7 +526,7 @@ data = {
     "title": "Retrieve the water chip",
     "comment_zero": "We need the water chip to survive, explore the wasteland and find a replacement",
 }
-response = requests.put("${SERVICE_URL}/osidb/api/v1/flaws/CVE-2161-0013", headers=headers, json=data)
+response = requests.put("${SERVICE_URL}/osidb/api/v2/flaws/CVE-2161-0013", headers=headers, json=data)
 assert response.ok
 ```
 
@@ -543,7 +543,7 @@ With cURL
 ```bash
 $ curl -H "Authorization: Bearer <access_token>" \
        -X DELETE
-       ${SERVICE_URL}/osidb/api/v1/flaws/CVE-2161-0013
+       ${SERVICE_URL}/osidb/api/v2/flaws/CVE-2161-0013
 ```
 
 With python
@@ -552,7 +552,7 @@ With python
 import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
-response = requests.delete("${SERVICE_URL}/osidb/api/v1/flaws/CVE-2161-0013", headers=headers)
+response = requests.delete("${SERVICE_URL}/osidb/api/v2/flaws/CVE-2161-0013", headers=headers)
 assert response.ok
 ```
 
@@ -569,7 +569,7 @@ With cURL
 
 ```bash
 $ curl -H "Authorization: Bearer <access_token>" \
-       ${SERVICE_URL}/osidb/api/v1/flaws/2fe16efb-11cb-4cd2-b31b-d769ba821073/comments
+       ${SERVICE_URL}/osidb/api/v2/flaws/2fe16efb-11cb-4cd2-b31b-d769ba821073/comments
 ```
 
 With python
