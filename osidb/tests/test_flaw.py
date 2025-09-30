@@ -1525,6 +1525,12 @@ class TestFlawValidators:
                 tzdatetime(2022, 11, 22),
                 "Non-embargoed flaw has a future unembargo_dt",
             ),
+            (False, None, "Non-embargoed flaw has an empty unembargo_dt"),
+            (
+                False,
+                tzdatetime(2022, 11, 22),
+                "Non-embargoed flaw has a future unembargo_dt",
+            ),
             (False, tzdatetime(2021, 11, 22), None),
             (True, None, None),
             (
@@ -1686,6 +1692,7 @@ class TestFlawValidators:
                     "https://access.redhat.com/link123",
                 ],
                 True,
+                ["mi_cve_description_missing"],
                 ["mi_cve_description_missing"],
             ),
             # article missing

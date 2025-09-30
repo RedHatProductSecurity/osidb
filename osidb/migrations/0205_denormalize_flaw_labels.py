@@ -48,7 +48,7 @@ def forwards_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0203_remove_flaw_download_manager'),
+        ('osidb', '0204_remove_flaw_download_manager'),
     ]
 
     operations = [

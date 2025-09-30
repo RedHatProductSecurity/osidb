@@ -9,7 +9,7 @@ from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import JSONField, Q
 from django.utils import timezone
 from psqlextra.fields import HStoreField
 
@@ -236,6 +236,8 @@ class Flaw(
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)
+    # aegis metadata
+    aegis_meta = JSONField(default=dict, blank=True)
 
     nist_cvss_validation = models.CharField(
         choices=FlawNistCvssValidation.choices, max_length=20, blank=True
@@ -562,8 +564,17 @@ class Flaw(
 
     def _validate_future_unembargo_date(self, **kwargs):
         """
-        Check that an enbargoed flaw has an unembargo date in the future
+        Check that an embargoed flaw has an unembargo date in the future.
+        Only validates when the unembargo date is newly set or has changed.
         """
+
+        try:
+            old_flaw = Flaw.objects.get(pk=self.pk)
+            if old_flaw.unembargo_dt == self.unembargo_dt:
+                return
+        except Flaw.DoesNotExist:
+            pass
+
         if (
             self.is_embargoed
             and self.unembargo_dt is not None

@@ -28,7 +28,7 @@ def forwards_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0197_alter_affect_flaw'),
+        ('osidb', '0198_remove_flaw_insert_insert_remove_flaw_update_update_and_more'),
     ]
 
     operations = [

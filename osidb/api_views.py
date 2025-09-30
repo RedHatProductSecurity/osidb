@@ -1571,7 +1571,7 @@ class AuditView(RudimentaryUserPathLoggingMixin, ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ["pgh_slug", "pgh_label", "pgh_obj_model", "pgh_created_at"]
     http_method_names = get_valid_http_methods(
-        ModelViewSet, excluded=["delete", "post", "update"]
+        ModelViewSet, excluded=["delete", "post", "put"]
     )
     permission_classes = [IsAuthenticatedOrReadOnly]
 
