@@ -4,12 +4,6 @@ version: 1
 # top level
 #################
 
-dn: dc=redhat,dc=com
-dc: redhat
-o: example
-objectclass: dcObject
-objectclass: organization
-
 dn: ou=users,dc=redhat,dc=com
 objectclass: organizationalUnit
 ou: users
