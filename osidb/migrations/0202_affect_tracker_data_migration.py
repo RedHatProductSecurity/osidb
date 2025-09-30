@@ -18,7 +18,7 @@ def forwards_func(apps, schema_editor):
     Tracker = apps.get_model("osidb", "Tracker")
 
     batch = []
-    for tracker in Tracker.objects.all():
+    for tracker in Tracker.objects.all().iterator(chunk_size=BATCH_SIZE):
         for affect in tracker.affects.all():
             affect.tracker = tracker
             batch.append(affect)
