@@ -21,7 +21,7 @@ class TestEndpointsTrackers:
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])
-    def test_tracker_create(self, auth_client, test_api_uri, embargoed, bts_name):
+    def test_tracker_create(self, auth_client, test_api_v2_uri, embargoed, bts_name):
         """
         Test the creation of Tracker records via a REST API POST request.
         """
@@ -42,7 +42,7 @@ class TestEndpointsTrackers:
             "ps_update_stream": ps_update_stream.name,
         }
         response = auth_client().post(
-            f"{test_api_uri}/trackers",
+            f"{test_api_v2_uri}/trackers",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",

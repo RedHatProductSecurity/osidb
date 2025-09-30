@@ -679,7 +679,7 @@ class TestMultiMixinIntegration:
         enable_jira_task_sync,
         enable_jira_tracker_sync,
         jira_token,
-        test_api_uri,
+        test_api_v2_uri,
     ):
         """Tests that validations will block for Trackers with all sync enabled"""
         flaw = FlawFactory(embargoed=False)
@@ -748,7 +748,7 @@ class TestMultiMixinIntegration:
         assert Tracker.objects.all().count() == 0
 
         response = auth_client().post(
-            f"{test_api_uri}/trackers",
+            f"{test_api_v2_uri}/trackers",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,

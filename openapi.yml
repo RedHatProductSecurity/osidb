@@ -6637,55 +6637,6 @@ paths:
                     version:
                       type: string
           description: ''
-    post:
-      operationId: osidb_api_v1_trackers_create
-      description: View for the tracker model adapted to affects v1
-      parameters:
-      - in: header
-        name: Bugzilla-Api-Key
-        schema:
-          type: string
-        description: User generated api key for Bugzilla authentication.
-      - in: header
-        name: Jira-Api-Key
-        schema:
-          type: string
-        description: User generated api key for Jira authentication.
-      tags:
-      - osidb
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TrackerPostRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TrackerPostRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TrackerPostRequest'
-        required: true
-      security:
-      - OsidbTokenAuthentication: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                allOf:
-                - $ref: '#/components/schemas/TrackerPost'
-                - type: object
-                  properties:
-                    dt:
-                      type: string
-                      format: date-time
-                    env:
-                      type: string
-                    revision:
-                      type: string
-                    version:
-                      type: string
-          description: ''
   /osidb/api/v1/trackers/{uuid}:
     get:
       operationId: osidb_api_v1_trackers_retrieve
@@ -6733,62 +6684,6 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                allOf:
-                - $ref: '#/components/schemas/TrackerV1'
-                - type: object
-                  properties:
-                    dt:
-                      type: string
-                      format: date-time
-                    env:
-                      type: string
-                    revision:
-                      type: string
-                    version:
-                      type: string
-          description: ''
-    put:
-      operationId: osidb_api_v1_trackers_update
-      description: View for the tracker model adapted to affects v1
-      parameters:
-      - in: header
-        name: Bugzilla-Api-Key
-        schema:
-          type: string
-        description: User generated api key for Bugzilla authentication.
-      - in: header
-        name: Jira-Api-Key
-        schema:
-          type: string
-        description: User generated api key for Jira authentication.
-      - in: path
-        name: uuid
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this Tracker.
-        required: true
-      tags:
-      - osidb
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TrackerV1Request'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TrackerV1Request'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TrackerV1Request'
-        required: true
-      security:
-      - OsidbTokenAuthentication: []
       responses:
         '200':
           content:
@@ -14861,32 +14756,6 @@ components:
       - type
       - updated_dt
       - uuid
-    TrackerV1Request:
-      type: object
-      description: Serializer for the tracker model adapted to affects v1
-      properties:
-        ps_update_stream:
-          type: string
-          maxLength: 100
-        embargoed:
-          type: boolean
-          description: The embargoed boolean attribute is technically read-only as
-            it just indirectly modifies the ACLs but is mandatory as it controls the
-            access to the resource.
-        updated_dt:
-          type: string
-          format: date-time
-          description: The updated_dt timestamp attribute is mandatory on update as
-            it is used to detect mit-air collisions.
-        sync_to_bz:
-          type: boolean
-          writeOnly: true
-          description: Setting sync_to_bz to false disables flaw sync with Bugzilla
-            after this operation. Use only as part of bulk actions and trigger a flaw
-            bugzilla sync afterwards. Does nothing if BZ is disabled.
-      required:
-      - embargoed
-      - updated_dt
     User:
       type: object
       properties:

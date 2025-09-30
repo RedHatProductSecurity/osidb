@@ -1590,7 +1590,7 @@ class TestEndpointsFlaws:
             assert response.status_code == 200
             assert Flaw.objects.first().unembargo_dt == new_date
 
-    def test_embargoed_deadlock(self, auth_client, test_api_uri):
+    def test_embargoed_deadlock(self, auth_client, test_api_v2_uri):
         flaw = FlawFactory(
             embargoed=True,
             workflow_state=WorkflowModel.WorkflowState.TRIAGE,
@@ -1615,7 +1615,7 @@ class TestEndpointsFlaws:
             ]
 
             res1 = auth_client().post(
-                f"{test_api_uri}/affects/bulk",
+                f"{test_api_v2_uri}/affects/bulk",
                 affects_data,
                 format="json",
                 HTTP_BUGZILLA_API_KEY="SECRET",
@@ -1627,7 +1627,7 @@ class TestEndpointsFlaws:
 
             flaw.refresh_from_db()
             res2 = auth_client().put(
-                f"{test_api_uri}/flaws/{flaw.uuid}",
+                f"{test_api_v2_uri}/flaws/{flaw.uuid}",
                 {
                     "title": flaw.title,
                     "comment_zero": flaw.comment_zero,

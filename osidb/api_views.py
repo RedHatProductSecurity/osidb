@@ -1364,6 +1364,9 @@ class TrackerV1View(TrackerView):
 
     queryset = Tracker.objects.prefetch_related("alerts", "errata").all()
     serializer_class = TrackerV1Serializer
+    http_method_names = get_valid_http_methods(
+        ModelViewSet, excluded=["delete", "post", "put"]
+    )
     filterset_class = TrackerV1Filter
 
 
