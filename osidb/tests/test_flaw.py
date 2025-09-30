@@ -1693,7 +1693,6 @@ class TestFlawValidators:
                 ],
                 True,
                 ["mi_cve_description_missing"],
-                ["mi_cve_description_missing"],
             ),
             # article missing
             (

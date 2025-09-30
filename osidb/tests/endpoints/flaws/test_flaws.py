@@ -1601,12 +1601,13 @@ class TestEndpointsFlaws:
 
         with freeze_time(datetime(2025, 1, 1, tzinfo=timezone.utc)):
             ps_module = PsModuleFactory()
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affects_data = [
                 {
                     "flaw": str(flaw.uuid),
                     "affectedness": "NEW",
                     "resolution": "",
-                    "ps_module": ps_module.name,
+                    "ps_update_stream": ps_update_stream.name,
                     "ps_component": "kernel",
                     "impact": "MODERATE",
                     "embargoed": True,

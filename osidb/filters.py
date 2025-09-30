@@ -456,7 +456,7 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
         ).values_list("name", flat=True)
 
         has_non_community_affects_with_trackers = Exists(
-            Affect.objects.filter(flaw=OuterRef("pk"), trackers__isnull=False).exclude(
+            Affect.objects.filter(flaw=OuterRef("pk"), tracker__isnull=False).exclude(
                 ps_module__in=community_modules
             )
         )
