@@ -13,7 +13,7 @@ def migrate_trackers(apps):
     Affect = apps.get_model("osidb", "Affect")
     Tracker = apps.get_model("osidb", "Tracker")
 
-    for tracker in Tracker.objects.all().prefetch_related("affects"):
+    for tracker in Tracker.objects.all().prefetch_related("affects").iterator(chunk_size=BATCH_SIZE):
         current_affects = list(tracker.affects.all())
         for affect in current_affects:
             if tracker.ps_update_stream != affect.ps_update_stream:
