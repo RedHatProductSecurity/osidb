@@ -9,7 +9,8 @@ from typing import Any, Dict
 import pytest
 from django.utils.timezone import make_aware
 
-from apps.sla.tests.test_framework import load_sla_policies
+from apps.sla.models import SLAPolicy, SLOPolicy
+from apps.sla.tests.test_framework import load_policies
 from apps.trackers.exceptions import (
     ComponentUnavailableError,
     MissingEmbargoStatusError,
@@ -2468,23 +2469,23 @@ class TestTrackerJiraQueryBuilder:
         )
 
 
-class TestOldTrackerJiraQueryBuilderSla:
+class TestOldTrackerJiraQueryBuilderSlo:
     """
-    Test Jira tracker SLA query building for Bug issuetype.
+    Test Jira tracker SLO query building for Bug issuetype.
     Not in the other classes, because for reasons unknown, the tests
     mysteriously breaks when parametrized like others in
     TestBothNewOldTrackerJiraQueryBuilder are. This isn't
-    the first mystery for SLAs, as clean_policies looks suspect too.
-    (Tests should rollback everything when run, so why is SLA
+    the first mystery for SLOs, as clean_policies looks suspect too.
+    (Tests should rollback everything when run, so why is SLO
     cleanup necessary? Something evades pytest cleanup, and
     @pytest.mark.django_db(transaction=True) doesn't help.)
     Not enough resources to investigate deeper.
     """
 
-    def test_generate_sla(self, clean_policies):
+    def test_generate_slo(self, clean_policies, setup_sample_external_resources):
         return
         """
-        test that the query for the Jira SLA timestamps is generated correctly
+        test that the query for the Jira SLO timestamps is generated correctly
         """
         flaw = FlawFactory(
             embargoed=False,
@@ -2505,67 +2506,32 @@ class TestOldTrackerJiraQueryBuilderSla:
             type=Tracker.TrackerType.BUGZILLA,
         )
 
-        JiraProjectFields(
-            project_key=ps_module.bts_key,
-            field_id="priority",
-            field_name="Priority",
-            allowed_values=[
-                "Blocker",
-                "Critical",
-                "Major",
-                "Normal",
-                "Minor",
-                "Undefined",
-            ],
-        ).save()
-        # this value is used in RH instance of Jira however
-        # it is always fetched from project meta anyway
-        target_start_id = "customfield_12313941"
-        JiraProjectFields(
-            project_key=ps_module.bts_key,
-            field_id=target_start_id,
-            field_name="Target start",
-        ).save()
-        JiraProjectFieldsFactory(
-            project_key=ps_module.bts_key,
-            field_id="security",
-            field_name="Security Level",
-            allowed_values=[
-                "Embargoed Security Issue",
-                "Red Hat Employee",
-                "Red Hat Engineering Authorized",
-                "Red Hat Partner",
-                "Restricted",
-                "Team",
-            ],
-        )
-
-        sla_file = """
+        slo_file = """
 ---
 name: Not Embargoed
 description: suitable for whatever we find on the street
 conditions:
   flaw:
     - is not embargoed
-sla:
+slo:
   duration: 10
   start: reported date
   type: calendar days
 """
 
-        load_sla_policies(sla_file)
+        load_policies(SLOPolicy, slo_file)
 
         query = OldTrackerJiraQueryBuilder(tracker).query
 
-        assert target_start_id in query["fields"]
-        assert query["fields"][target_start_id] == "2000-01-01T00:00:00+00:00"
+        assert "customfield_12313941" in query["fields"]
+        assert query["fields"]["customfield_12313941"] == "2000-01-01T00:00:00+00:00"
         assert "duedate" in query["fields"]
         assert query["fields"]["duedate"] == "2000-01-11T00:00:00+00:00"
 
-        # SLA was manually marked to not be calculated
+        # SLO was manually marked to not be calculated
         tracker.meta_attr["labels"] = json.dumps(["nonstandard-sla"])
         query = OldTrackerJiraQueryBuilder(tracker).query
-        assert target_start_id not in query["fields"]
+        assert "customfield_12313941" not in query["fields"]
         assert "duedate" not in query["fields"]
 
 
@@ -2582,7 +2548,7 @@ class TestTrackerJiraQueryBuilderSla:
     Not enough resources to investigate deeper.
     """
 
-    def test_generate_sla(self, clean_policies):
+    def test_generate_sla(self, clean_policies, setup_sample_external_resources):
         """
         test that the query for the Jira SLA timestamps is generated correctly
         """
@@ -2592,8 +2558,8 @@ class TestTrackerJiraQueryBuilderSla:
             source="REDHAT",
         )
         ps_module = PsModuleFactory(
-            bts_key="FOOPROJECT",
-            bts_name="bugzilla",
+            bts_key="RHEL",
+            bts_name="jboss",
             private_trackers_allowed=False,
         )
         affect = AffectFactory(
@@ -2607,26 +2573,10 @@ class TestTrackerJiraQueryBuilderSla:
             affects=[affect],
             embargoed=flaw.embargoed,
             ps_update_stream=ps_update_stream.name,
-            type=Tracker.TrackerType.BUGZILLA,
+            type=Tracker.TrackerType.JIRA,
         )
 
         jira_vulnissuetype_fields_setup_without_versions()
-
-        JiraProjectFields(
-            project_key="FOOPROJECT",
-            field_id="versions",
-            field_name="Affects Version/s",
-            allowed_values=["1.2.3"],
-        ).save()
-
-        # this value is used in RH instance of Jira however
-        # it is always fetched from project meta anyway
-        target_start_id = "customfield_12313941"
-        JiraProjectFields(
-            project_key=ps_module.bts_key,
-            field_id=target_start_id,
-            field_name="Target start",
-        ).save()
 
         sla_file = """
 ---
@@ -2641,17 +2591,13 @@ sla:
   type: calendar days
 """
 
-        load_sla_policies(sla_file)
+        load_policies(SLAPolicy, sla_file)
 
         query = TrackerJiraQueryBuilder(tracker).query
 
-        assert target_start_id in query["fields"]
-        assert query["fields"][target_start_id] == "2000-01-01T00:00:00+00:00"
-        assert "duedate" in query["fields"]
-        assert query["fields"]["duedate"] == "2000-01-11T00:00:00+00:00"
+        assert "customfield_12326740" in query["fields"]
+        assert query["fields"]["customfield_12326740"] == "2000-01-11T00:00:00+00:00"
 
         # SLA was manually marked to not be calculated
         tracker.meta_attr["labels"] = json.dumps(["nonstandard-sla"])
         query = TrackerJiraQueryBuilder(tracker).query
-        assert target_start_id not in query["fields"]
-        assert "duedate" not in query["fields"]

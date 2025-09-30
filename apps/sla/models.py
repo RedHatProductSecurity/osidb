@@ -397,3 +397,85 @@ class SLAPolicy(PolicyBase):
         # return the context resulting
         # in the earliest deadline
         return min(sla_contexts)
+
+
+class SLO(TemporalPolicy):
+    """
+    SLO definition and computation model
+    """
+
+
+class SLOPolicy(PolicyBase):
+    """
+    SLO policy model responsible for interpreting description fields and context
+    """
+
+    slo = models.ForeignKey(
+        SLO, on_delete=models.CASCADE, null=True, related_name="policies"
+    )
+
+    @property
+    def temporal_policy(self) -> TemporalPolicy:
+        return self.slo
+
+    @classmethod
+    def create_from_description(cls, policy_desc, order=None):
+        """Creates an SLO policy from a YAML description."""
+        name = policy_desc["name"]
+        description = policy_desc["description"]
+        slo = SLO.create_from_description(policy_desc["slo"])
+        if slo is not None:
+            slo.save()
+
+        if order is None:
+            order = SLOPolicy.objects.count()
+
+        return SLOPolicy(
+            name=name,
+            description=description,
+            condition_descriptions=policy_desc["conditions"],
+            slo=slo,
+            order=order,
+        )
+
+    def context(self, instance):
+        """
+        find the right SLO context as there may be multiple ones
+        which is the one resulting in the earliest deadline
+        """
+        # for now we only support Tracker SLOs
+        if not isinstance(instance, Tracker):
+            raise SLAExecutionError(f"Unsupported SLO instance type: {type(instance)}")
+
+        ps_update_stream = PsUpdateStream.objects.get(name=instance.ps_update_stream)
+        if not ps_update_stream.rhsa_sla_applicable:
+            return TemporalContext()
+
+        # computing the SLO is not simple as we have to consider multi-flaw trackers where
+        # the SLO start must be computed for the flaw which results in the earlist SLO end
+        slo_contexts = []
+        for affect in instance.affects.all():
+            # Make sure we are getting the latest data from the database and not the possibly
+            # incomplete data from the tracker which may be being saved
+            affect = Affect.objects.get(uuid=affect.uuid)
+            slo_contexts.append(
+                TemporalContext(affect=affect, flaw=affect.flaw, tracker=instance)
+            )
+
+        # filter out the SLO contexts not accepted by this SLO policy
+        slo_contexts = [context for context in slo_contexts if self.accepts(context)]
+        if not slo_contexts:
+            # return an empty context
+            # if none is accepted
+            return TemporalContext()
+
+        # assign SLO policies
+        for context in slo_contexts:
+            context.policy = self.slo
+            if self.slo is None:
+                # Exclusion SLO is defined as null in the policy
+                context.is_exclusion = True
+
+        # return the context resulting
+        # in the earliest deadline
+        return min(slo_contexts)

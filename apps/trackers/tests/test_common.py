@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from apps.sla.models import SLOPolicy
+from apps.sla.models import SLAPolicy, SLOPolicy
 from apps.sla.tests.test_framework import load_policies
 from apps.trackers.bugzilla.query import TrackerBugzillaQueryBuilder
 from apps.trackers.common import TrackerQueryBuilder
@@ -846,3 +846,95 @@ slo:
         assert bool(query["fields"][target_start_id]) is under_slo
 
 
+class TestTrackerQueryBuilderSLA:
+    """
+    TrackerQueryBuilder SLA Date and related stuff test cases
+    """
+
+    @pytest.mark.parametrize(
+        "impact,under_sla",
+        [
+            (Impact.LOW, False),
+            (Impact.MODERATE, False),
+            (Impact.IMPORTANT, True),
+            (Impact.CRITICAL, True),
+        ],
+    )
+    def test_explicit_duedate(
+        self,
+        clean_policies,
+        setup_sample_external_resources,
+        setup_vulnerability_issue_type_fields,
+        impact,
+        under_sla,
+    ):
+        """
+        test that every tracker gets a deadline/duedate
+        even if the value was empty because of no SLA
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            impact=impact,
+            reported_dt=datetime(2020, 1, 1, tzinfo=timezone.utc),
+            source="REDHAT",
+        )
+
+        # Jira tracker context
+        ps_module = PsModuleFactory(
+            bts_key="RHEL",
+            bts_name="jboss",
+            private_trackers_allowed=False,
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            impact=Impact.NOVALUE,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module.name,
+        )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        # simplified impact policies effective today
+        sla_file = """
+---
+name: Critical
+description: SLA policy applied to critical impact
+conditions:
+  affect:
+    - aggregated impact is critical
+sla:
+  duration: 7
+  start:
+    latest:
+      flaw:
+        - unembargo date
+  type: calendar days
+---
+name: Important
+description: SLA policy applied to important impact
+conditions:
+  affect:
+    - aggregated impact is important
+sla:
+  duration: 21
+  start:
+    latest:
+      flaw:
+        - unembargo date
+  type: calendar days
+"""
+
+        load_policies(SLAPolicy, sla_file)
+
+        # check that the SLA fields are always in the query
+        # but has a non-empty value only when SLA is applied
+
+        query = TrackerJiraQueryBuilder(tracker).query
+        assert "customfield_12326740" in query["fields"]
+        assert bool(query["fields"]["customfield_12326740"]) is under_sla

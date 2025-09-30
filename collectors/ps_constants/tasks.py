@@ -14,6 +14,7 @@ from .core import (
     fetch_ps_constants,
     sync_cveorg_keywords,
     sync_jira_bug_issuetype,
+    sync_sla_policies,
     sync_slo_policies,
     sync_special_consideration_packages,
 )
@@ -43,6 +44,10 @@ def collect_step_1_fetch():
     logger.info(f"Fetching PS Constants (SLA Policies) from '{url}'")
     sla_policies = fetch_ps_constants(url, multi=True)
 
+    url = "/".join((PS_CONSTANTS_BASE_URL, "slo_policies.yml"))
+    logger.info(f"Fetching PS Constants (SLO Policies) from '{url}'")
+    slo_policies = fetch_ps_constants(url, multi=True)
+
     url = "/".join((PS_CONSTANTS_BASE_URL, "jira_bug_issuetype.yml"))
     logger.info(f"Fetching PS Constants (Jira Bug issuetype) from '{url}'")
     jira_bug_issuetype = fetch_ps_constants(url)
@@ -54,6 +59,7 @@ def collect_step_1_fetch():
     return (
         cveorg_keywords,
         sc_packages,
+        sla_policies,
         slo_policies,
         jira_bug_issuetype,
     )
@@ -62,11 +68,13 @@ def collect_step_1_fetch():
 def collect_step_2_sync(
     cveorg_keywords,
     sc_packages,
+    sla_policies,
     slo_policies,
     jira_bug_issuetype,
 ):
     sync_cveorg_keywords(cveorg_keywords)
     sync_special_consideration_packages(sc_packages)
+    sync_sla_policies(sla_policies)
     sync_slo_policies(slo_policies)
     sync_jira_bug_issuetype(jira_bug_issuetype)
 
