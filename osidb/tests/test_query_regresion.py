@@ -13,6 +13,7 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.queryset
 
 
+@pytest.mark.parametrize("embargoed", [False, True])
 class TestQuerySetRegression:
     """
     Test that the number of queries executed by a given endpoint
@@ -20,7 +21,6 @@ class TestQuerySetRegression:
     executed by the endpoint to a known good value.
     """
 
-    @pytest.mark.parametrize("embargoed", [False, True])
     def test_flaw_list(self, auth_client, test_api_uri, embargoed):
         for _ in range(3):
             flaw = FlawFactory(
@@ -39,13 +39,13 @@ class TestQuerySetRegression:
             response = auth_client().get(f"{test_api_uri}/flaws")
             assert response.status_code == 200
 
-    def test_flaw_list_filtered(self, auth_client, test_api_uri):
+    def test_flaw_list_filtered(self, auth_client, test_api_uri, embargoed):
         """
         Using the same subset of fields as OSIM
         """
         for _ in range(3):
             flaw = FlawFactory(
-                embargoed=False,
+                embargoed=embargoed,
                 impact=Impact.LOW,
                 major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             )
@@ -57,15 +57,15 @@ class TestQuerySetRegression:
                 impact=Impact.MODERATE,
             )
 
-        with assertNumQueries(61):  # initial value -> 61
+        with assertNumQueries(58):  # initial value -> 61
             response = auth_client().get(
                 f"{test_api_uri}/flaws?include_fields=cve_id,uuid,impact,source,created_dt,updated_dt,classification,title,unembargo_dt,embargoed,owner,labels"
             )
             assert response.status_code == 200
 
-    def test_empty_flaw(self, auth_client, test_api_uri):
+    def test_empty_flaw(self, auth_client, test_api_uri, embargoed):
         flaw = FlawFactory(
-            embargoed=False,
+            embargoed=embargoed,
             impact=Impact.LOW,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
@@ -73,9 +73,9 @@ class TestQuerySetRegression:
             response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
-    def test_flaw_with_affects(self, auth_client, test_api_uri):
+    def test_flaw_with_affects(self, auth_client, test_api_uri, embargoed):
         flaw = FlawFactory(
-            embargoed=False,
+            embargoed=embargoed,
             impact=Impact.LOW,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
@@ -91,9 +91,9 @@ class TestQuerySetRegression:
             response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
-    def test_flaw_with_affects_history(self, auth_client, test_api_uri):
+    def test_flaw_with_affects_history(self, auth_client, test_api_uri, embargoed):
         flaw = FlawFactory(
-            embargoed=False,
+            embargoed=embargoed,
             impact=Impact.LOW,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
@@ -111,9 +111,9 @@ class TestQuerySetRegression:
             )
             assert response.status_code == 200
 
-    def test_flaw_with_affects_trackers(self, auth_client, test_api_uri):
+    def test_flaw_with_affects_trackers(self, auth_client, test_api_uri, embargoed):
         flaw = FlawFactory(
-            embargoed=False,
+            embargoed=embargoed,
             impact=Impact.LOW,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
@@ -130,7 +130,7 @@ class TestQuerySetRegression:
                 ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
                 TrackerFactory(
                     affects=[affect],
-                    embargoed=False,
+                    embargoed=embargoed,
                     ps_update_stream=ps_update_stream.name,
                     type=Tracker.BTS2TYPE[ps_module.bts_name],
                 )
@@ -138,7 +138,7 @@ class TestQuerySetRegression:
             response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
-    def test_affect_list(self, auth_client, test_api_uri):
+    def test_affect_list(self, auth_client, test_api_uri, embargoed):
         for _ in range(3):
             AffectFactory(
                 affectedness=Affect.AffectAffectedness.AFFECTED,
@@ -147,4 +147,36 @@ class TestQuerySetRegression:
 
         with assertNumQueries(57):  # initial value -> 69
             response = auth_client().get(f"{test_api_uri}/affects")
+            assert response.status_code == 200
+
+    def test_related_flaws(self, auth_client, test_api_uri, embargoed):
+        """
+        Test query performance for related flaws endpoint.
+        This query usually takes a lot of time to process from OSIM when
+        fetching flaws that have affects sharing the same ps_module and ps_component.
+        """
+        ps_module = PsModuleFactory()
+        ps_component = "kernel"
+
+        for _ in range(3):
+            flaw = FlawFactory(
+                embargoed=embargoed,
+                impact=Impact.MODERATE,
+                major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            )
+            AffectFactory(
+                flaw=flaw,
+                ps_module=ps_module.name,
+                ps_component=ps_component,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                impact=Impact.MODERATE,
+            )
+
+        with assertNumQueries(59):
+            response = auth_client().get(
+                f"{test_api_uri}/flaws?include_fields=cve_id,uuid,affects,"
+                f"created_dt,updated_dt&affects__ps_module={ps_module.name}"
+                f"&affects__ps_component={ps_component}&order=-created_dt&limit=10"
+            )
             assert response.status_code == 200

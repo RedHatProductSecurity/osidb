@@ -297,6 +297,8 @@ class ACLMixin(models.Model):
         """
         self.set_acl_read(*settings.PUBLIC_READ_GROUPS)
         self.set_acl_write(settings.PUBLIC_WRITE_GROUP)
+        # Update the embargoed annotation to reflect the new ACL state
+        self.embargoed = False
 
     def set_embargoed(self):
         """
@@ -316,6 +318,8 @@ class ACLMixin(models.Model):
         """
         self.set_acl_read(settings.EMBARGO_READ_GROUP)
         self.set_acl_write(settings.EMBARGO_WRITE_GROUP)
+        # Update the embargoed annotation to reflect the new ACL state
+        self.embargoed = True
 
     def set_internal(self):
         """
@@ -335,6 +339,8 @@ class ACLMixin(models.Model):
         """
         self.set_acl_read(settings.INTERNAL_READ_GROUP)
         self.set_acl_write(settings.INTERNAL_WRITE_GROUP)
+        # Update the embargoed annotation to reflect the new ACL state
+        self.embargoed = False
 
     @cached_property
     def acls_public_read(self):
