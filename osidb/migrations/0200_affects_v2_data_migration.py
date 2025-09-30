@@ -86,9 +86,6 @@ def forwards_func(apps, schema_editor):
         try:
             ps_module = PsModule.objects.get(name=affect.ps_module)
         except PsModule.DoesNotExist:
-            print(
-                f"[Warning] Affect {affect.uuid} has no existing PsModule '{affect.ps_module}'."
-            )
             continue
 
         # If trackers exist, only expand affects for the streams associated to those for existing
