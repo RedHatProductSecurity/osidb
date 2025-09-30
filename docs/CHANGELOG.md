@@ -5,8 +5,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Fixed
+- Fix PUT request being allowed for `AuditView` endpoint (OSIDB-4428)
+
+### Added
+- Add query for finding flaw whose non-community affects are missing trackers (OSIDB-4104)
+
 ### Changed
+- Adjust `unembargo_dt` validation for embargoed flaws to only trigger when 
+  `unembargo_dt` is changed (OSIDB-4296)
 - Implement affects v2 (OSIDB-4023)
+
+## [4.16.0] - 2025-09-16
+### Fixed
+- Fix `owner` update in Jira not reflected in OSIDB (OSIDB-4306)
+- Fix not affected justifications from Jira not being collected by OSIDB (OSIDB-4418)
+- Fix use full component name for CC lists (OSIDB-4371)
+
+### Changed
+- Make `affect` model's `flaw` field un-nullable (OSIDB-4202)
+- Remove CVE description validation for Major Incident Flaws (OSIDB-4440)
+
+### Added
+- Add `aegis_meta` field on `Flaw` objects for Aegis metadata (OSIDB-4454)
+
+## [4.15.0] - 2025-08-21
+### Fixed
+- Fix FlawSource enum reference in OpenAPI schema (OSIDB-4401)
+- Fix the available-flaws API giving a 404 on non-existent flaws instead of 204 (OSIDB-4397).
+- Prevent emails from being sent for *rejected* critical flaws (OSIDB-4274)
+
 
 ## [4.16.0] - 2025-09-16
 ### Fixed

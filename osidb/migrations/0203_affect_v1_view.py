@@ -90,7 +90,7 @@ WHERE
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0201_affect_tracker_data_migration'),
+        ('osidb', '0202_affect_tracker_data_migration'),
     ]
 
     operations = [

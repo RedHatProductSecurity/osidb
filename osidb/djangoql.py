@@ -64,7 +64,11 @@ class FlawQLSchema(DjangoQLSchema):
         if model == Flaw:
             exclude += ["snippets", "local_updated_dt"]
             fields.remove("components")
-            fields += [FlawComponentField(), FlawEmbargoedField()]
+            fields += [
+                FlawComponentField(),
+                FlawEmbargoedField(),
+                FlawNonCommunityAffectsNoTrackersField(),
+            ]
         elif model == FlawCollaborator:
             exclude += ["created_dt", "updated_dt", "uuid"]
         return set(fields) - set(exclude)
@@ -128,3 +132,45 @@ class FlawEmbargoedField(BoolField):
                 )
             )
         )
+
+
+class FlawNonCommunityAffectsNoTrackersField(BoolField):
+    """Check if a flaw has non-community affects AND all of them are missing trackers."""
+
+    model = Flaw
+    name = "flaw_has_no_non_community_affects_trackers"
+
+    def get_lookup(self, path, operator, value):
+        from django.db.models import Exists, OuterRef
+
+        from osidb.models import Affect
+        from osidb.models.ps_module import PsModule
+
+        if operator == "=" or operator == "!=":
+            if operator == "!=":
+                value = not value
+
+            community_modules = PsModule.objects.filter(
+                ps_product__business_unit="Community"
+            ).values_list("name", flat=True)
+
+            has_non_community_affects_with_trackers = Exists(
+                Affect.objects.filter(
+                    flaw=OuterRef("pk"), trackers__isnull=False
+                ).exclude(ps_module__in=community_modules)
+            )
+
+            # This filter is in place since the flaw filter doesn't
+            # seem to work if there are no non-community affects.
+            has_non_community_affects = Exists(
+                Affect.objects.filter(flaw=OuterRef("pk")).exclude(
+                    ps_module__in=community_modules
+                )
+            )
+
+            if value:
+                return (
+                    has_non_community_affects & ~has_non_community_affects_with_trackers
+                )
+
+            return ~has_non_community_affects | has_non_community_affects_with_trackers
