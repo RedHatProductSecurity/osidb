@@ -262,7 +262,7 @@ class PolicyBase(models.Model):
     @property
     def temporal_policy(self) -> TemporalPolicy:
         """
-        Concrete subclasses (e.g. SLAPolicy) must
+        Concrete subclasses (e.g. SLOPolicy) must
         return the bound TemporalPolicy instance (or None for exclusions).
         """
         raise NotImplementedError
@@ -282,7 +282,7 @@ class PolicyBase(models.Model):
 
     @classmethod
     def create_from_description(cls, policy_desc, order=None):
-        """Creates an SLA policy from a YAML description."""
+        """Creates an policy from a YAML description."""
         raise NotImplementedError
 
     @cached_property
@@ -335,10 +335,6 @@ class SLAPolicy(PolicyBase):
     sla = models.ForeignKey(
         SLA, on_delete=models.CASCADE, null=True, related_name="policies"
     )
-
-    @property
-    def temporal_policy(self) -> TemporalPolicy:
-        return self.sla
 
     @classmethod
     def create_from_description(cls, policy_desc, order=None):

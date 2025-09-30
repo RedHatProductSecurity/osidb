@@ -2,7 +2,7 @@ import pytest
 import yaml
 from django.utils.timezone import datetime, make_aware, timedelta
 
-from apps.sla.models import SLAPolicy, TemporalContext
+from apps.sla.models import SLOPolicy, TemporalContext
 from osidb.models import Affect, Flaw, Impact, PsUpdateStream, Tracker
 from osidb.tests.factories import (
     AffectFactory,
@@ -15,35 +15,35 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.unit
 
 
-def load_sla_policies(sla_file):
+def load_policies(policy_cls, slo_file):
     """
-    Helper function to load SLA policies into the database using a
-    string representing the contents of an SLA file.
+    Helper function to load SLO policies into the database using a
+    string representing the contents of an SLO file.
     """
-    for order, policy_desc in enumerate(yaml.safe_load_all(sla_file)):
-        policy = SLAPolicy.create_from_description(policy_desc, order)
+    for order, policy_desc in enumerate(yaml.safe_load_all(slo_file)):
+        policy = policy_cls.create_from_description(policy_desc, order)
         policy.save()
 
 
 class TestSLAFramework:
     """
-    test SLA framework functionality
+    test SLA/SLO framework functionality
     """
 
     class TestLoad:
         """
-        test SLA policies loading
+        test SLO policies loading
         """
 
         def test_single(self):
             """
             test that a policy definition is loaded properly
             """
-            sla_file = """
+            slo_file = """
 # some comment
 ---
 name: Low
-description: SLA policy applied to low impact
+description: SLO policy applied to low impact
 conditions:
   affect:
     - aggregated impact is low
@@ -51,7 +51,7 @@ conditions:
   flaw:
     - is not embargoed
     - state is not triage
-sla:
+slo:
   duration: 180
   start:
     latest:
@@ -60,25 +60,25 @@ sla:
   type: calendar days
 """
 
-            load_sla_policies(sla_file)
+            load_policies(SLOPolicy, slo_file)
 
-            assert SLAPolicy.objects.count() == 1
-            policy = SLAPolicy.objects.first()
+            assert SLOPolicy.objects.count() == 1
+            policy = SLOPolicy.objects.first()
             assert policy.name == "Low"
-            assert policy.description == "SLA policy applied to low impact"
+            assert policy.description == "SLO policy applied to low impact"
             assert policy.conditions
-            assert policy.sla
-            # more details are tested as part of SLA model tests
+            assert policy.slo
+            # more details are tested as part of SLO model tests
 
         def test_multiple(self):
             """
             test that multiple policy definitions are loaded properly
             """
-            sla_file = """
+            slo_file = """
 ---
 name: Critical
 description: >
-  SLA policy applied to critical impact
+  SLO policy applied to critical impact
 conditions:
   affect:
     - aggregated impact is critical
@@ -86,7 +86,7 @@ conditions:
   flaw:
     - is not embargoed
     - state is not triage
-sla:
+slo:
   duration: 50
   start:
     latest:
@@ -96,7 +96,7 @@ sla:
 
 ---
 name: Moderate
-description: SLA policy applied to moderate impact
+description: SLO policy applied to moderate impact
 conditions:
   affect:
     - aggregated impact is moderate
@@ -104,7 +104,7 @@ conditions:
   flaw:
     - is not embargoed
     - state is not triage
-sla:
+slo:
   duration: 90
   start:
     latest:
@@ -114,7 +114,7 @@ sla:
 
 ---
 name: Low
-description: SLA policy applied to low impact
+description: SLO policy applied to low impact
 conditions:
   affect:
     - aggregated impact is low
@@ -122,7 +122,7 @@ conditions:
   flaw:
     - is not embargoed
     - state is not triage
-sla:
+slo:
   duration: 180
   start:
     latest:
@@ -131,29 +131,29 @@ sla:
   type: calendar days
 """
 
-            load_sla_policies(sla_file)
-            assert SLAPolicy.objects.count() == 3
-            sla_policies = SLAPolicy.objects.all()
+            load_policies(SLOPolicy, slo_file)
+            assert SLOPolicy.objects.count() == 3
+            slo_policies = SLOPolicy.objects.all()
             # the order matters so check that it is preserved
-            assert sla_policies[0].name == "Critical"
-            assert sla_policies[1].name == "Moderate"
-            assert sla_policies[2].name == "Low"
+            assert slo_policies[0].name == "Critical"
+            assert slo_policies[1].name == "Moderate"
+            assert slo_policies[2].name == "Low"
 
         def test_date_sources(self):
             """
             test that a policy definition with multiple date sources is loaded correctly
             """
-            sla_file = """
+            slo_file = """
 # some comment
 ---
 name: Low
-description: SLA policy applied to low impact
+description: SLO policy applied to low impact
 conditions:
   affect:
     - aggregated impact is low
   flaw:
     - is not embargoed
-sla:
+slo:
   duration: 180
   start:
     latest:
@@ -165,14 +165,14 @@ sla:
   type: calendar days
 """
 
-            load_sla_policies(sla_file)
+            load_policies(SLOPolicy, slo_file)
 
-            assert SLAPolicy.objects.count() == 1
-            policy = SLAPolicy.objects.first()
+            assert SLOPolicy.objects.count() == 1
+            policy = SLOPolicy.objects.first()
             assert policy.name == "Low"
-            assert policy.description == "SLA policy applied to low impact"
+            assert policy.description == "SLO policy applied to low impact"
             assert policy.conditions
-            assert policy.sla
+            assert policy.slo
 
         @pytest.mark.parametrize(
             "type_desc,expected_ending,expected_type",
@@ -198,17 +198,17 @@ sla:
             """
             test that a policy ending is correctly loaded from the definition
             """
-            sla_file = f"""
+            slo_file = f"""
 # some comment
 ---
 name: Low
-description: SLA policy applied to low impact
+description: SLO policy applied to low impact
 conditions:
   affect:
     - aggregated impact is low
   flaw:
     - is not embargoed
-sla:
+slo:
   duration: 180
   start:
     latest:
@@ -220,37 +220,37 @@ sla:
   type: {type_desc}
 """
 
-            load_sla_policies(sla_file)
+            load_policies(SLOPolicy, slo_file)
 
-            assert SLAPolicy.objects.count() == 1
-            policy = SLAPolicy.objects.first()
-            assert policy.sla
-            assert policy.sla.duration_type == expected_type
-            assert policy.sla.ending == expected_ending
+            assert SLOPolicy.objects.count() == 1
+            policy = SLOPolicy.objects.first()
+            assert policy.slo
+            assert policy.slo.duration_type == expected_type
+            assert policy.slo.ending == expected_ending
 
-        def test_null_sla(self):
+        def test_null_slo(self):
             """
-            Test that a policy with a null SLA is correctly loaded from the definition
+            Test that a policy with a null SLO is correctly loaded from the definition
             """
-            sla_file = """
+            slo_file = """
 ---
-name: Null SLA
-description: Null SLA
+name: Null SLO
+description: Null SLO
 conditions:
   affect:
     - aggregated impact is low
-sla: null
+slo: null
 """
-            load_sla_policies(sla_file)
+            load_policies(SLOPolicy, slo_file)
 
-            assert SLAPolicy.objects.count() == 1
-            policy = SLAPolicy.objects.first()
-            assert policy.sla is None
+            assert SLOPolicy.objects.count() == 1
+            policy = SLOPolicy.objects.first()
+            assert policy.slo is None
 
     class TestClassify:
         """
         test that a model instance is properly
-        classified to the correct SLA context
+        classified to the correct SLO context
         """
 
         def test_single(self):
@@ -273,25 +273,25 @@ sla: null
                 type=Tracker.BTS2TYPE[ps_module.bts_name],
             )
 
-            sla_file = """
+            slo_file = """
 ---
-name: fantastic SLA policy
+name: fantastic SLO policy
 description: there is no better
 conditions:
   flaw:
     - is not embargoed
-sla:
+slo:
   duration: 5
   start: created date
   type: calendar days
 """
 
-            load_sla_policies(sla_file)
-            sla_context = SLAPolicy.classify(tracker)
+            load_policies(SLOPolicy, slo_file)
+            slo_context = SLOPolicy.classify(tracker)
 
-            assert sla_context.policy
-            assert sla_context.start == flaw.created_dt
-            assert sla_context.end == flaw.created_dt + timedelta(days=5)
+            assert slo_context.policy
+            assert slo_context.start == flaw.created_dt
+            assert slo_context.end == flaw.created_dt + timedelta(days=5)
 
         @pytest.mark.parametrize(
             "reported_dt1,reported_dt2,mi_duration,ne_duration",
@@ -353,14 +353,14 @@ sla:
                 type=Tracker.BTS2TYPE[ps_module.bts_name],
             )
 
-            sla_file = f"""
+            slo_file = f"""
 ---
 name: Major Incident
 description: only for very serious cases
 conditions:
   flaw:
     - major incident state is approved
-sla:
+slo:
   duration: {mi_duration}
   start: reported date
   type: calendar days
@@ -371,15 +371,15 @@ description: suitable for whatever we find on the street
 conditions:
   flaw:
     - is not embargoed
-sla:
+slo:
   duration: {ne_duration}
   start: reported date
   type: calendar days
 """
 
-            load_sla_policies(sla_file)
+            load_policies(SLOPolicy, slo_file)
 
-            policies = SLAPolicy.objects.all()
+            policies = SLOPolicy.objects.all()
             assert policies[0].accepts(
                 TemporalContext(
                     affect=affect1,
@@ -395,19 +395,19 @@ sla:
                 )
             )
 
-            sla_context = SLAPolicy.classify(tracker)
+            slo_context = SLOPolicy.classify(tracker)
 
-            # the first context is the one resulting in the earlist SLA
+            # the first context is the one resulting in the earlist SLO
             # end so it should be the outcome of the classification
-            assert "flaw" in sla_context
-            assert sla_context["flaw"] == flaw1
-            assert "affect" in sla_context
-            assert sla_context["affect"] == affect1
-            assert "tracker" in sla_context
-            assert sla_context["tracker"] == tracker
-            assert sla_context.policy
-            assert sla_context.start == flaw1.reported_dt
-            assert sla_context.end == flaw1.reported_dt + timedelta(days=mi_duration)
+            assert "flaw" in slo_context
+            assert slo_context["flaw"] == flaw1
+            assert "affect" in slo_context
+            assert slo_context["affect"] == affect1
+            assert "tracker" in slo_context
+            assert slo_context["tracker"] == tracker
+            assert slo_context.policy
+            assert slo_context.start == flaw1.reported_dt
+            assert slo_context.end == flaw1.reported_dt + timedelta(days=mi_duration)
 
         @pytest.mark.parametrize(
             "is_closed",
@@ -416,9 +416,9 @@ sla:
                 (False),
             ],
         )
-        def test_tracker_sla(self, is_closed):
+        def test_tracker_slo(self, is_closed):
             """
-            test that classification work also with an SLA property belonging to the tracker
+            test that classification work also with an SLO property belonging to the tracker
             """
             flaw = FlawFactory(
                 embargoed=False,
@@ -450,7 +450,7 @@ sla:
             )
             assert tracker.is_closed is is_closed
 
-            sla_file = """
+            slo_file = """
 name: policy used for closed trackers
 description: >
   this is actually an unrealistic scenario
@@ -462,21 +462,21 @@ conditions:
     - is not community
   flaw:
     - is not embargoed
-sla:
+slo:
   duration: 5
   start: created date
   type: calendar days
 """
 
-            load_sla_policies(sla_file)
-            sla_context = SLAPolicy.classify(tracker)
+            load_policies(SLOPolicy, slo_file)
+            slo_context = SLOPolicy.classify(tracker)
 
             if is_closed:
-                assert sla_context.policy
-                assert sla_context.start == flaw.created_dt
-                assert sla_context.end == flaw.created_dt + timedelta(days=5)
+                assert slo_context.policy
+                assert slo_context.start == flaw.created_dt
+                assert slo_context.end == flaw.created_dt + timedelta(days=5)
             else:
-                assert not sla_context.policy
+                assert not slo_context.policy
 
         @pytest.mark.parametrize(
             "component,excluded",
@@ -488,26 +488,26 @@ sla:
         def test_exclusion(self, component, excluded):
             """
             Test that an exclusion policy placed as the first one using the 'in' condition
-            works for not applying SLA when these conditions are met
+            works for not applying SLO when these conditions are met
             """
-            sla_file = """
+            slo_file = """
 ---
 name: Excluded components
-description: Components which do not need SLA
+description: Components which do not need SLO
 conditions:
   affect:
     - PS component in:
       - kpatch
       - kudos
       - kratos
-sla: null
+slo: null
 ---
 name: Low
-description: SLA policy applied to low impact
+description: SLO policy applied to low impact
 conditions:
   affect:
     - aggregated impact is low
-sla:
+slo:
   duration: 5
   start: reported date
   type: calendar days
@@ -517,7 +517,7 @@ description: only for very serious cases
 conditions:
   flaw:
     - major incident state is approved
-sla:
+slo:
   duration: 2
   start: reported date
   type: calendar days
@@ -544,11 +544,11 @@ sla:
                 type=Tracker.BTS2TYPE[ps_module.bts_name],
             )
 
-            load_sla_policies(sla_file)
-            sla_context = SLAPolicy.classify(tracker)
+            load_policies(SLOPolicy, slo_file)
+            slo_context = SLOPolicy.classify(tracker)
             if excluded:
-                assert not sla_context.policy
+                assert not slo_context.policy
             else:
-                assert sla_context.policy
-                assert sla_context.start == flaw.reported_dt
-                assert sla_context.end == flaw.created_dt + timedelta(days=5)
+                assert slo_context.policy
+                assert slo_context.start == flaw.reported_dt
+                assert slo_context.end == flaw.created_dt + timedelta(days=5)

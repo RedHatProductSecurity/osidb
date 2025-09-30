@@ -14,7 +14,7 @@ from .core import (
     fetch_ps_constants,
     sync_cveorg_keywords,
     sync_jira_bug_issuetype,
-    sync_sla_policies,
+    sync_slo_policies,
     sync_special_consideration_packages,
 )
 
@@ -54,7 +54,7 @@ def collect_step_1_fetch():
     return (
         cveorg_keywords,
         sc_packages,
-        sla_policies,
+        slo_policies,
         jira_bug_issuetype,
     )
 
@@ -62,12 +62,12 @@ def collect_step_1_fetch():
 def collect_step_2_sync(
     cveorg_keywords,
     sc_packages,
-    sla_policies,
+    slo_policies,
     jira_bug_issuetype,
 ):
     sync_cveorg_keywords(cveorg_keywords)
     sync_special_consideration_packages(sc_packages)
-    sync_sla_policies(sla_policies)
+    sync_slo_policies(slo_policies)
     sync_jira_bug_issuetype(jira_bug_issuetype)
 
 
@@ -93,7 +93,7 @@ def ps_constants_collector(collector_obj) -> str:
     (
         cveorg_keywords,
         sc_packages,
-        sla_policies,
+        slo_policies,
         jira_bug_issuetype,
     ) = collect_step_1_fetch()
 
@@ -104,7 +104,7 @@ def ps_constants_collector(collector_obj) -> str:
     collect_step_2_sync(
         cveorg_keywords,
         sc_packages,
-        sla_policies,
+        slo_policies,
         jira_bug_issuetype,
     )
 

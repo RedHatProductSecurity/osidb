@@ -14,14 +14,14 @@ class Command(BaseCommand):
         (
             cveorg_keywords,
             sc_packages,
-            sla_policies,
+            slo_policies,
             jira_bug_issuetype,
         ) = collect_step_1_fetch()
 
         collect_step_2_sync(
             cveorg_keywords,
             sc_packages,
-            sla_policies,
+            slo_policies,
             jira_bug_issuetype,
         )
 

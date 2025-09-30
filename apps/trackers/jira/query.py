@@ -11,7 +11,7 @@ from typing import Optional
 
 from django.utils.timezone import make_aware
 
-from apps.sla.models import SLAPolicy
+from apps.sla.models import SLOPolicy
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
     ComponentUnavailableError,
@@ -188,7 +188,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         self.generate_priority()
         self.generate_description()
         self.generate_labels()
-        self.generate_sla()
+        self.generate_slo()
         self.generate_summary()
         self.generate_versions()
         self.generate_additional_fields()
@@ -349,7 +349,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         }:
             self._query["fields"]["labels"].append("validation-requested")
 
-    def generate_sla(self):
+    def generate_slo(self):
         """
         generate query for Jira SLA timestamps
         """
@@ -595,7 +595,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         self.generate_component()
         self.generate_description()
         self.generate_labels()
-        self.generate_sla()
+        self.generate_slo()
         self.generate_summary()
         self.generate_versions()
         self.generate_additional_fields()

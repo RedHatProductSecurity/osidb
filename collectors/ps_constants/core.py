@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db import transaction
 from requests_gssapi import HTTPSPNEGOAuth
 
-from apps.sla.models import SLA, SLAPolicy
+from apps.sla.models import SLO, SLOPolicy
 from apps.trackers.models import JiraBugIssuetype
 from collectors.cveorg.models import Keyword
 from osidb.models import SpecialConsiderationPackage
@@ -48,15 +48,15 @@ def sync_special_consideration_packages(sc_packages):
 
 
 @transaction.atomic
-def sync_sla_policies(sla_policies):
+def sync_slo_policies(slo_policies):
     """
-    Sync SLA policy data
+    Sync SLO policy data
     """
-    SLA.objects.all().delete()
-    SLAPolicy.objects.all().delete()
-    for order, policy_desc in enumerate(sla_policies):
-        # In SLA policies order is important so it is passed down to the model
-        policy = SLAPolicy.create_from_description(policy_desc, order)
+    SLO.objects.all().delete()
+    SLOPolicy.objects.all().delete()
+    for order, policy_desc in enumerate(slo_policies):
+        # In SLO policies order is important so it is passed down to the model
+        policy = SLOPolicy.create_from_description(policy_desc, order)
         policy.save()
 
 

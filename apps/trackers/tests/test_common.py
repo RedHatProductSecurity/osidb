@@ -7,7 +7,8 @@ from unittest.mock import patch
 
 import pytest
 
-from apps.sla.tests.test_framework import load_sla_policies
+from apps.sla.models import SLOPolicy
+from apps.sla.tests.test_framework import load_policies
 from apps.trackers.bugzilla.query import TrackerBugzillaQueryBuilder
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.jira.query import TrackerJiraQueryBuilder
@@ -719,13 +720,13 @@ class TestTrackerQueryBuilderDescription:
         assert "Triage" not in tqb.description
 
 
-class TestTrackerQueryBuilderSLA:
+class TestTrackerQueryBuilderSLO:
     """
     TrackerQueryBuilder deadline/duedate and related stuff test cases
     """
 
     @pytest.mark.parametrize(
-        "impact,under_sla",
+        "impact,under_slo",
         [
             (Impact.LOW, False),
             (Impact.MODERATE, False),
@@ -738,11 +739,11 @@ class TestTrackerQueryBuilderSLA:
         clean_policies,
         setup_vulnerability_issue_type_fields,
         impact,
-        under_sla,
+        under_slo,
     ):
         """
         test that every tracker gets a deadline/duedate
-        even if the value was empty because of no SLA
+        even if the value was empty because of no SLO
         """
         flaw = FlawFactory(
             embargoed=False,
@@ -800,14 +801,14 @@ class TestTrackerQueryBuilderSLA:
         ).save()
 
         # simplified impact policies effective today
-        sla_file = """
+        slo_file = """
 ---
 name: Critical
-description: SLA policy applied to critical impact
+description: SLO policy applied to critical impact
 conditions:
   affect:
     - aggregated impact is critical
-sla:
+slo:
   duration: 7
   start:
     latest:
@@ -816,11 +817,11 @@ sla:
   type: calendar days
 ---
 name: Important
-description: SLA policy applied to important impact
+description: SLO policy applied to important impact
 conditions:
   affect:
     - aggregated impact is important
-sla:
+slo:
   duration: 21
   start:
     latest:
@@ -829,17 +830,19 @@ sla:
   type: calendar days
 """
 
-        load_sla_policies(sla_file)
+        load_policies(SLOPolicy, slo_file)
 
-        # check that the SLA fields are always in the query
-        # but has a non-empty value only when SLA is applied
+        # check that the SLO fields are always in the query
+        # but has a non-empty value only when SLO is applied
 
         query = TrackerBugzillaQueryBuilder(tracker1).query
         assert "deadline" in query
-        assert bool(query["deadline"]) is under_sla
+        assert bool(query["deadline"]) is under_slo
 
         query = TrackerJiraQueryBuilder(tracker2).query
         assert "duedate" in query["fields"]
-        assert bool(query["fields"]["duedate"]) is under_sla
+        assert bool(query["fields"]["duedate"]) is under_slo
         assert target_start_id in query["fields"]
-        assert bool(query["fields"][target_start_id]) is under_sla
+        assert bool(query["fields"][target_start_id]) is under_slo
+
+

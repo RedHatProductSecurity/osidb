@@ -1,6 +1,6 @@
 import pytest
 
-from apps.sla.models import SLAPolicy
+from apps.sla.models import SLOPolicy
 from apps.trackers.constants import TRACKERS_API_VERSION
 from apps.trackers.models import JiraProjectFields
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
@@ -68,9 +68,9 @@ def clean_policies():
     if we do it only before or only after the tests might behave differently
     when run in batch than when run alone so better to be safe then sorry
     """
-    SLAPolicy.objects.all().delete()
+    SLOPolicy.objects.all().delete()
     yield  # run test here
-    SLAPolicy.objects.all().delete()
+    SLOPolicy.objects.all().delete()
 
 
 def jira_vulnissuetype_fields_setup_without_versions():
