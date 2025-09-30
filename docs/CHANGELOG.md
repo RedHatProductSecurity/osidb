@@ -10,11 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add query for finding flaw whose non-community affects are missing trackers (OSIDB-4104)
-
+  
 ### Changed
 - Adjust `unembargo_dt` validation for embargoed flaws to only trigger when 
   `unembargo_dt` is changed (OSIDB-4296)
 - Implement affects v2 (OSIDB-4023)
+
+### Removed
+- Remove deprecated fields/models: `PsProduct`'s `team`, `FlawComment`'s `order` 
+  and models in `package_versions.py` (OSIDB-3552)
 
 ## [4.16.0] - 2025-09-16
 ### Fixed

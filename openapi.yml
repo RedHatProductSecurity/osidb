@@ -11931,11 +11931,6 @@ components:
         external_system_id:
           type: string
           maxLength: 100
-        order:
-          type: integer
-          maximum: 2147483647
-          minimum: -2147483648
-          nullable: true
         creator:
           type: string
           maxLength: 100
@@ -11971,11 +11966,6 @@ components:
         external_system_id:
           type: string
           maxLength: 100
-        order:
-          type: integer
-          maximum: 2147483647
-          minimum: -2147483648
-          nullable: true
         creator:
           type: string
           maxLength: 100
@@ -12704,9 +12694,6 @@ components:
         external_system_id:
           type: string
           readOnly: true
-        order:
-          type: integer
-          deprecated: true
         creator:
           type: string
           maxLength: 100
@@ -13673,13 +13660,7 @@ components:
         version:
           type: string
           maxLength: 1024
-        status:
-          type: string
-          readOnly: true
-          default: UNAFFECTED
-          deprecated: true
       required:
-      - status
       - version
     PackageVerRequest:
       type: object
