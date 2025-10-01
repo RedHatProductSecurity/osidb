@@ -6,7 +6,12 @@ from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
-from apps.workflows.api import promote, reject
+from apps.workflows.api import (
+    PromoteWorkflow,
+    RejectWorkflow,
+    ResetWorkflow,
+    RevertWorkflow,
+)
 from osidb.helpers import get_execution_env
 
 from .api_views import (
@@ -103,11 +108,19 @@ urlpatterns = [
     ),
     re_path(
         rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/promote$",
-        promote.as_view(),
+        PromoteWorkflow.as_view(),
+    ),
+    re_path(
+        rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/revert$",
+        RevertWorkflow.as_view(),
+    ),
+    re_path(
+        rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/reset$",
+        ResetWorkflow.as_view(),
     ),
     re_path(
         rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/reject$",
-        reject.as_view(),
+        RejectWorkflow.as_view(),
     ),
     path(f"api/{OSIDB_API_VERSION}/status", StatusView.as_view()),
     path(f"api/{OSIDB_API_VERSION}/manifest", ManifestView.as_view()),
