@@ -11,7 +11,7 @@ from typing import Optional
 
 from django.utils.timezone import make_aware
 
-from apps.sla.framework import sla_classify
+from apps.sla.models import SLAPolicy, SLOPolicy
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
     ComponentUnavailableError,
@@ -189,6 +189,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         self.generate_description()
         self.generate_labels()
         self.generate_sla()
+        self.generate_slo()
         self.generate_summary()
         self.generate_versions()
         self.generate_additional_fields()
@@ -351,7 +352,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
 
     def generate_sla(self):
         """
-        generate query for Jira SLA timestamps
+        generate query for Jira SLO timestamps
         """
         # Tracker has a manually defined due date
         if "nonstandard-sla" in self._query["fields"]["labels"]:
@@ -359,9 +360,43 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
 
         if not self.tracker.external_system_id:
             # Workaround for when a new tracker is filed. At this point in the code it
-            # has not been fully saved so created_dt is not a valid date, but the SLAs
+            # has not been fully saved so created_dt is not a valid date, but the SLOs
             # use the tracker's created date. Since we only care about the date and not the
-            # time for the SLA computation, we temporarily set a created_dt of now, which
+            # time for the SLO computation, we temporarily set a created_dt of now, which
+            # will be replaced later by the TrackingMixin, and this way we do not have to change
+            # the entire logic of the code for this to work.
+            self.tracker.created_dt = make_aware(datetime.now())
+
+        sla_date_field = JiraProjectFields.objects.filter(
+            project_key=self.ps_module.bts_key, field_name="SLA Date"
+        ).first()
+
+        sla_context = SLAPolicy.classify(self.tracker)
+        # the tracker may or may not be under SLA
+        if sla_context.policy is not None:
+            if sla_date_field:
+                self._query["fields"][sla_date_field.field_id] = (
+                    sla_context.end.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+0000"
+                )
+        else:
+            # explicitly set the empty dates so they are cleared
+            # out in case of falling out of SLA later on update
+            if sla_date_field:
+                self._query["fields"][sla_date_field.field_id] = None
+
+    def generate_slo(self):
+        """
+        generate query for Jira SLO timestamps
+        """
+        # Tracker has a manually defined due date
+        if "nonstandard-sla" in self._query["fields"]["labels"]:
+            return
+
+        if not self.tracker.external_system_id:
+            # Workaround for when a new tracker is filed. At this point in the code it
+            # has not been fully saved so created_dt is not a valid date, but the SLOs
+            # use the tracker's created date. Since we only care about the date and not the
+            # time for the SLO computation, we temporarily set a created_dt of now, which
             # will be replaced later by the TrackingMixin, and this way we do not have to change
             # the entire logic of the code for this to work.
             self.tracker.created_dt = make_aware(datetime.now())
@@ -372,17 +407,17 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             project_key=self.ps_module.bts_key, field_name="Target start"
         )
 
-        sla_context = sla_classify(self.tracker)
-        # the tracker may or may not be under SLA
-        if sla_context.sla is not None:
-            self._query["fields"]["duedate"] = sla_context.end.isoformat()
+        slo_context = SLOPolicy.classify(self.tracker)
+        # the tracker may or may not be under SLO
+        if slo_context.policy is not None:
+            self._query["fields"]["duedate"] = slo_context.end.isoformat()
             if target_start.exists():
                 self._query["fields"][target_start.first().field_id] = (
-                    sla_context.start.isoformat()
+                    slo_context.start.isoformat()
                 )
         else:
             # explicitly set the empty dates so they are cleared
-            # out in case of falling out of SLA later on update
+            # out in case of falling out of SLO later on update
             self._query["fields"]["duedate"] = None
             if target_start.exists():
                 self._query["fields"][target_start.first().field_id] = None
@@ -596,6 +631,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         self.generate_description()
         self.generate_labels()
         self.generate_sla()
+        self.generate_slo()
         self.generate_summary()
         self.generate_versions()
         self.generate_additional_fields()

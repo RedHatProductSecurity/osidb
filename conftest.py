@@ -603,6 +603,37 @@ def setup_sample_external_resources():
             "KEV (active exploit case)",
         ],
     ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="versions",
+        field_name="Affects Version/s",
+        allowed_values=["1.2.3"],
+    ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12313941",
+        field_name="Target start",
+    ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12316142",
+        field_name="Severity",
+        allowed_values=[
+            "Critical",
+            "Important",
+            "Moderate",
+            "Low",
+            "unexpected mess here",
+            "Informational",
+            "None",
+        ],
+    ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12326740",
+        field_name="SLA Date",
+        allowed_values=[],
+    ).save()
     JiraBugIssuetype(project=ps_module.bts_key).save()
 
     # 4) list some valid components accepeted for the

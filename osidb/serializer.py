@@ -2109,7 +2109,7 @@ class FlawSerializer(
         # we only need to sync the trackers when crucial attributes change
         # plus in the case of the MI we care for specific changes only
         #
-        # the crucial attributes are those influencing the SLA deadline plus the CVE ID
+        # the crucial attributes are those influencing the SLO deadline plus the CVE ID
         #
         # in the case of impact we should ideally check whether the change actually
         # changes the tracker aggregated impact (in cases of multi-flaw trackers)

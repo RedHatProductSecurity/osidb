@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add query for finding flaw whose non-community affects are missing trackers (OSIDB-4104)
+- Add SLA policies in the new Jira field (OSIDB-4404)
 
 ### Changed
 - Adjust `unembargo_dt` validation for embargoed flaws to only trigger when 
