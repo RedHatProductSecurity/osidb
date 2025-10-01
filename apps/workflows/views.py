@@ -7,7 +7,8 @@ import logging
 from django.shortcuts import render
 from django.views.generic import ListView
 
-from .helpers import get_flaw_or_404
+from osidb.helpers import get_flaw_or_404
+
 from .models import Workflow
 from .serializers import ClassificationWorkflowSerializer, WorkflowSerializer
 from .workflow import WorkflowFramework
