@@ -85,8 +85,6 @@ class adjust(RudimentaryUserPathLoggingMixin, APIView):
 class promote(RudimentaryUserPathLoggingMixin, APIView):
     """workflow promote API endpoint"""
 
-    http_method_names = get_valid_http_methods(ModelViewSet)
-
     @extend_schema(
         parameters=[
             OpenApiParameter(
@@ -118,6 +116,88 @@ class promote(RudimentaryUserPathLoggingMixin, APIView):
             jira_token = get_jira_api_key(request)
             bz_token = get_bugzilla_api_key(request)
             flaw.promote(jira_token=jira_token, bz_api_key=bz_token)
+            return Response(
+                {
+                    "flaw": flaw.pk,
+                    "classification": flaw.classification,
+                }
+            )
+        except WorkflowsException as e:
+            return Response({"errors": str(e)}, status=status.HTTP_409_CONFLICT)
+
+
+class RevertWorkflow(RudimentaryUserPathLoggingMixin, APIView):
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="Jira-Api-Key",
+                type=str,
+                location=OpenApiParameter.HEADER,
+                description="User generated api key for Jira authentication.",
+            ),
+            OpenApiParameter(
+                name="Bugzilla-Api-Key",
+                type=str,
+                location=OpenApiParameter.HEADER,
+                description="User generated api key for Bugzilla authentication.",
+            ),
+        ]
+    )
+    def post(self, request, flaw_id):
+        """
+        Workflow revert API endpoint.
+
+        Try to adjust workflow classification of a Flaw to the previous state
+        available and return its workflow:state classification or errors if
+        not possible to revert.
+        """
+        logger.info(f"Reverting Flaw {flaw_id} workflow classification")
+        flaw = get_flaw_or_404(flaw_id)
+        try:
+            jira_token = get_jira_api_key(request)
+            bz_token = get_bugzilla_api_key(request)
+            flaw.revert(jira_token=jira_token, bz_api_key=bz_token)
+            return Response(
+                {
+                    "flaw": flaw.pk,
+                    "classification": flaw.classification,
+                }
+            )
+        except WorkflowsException as e:
+            return Response({"errors": str(e)}, status=status.HTTP_409_CONFLICT)
+
+
+class ResetWorkflow(RudimentaryUserPathLoggingMixin, APIView):
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="Jira-Api-Key",
+                type=str,
+                location=OpenApiParameter.HEADER,
+                description="User generated api key for Jira authentication.",
+            ),
+            OpenApiParameter(
+                name="Bugzilla-Api-Key",
+                type=str,
+                location=OpenApiParameter.HEADER,
+                description="User generated api key for Bugzilla authentication.",
+            ),
+        ]
+    )
+    def post(self, request, flaw_id):
+        """
+        Workflow reset API endpoint.
+
+        Try to adjust workflow classification of a Flaw to the initial state
+        of the default workflow, return its workflow:state classification or
+        errors if not possible to reset.
+        """
+        logger.info(f"Resetting Flaw {flaw_id} workflow classification")
+        flaw = get_flaw_or_404(flaw_id)
+        try:
+            jira_token = get_jira_api_key(request)
+            bz_token = get_bugzilla_api_key(request)
+            flaw.reset(jira_token=jira_token, bz_api_key=bz_token)
             return Response(
                 {
                     "flaw": flaw.pk,
