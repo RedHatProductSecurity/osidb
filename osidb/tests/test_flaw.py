@@ -119,6 +119,8 @@ class TestFlaw:
         assert vuln_1.save() is None
         assert affect_tracker is None
 
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="fakemodule")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module, name="fakestream")
         affect2 = Affect.objects.create_affect(
             vuln_1,
             "fakestream",
@@ -130,8 +132,6 @@ class TestFlaw:
             acl_write=self.acl_write,
         )
         affect2.save()
-        ps_module = PsModuleFactory(bts_name="bugzilla", name="fakemodule")
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module, name="fakestream")
         tracker1 = TrackerFactory(
             affects=(affect2,),
             embargoed=affect2.flaw.embargoed,
@@ -590,7 +590,8 @@ class TestFlaw:
             ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect = AffectFactory(ps_update_stream=ps_update_stream.name)
         else:
-            affect = AffectFactory()
+            ps_update_stream = PsUpdateStreamFactory(ps_module=None)
+            affect = AffectFactory(ps_update_stream=ps_update_stream.name)
         assert affect.ps_product == ps_product_name
 
     @pytest.mark.enable_signals
@@ -854,7 +855,8 @@ class TestFlawValidators:
                 comment="",
             )
 
-        AffectFactory(flaw=flaw)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=None)
+        AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw.save()
 
         if should_alert:
@@ -1454,51 +1456,64 @@ class TestFlawValidators:
         assert flaw.valid_alerts.filter(name="embargoed_source_public").exists()
 
     @pytest.mark.parametrize(
-        "bz_id,ps_update_stream,should_alert",
+        "bz_id,missing_module,should_alert",
         [
-            (BZ_ID_SENTINEL, "rhel-6.9.z", True),
-            (BZ_ID_SENTINEL - 1, "rhel-6.9.z", True),
-            (BZ_ID_SENTINEL, "rhel-6.8.z", False),
-            (BZ_ID_SENTINEL - 1, "rhel-6.8.z", False),
-            (BZ_ID_SENTINEL + 1, "rhel-6.8.z", False),
+            (BZ_ID_SENTINEL, True, True),
+            (BZ_ID_SENTINEL - 1, True, True),
+            (BZ_ID_SENTINEL, False, False),
+            (BZ_ID_SENTINEL - 1, False, False),
+            (BZ_ID_SENTINEL + 1, False, False),
         ],
     )
     def test_validate_affect_ps_module_alerts(
-        self, bz_id, ps_update_stream, should_alert
+        self, bz_id, missing_module, should_alert
     ):
-        ps_module = PsModuleFactory(name="rhel-6")
-        PsUpdateStreamFactory(name="rhel-6.8.z", ps_module=ps_module)
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module if not missing_module else None
+        )
         flaw = FlawFactory(meta_attr={"bz_id": bz_id})
-        affect = AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream)
+        affect = AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         if should_alert:
             assert affect.valid_alerts.filter(name="old_flaw_affect_ps_module").exists()
         else:
             assert not affect.valid_alerts.exists()
 
     @pytest.mark.parametrize(
-        "bz_id,ps_update_stream,should_raise",
+        "bz_id,missing_module,should_raise",
         [
-            (BZ_ID_SENTINEL, "rhel-6.9.z", False),
-            (BZ_ID_SENTINEL - 1, "rhel-6.9.z", False),
-            (BZ_ID_SENTINEL + 1, "rhel-6.9.z", True),
-            (BZ_ID_SENTINEL + 1, "rhel-6.8.z", False),
-            (BZ_ID_SENTINEL - 1, "rhel-6.8.z", False),
-            (BZ_ID_SENTINEL, "rhel-6.8.z", False),
+            (BZ_ID_SENTINEL, True, False),
+            (BZ_ID_SENTINEL - 1, True, False),
+            (BZ_ID_SENTINEL + 1, True, True),
+            (BZ_ID_SENTINEL + 1, False, False),
+            (BZ_ID_SENTINEL - 1, False, False),
+            (BZ_ID_SENTINEL, False, False),
         ],
     )
     def test_validate_affect_ps_module_errors(
-        self, bz_id, ps_update_stream, should_raise
+        self, bz_id, missing_module, should_raise
     ):
-        ps_module = PsModuleFactory(name="rhel-6")
-        PsUpdateStreamFactory(name="rhel-6.8.z", ps_module=ps_module)
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module if not missing_module else None
+        )
         flaw = FlawFactory(meta_attr={"bz_id": bz_id})
         if should_raise:
             with pytest.raises(ValidationError) as e:
-                AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream)
+                AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
             assert "is not a valid ps_module" in str(e)
         else:
-            affect = AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream)
+            affect = AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
             assert affect
+
+    def test_validate_affect_ps_update_stream(self):
+        """
+        test that the ValidationError is raised when the affect has an invalid ps_update_stream
+        """
+        flaw = FlawFactory()
+        with pytest.raises(ValidationError) as e:
+            AffectFactory(flaw=flaw, ps_update_stream="invalid-stream")
+        assert "is not a valid ps_update_stream" in str(e)
 
     def test_validate_reported_date_empty(self):
         """

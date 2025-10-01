@@ -320,7 +320,7 @@ class Affect(
         ps_update_stream = PsUpdateStream.objects.filter(
             name=self.ps_update_stream
         ).first()
-        if ps_update_stream:
+        if ps_update_stream and ps_update_stream.ps_module:
             self.ps_module = ps_update_stream.ps_module.name
         else:
             self.ps_module = None
@@ -512,6 +512,12 @@ class Affect(
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} cannot have "
                 "resolution DEFER with open tracker(s).",
+            )
+
+    def _validate_ps_update_stream(self, **kwargs):
+        if not PsUpdateStream.objects.filter(name=self.ps_update_stream).exists():
+            raise ValidationError(
+                f"{self.ps_update_stream} is not a valid ps_update_stream."
             )
 
     def _validate_unknown_component(self, **kwargs):
