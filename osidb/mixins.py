@@ -297,6 +297,8 @@ class ACLMixin(models.Model):
         """
         self.set_acl_read(*settings.PUBLIC_READ_GROUPS)
         self.set_acl_write(settings.PUBLIC_WRITE_GROUP)
+        # Update the embargoed annotation to reflect the new ACL state
+        self.embargoed = False
 
     def set_embargoed(self):
         """
@@ -316,6 +318,8 @@ class ACLMixin(models.Model):
         """
         self.set_acl_read(settings.EMBARGO_READ_GROUP)
         self.set_acl_write(settings.EMBARGO_WRITE_GROUP)
+        # Update the embargoed annotation to reflect the new ACL state
+        self.embargoed = True
 
     def set_internal(self):
         """
@@ -335,6 +339,8 @@ class ACLMixin(models.Model):
         """
         self.set_acl_read(settings.INTERNAL_READ_GROUP)
         self.set_acl_write(settings.INTERNAL_WRITE_GROUP)
+        # Update the embargoed annotation to reflect the new ACL state
+        self.embargoed = False
 
     @cached_property
     def acls_public_read(self):
@@ -621,6 +627,14 @@ class ACLMixin(models.Model):
 
 class AlertManager(ACLMixinManager):
     """Alert manager"""
+
+    def get_queryset(self):
+        """Add content_type select_related to avoid N+1 queries"""
+        return (
+            super()
+            .get_queryset()
+            .select_related("content_type")  # This fixes the ContentType N+1 issue
+        )
 
     @staticmethod
     def create_alert(name, object_id, content_type, **extra_fields):

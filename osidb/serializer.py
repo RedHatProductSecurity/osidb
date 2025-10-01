@@ -327,6 +327,9 @@ class EmbargoedField(serializers.BooleanField):
     modifies the ACLs but is mandatory as it controls the access to the resource."""
 
     def to_representation(self, value):
+        if hasattr(value, "embargoed"):
+            return value.embargoed
+        # Fallback to property for cases where annotation isn't available
         return value.is_embargoed
 
     def run_validation(self, data):
