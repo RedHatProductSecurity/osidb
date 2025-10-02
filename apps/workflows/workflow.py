@@ -8,12 +8,14 @@ Workflows Framework
 import logging
 from os import listdir
 from os.path import join
+from typing import Optional
 
 import yaml
 from django.db import models
 
 from .constants import WORKFLOW_DIR
 from .exceptions import (
+    InitialStateException,
     LastStateException,
     MissingRequirementsException,
     MissingStateException,
@@ -21,7 +23,7 @@ from .exceptions import (
     WorkflowDefinitionError,
 )
 from .helpers import singleton
-from .models import Workflow
+from .models import State, Workflow
 
 logger = logging.getLogger(__name__)
 
@@ -204,6 +206,52 @@ class WorkflowModel(models.Model):
         }
 
     @property
+    def workflow_object(self) -> Workflow:
+        workflows = WorkflowFramework().workflows
+        for workflow in workflows:
+            if workflow.name == self.workflow_name:
+                return workflow
+        raise MissingWorkflowException(
+            f"Instance is classified with a non-registered workflow ({self.workflow_name})."
+        )
+
+    @property
+    def current_state(self) -> State:
+        for state in self.workflow_object.states:
+            if state.name == self.workflow_state:
+                return state
+        raise MissingStateException(
+            f"Instance is classified with a non-registered state ({self.workflow_state})."
+        )
+
+    def _nth_relative_state(self, n: int) -> Optional[State]:
+        states_len = len(self.workflow_object.states)
+        curr_state_index = self.workflow_object.states.index(self.current_state)
+        rel_state_index = curr_state_index + n
+        if rel_state_index < 0 or rel_state_index >= states_len:
+            return
+        else:
+            return self.workflow_object.states[rel_state_index]
+
+    @property
+    def next_state(self) -> State:
+        _next_state = self._nth_relative_state(1)
+        if _next_state is None:
+            raise LastStateException(
+                f"Instance is already in the last state ({self.workflow_state}) from its workflow ({self.workflow_name})."
+            )
+        return _next_state
+
+    @property
+    def previous_state(self) -> State:
+        _prev_state = self._nth_relative_state(-1)
+        if _prev_state is None:
+            raise InitialStateException(
+                f"Instance is already in the initial state ({self.workflow_state}) from its workflow ({self.workflow_name})."
+            )
+        return _prev_state
+
+    @property
     def classification(self):
         """stored workflow classification"""
         return getattr(
@@ -276,45 +324,43 @@ class WorkflowModel(models.Model):
 
         Raise exception if instance lacks requirements for the target state
         """
-        workflow_obj = None
-        workflows = WorkflowFramework().workflows
-        for workflow in workflows:
-            if workflow.name == self.workflow_name:
-                workflow_obj = workflow
-                break
-
-        if not workflow_obj:
-            raise MissingWorkflowException(
-                f"Instance is classified with a non-registered workflow ({self.workflow_name})."
-            )
-
-        state_obj = None
-        state_count = len(workflow_obj.states)
-        for i in range(state_count):
-            if workflow_obj.states[i].name == self.workflow_state:
-                if i + 1 >= state_count:
-                    raise LastStateException(
-                        f"Instance is already in the last state ({self.workflow_state}) from its workflow ({self.workflow_name})."
-                    )
-                state_obj = workflow_obj.states[i + 1]
-                break
-
-        if not state_obj:
-            raise MissingStateException(
-                f"Instance is classified with a non-registered state ({self.workflow_state})."
-            )
-
         WorkflowFramework().validate_classification(
-            self, self.workflow_name, state_obj.name
+            self, self.workflow_name, self.next_state.name
         )
 
-        self.classification = (self.workflow_name, state_obj.name)
+        self.classification = (self.workflow_name, self.next_state.name)
         if save:
             self.save(
                 jira_token=jira_token,
                 raise_validation_error=False,
                 **kwargs,
             )
+
+    def revert(self, save=True, jira_token=None, **kwargs) -> None:
+        """
+        This is the canonical way of reverting to a previous valid state.
+        """
+        WorkflowFramework().validate_classification(
+            self, self.workflow_name, self.previous_state.name
+        )
+
+        self.classification = (self.workflow_name, self.previous_state.name)
+        if save:
+            self.save(
+                jira_token=jira_token,
+                raise_validation_error=False,
+                **kwargs,
+            )
+
+    def reset(self, save=True, jira_token=None, **kwargs) -> None:
+        """
+        This is the canonical way of resetting to the default workflow.
+        """
+        default_workflow = "DEFAULT"
+
+        self.classification = (default_workflow, WorkflowModel.WorkflowState.NEW)
+        if save:
+            self.save(jira_token=jira_token, raise_validation_error=False, **kwargs)
 
     def reject(self, save=True, jira_token=None, **kwargs):
         """

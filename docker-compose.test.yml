@@ -4,17 +4,19 @@ services:
 
     testldap:
       container_name: testldap
-      image: mirror.gcr.io/bitnami/openldap:2.5
+      image: mirror.gcr.io/osixia/openldap:1.5.0
+      command: --copy-service -l debug
       ports:
         - '1389:1389'
         - '1636:1636'
       environment:
-        - LDAP_ROOT=dc=redhat,dc=com
-        - LDAP_ADMIN_USERNAME=admin
+        - LDAP_DOMAIN=redhat.com
+        - LDAP_BASE_DN=dc=redhat,dc=com
         - LDAP_ADMIN_PASSWORD=adminpassword
-        - BITNAMI_DEBUG=true
+        - LDAP_PORT=1389
+        - LDAPS_PORT=1636
       volumes:
-        - ${PWD}/etc/openldap:/ldifs:z
+        - ${PWD}/etc/openldap:/container/service/slapd/assets/config/bootstrap/ldif/custom:z
       # See "NOTE about healthchecks" in docker-compose.yml:
       # depends_on:
       #   osidb-data:
