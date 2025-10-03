@@ -154,6 +154,7 @@ class TestEndpointsAffects:
         also with respect to the flaw and affect visibility (which should be equal in Buzilla world)
         """
         flaw = FlawFactory(embargoed=flaw_embargo)
+        PsUpdateStreamFactory(name="rhacm-2.11.z")
         affect_data = {
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
@@ -188,7 +189,9 @@ class TestEndpointsAffects:
         Test the update of Affect records via a REST API PUT request.
         """
         flaw = FlawFactory(embargoed=embargoed)
-        affect = AffectFactory(flaw=flaw)
+        ps_update_stream1 = PsUpdateStreamFactory()
+        ps_update_stream2 = PsUpdateStreamFactory()
+        affect = AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream1.name)
         response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
         original_body = response.json()
@@ -197,7 +200,7 @@ class TestEndpointsAffects:
             f"{test_api_v2_uri}/affects/{affect.uuid}",
             {
                 **original_body,
-                "ps_update_stream": f"different {affect.ps_update_stream}",
+                "ps_update_stream": f"{ps_update_stream2.name}",
             },
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
@@ -274,6 +277,7 @@ class TestEndpointsAffects:
         test the resolved_dt behavior on REST API
         """
         flaw = FlawFactory()
+        PsUpdateStreamFactory(name="rhacm-2.11.z")
         # check unresolved creation
         affect_data = {
             "flaw": str(flaw.uuid),
@@ -485,7 +489,10 @@ class TestEndpointsAffectsBulk:
             orig_uuids.add(aff["uuid"])
             aff["affectedness"] = "AFFECTED"
             aff["resolution"] = "DELEGATED"
-            aff["ps_update_stream"] = f"different {aff['ps_update_stream']}"
+            ps_update_stream = PsUpdateStreamFactory(
+                name=f"different {aff['ps_update_stream']}"
+            )
+            aff["ps_update_stream"] = f"{ps_update_stream.name}"
 
         response = auth_client().put(
             f"{test_api_v2_uri}/affects/bulk",
@@ -532,8 +539,8 @@ class TestEndpointsAffectsBulk:
             del tmp_aff["updated_dt"]
             del tmp_aff["resolved_dt"]
             del tmp_aff["alerts"]
-            tmp_aff["ps_update_stream"] = f"ps_update_stream{i}"
-            bulk_request[i] = tmp_aff
+            tmp_aff["ps_update_stream"] = aff["ps_update_stream"]
+            bulk_request[int(tmp_aff["ps_update_stream"][17:])] = tmp_aff
             i += 1
 
         assert Affect.objects.all().delete()
@@ -551,7 +558,7 @@ class TestEndpointsAffectsBulk:
         assert Affect.objects.count() == 20
 
         for returned_aff in response.json()["results"]:
-            i = int(returned_aff["ps_update_stream"][16:])
+            i = int(returned_aff["ps_update_stream"][17:])
             requested_aff = bulk_request[i]
             received_aff = dict(returned_aff)
             del received_aff["uuid"]
@@ -821,6 +828,7 @@ class TestEndpointsAffectsPurl:
         """
         purl = "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25"
         flaw = FlawFactory(embargoed=False)
+        PsUpdateStreamFactory(name="rhacm-2.11.z")
         affect_data = {
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
@@ -908,6 +916,7 @@ class TestEndpointsAffectsPurl:
         or purl and ps_component are missing.
         """
         flaw = FlawFactory(embargoed=False)
+        PsUpdateStreamFactory(name="rhacm-2.11.z")
         affect_data = {
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,

@@ -355,14 +355,16 @@ class TestTrackerValidators:
         """
         flaw1 = FlawFactory()
         flaw2 = FlawFactory()
+        ps_update_stream1 = PsUpdateStreamFactory()
+        ps_update_stream2 = PsUpdateStreamFactory()
         affect1 = AffectFactory(
             flaw=flaw1,
-            ps_update_stream="first",
+            ps_update_stream=ps_update_stream1.name,
             ps_component="component",
         )
         affect2 = AffectFactory(
             flaw=flaw2,
-            ps_update_stream="second",
+            ps_update_stream=ps_update_stream2.name,
             ps_component="component",
         )
         with pytest.raises(
@@ -378,14 +380,15 @@ class TestTrackerValidators:
         """
         flaw1 = FlawFactory()
         flaw2 = FlawFactory()
+        ps_update_stream = PsUpdateStreamFactory()
         affect1 = AffectFactory(
             flaw=flaw1,
-            ps_update_stream="stream",
+            ps_update_stream=ps_update_stream.name,
             ps_component="firts",
         )
         affect2 = AffectFactory(
             flaw=flaw2,
-            ps_update_stream="stream",
+            ps_update_stream=ps_update_stream.name,
             ps_component="second",
         )
         with pytest.raises(

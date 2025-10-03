@@ -80,7 +80,8 @@ class TestFlawCollaborator:
     @pytest.mark.enable_signals
     def test_update_label_on_affect_update(self):
         ps_module = PsModuleFactory()
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        ps_update_stream2 = PsUpdateStreamFactory()
         FlawLabel.objects.create(
             name="test_component_label",
             type=FlawLabel.FlawLabelType.PRODUCT_FAMILY,
@@ -96,14 +97,14 @@ class TestFlawCollaborator:
         affect = AffectFactory(
             flaw=flaw,
             ps_component="test_component",
-            ps_update_stream=ps_update_stream.name,
+            ps_update_stream=ps_update_stream1.name,
         )
         flaw.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
         flaw.save()
 
         assert flaw.labels.count() == 2
 
-        affect.ps_update_stream = "other_stream"
+        affect.ps_update_stream = ps_update_stream2.name
         affect.save()
 
         assert flaw.labels.count() == 2
