@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Adjust `unembargo_dt` validation for embargoed flaws to only trigger when 
   `unembargo_dt` is changed (OSIDB-4296)
+- Improve performance in Alerts and ACL serialization (OSIDB-4313)
 - Implement affects v2 (OSIDB-4023)
 
 ## [4.16.0] - 2025-09-16

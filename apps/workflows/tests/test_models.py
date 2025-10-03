@@ -1,6 +1,10 @@
 import pytest
 
-from apps.workflows.exceptions import LastStateException, MissingRequirementsException
+from apps.workflows.exceptions import (
+    InitialStateException,
+    LastStateException,
+    MissingRequirementsException,
+)
 from apps.workflows.models import Check, Condition, State, Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from osidb.models import (
@@ -1008,3 +1012,216 @@ class TestFlaw:
 
         with pytest.raises(LastStateException):
             flaw.promote()
+
+    @pytest.mark.enable_signals
+    def test_reject(self):
+        """test successful flaw rejection"""
+        workflow_framework = WorkflowFramework()
+        workflow_framework._workflows = []
+
+        # Create a default workflow
+        state_new = {
+            "name": WorkflowModel.WorkflowState.NEW,
+            "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
+        }
+        workflow = Workflow(
+            {
+                "name": "DEFAULT",
+                "description": "default workflow",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_new],
+            }
+        )
+
+        # Create rejected workflow
+        state_rejected = {
+            "name": WorkflowModel.WorkflowState.REJECTED,
+            "requirements": [],
+            "jira_state": "Closed",
+            "jira_resolution": "Won't Do",
+        }
+        reject_workflow = Workflow(
+            {
+                "name": "REJECTED",
+                "description": "rejected workflow",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_rejected],
+            }
+        )
+
+        workflow_framework.register_workflow(workflow)
+        workflow_framework.register_workflow(reject_workflow)
+
+        flaw = FlawFactory()
+        AffectFactory(flaw=flaw)
+
+        # Initially in default workflow
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NOVALUE
+
+        # Reject the flaw
+        flaw.reject()
+
+        # Should now be in rejected workflow and state
+        assert flaw.classification["workflow"] == "REJECTED"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.REJECTED
+
+    @pytest.mark.enable_signals
+    def test_revert(self):
+        """test flaw state reversion after data change"""
+        workflow_framework = WorkflowFramework()
+        workflow_framework._workflows = []
+
+        state_new = {
+            "name": WorkflowModel.WorkflowState.NEW,
+            "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
+        }
+
+        state_first = {
+            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
+            "requirements": ["has cwe"],
+            "jira_state": "To Do",
+            "jira_resolution": None,
+        }
+
+        state_second = {
+            "name": WorkflowModel.WorkflowState.DONE,
+            "requirements": ["has cve_description"],
+            "jira_state": "Refinement",
+            "jira_resolution": None,
+        }
+
+        workflow = Workflow(
+            {
+                "name": "DEFAULT",
+                "description": "random description",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_new, state_first, state_second],
+            }
+        )
+        workflow_framework.register_workflow(workflow)
+
+        flaw = FlawFactory(
+            cwe_id="CWE-1",
+            cve_description="valid cve_description",
+            workflow_state=WorkflowModel.WorkflowState.DONE,
+        )
+        AffectFactory(flaw=flaw)
+
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
+
+        # Revert from DONE to SECONDARY_ASSESSMENT
+        assert flaw.revert() is None
+        assert (
+            flaw.classification["state"]
+            == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        )
+
+        # Revert from SECONDARY_ASSESSMENT to NEW
+        assert flaw.revert() is None
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+
+        # Try to revert from NEW (first state) - should raise InitialStateException
+        with pytest.raises(InitialStateException):
+            flaw.revert()
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+
+    @pytest.mark.enable_signals
+    def test_reset(self):
+        """test flaw reset to default workflow"""
+        workflow_framework = WorkflowFramework()
+        workflow_framework._workflows = []
+
+        # Create default workflow with three states
+        state_new = {
+            "name": WorkflowModel.WorkflowState.NEW,
+            "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
+        }
+        state_triage = {
+            "name": WorkflowModel.WorkflowState.TRIAGE,
+            "requirements": ["has cwe"],
+            "jira_state": "To Do",
+            "jira_resolution": None,
+        }
+        state_done = {
+            "name": WorkflowModel.WorkflowState.DONE,
+            "requirements": ["has cve_description"],
+            "jira_state": "Done",
+            "jira_resolution": None,
+        }
+        default_workflow = Workflow(
+            {
+                "name": "DEFAULT",
+                "description": "default workflow",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_new, state_triage, state_done],
+            }
+        )
+
+        # Create rejected workflow
+        state_rejected = {
+            "name": WorkflowModel.WorkflowState.REJECTED,
+            "requirements": [],
+            "jira_state": "Closed",
+            "jira_resolution": "Won't Do",
+        }
+        reject_workflow = Workflow(
+            {
+                "name": "REJECTED",
+                "description": "rejected workflow",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_rejected],
+            }
+        )
+
+        workflow_framework.register_workflow(default_workflow)
+        workflow_framework.register_workflow(reject_workflow)
+
+        # Test reset from REJECTED workflow
+        flaw_rejected = FlawFactory(
+            workflow_name="REJECTED",
+            workflow_state=WorkflowModel.WorkflowState.REJECTED,
+        )
+        AffectFactory(flaw=flaw_rejected)
+
+        assert flaw_rejected.classification["workflow"] == "REJECTED"
+        assert (
+            flaw_rejected.classification["state"]
+            == WorkflowModel.WorkflowState.REJECTED
+        )
+
+        # Reset from REJECTED to DEFAULT
+        flaw_rejected.reset()
+
+        assert flaw_rejected.classification["workflow"] == "DEFAULT"
+        assert flaw_rejected.classification["state"] == WorkflowModel.WorkflowState.NEW
+
+        # Test reset from DEFAULT workflow (already in default, last state)
+        flaw_default = FlawFactory(
+            workflow_name="DEFAULT",
+            workflow_state=WorkflowModel.WorkflowState.DONE,
+            cwe_id="CWE-1",
+            cve_description="valid cve_description",
+        )
+        AffectFactory(flaw=flaw_default)
+
+        assert flaw_default.classification["workflow"] == "DEFAULT"
+        assert flaw_default.classification["state"] == WorkflowModel.WorkflowState.DONE
+
+        # Reset from DEFAULT DONE to DEFAULT NEW (skipping TRIAGE state)
+        flaw_default.reset()
+
+        assert flaw_default.classification["workflow"] == "DEFAULT"
+        assert flaw_default.classification["state"] == WorkflowModel.WorkflowState.NEW
