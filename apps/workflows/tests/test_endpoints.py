@@ -332,6 +332,243 @@ class TestEndpoints(object):
         assert "already in the last state" in body["errors"]
 
     @pytest.mark.enable_signals
+    def test_revert_endpoint(
+        self,
+        enable_jira_task_sync,
+        monkeypatch,
+        auth_client,
+        test_api_uri_osidb,
+        set_hvac_test_env_vars,
+    ):
+        def mock(self, flaw):
+            return None
+
+        monkeypatch.setattr(JiraTaskmanQuerier, "create_or_update_task", mock)
+        monkeypatch.setattr(JiraTaskmanQuerier, "transition_task", mock)
+
+        workflow_framework = WorkflowFramework()
+        workflow_framework._workflows = []
+
+        state_new = {
+            "name": WorkflowModel.WorkflowState.NEW,
+            "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
+        }
+
+        state_first = {
+            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
+            "requirements": ["has cwe"],
+            "jira_state": "In Progress",
+            "jira_resolution": None,
+        }
+
+        state_second = {
+            "name": WorkflowModel.WorkflowState.DONE,
+            "requirements": ["has cve_description"],
+            "jira_state": "Closed",
+            "jira_resolution": "Done",
+        }
+
+        workflow = Workflow(
+            {
+                "name": "DEFAULT",
+                "description": "random description",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_new, state_first, state_second],
+            }
+        )
+        workflow_framework.register_workflow(workflow)
+
+        # Create flaw in DONE state with all requirements met
+        flaw = FlawFactory(
+            cwe_id="CWE-1",
+            cve_description="valid cve_description",
+            task_key="OSIM-123",
+            workflow_state=WorkflowModel.WorkflowState.DONE,
+        )
+        AffectFactory(flaw=flaw)
+
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
+
+        # Test successful revert from DONE to SECONDARY_ASSESSMENT
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/revert",
+            data={},
+            format="json",
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert (
+            body["classification"]["state"]
+            == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        )
+
+        # Test successful revert from SECONDARY_ASSESSMENT to NEW
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/revert",
+            data={},
+            format="json",
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+
+        # Test failure: trying to revert from initial state (NEW)
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/revert",
+            data={},
+            format="json",
+        )
+        assert response.status_code == 409
+        body = response.json()
+        assert "already in the initial state" in body["errors"]
+
+    @pytest.mark.enable_signals
+    def test_reset_endpoint(
+        self,
+        enable_jira_task_sync,
+        monkeypatch,
+        auth_client,
+        test_api_uri_osidb,
+        set_hvac_test_env_vars,
+    ):
+        """test flaw state reset to default workflow"""
+
+        def mock(self, flaw):
+            return None
+
+        monkeypatch.setattr(JiraTaskmanQuerier, "create_or_update_task", mock)
+        monkeypatch.setattr(JiraTaskmanQuerier, "transition_task", mock)
+
+        workflow_framework = WorkflowFramework()
+        workflow_framework._workflows = []
+
+        # Create default workflow with multiple states
+        state_new = {
+            "name": WorkflowModel.WorkflowState.NEW,
+            "requirements": [],
+            "jira_state": "New",
+            "jira_resolution": None,
+        }
+
+        state_triage = {
+            "name": WorkflowModel.WorkflowState.TRIAGE,
+            "requirements": ["has cwe"],
+            "jira_state": "To Do",
+            "jira_resolution": None,
+        }
+
+        state_done = {
+            "name": WorkflowModel.WorkflowState.DONE,
+            "requirements": ["has cve_description"],
+            "jira_state": "Closed",
+            "jira_resolution": "Done",
+        }
+
+        default_workflow = Workflow(
+            {
+                "name": "DEFAULT",
+                "description": "default workflow",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_new, state_triage, state_done],
+            }
+        )
+
+        # Create rejected workflow
+        state_rejected = {
+            "name": WorkflowModel.WorkflowState.REJECTED,
+            "requirements": [],
+            "jira_state": "Closed",
+            "jira_resolution": "Won't Do",
+        }
+
+        reject_workflow = Workflow(
+            {
+                "name": "REJECTED",
+                "description": "rejected workflow",
+                "priority": 0,
+                "conditions": [],
+                "states": [state_rejected],
+            }
+        )
+
+        workflow_framework.register_workflow(default_workflow)
+        workflow_framework.register_workflow(reject_workflow)
+
+        # Test 1: Reset from DONE state in DEFAULT workflow
+        flaw = FlawFactory(
+            cwe_id="CWE-1",
+            cve_description="valid cve_description",
+            task_key="OSIM-123",
+            workflow_state=WorkflowModel.WorkflowState.DONE,
+            workflow_name="DEFAULT",
+        )
+        AffectFactory(flaw=flaw)
+
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
+
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reset",
+            data={},
+            format="json",
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "DEFAULT"
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+
+        # Test 2: Reset from REJECTED workflow
+        flaw = FlawFactory(
+            cwe_id="CWE-1",
+            cve_description="valid cve_description",
+            task_key="OSIM-124",
+            workflow_state=WorkflowModel.WorkflowState.REJECTED,
+            workflow_name="REJECTED",
+        )
+        AffectFactory(flaw=flaw)
+
+        assert flaw.classification["workflow"] == "REJECTED"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.REJECTED
+
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reset",
+            data={},
+            format="json",
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "DEFAULT"
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+
+        # Test 3: Reset from NEW state (already in initial state) - should still work
+        flaw = FlawFactory(
+            cwe_id="",
+            cve_description="",
+            task_key="OSIM-125",
+            workflow_state=WorkflowModel.WorkflowState.NEW,
+            workflow_name="DEFAULT",
+        )
+        AffectFactory(flaw=flaw)
+
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reset",
+            data={},
+            format="json",
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "DEFAULT"
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+
+    @pytest.mark.enable_signals
     def test_reject_endpoint(
         self,
         monkeypatch,

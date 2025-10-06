@@ -5216,13 +5216,11 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: header
         name: Jira-Api-Key
         schema:
           type: string
         description: User generated api key for Jira authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -5629,13 +5627,11 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
-        required: true
       - in: header
         name: Jira-Api-Key
         schema:
           type: string
         description: User generated api key for Jira authentication.
-        required: true
       - in: path
         name: flaw_id
         schema:
@@ -5655,6 +5651,98 @@ paths:
             schema:
               $ref: '#/components/schemas/RejectRequest'
         required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /osidb/api/v1/flaws/{flaw_id}/reset:
+    post:
+      operationId: osidb_api_v1_flaws_reset_create
+      description: |-
+        Workflow reset API endpoint.
+
+        Try to adjust workflow classification of a Flaw to the initial state
+        of the default workflow, return its workflow:state classification or
+        errors if not possible to reset.
+      parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+      - in: header
+        name: Jira-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Jira authentication.
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /osidb/api/v1/flaws/{flaw_id}/revert:
+    post:
+      operationId: osidb_api_v1_flaws_revert_create
+      description: |-
+        Workflow revert API endpoint.
+
+        Try to adjust workflow classification of a Flaw to the previous state
+        available and return its workflow:state classification or errors if
+        not possible to revert.
+      parameters:
+      - in: header
+        name: Bugzilla-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Bugzilla authentication.
+      - in: header
+        name: Jira-Api-Key
+        schema:
+          type: string
+        description: User generated api key for Jira authentication.
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
       security:
       - OsidbTokenAuthentication: []
       responses:
