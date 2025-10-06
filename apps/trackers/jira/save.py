@@ -86,6 +86,11 @@ class TrackerJiraSaver(JiraQuerier):
         update an existing representation of tracker model in Jira
         """
         builder = self.get_builder()
+        if tracker.is_closed:
+            # prevent query from being generated with non-security level fields
+            builder._query["fields"] = {"security": None}
+            builder.generate_security()
+
         query = builder(tracker).query
         url = f"{self.jira_conn._get_url('issue')}/{query['key']}"
         self.jira_conn._session.put(url, json.dumps(query))
