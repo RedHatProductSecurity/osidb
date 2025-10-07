@@ -206,7 +206,7 @@ class Flaw(
               this is the only state where cve_description is propagated to the flaw's CVE page
         * (-) "REJECTED": cve_description is not required for this flaw
 
-        Note that if a flaw is MI or CISA MI, requires_cve_description should be "APPROVED".
+        Note that if a flaw is MI or Exploits (KEV), requires_cve_description should be "APPROVED".
         """
 
         NOVALUE = ""

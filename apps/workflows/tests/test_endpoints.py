@@ -153,7 +153,7 @@ class TestEndpoints(object):
                 "description": "random description",
                 "priority": 1,  # is more prior than default one
                 "conditions": [
-                    "major incident state is approved"
+                    "major incident state is major incident approved"
                 ],  # major incident flaws are classified here
                 "states": [],  # this is not valid but OK for this test
             }
@@ -161,7 +161,9 @@ class TestEndpoints(object):
         workflow.states = states
         workflow_framework.register_workflow(workflow)
 
-        flaw = FlawFactory.build(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
+        flaw = FlawFactory.build(
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+        )
         flaw.adjust_classification(save=False)
         flaw.save(raise_validation_error=False)
         AffectFactory(flaw=flaw)
@@ -171,7 +173,7 @@ class TestEndpoints(object):
             "state": "DONE",
         }
 
-        flaw.major_incident_state = Flaw.FlawMajorIncident.REJECTED
+        flaw.major_incident_state = Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED
         flaw.save()
 
         response = auth_client().post(f"{test_api_uri}/workflows/{flaw.uuid}/adjust")
