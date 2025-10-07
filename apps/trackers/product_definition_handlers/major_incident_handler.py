@@ -20,7 +20,6 @@ class MajorIncidentHandler(DefaultHandler):
         the caller is responsible for checking the applicability before getting the offer
         """
         return affect.flaw.major_incident_state in [
-            Flaw.FlawMajorIncident.APPROVED,
-            Flaw.FlawMajorIncident.CISA_APPROVED,
-            Flaw.FlawMajorIncident.ZERO_DAY,
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
         ]

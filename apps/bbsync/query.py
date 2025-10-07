@@ -331,12 +331,11 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         Generate hightouch and hightouch-lite flags from major_incident_state.
         """
         flags_to_write = {
-            Flaw.FlawMajorIncident.REQUESTED: ("?", "?"),
-            Flaw.FlawMajorIncident.REJECTED: ("-", "-"),
-            Flaw.FlawMajorIncident.APPROVED: ("+", "-"),
-            Flaw.FlawMajorIncident.CISA_APPROVED: ("-", "+"),
-            # flags NOVALUE and INVALID are ignored
-            # the same as MINOR and 0-day incidents
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_REQUESTED: ("?", "?"),
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED: ("-", "-"),
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED: ("+", "-"),
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED: ("-", "+"),
+            # flags NOVALUE is ignored
         }
 
         if self.flaw.major_incident_state in flags_to_write:

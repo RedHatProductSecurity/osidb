@@ -81,11 +81,10 @@ def get_jira_user_id(email: str) -> str:
 def update_major_incident_start_dt(flaw: Flaw) -> None:
     # Set the date when the flaw became a MI if needed
     is_major_incident = flaw.major_incident_state in {
-        Flaw.FlawMajorIncident.APPROVED,
-        Flaw.FlawMajorIncident.CISA_APPROVED,
-        # Flaw.FlawMajorIncident.MINOR is not
+        Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+        Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+        # Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED is not
         # included as it has no impact on the SLA
-        Flaw.FlawMajorIncident.ZERO_DAY,
     }
     if is_major_incident and flaw.major_incident_start_dt is None:
         flaw.major_incident_start_dt = timezone.now()
