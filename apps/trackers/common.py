@@ -121,10 +121,9 @@ class TrackerQueryBuilder:
             prefixes.append("EMBARGOED")
 
         prefix_map = {
-            Flaw.FlawMajorIncident.APPROVED: "[Major Incident]",
-            Flaw.FlawMajorIncident.CISA_APPROVED: "[CISA Major Incident]",
-            Flaw.FlawMajorIncident.MINOR: "[Minor Incident]",
-            Flaw.FlawMajorIncident.ZERO_DAY: "[0-day]",
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED: "[Major Incident]",
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED: "[Exploits (KEV)]",
+            Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED: "[Minor Incident]",
         }
 
         # no incident priority has been given
