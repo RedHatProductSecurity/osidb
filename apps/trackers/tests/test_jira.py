@@ -2111,19 +2111,25 @@ class TestTrackerJiraQueryBuilder:
     @pytest.mark.parametrize(
         "major_incident_state,expected,missing",
         [
-            (Flaw.FlawMajorIncident.APPROVED, [{"value": "Major Incident"}], False),
             (
-                Flaw.FlawMajorIncident.CISA_APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                [{"value": "Major Incident"}],
+                False,
+            ),
+            (
+                Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
                 [{"value": "KEV (active exploit case)"}],
                 False,
             ),
-            (Flaw.FlawMajorIncident.MINOR, [{"value": "Minor Incident"}], False),
-            (Flaw.FlawMajorIncident.ZERO_DAY, [{"value": "0-day"}], False),
+            (
+                Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED,
+                [{"value": "Minor Incident"}],
+                False,
+            ),
             (Flaw.FlawMajorIncident.NOVALUE, [], False),
-            (Flaw.FlawMajorIncident.APPROVED, None, True),
-            (Flaw.FlawMajorIncident.CISA_APPROVED, None, True),
-            (Flaw.FlawMajorIncident.MINOR, None, True),
-            (Flaw.FlawMajorIncident.ZERO_DAY, None, True),
+            (Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED, None, True),
+            (Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED, None, True),
+            (Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED, None, True),
             (Flaw.FlawMajorIncident.NOVALUE, None, True),
         ],
     )

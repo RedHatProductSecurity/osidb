@@ -622,40 +622,46 @@ class TestSLAPolicy:
             [
                 (
                     {
-                        "flaw": ["major incident state is approved"],
+                        "flaw": ["major incident state is major incident approved"],
                     },
                     [],
-                    ["major incident state is approved"],
+                    ["major incident state is major incident approved"],
                     [],
                 ),
                 (
                     {
                         "flaw": [
-                            "major incident state is cisa approved",
+                            "major incident state is exploits kev approved",
                             "is not embargoed",
                         ],
                     },
                     [],
-                    ["major incident state is cisa approved", "is not embargoed"],
+                    [
+                        "major incident state is exploits kev approved",
+                        "is not embargoed",
+                    ],
                     [],
                 ),
                 (
                     {
                         "affect": ["is community"],
                         "flaw": [
-                            "major incident state is approved",
+                            "major incident state is major incident approved",
                             "is not embargoed",
                         ],
                     },
                     ["is community"],
-                    ["major incident state is approved", "is not embargoed"],
+                    [
+                        "major incident state is major incident approved",
+                        "is not embargoed",
+                    ],
                     [],
                 ),
                 (
                     {
                         "affect": ["is community"],
                         "flaw": [
-                            "major incident state is approved",
+                            "major incident state is major incident approved",
                             "is not embargoed",
                             "state is not triage",
                         ],
@@ -663,7 +669,7 @@ class TestSLAPolicy:
                     },
                     ["is community"],
                     [
-                        "major incident state is approved",
+                        "major incident state is major incident approved",
                         "is not embargoed",
                         "state is not triage",
                     ],
@@ -734,7 +740,7 @@ class TestSLAPolicy:
                         "is community",
                     ],
                     "flaw": [
-                        "major incident state is approved",
+                        "major incident state is major incident approved",
                         "is not embargoed",
                     ],
                     "tracker": [
@@ -752,7 +758,7 @@ class TestSLAPolicy:
             flaw = FlawFactory(
                 components=["dnf"],
                 embargoed=False,
-                major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+                major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 impact=Impact.LOW,
             )
             ps_product = PsProductFactory(business_unit="Community")
@@ -795,7 +801,7 @@ class TestSLAPolicy:
                         "ps_component is dnf",
                     ],
                     "flaw": [
-                        "major incident state is approved",
+                        "major incident state is major incident approved",
                         "is not embargoed",
                     ],
                 },
@@ -810,7 +816,7 @@ class TestSLAPolicy:
             flaw1 = FlawFactory(
                 components=["dnf"],
                 embargoed=False,
-                major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+                major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 impact=Impact.LOW,
                 title="real flaw",
             )

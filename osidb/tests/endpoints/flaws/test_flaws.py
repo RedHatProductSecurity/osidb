@@ -120,7 +120,7 @@ class TestEndpointsFlaws:
         """retrieve specific flaw from endpoint"""
 
         flaw1 = FlawFactory.build(
-            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
             requires_cve_description=Flaw.FlawRequiresCVEDescription.APPROVED,
             nist_cvss_validation=Flaw.FlawNistCvssValidation.NOVALUE,
         )
@@ -139,7 +139,10 @@ class TestEndpointsFlaws:
         response = auth_client().get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
         assert response.status_code == 200
         body = response.json()
-        assert body["major_incident_state"] == Flaw.FlawMajorIncident.APPROVED
+        assert (
+            body["major_incident_state"]
+            == Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+        )
         assert body["nist_cvss_validation"] == Flaw.FlawNistCvssValidation.NOVALUE
         assert len(body["comments"]) == 1
 
@@ -1300,7 +1303,7 @@ class TestEndpointsFlaws:
         # reset ACLs
         set_user_acls(settings.ALL_GROUPS)
         flaw1 = FlawFactory.build(
-            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
             requires_cve_description=Flaw.FlawRequiresCVEDescription.APPROVED,
         )
         flaw1.save(raise_validation_error=False)
@@ -1323,7 +1326,10 @@ class TestEndpointsFlaws:
         )
         assert response.status_code == 200
         body = response.json()
-        assert body["major_incident_state"] == Flaw.FlawMajorIncident.APPROVED
+        assert (
+            body["major_incident_state"]
+            == Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+        )
         assert len(body["comments"]) == 1
 
     def test_flaw_create(self, auth_client, test_api_uri):
