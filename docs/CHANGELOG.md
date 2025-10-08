@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve performance in Alerts and ACL serialization (OSIDB-4313)
 - Implement affects v2 (OSIDB-4023)
 
+### Removed
+- Remove deprecated fields/models: `PsProduct`'s `team`, `FlawComment`'s `order` 
+  and models in `package_versions.py` (OSIDB-3552)
+
 ## [4.16.0] - 2025-09-16
 ### Fixed
 - Fix `owner` update in Jira not reflected in OSIDB (OSIDB-4306)

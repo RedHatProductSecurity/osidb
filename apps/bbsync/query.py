@@ -7,10 +7,10 @@ from django.utils import timezone
 from apps.bbsync.constants import MAX_SUMMARY_LENGTH, MULTIPLE_DESCRIPTIONS_SUBSTITUTION
 from apps.bbsync.exceptions import UnsavableModelError
 from collectors.bzimport.constants import ANALYSIS_TASK_PRODUCT
+from osidb.cc import BugzillaFlawCCBuilder
 from osidb.helpers import cve_id_comparator, filter_cves
 from osidb.models import Flaw, FlawComment, Impact, PsModule
 
-from .cc import CCBuilder
 from .constants import DATE_FMT
 
 
@@ -478,7 +478,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         """
         generate query for CC list
         """
-        cc_builder = CCBuilder(self.flaw, self.cc)
+        cc_builder = BugzillaFlawCCBuilder(self.flaw, self.cc)
         # let us ignore CCs to be removed
         add_cc, _ = cc_builder.content
 
