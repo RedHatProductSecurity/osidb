@@ -3098,13 +3098,15 @@ paths:
           type: string
           enum:
           - ''
-          - APPROVED
-          - CISA_APPROVED
-          - INVALID
-          - MINOR
-          - REJECTED
-          - REQUESTED
-          - ZERO_DAY
+          - EXPLOITS_KEV_APPROVED
+          - EXPLOITS_KEV_REJECTED
+          - EXPLOITS_KEV_REQUESTED
+          - MAJOR_INCIDENT_APPROVED
+          - MAJOR_INCIDENT_REJECTED
+          - MAJOR_INCIDENT_REQUESTED
+          - MINOR_INCIDENT_APPROVED
+          - MINOR_INCIDENT_REJECTED
+          - MINOR_INCIDENT_REQUESTED
       - in: query
         name: mitigation__isempty
         schema:
@@ -9036,13 +9038,15 @@ paths:
           type: string
           enum:
           - ''
-          - APPROVED
-          - CISA_APPROVED
-          - INVALID
-          - MINOR
-          - REJECTED
-          - REQUESTED
-          - ZERO_DAY
+          - EXPLOITS_KEV_APPROVED
+          - EXPLOITS_KEV_REJECTED
+          - EXPLOITS_KEV_REQUESTED
+          - MAJOR_INCIDENT_APPROVED
+          - MAJOR_INCIDENT_REJECTED
+          - MAJOR_INCIDENT_REQUESTED
+          - MINOR_INCIDENT_APPROVED
+          - MINOR_INCIDENT_REJECTED
+          - MINOR_INCIDENT_REQUESTED
       - in: query
         name: mitigation__isempty
         schema:
@@ -13652,13 +13656,15 @@ components:
       type: string
     MajorIncidentStateEnum:
       enum:
-      - REQUESTED
-      - REJECTED
-      - APPROVED
-      - CISA_APPROVED
-      - MINOR
-      - ZERO_DAY
-      - INVALID
+      - MAJOR_INCIDENT_REQUESTED
+      - MAJOR_INCIDENT_REJECTED
+      - MAJOR_INCIDENT_APPROVED
+      - EXPLOITS_KEV_REQUESTED
+      - EXPLOITS_KEV_REJECTED
+      - EXPLOITS_KEV_APPROVED
+      - MINOR_INCIDENT_REQUESTED
+      - MINOR_INCIDENT_REJECTED
+      - MINOR_INCIDENT_APPROVED
       type: string
     MaturityPreliminaryEnum:
       enum:

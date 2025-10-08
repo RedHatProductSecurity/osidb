@@ -561,15 +561,12 @@ class TestGenerateFlags:
         "mi_state,hightouch,hightouch_lite,should_convert",
         [
             # flags to convert
-            (Flaw.FlawMajorIncident.REQUESTED, "?", "?", True),
-            (Flaw.FlawMajorIncident.REJECTED, "-", "-", True),
-            (Flaw.FlawMajorIncident.APPROVED, "+", "-", True),
-            (Flaw.FlawMajorIncident.CISA_APPROVED, "-", "+", True),
+            (Flaw.FlawMajorIncident.MAJOR_INCIDENT_REQUESTED, "?", "?", True),
+            (Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED, "-", "-", True),
+            (Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED, "+", "-", True),
+            (Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED, "-", "+", True),
             # flags to ignore
             (Flaw.FlawMajorIncident.NOVALUE, None, None, False),
-            (Flaw.FlawMajorIncident.MINOR, None, None, False),
-            (Flaw.FlawMajorIncident.ZERO_DAY, None, None, False),
-            (Flaw.FlawMajorIncident.INVALID, None, None, False),
         ],
     )
     def test_generate_hightouch_and_hightouch_lite(

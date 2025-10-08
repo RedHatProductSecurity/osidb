@@ -151,17 +151,17 @@ class TestEndpointsFlawsUpdateTrackers:
             ({"source": "DEBIAN"}, {"source": "GENTOO"}, False),
             (
                 {"major_incident_state": ""},
-                {"major_incident_state": "REQUESTED"},
+                {"major_incident_state": "MAJOR_INCIDENT_REQUESTED"},
                 False,
             ),
             (
-                {"major_incident_state": "REQUESTED"},
-                {"major_incident_state": "APPROVED"},
+                {"major_incident_state": "MAJOR_INCIDENT_REQUESTED"},
+                {"major_incident_state": "MAJOR_INCIDENT_APPROVED"},
                 True,
             ),
             (
-                {"major_incident_state": "APPROVED"},
-                {"major_incident_state": "CISA_APPROVED"},
+                {"major_incident_state": "MAJOR_INCIDENT_APPROVED"},
+                {"major_incident_state": "EXPLOITS_KEV_APPROVED"},
                 True,
             ),
             (

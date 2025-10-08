@@ -29,7 +29,7 @@ class TestCore(object):
     def test_flaw_factory(self):
         """test that we can generate a flaw using factory"""
         flaw1 = FlawFactory.build(
-            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
             requires_cve_description=Flaw.FlawRequiresCVEDescription.APPROVED,
         )
         flaw1.save(raise_validation_error=False)
