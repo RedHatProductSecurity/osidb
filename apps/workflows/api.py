@@ -13,10 +13,10 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.taskman.service import JiraTaskmanQuerier
 from osidb.api_views import RudimentaryUserPathLoggingMixin, get_valid_http_methods
-from osidb.helpers import get_bugzilla_api_key, get_jira_api_key
+from osidb.helpers import get_bugzilla_api_key, get_flaw_or_404, get_jira_api_key
 
 from .exceptions import WorkflowsException
-from .helpers import get_flaw_or_404, str2bool
+from .helpers import str2bool
 from .serializers import (
     ClassificationWorkflowSerializer,
     RejectSerializer,

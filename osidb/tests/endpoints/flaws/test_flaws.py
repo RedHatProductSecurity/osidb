@@ -1954,3 +1954,19 @@ class TestEndpointsFlaws:
         response = client.get(f"{test_api_uri}/available-flaws/not-an-id")
         assert response.status_code == 400
         assert response.data is None
+
+    def test_cve_id_case_insensitive(self, auth_client, test_api_uri):
+        """
+        Test that the API endpoint is case-insensitive when matching CVE IDs
+        """
+
+        flaw = FlawFactory(cve_id="CVE-2999-9999")
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        assert response.status_code == 200
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id.lower()}")
+        assert response.status_code == 200
+
+        response = auth_client().get(f"{test_api_uri}/flaws/CvE-2999-9999")
+        assert response.status_code == 200
