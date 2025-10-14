@@ -729,6 +729,55 @@ class TestFlaw:
         assert f.cve_id != t2.cve_id
         assert f2.cve_id == a2.cve_id == t2.cve_id
 
+    def test_get_by_identifier(self):
+        """
+        test that the flaw manager get_by_identifier method correctly
+        matches CVE IDs and UUIDs with flaws.
+        """
+
+        flaw = FlawFactory(cve_id="CVE-2999-9999")
+        flaw_uuid = str(flaw.uuid)
+
+        assert Flaw.objects.get_by_identifier("CVE-2999-9999") == flaw
+        assert Flaw.objects.get_by_identifier("cve-2999-9999") == flaw
+        assert Flaw.objects.get_by_identifier("CvE-2999-9999") == flaw
+
+        assert Flaw.objects.get_by_identifier(flaw_uuid) == flaw
+
+        with pytest.raises(Flaw.DoesNotExist):
+            Flaw.objects.get_by_identifier("CVE-2999-9998")
+
+        with pytest.raises(ValidationError):
+            Flaw.objects.get_by_identifier("foo")
+
+    def test_get_by_identifier_with_queryset(self):
+        """
+        test that the flaw manager get_by_identifier method works correctly
+        with a custom queryset parameter.
+        """
+        flaw1 = FlawFactory(cve_id="CVE-2999-9999", title="A")
+        flaw2 = FlawFactory(cve_id="CVE-2999-9998", title="B")
+
+        queryset = Flaw.objects.filter(title="A")
+        flaw1_uuid = str(flaw1.uuid)
+
+        assert (
+            Flaw.objects.get_by_identifier("CVE-2999-9999", queryset=queryset) == flaw1
+        )
+        assert Flaw.objects.get_by_identifier(flaw1_uuid, queryset=queryset) == flaw1
+
+        with pytest.raises(Flaw.DoesNotExist):
+            Flaw.objects.get_by_identifier("CVE-2999-9998", queryset=queryset)
+
+        with pytest.raises(Flaw.DoesNotExist):
+            Flaw.objects.get_by_identifier(str(flaw2.uuid), queryset=queryset)
+
+        # Confirm that a queryset of a different model raises a ValidationError
+        with pytest.raises(ValidationError):
+            Flaw.objects.get_by_identifier(
+                "CVE-2999-9998", queryset=Affect.objects.all()
+            )
+
 
 class TestImpact:
     @pytest.mark.parametrize(

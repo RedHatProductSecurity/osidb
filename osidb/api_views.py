@@ -50,7 +50,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.workflows.workflow import WorkflowModel
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 from osidb.core import set_user_acls
-from osidb.helpers import get_bugzilla_api_key
+from osidb.helpers import get_bugzilla_api_key, get_flaw_or_404
 from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import Affect, AffectCVSS, AffectV1, Flaw, FlawLabel, Tracker
 from osidb.models.flaw.cvss import FlawCVSS
@@ -117,7 +117,6 @@ from .serializer import (
     TrackerV1Serializer,
     UserSerializer,
 )
-from .validators import CVE_RE_STR
 
 # Use only for RudimentaryUserPathLoggingMixin
 api_logger = logging.getLogger("api_req")
@@ -614,11 +613,8 @@ class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         """get flaw object instance"""
         queryset = self.get_queryset()
         pk = self.kwargs[self.lookup_url_kwarg]
-        if CVE_RE_STR.match(pk):
-            obj = get_object_or_404(queryset, cve_id=pk)
-        else:
-            obj = get_object_or_404(queryset, uuid=pk)
-        self.check_object_permissions(self.request, obj)
+
+        obj = get_flaw_or_404(pk, queryset=queryset)
         return obj
 
     def create(self, request, *args, **kwargs):
@@ -672,11 +668,7 @@ class SubFlawViewGetMixin:
         Gets the flaw instance associated with the requested model instance.
         """
         pk = self.kwargs["flaw_id"]
-        if CVE_RE_STR.match(pk):
-            obj = get_object_or_404(Flaw, cve_id=pk)
-        else:
-            obj = get_object_or_404(Flaw, uuid=pk)
-        self.check_object_permissions(self.request, obj)
+        obj = get_flaw_or_404(pk)
         return obj
 
     def get_queryset(self):
@@ -878,16 +870,16 @@ def flaw_available(request: Request, *args, **kwargs) -> Response:
     """
 
     cve_id = kwargs["cve_id"]
-    if not CVE_RE_STR.match(cve_id):
-        return Response(status=HTTP_400_BAD_REQUEST)
 
     try:
         set_user_acls(settings.ALL_GROUPS)
-        flaw = Flaw.objects.get(cve_id=cve_id)
-        set_user_acls([])
+        flaw = Flaw.objects.get_by_identifier(cve_id)
     except Flaw.DoesNotExist:
-        set_user_acls([])
         return Response(status=HTTP_204_NO_CONTENT)
+    except ValidationError:
+        return Response(status=HTTP_400_BAD_REQUEST)
+    finally:
+        set_user_acls([])
 
     if (
         flaw.is_public
@@ -1255,7 +1247,6 @@ class AffectCVSSView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
         """
         _id = self.kwargs["affect_id"]
         obj = get_object_or_404(Affect, uuid=_id)
-        self.check_object_permissions(self.request, obj)
         return obj
 
     def get_queryset(self):
