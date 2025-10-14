@@ -327,6 +327,18 @@ class Affect(
 
         super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        """
+        Prevents deleting the affect if it has an open tracker
+        """
+        if self.tracker and not self.tracker.is_closed:
+            tracker_id = self.tracker.external_system_id or self.tracker.uuid
+            raise ValidationError(
+                f"Cannot delete affect for {self.ps_update_stream}/{self.ps_component}: "
+                f"tracker {tracker_id} must be closed before deletion."
+            )
+        return super().delete(*args, **kwargs)
+
     def _validate_ps_module_old_flaw(self, **kwargs):
         """
         Checks that an affect from an older flaw contains a valid ps_module.
