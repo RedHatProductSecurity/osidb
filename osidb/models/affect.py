@@ -220,7 +220,7 @@ class Affect(
 
     # the length 255 does not have any special meaning in Postgres
     # but it is the maximum SFM2 value so let us just keep parity for now
-    # to fix https://issues.redhat.com/browse/OSIDB-635
+    # to fix https://uat-1-1-redhat.atlassian.net/browse/OSIDB-635
     ps_component = models.CharField(max_length=255)
 
     purl = PURLField()

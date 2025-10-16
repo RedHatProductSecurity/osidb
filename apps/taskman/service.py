@@ -72,7 +72,7 @@ class JiraTaskmanQuerier(JiraQuerier):
     and it methods return data requested with HTTP status code
     """
 
-    def __init__(self, token) -> None:
+    def __init__(self, token, email) -> None:
         """
         Instantiate a new JiraTaskmanQuerier object.
 
@@ -84,13 +84,15 @@ class JiraTaskmanQuerier(JiraQuerier):
         self._jira_server = JIRA_TASKMAN_URL
         if token:
             self._jira_token = token
+        if email:
+            self._jira_email = email
 
     def _check_token(self) -> None:
         """
         check the validity of the used API token
         raise exception if invalid one was given
         """
-        token_validation_url = f"{self.jira_conn._get_url('mypermissions')}?projectKey={JIRA_TASKMAN_PROJECT_KEY}"
+        token_validation_url = f"{self.jira_conn._get_url('mypermissions')}?projectKey={JIRA_TASKMAN_PROJECT_KEY}&permissions=CREATE_ISSUES"
 
         # This request raises exception for unauthenticated users
         permission_response = self.jira_conn._session.get(token_validation_url)
@@ -137,7 +139,7 @@ class JiraTaskmanQuerier(JiraQuerier):
             else:  # task exists; update
                 url = f"{self.jira_conn._get_url('issue')}/{flaw.task_key}"
                 if flaw.team_id:
-                    data["fields"]["customfield_12313240"] = flaw.team_id
+                    data["fields"]["customfield_10001"] = flaw.team_id
                 self.jira_conn._session.put(url, json.dumps(data))
         except JIRAError as e:
             creating = not flaw.task_key
@@ -224,7 +226,7 @@ class JiraTaskmanQuerier(JiraQuerier):
         }
 
         if flaw.group_key:
-            data["fields"]["customfield_12311140"] = flaw.group_key
+            data["fields"]["customfield_10014"] = flaw.group_key
 
         return data
 

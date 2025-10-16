@@ -13,7 +13,7 @@ Before contributing please read and follow these guidelines.
 
   * If you are [Red Hat](https://www.redhat.com/) associate and you are requesting company specific
     functionality open a new issue
-    [here](https://issues.redhat.com/secure/CreateIssueDetails!init.jspa?pid=12332734&issuetype=1).
+    [here](https://uat-1-1-redhat.atlassian.net/secure/CreateIssueDetails!init.jspa?pid=12332734&issuetype=1).
 
   * Otherwise open a new issue [here](https://github.com/RedHatProductSecurity/osidb/issues/new).
 

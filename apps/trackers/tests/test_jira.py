@@ -559,7 +559,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
                 },
                 {
                     "fixVersions": [{"name": "rhel-8.9.0"}],
-                    "customfield_12319743": {"value": "Approved Blocker"},
+                    "customfield_10283": {"value": "Approved Blocker"},
                 },
             ),
         ],
@@ -755,10 +755,10 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         # Create mock field
         if available_field:
             if target_release is not None:
-                field_id = "customfield_12311240"
+                field_id = "customfield_10053"
                 field_name = "Target Release"
             else:
-                field_id = "customfield_12319940"
+                field_id = "customfield_10387"
                 field_name = "Target Version"
             JiraProjectFieldsFactory(
                 project_key=ps_module.bts_key,
@@ -775,8 +775,8 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         if not available_field:
             # If the field is not available in the project, nothing is generated
             query_builder.generate_target_release()
-            assert "customfield_12311240" not in query_builder.query["fields"]
-            assert "customfield_12319940" not in query_builder.query["fields"]
+            assert "customfield_10053" not in query_builder.query["fields"]
+            assert "customfield_10387" not in query_builder.query["fields"]
         elif valid_jira_field:
             query_builder.generate_target_release()
             query_value = query_builder.query["fields"].get(field_id)
@@ -796,7 +796,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         test generation of Target Release/Target Version fields
         with PsUpdateStream.target_release being an empty string
 
-        reproducer of https://issues.redhat.com/browse/OSIDB-2909
+        reproducer of https://uat-1-1-redhat.atlassian.net/browse/OSIDB-2909
         """
         ps_module = PsModuleFactory(bts_name="jboss")
         ps_update_stream = PsUpdateStreamFactory(
@@ -818,7 +818,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
 
         JiraProjectFieldsFactory(
             project_key=ps_module.bts_key,
-            field_id="customfield_12311240",
+            field_id="customfield_10053",
             field_name="Target Release",
             allowed_values=["random"],
         )
@@ -1051,13 +1051,13 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         )
         JiraProjectFields(
             project_key="PROJECT",
-            field_id="customfield_12324749",
+            field_id="customfield_10282",
             field_name="CVE ID",
             allowed_values=[],
         ).save()
         JiraProjectFields(
             project_key="PROJECT",
-            field_id="customfield_12316142",
+            field_id="customfield_10296",
             field_name="Severity",
             allowed_values=[
                 "Critical",
@@ -1071,25 +1071,25 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         ).save()
         JiraProjectFields(
             project_key="PROJECT",
-            field_id="customfield_12324748",
+            field_id="customfield_10290",
             field_name="CVSS Score",
             allowed_values=[],
         ).save()
         JiraProjectFields(
             project_key="PROJECT",
-            field_id="customfield_12324747",
+            field_id="customfield_10286",
             field_name="CWE ID",
             allowed_values=[],
         ).save()
         JiraProjectFields(
             project_key="PROJECT",
-            field_id="customfield_12324752",
+            field_id="customfield_10391",
             field_name="Downstream Component Name",
             allowed_values=[],
         ).save()
         JiraProjectFields(
             project_key="PROJECT",
-            field_id="customfield_12324750",
+            field_id="customfield_10433",
             field_name="Embargo Status",
             allowed_values=["True", "False"],
         ).save()
@@ -1122,13 +1122,13 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         source = "DEBIAN"
         JiraProjectFields(
             project_key="PROJECT",
-            field_id="customfield_12324746",
+            field_id="customfield_10432",
             field_name="Source",
             allowed_values=[source],
         ).save()
         JiraProjectFields(
             project_key="PROJECT",
-            field_id="customfield_12324753",
+            field_id="customfield_10294",
             field_name="Special Handling",
             allowed_values=[
                 "0-day",
@@ -1139,7 +1139,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         ).save()
         JiraProjectFields(
             project_key="PROJECT",
-            field_id="customfield_12324751",
+            field_id="customfield_10392",
             field_name="Upstream Affected Component",
             allowed_values=[],
         ).save()
@@ -1297,37 +1297,37 @@ class TestTrackerJiraQueryBuilder:
                 ],
                 #
                 # Severity
-                "customfield_12316142": {"value": expected_severity},
+                "customfield_10296": {"value": expected_severity},
                 #
                 # Source
-                "customfield_12324746": {"value": "Red Hat"},
+                "customfield_10432": {"value": "Red Hat"},
                 #
                 # CVE ID
-                "customfield_12324749": "CVE-2999-1000",
+                "customfield_10282": "CVE-2999-1000",
                 #
                 # CVSS Score
-                # "customfield_12324748"
+                # "customfield_10290"
                 # not generated
                 #
                 # CWE ID
-                "customfield_12324747": "CWE-1",
+                "customfield_10286": "CWE-1",
                 #
                 # Downstream Component Name
-                "customfield_12324752": "foo-component",
+                "customfield_10391": "foo-component",
                 #
                 # Upstream Affected Component
-                "customfield_12324751": "; ".join(sorted(set(flaw.components))),
+                "customfield_10392": "; ".join(sorted(set(flaw.components))),
                 #
                 # Embargo Status
-                "customfield_12324750": {"value": str(flaw.is_embargoed)},
+                "customfield_10433": {"value": str(flaw.is_embargoed)},
                 #
                 # Special Handling
-                "customfield_12324753": [],
+                "customfield_10294": [],
             }
         }
 
         if not flaw.cwe_id:
-            del expected1["fields"]["customfield_12324747"]
+            del expected1["fields"]["customfield_10286"]
 
         query_builder = TrackerJiraQueryBuilder(tracker)
         query_builder.generate()
@@ -1400,11 +1400,11 @@ class TestTrackerJiraQueryBuilder:
                     {"name": "1.2.3"},
                 ],
                 # CVE ID
-                "customfield_12324749": "CVE-2999-1000",
+                "customfield_10282": "CVE-2999-1000",
                 # Downstream Component Name
-                "customfield_12324752": purl if feature_enabled else "jetty",
+                "customfield_10391": purl if feature_enabled else "jetty",
                 # Upstream Affected Component
-                "customfield_12324751": "; ".join(sorted(set(flaw.components))),
+                "customfield_10392": "; ".join(sorted(set(flaw.components))),
             }
         }
         query_builder = TrackerJiraQueryBuilder(
@@ -1438,7 +1438,7 @@ class TestTrackerJiraQueryBuilder:
             if not wrong:
                 JiraProjectFields(
                     project_key="FOOPROJECT",
-                    field_id="customfield_12316142",
+                    field_id="customfield_10296",
                     field_name="Severity",
                     allowed_values=[
                         "Critical",
@@ -1453,7 +1453,7 @@ class TestTrackerJiraQueryBuilder:
             else:
                 JiraProjectFields(
                     project_key="FOOPROJECT",
-                    field_id="customfield_12316142",
+                    field_id="customfield_10296",
                     field_name="Severity",
                     allowed_values=[
                         "Foobar",
@@ -1512,7 +1512,7 @@ class TestTrackerJiraQueryBuilder:
                         {"name": "1.2.3"},
                     ],
                     # Severity
-                    "customfield_12316142": {"value": expected_severity},
+                    "customfield_10296": {"value": expected_severity},
                 }
             }
 
@@ -1550,7 +1550,7 @@ class TestTrackerJiraQueryBuilder:
 
         JiraProjectFields(
             project_key="FOOPROJECT",
-            field_id="customfield_12324746",
+            field_id="customfield_10432",
             field_name="Source",
             # Severely pruned for the test
             allowed_values=["Foo", "Bar", allowed_jira_src, "Baz"],
@@ -1618,7 +1618,7 @@ class TestTrackerJiraQueryBuilder:
                     ],
                     #
                     # Source
-                    "customfield_12324746": {"value": expected_jira_src},
+                    "customfield_10432": {"value": expected_jira_src},
                 }
             }
 
@@ -1778,10 +1778,10 @@ class TestTrackerJiraQueryBuilder:
                 ],
                 #
                 # CVE ID
-                "customfield_12324749": "CVE-2999-1000",
+                "customfield_10282": "CVE-2999-1000",
                 #
                 # CWE ID
-                "customfield_12324747": "CWE-1",
+                "customfield_10286": "CWE-1",
             }
         }
 
@@ -1833,7 +1833,7 @@ class TestTrackerJiraQueryBuilder:
             # CVSS Score
             expected1["fields"].update(
                 {
-                    "customfield_12324748": f"""{best.score} {best.vector}""",
+                    "customfield_10290": f"""{best.score} {best.vector}""",
                 }
             )
 
@@ -1915,10 +1915,10 @@ class TestTrackerJiraQueryBuilder:
                 ],
                 #
                 # Downstream Component Name
-                "customfield_12324752": affect.ps_component,
+                "customfield_10391": affect.ps_component,
                 #
                 # Upstream Affected Component
-                "customfield_12324751": "; ".join(sorted(set(flaw.components))),
+                "customfield_10392": "; ".join(sorted(set(flaw.components))),
             }
         }
 
@@ -2008,14 +2008,14 @@ class TestTrackerJiraQueryBuilder:
                 ],
                 #
                 # Downstream Component Name
-                "customfield_12324752": affect.ps_component,
+                "customfield_10391": affect.ps_component,
                 #
                 # Upstream Affected Component
-                "customfield_12324751": "; ".join(sorted(set(components))),
+                "customfield_10392": "; ".join(sorted(set(components))),
             }
         }
         if not components:
-            del expected1["fields"]["customfield_12324751"]
+            del expected1["fields"]["customfield_10392"]
 
         if missing:
             JiraProjectFields.objects.filter(
@@ -2067,7 +2067,7 @@ class TestTrackerJiraQueryBuilder:
         JiraProjectFields.objects.filter(field_name="Embargo Status").delete()
         JiraProjectFields(
             project_key="FOOPROJECT",
-            field_id="customfield_12324750",
+            field_id="customfield_10433",
             field_name="Embargo Status",
             allowed_values=allowed_values,
         ).save()
@@ -2125,7 +2125,7 @@ class TestTrackerJiraQueryBuilder:
                 ],
                 #
                 # Embargo Status
-                "customfield_12324750": {"value": str(flaw.is_embargoed)},
+                "customfield_10433": {"value": str(flaw.is_embargoed)},
             }
         }
 
@@ -2229,7 +2229,7 @@ class TestTrackerJiraQueryBuilder:
                 "issuetype": {"name": "Vulnerability"},
                 #
                 # Special Handling
-                "customfield_12324753": expected,
+                "customfield_10294": expected,
             }
         }
 
@@ -2394,27 +2394,27 @@ class TestTrackerJiraQueryBuilder:
                 ],
                 #
                 # Severity
-                "customfield_12316142": {
+                "customfield_10296": {
                     "value": JiraSeverity.CRITICAL,
                 },
                 #
                 # Source
-                "customfield_12324746": {"value": "Red Hat"},
+                "customfield_10432": {"value": "Red Hat"},
                 #
                 # CVE ID
-                "customfield_12324749": "CVE-2999-1002",  # flaw3 is oldest of CRITICAL
+                "customfield_10282": "CVE-2999-1002",  # flaw3 is oldest of CRITICAL
                 #
                 # CVSS Score
-                "customfield_12324748": f"""{flwcvss3.score} {flwcvss3.vector}""",
+                "customfield_10290": f"""{flwcvss3.score} {flwcvss3.vector}""",
                 #
                 # CWE ID
-                "customfield_12324747": "CWE-3",  # flaw3 is oldest of CRITICAL
+                "customfield_10286": "CWE-3",  # flaw3 is oldest of CRITICAL
                 #
                 # Downstream Component Name
-                "customfield_12324752": "foo-component",
+                "customfield_10391": "foo-component",
                 #
                 # Upstream Affected Component
-                "customfield_12324751": "; ".join(
+                "customfield_10392": "; ".join(
                     sorted(
                         set(
                             flaw.components
@@ -2426,15 +2426,15 @@ class TestTrackerJiraQueryBuilder:
                 ),
                 #
                 # Embargo Status
-                "customfield_12324750": {"value": str(flaw.is_embargoed)},
+                "customfield_10433": {"value": str(flaw.is_embargoed)},
                 #
                 # Special Handling
-                "customfield_12324753": [],
+                "customfield_10294": [],
             }
         }
 
         if not flaw.cwe_id:
-            del expected1["fields"]["customfield_12324747"]
+            del expected1["fields"]["customfield_10286"]
 
         query_builder = TrackerJiraQueryBuilder(tracker)
         query_builder.generate()
@@ -2477,7 +2477,7 @@ class TestTrackerJiraQueryBuilder:
         non_rh_cvss = FlawCVSS.objects.filter(flaw=flaw_dummy, issuer=issuer).first()
         assert non_rh_cvss
         assert (
-            query_builder._query["fields"]["customfield_12324748"]
+            query_builder._query["fields"]["customfield_10290"]
             == f"""{non_rh_cvss.score} {non_rh_cvss.vector}"""
         )
 
@@ -2514,7 +2514,7 @@ class TestTrackerJiraQueryBuilder:
         ).first()
         assert rh_cvss
         assert (
-            query_builder._query["fields"]["customfield_12324748"]
+            query_builder._query["fields"]["customfield_10290"]
             == f"""{rh_cvss.score} {rh_cvss.vector}"""
         )
 
