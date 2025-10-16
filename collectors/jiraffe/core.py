@@ -13,6 +13,7 @@ from osidb.helpers import safe_get_response_content
 from .constants import (
     HTTPS_PROXY,
     JIRA_DT_FMT,
+    JIRA_EMAIL,
     JIRA_MAX_CONNECTION_AGE,
     JIRA_SERVER,
     JIRA_TOKEN,
@@ -29,6 +30,7 @@ class JiraConnector:
 
     _jira_server = JIRA_SERVER
     _jira_token = JIRA_TOKEN
+    _jira_email = JIRA_EMAIL
 
     def __init__(self):
         self._jira_conn = None
@@ -48,14 +50,15 @@ class JiraConnector:
         """
         Returns the JIRA connection object on which to perform queries to the JIRA API.
         """
+
         return JIRA(
             options={
                 "server": self._jira_server,
                 # avoid the JIRA lib auto-updating
                 "check_update": False,
             },
-            token_auth=self._jira_token,
-            get_server_info=False,
+            basic_auth=(self._jira_email, self._jira_token),
+            get_server_info=True,
             proxies={
                 "https": HTTPS_PROXY,
             },
@@ -92,10 +95,12 @@ class JiraQuerier(JiraConnector):
     Jira query handler
     """
 
-    def __init__(self, jira_token=None):
+    def __init__(self, jira_token=None, jira_email=None):
         super().__init__()
         if jira_token is not None:
             self._jira_token = jira_token
+        if jira_email is not None:
+            self._jira_email = jira_email
 
     ###########
     # HELPERS #
@@ -148,8 +153,11 @@ class JiraQuerier(JiraConnector):
 
         by default only the issue keys are returned which can be modified providing fields param
         either specifying the list of comma-separated field names or None to fetch all fields
+
+        Uses the new /rest/api/2/search/jql endpoint instead of the deprecated /rest/api/2/search
         """
-        return self.jira_conn.search_issues(
+
+        return self.jira_conn.enhanced_search_issues(
             self.create_query(query_list), fields=fields, maxResults=False
         )
 

@@ -73,8 +73,8 @@ class JiraTaskConvertor:
             "jira_resolution": resolution,
             "workflow_state": state,
             "workflow_name": workflow,
-            "team_id": self.get_field_attr(self._raw, "customfield_12313240", "id"),
-            "group_key": self.get_field_attr(self._raw, "customfield_12311140"),
+            "team_id": self.get_field_attr(self._raw, "customfield_10001", "id"),
+            "group_key": self.get_field_attr(self._raw, "customfield_10014"),
             "task_updated_dt": datetime.strptime(
                 self.get_field_attr(self._raw, "updated"), JIRA_DT_FULL_FMT
             ),
@@ -429,10 +429,10 @@ class JiraTrackerConvertor(TrackerConvertor):
             "status": self.get_field_attr(self._raw, "status", "name"),
             "resolution": self.get_field_attr(self._raw, "resolution", "name"),
             "not_affected_justification": self.get_field_attr(
-                self._raw, "customfield_12325940", "value"
+                self._raw, "customfield_10371", "value"
             ),
             "special_handling": self.get_array_field_attr(
-                self._raw, "customfield_12324753", "value"
+                self._raw, "customfield_10294", "value"
             )
             or [],
             "resolved_dt": resolved_dt,

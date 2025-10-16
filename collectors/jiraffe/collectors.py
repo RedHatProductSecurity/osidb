@@ -21,7 +21,7 @@ from osidb.sync_manager import (
     JiraTrackerDownloadManager,
 )
 
-from .constants import JIRA_TOKEN
+from .constants import JIRA_EMAIL, JIRA_TOKEN
 from .convertors import JiraTaskConvertor, JiraTrackerConvertor
 from .core import JiraQuerier
 from .exceptions import MetadataCollectorInsufficientDataJiraffeException
@@ -47,7 +47,7 @@ class JiraTaskCollector(Collector):
     @property
     def jira_querier(self):
         if self._jira_querier is None:
-            self._jira_querier = JiraTaskmanQuerier(JIRA_TOKEN)
+            self._jira_querier = JiraTaskmanQuerier(JIRA_TOKEN, JIRA_EMAIL)
         return self._jira_querier
 
     def free_queriers(self):
@@ -302,10 +302,12 @@ class MetadataCollector(Collector):
                         res = self.jira_querier.jira_conn._get_json(
                             f"issue/createmeta/{project}/issuetypes/{issuetype}?startAt={start_at}&maxResults={page_size}"
                         )
-                        project_fields[project].extend(res["values"])
-                        page_size = res["maxResults"]
-                        start_at += page_size
-                        is_last = res["isLast"]
+
+                        project_fields[project].extend(res["fields"])
+                        total = res.get("total", 0)
+                        max_results = res.get("maxResults", page_size)
+                        start_at += max_results
+                        is_last = start_at >= total
                     projects_already_collected.add(project)
                 except JIRAError as e:
                     if e.status_code == 400:
