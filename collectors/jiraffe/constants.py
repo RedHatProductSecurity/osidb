@@ -3,8 +3,9 @@ import re
 from osidb.helpers import get_env
 
 # Auth
-JIRA_SERVER = get_env("JIRA_URL", default="https://issues.redhat.com")
+JIRA_SERVER = get_env("JIRA_URL", default="https://uat-1-1-redhat.atlassian.net")
 JIRA_TOKEN = get_env("JIRA_AUTH_TOKEN")
+JIRA_EMAIL = get_env("JIRA_EMAIL")
 HTTPS_PROXY = get_env("HTTPS_JIRA_PROXY")
 JIRA_TASKMAN_PROJECT_KEY = get_env("JIRA_TASKMAN_PROJECT_KEY", default="OSIM")
 
@@ -33,8 +34,8 @@ JIRA_METADATA_COLLECTOR_ENABLED = get_env(
 
 TASK_CHANGELOG_FIELD_MAPPING = {
     "assignee": ["owner"],
-    "customfield_12313240": ["team_id"],
-    "customfield_12311140": ["group_key"],
+    "customfield_10001": ["team_id"],
+    "customfield_10014": ["group_key"],
     "status": ["workflow_name", "workflow_state"],
     "resolution": ["workflow_name", "workflow_state"],
 }

@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from osidb.helpers import get_env
 
-JIRA_SERVER = get_env("JIRA_URL", default="https://issues.redhat.com")
+JIRA_SERVER = get_env("JIRA_URL", default="https://uat-1-1-redhat.atlassian.net")
 JIRA_EMBARGO_SECURITY_LEVEL_NAME = get_env(
     "JIRA_EMBARGO_SECURITY_LEVEL_NAME", default="Embargoed Security Issue"
 )
@@ -18,9 +18,9 @@ TRACKER_FEEDBACK_FORM_URL = get_env("TRACKER_FEEDBACK_FORM_URL")
 # Translate fields as defined in product definitions to the actual Jira field
 PS_ADDITIONAL_FIELD_TO_JIRA = {
     "fixVersions": "fixVersions",
-    "release_blocker": "customfield_12319743",
-    "target_release": "customfield_12311240",
-    "target_version": "customfield_12319940",
+    "release_blocker": "customfield_10283",
+    "target_release": "customfield_10053",
+    "target_version": "customfield_10387",
 }
 
 
