@@ -877,7 +877,6 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             MAJOR_INCIDENT,
             MINOR_INCIDENT,
             KEV,
-            ZERO_DAY,
         ]
         missing_allowed_values = sorted(
             set(expected_allowed_values) - set(allowed_values)

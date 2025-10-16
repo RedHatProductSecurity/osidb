@@ -792,7 +792,7 @@ class TestTrackerQueryBuilderSLA:
             type=Tracker.TrackerType.JIRA,
         )
 
-        target_start_id = "customfield_12313941"
+        target_start_id = "customfield_10022"
         JiraProjectFields(
             project_key=ps_module2.bts_key,
             field_id=target_start_id,

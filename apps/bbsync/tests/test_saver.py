@@ -44,7 +44,7 @@ class TestBugzillaSaver:
     )
     def test_stored_last_change(self, last_change_time):
         """
-        https://issues.redhat.com/browse/OSIDB-3364 reproducer
+        https://uat-1-1-redhat.atlassian.net/browse/OSIDB-3364 reproducer
         """
         bs = BugzillaSaver(Flaw(meta_attr={"last_change_time": last_change_time}))
         bs.stored_last_change  # no exception here
