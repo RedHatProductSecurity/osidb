@@ -81,7 +81,7 @@ class SyncManager(models.Model):
         return result
 
     @staticmethod
-    def sync_task():
+    def sync_task(*args, **kwargs):
         """
         Override this method with a Celery task to perform external data synchronization.
         """
@@ -141,7 +141,9 @@ class SyncManager(models.Model):
         def schedule_task():
             try:
                 cls.sync_task.apply_async(
-                    args=[sync_id, *args], kwargs=kwargs, **schedule_options
+                    args=[sync_id, *args],
+                    kwargs=kwargs | {"object_id": sync_id},
+                    **schedule_options,
                 )
             except AttributeError:
                 raise NotImplementedError(
@@ -459,10 +461,10 @@ class BZTrackerDownloadManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.bz_tracker_download", bind=True)
-    def sync_task(self, tracker_id):
+    def sync_task(task, tracker_id, **kwargs):
         from collectors.bzimport import collectors
 
-        BZTrackerDownloadManager.started(tracker_id, self)
+        BZTrackerDownloadManager.started(tracker_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -591,8 +593,8 @@ class BZTrackerLinkManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.bz_tracker_link", bind=True)
-    def sync_task(self, tracker_id):
-        BZTrackerLinkManager.started(tracker_id, self)
+    def sync_task(task, tracker_id, **kwargs):
+        BZTrackerLinkManager.started(tracker_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -710,11 +712,11 @@ class BZSyncManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.bzsync", bind=True)
-    def sync_task(self, flaw_id):
+    def sync_task(task, flaw_id, **kwargs):
         # flaw_id is the flaw UUID
         from osidb.models import Flaw
 
-        BZSyncManager.started(flaw_id, self)
+        BZSyncManager.started(flaw_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -750,14 +752,14 @@ class JiraTaskDownloadManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.jira_task_download", bind=True)
-    def sync_task(self, task_id):
+    def sync_task(task, task_id, **kwargs):
         from collectors.jiraffe.convertors import JiraTaskConvertor
         from collectors.jiraffe.core import JiraQuerier
 
         set_user_acls(settings.ALL_GROUPS)
         JiraTaskDownloadManager.started(
             task_id,
-            self,
+            task,
             related_managers=[JiraTaskSyncManager, JiraTaskTransitionManager],
         )
 
@@ -825,7 +827,7 @@ class JiraTaskSyncManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.jira_task_sync", bind=True)
-    def sync_task(self, flaw_id):
+    def sync_task(task, flaw_id, **kwargs):
         """
         perform the sync of the task of the given flaw to Jira
 
@@ -834,7 +836,7 @@ class JiraTaskSyncManager(SyncManager):
         """
         from osidb.models import Flaw
 
-        JiraTaskSyncManager.started(flaw_id, self)
+        JiraTaskSyncManager.started(flaw_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -877,7 +879,7 @@ class JiraTaskTransitionManager(SyncManager):
         bind=True,
         lock_ttl=60,
     )
-    def sync_task(self, flaw_id):
+    def sync_task(task, flaw_id, **kwargs):
         """
         perform the sync of the task state of the given flaw to Jira
 
@@ -886,7 +888,7 @@ class JiraTaskTransitionManager(SyncManager):
         """
         from osidb.models import Flaw
 
-        JiraTaskTransitionManager.started(flaw_id, self)
+        JiraTaskTransitionManager.started(flaw_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -923,11 +925,11 @@ class JiraTrackerDownloadManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.jira_tracker_download", bind=True)
-    def sync_task(self, tracker_id):
+    def sync_task(task, tracker_id, **kwargs):
         from collectors.jiraffe.convertors import JiraTrackerConvertor
         from collectors.jiraffe.core import JiraQuerier
 
-        JiraTrackerDownloadManager.started(tracker_id, self)
+        JiraTrackerDownloadManager.started(tracker_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -1051,8 +1053,8 @@ class JiraTrackerLinkManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.jira_tracker_link", bind=True)
-    def sync_task(self, tracker_id):
-        JiraTrackerLinkManager.started(tracker_id, self)
+    def sync_task(task, tracker_id, **kwargs):
+        JiraTrackerLinkManager.started(tracker_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
