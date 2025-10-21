@@ -516,7 +516,7 @@ class TestEndpointsAffectsBulk:
     @pytest.mark.enable_signals
     def test_affect_create_bulk(self, auth_client, test_api_v2_uri):
         """
-        Test the bulk creation of Affect records via a REST API PUT request.
+        Test the bulk creation of Affect records via a REST API POST request.
         """
         flaw = FlawFactory(cve_id="CVE-2345-6789")
         affects = []
@@ -600,6 +600,48 @@ class TestEndpointsAffectsBulk:
 
         assert response.status_code == 200
         assert Affect.objects.count() == 0
+
+    @pytest.mark.enable_signals
+    def test_affect_create_bulk_public_acls(self, auth_client, test_api_v2_uri):
+        """
+        Test the bulk creation of Affect records via a REST API POST request
+        with public ACLs (embargoed=False) and verify ACLs match parent flaw.
+        """
+        flaw = FlawFactory(cve_id="CVE-2345-6789", embargoed=False)
+        ps_update_stream = PsUpdateStreamFactory()
+
+        bulk_request = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": Affect.AffectAffectedness.NEW,
+                "resolution": Affect.AffectResolution.NOVALUE,
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "component-foo",
+                "embargoed": False,
+            }
+        ]
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == 200
+        assert Affect.objects.count() == 1
+
+        # Verify that the flaw is public (not embargoed and not internal)
+        assert not flaw.is_embargoed
+        assert not flaw.is_internal
+        assert flaw.is_public
+
+        # Get the created affects from the database to verify ACLs
+        created_affect = Affect.objects.get(flaw=flaw)
+        assert not created_affect.is_embargoed
+        assert not created_affect.is_internal
+        assert created_affect.is_public
 
 
 class TestEndpointsAffectsUpdateTrackers:

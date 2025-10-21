@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Fixed
 - Fix PUT request being allowed for `AuditView` endpoint (OSIDB-4428)
+- Fix creation of related objects for public flaws having internal visibility (OSIDB-4552)
 
 ### Added
 - Add query for finding flaw whose non-community affects are missing trackers (OSIDB-4104)
