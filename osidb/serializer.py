@@ -501,7 +501,9 @@ class ACLMixinSerializer(BaseSerializer):
         )
 
     def create(self, validated_data):
-        validated_data = self.embargoed2acls(validated_data, internal=True)
+        # let inheritants manually override
+        if "acl_read" not in validated_data or "acl_write" not in validated_data:
+            validated_data = self.embargoed2acls(validated_data)
         return super().create(validated_data)
 
     def update(self, instance, validated_data, *args, **kwargs):
@@ -2132,6 +2134,7 @@ class FlawSerializer(
                 Flaw.FlawRequiresCVEDescription.REQUESTED
             )
 
+        validated_data = self.embargoed2acls(validated_data, internal=True)
         return super().create(validated_data)
 
     def update(self, new_flaw, validated_data, *args, **kwargs):
