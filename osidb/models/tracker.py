@@ -25,9 +25,7 @@ from osidb.models.affect import Affect, NotAffectedJustification
 from osidb.models.fields import CVEIDField
 from osidb.sync_manager import (
     BZTrackerDownloadManager,
-    BZTrackerLinkManager,
     JiraTrackerDownloadManager,
-    JiraTrackerLinkManager,
 )
 
 from .ps_module import PsModule
@@ -541,12 +539,6 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     bz_download_manager = models.ForeignKey(
         BZTrackerDownloadManager, null=True, blank=True, on_delete=models.CASCADE
     )
-    bz_link_manager = models.ForeignKey(
-        BZTrackerLinkManager, null=True, blank=True, on_delete=models.CASCADE
-    )
     jira_download_manager = models.ForeignKey(
         JiraTrackerDownloadManager, null=True, blank=True, on_delete=models.CASCADE
-    )
-    jira_link_manager = models.ForeignKey(
-        JiraTrackerLinkManager, null=True, blank=True, on_delete=models.CASCADE
     )

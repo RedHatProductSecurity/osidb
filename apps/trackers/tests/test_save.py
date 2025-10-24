@@ -12,10 +12,15 @@ from apps.trackers.exceptions import BTSException, UnsupportedTrackerError
 from apps.trackers.jira.query import OldTrackerJiraQueryBuilder, TrackerJiraQueryBuilder
 from apps.trackers.jira.save import TrackerJiraSaver
 from apps.trackers.save import TrackerSaver
-from collectors.bzimport.collectors import BugzillaTrackerCollector
-from collectors.jiraffe.collectors import JiraTrackerCollector
+from collectors.bzimport.collectors import (
+    BugzillaTrackerCollector,
+    BZTrackerDownloadManager,
+)
+from collectors.jiraffe.collectors import (
+    JiraTrackerCollector,
+    JiraTrackerDownloadManager,
+)
 from osidb.models import Affect, Tracker
-from osidb.sync_manager import BZTrackerLinkManager, JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -278,7 +283,7 @@ class TestTrackerModelSave:
                 BugzillaTrackerCollector, "sync_tracker"
             ) as bugzilla_load_mock,
             patch.object(
-                BZTrackerLinkManager, "link_tracker_with_affects"
+                BZTrackerDownloadManager, "link_tracker_with_affects"
             ) as bugzilla_tracker_link_mock,
         ):
             tracker.save(bz_api_key="SECRET")
@@ -347,7 +352,7 @@ class TestTrackerModelSave:
             ) as jira_save_mock,
             patch.object(JiraTrackerCollector, "collect") as jira_load_mock,
             patch.object(
-                JiraTrackerLinkManager, "link_tracker_with_affects"
+                JiraTrackerDownloadManager, "link_tracker_with_affects"
             ) as jira_tracker_link_mock,
         ):
             tracker.save(jira_token="SECRET")  # nosec

@@ -13,6 +13,7 @@ from collectors.bzimport.constants import BZ_DT_FMT
 from collectors.jiraffe.collectors import (
     JiraTaskCollector,
     JiraTrackerCollector,
+    JiraTrackerDownloadManager,
     MetadataCollector,
 )
 from collectors.jiraffe.core import JiraQuerier
@@ -20,7 +21,6 @@ from collectors.jiraffe.exceptions import (
     MetadataCollectorInsufficientDataJiraffeException,
 )
 from osidb.models import Affect, Flaw, Impact, Tracker
-from osidb.sync_manager import JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -358,7 +358,7 @@ class TestJiraTrackerCollector:
         collector = JiraTrackerCollector()
 
         msg = collector.collect(tracker_id)
-        JiraTrackerLinkManager.link_tracker_with_affects(tracker_id)
+        JiraTrackerDownloadManager.link_tracker_with_affects(tracker_id)
 
         assert msg == f"Jira tracker sync of {tracker_id} completed"
         assert Tracker.objects.count() == 1
