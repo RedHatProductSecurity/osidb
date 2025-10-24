@@ -9,11 +9,16 @@ from django.utils import timezone
 from rest_framework import status
 
 from apps.trackers.save import TrackerSaver
-from collectors.bzimport.collectors import BugzillaTrackerCollector
+from collectors.bzimport.collectors import (
+    BugzillaTrackerCollector,
+    BZTrackerDownloadManager,
+)
 from collectors.bzimport.constants import BZ_DT_FMT
-from collectors.jiraffe.collectors import JiraTrackerCollector
+from collectors.jiraffe.collectors import (
+    JiraTrackerCollector,
+    JiraTrackerDownloadManager,
+)
 from osidb.models import Affect, Flaw, Impact, PsUpdateStream, Tracker
-from osidb.sync_manager import BZTrackerLinkManager, JiraTrackerLinkManager
 from osidb.tests.factories import AffectFactory, FlawFactory, TrackerFactory
 
 pytestmark = pytest.mark.integration
@@ -76,7 +81,7 @@ class TestTrackerSaver:
         # 4) load tracker from Bugzilla
         btc = BugzillaTrackerCollector()
         btc.sync_tracker(created_tracker.bz_id)
-        BZTrackerLinkManager.link_tracker_with_affects(created_tracker.bz_id)
+        BZTrackerDownloadManager.link_tracker_with_affects(created_tracker.bz_id)
 
         # 5) get the newly loaded tracker from the DB
         loaded_tracker = Tracker.objects.get(external_system_id=created_tracker.bz_id)
@@ -155,7 +160,7 @@ class TestTrackerSaver:
         btc.bz_querier._bz_api_key = bugzilla_token
 
         btc.sync_tracker(updated_tracker.bz_id)
-        BZTrackerLinkManager.link_tracker_with_affects(updated_tracker.bz_id)
+        BZTrackerDownloadManager.link_tracker_with_affects(updated_tracker.bz_id)
 
         # 6) get the newly loaded tracker from the DB
         loaded_tracker = Tracker.objects.get(external_system_id=tracker_id)
@@ -715,7 +720,7 @@ class TestTrackerAPI:
         # Not linked yet
         assert tracker_new.affects.count() == 0
 
-        JiraTrackerLinkManager.link_tracker_with_affects(tracker_id)
+        JiraTrackerDownloadManager.link_tracker_with_affects(tracker_id)
 
         # Linked
         assert tracker_new.affects.count() == 1

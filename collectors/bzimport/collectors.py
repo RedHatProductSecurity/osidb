@@ -18,7 +18,6 @@ from collectors.framework.models import Collector
 from osidb.models import Flaw, PsModule
 from osidb.sync_manager import (
     BZTrackerDownloadManager,
-    BZTrackerLinkManager,
 )
 
 from .constants import (
@@ -366,7 +365,6 @@ class BugzillaTrackerCollector(Collector):
         start_dt = timezone.now()
 
         BZTrackerDownloadManager.check_for_reschedules()
-        BZTrackerLinkManager.check_for_reschedules()
 
         tracker_ids = self.get_batch()
         for tracker_id, _ in tracker_ids:
