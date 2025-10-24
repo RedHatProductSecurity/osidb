@@ -19,7 +19,6 @@ from osidb.models import PsModule
 from osidb.sync_manager import (
     JiraTaskDownloadManager,
     JiraTrackerDownloadManager,
-    JiraTrackerLinkManager,
 )
 
 from .constants import JIRA_TOKEN
@@ -183,7 +182,6 @@ class JiraTrackerCollector(Collector):
         updated_trackers = []
 
         JiraTrackerDownloadManager.check_for_reschedules()
-        JiraTrackerLinkManager.check_for_reschedules()
 
         batch_data, period_end = self.get_batch()
 
