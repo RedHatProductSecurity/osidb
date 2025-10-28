@@ -2,7 +2,8 @@ import uuid
 
 import pytest
 
-from osidb.models import Flaw, FlawSource, Impact
+from apps.workflows.workflow import WorkflowModel
+from osidb.models import Flaw, FlawCollaborator, FlawLabel, FlawSource, Impact
 
 from .factories import AffectFactory, FlawFactory
 
@@ -376,3 +377,112 @@ class TestSearch:
         assert body["count"] == 2
         assert body["results"][0]["cve_id"] == "CVE-2001-0414"
         assert body["results"][1]["cve_id"] == "CVE-2001-0489"
+
+    def test_search_flaws_by_labels_query(self, auth_client, test_api_uri):
+        """Test searching flaws by labels using djangoql query"""
+        label_a = FlawLabel.objects.create(
+            name="label_a", type=FlawLabel.FlawLabelType.CONTEXT_BASED
+        )
+        label_b = FlawLabel.objects.create(
+            name="label_b", type=FlawLabel.FlawLabelType.CONTEXT_BASED
+        )
+        label_c = FlawLabel.objects.create(
+            name="label_c", type=FlawLabel.FlawLabelType.CONTEXT_BASED
+        )
+
+        flaw1 = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw1)
+        flaw1.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw1.save()
+        FlawCollaborator.objects.create(
+            flaw=flaw1,
+            label=label_a.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+
+        flaw2 = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw2)
+        flaw2.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw2.save()
+        FlawCollaborator.objects.create(
+            flaw=flaw2,
+            label=label_a.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+        FlawCollaborator.objects.create(
+            flaw=flaw2,
+            label=label_b.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+
+        flaw3 = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw3)
+        flaw3.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw3.save()
+        FlawCollaborator.objects.create(
+            flaw=flaw3,
+            label=label_a.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+        FlawCollaborator.objects.create(
+            flaw=flaw3,
+            label=label_b.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+        FlawCollaborator.objects.create(
+            flaw=flaw3,
+            label=label_c.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+
+        response = auth_client().get(
+            f'{test_api_uri}/flaws?query=flaw_labels in ("label_a")'
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 3
+        assert {flaw["cve_id"] for flaw in body["results"]} == {
+            flaw1.cve_id,
+            flaw2.cve_id,
+            flaw3.cve_id,
+        }
+
+        response = auth_client().get(
+            f'{test_api_uri}/flaws?query=flaw_labels in ("label_a","label_b")'
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 2
+        assert {flaw["cve_id"] for flaw in body["results"]} == {
+            flaw2.cve_id,
+            flaw3.cve_id,
+        }
+
+        response = auth_client().get(
+            f'{test_api_uri}/flaws?query=flaw_labels in ("label_a","label_b","label_c")'
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["cve_id"] == flaw3.cve_id
+
+        response = auth_client().get(
+            f'{test_api_uri}/flaws?query=flaw_labels in ("label_a","label_c")'
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["cve_id"] == flaw3.cve_id
+
+        response = auth_client().get(
+            f'{test_api_uri}/flaws?query=flaw_labels != "label_a"'
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0

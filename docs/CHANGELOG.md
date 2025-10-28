@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add query for finding flaw whose non-community affects are missing trackers (OSIDB-4104)
 - Add /revert and /reset flaw workflow endpoints (OSIDB-4487)
+- Add filter and Djangoql field for multi-label flaws (OSIDB-4531)
 
 ### Changed
 - Adjust `unembargo_dt` validation for embargoed flaws to only trigger when 
