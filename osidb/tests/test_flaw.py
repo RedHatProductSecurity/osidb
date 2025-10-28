@@ -2088,7 +2088,7 @@ class TestFlawValidators:
             ),
             (
                 Flaw.FlawMajorIncident.APPROVED,
-                Flaw.FlawMajorIncident.NOVALUE,
+                Flaw.FlawMajorIncident.REJECTED,
                 ["Closed", "Open"],
                 True,
             ),
@@ -2100,13 +2100,13 @@ class TestFlawValidators:
             ),
             (
                 Flaw.FlawMajorIncident.APPROVED,
-                Flaw.FlawMajorIncident.NOVALUE,
+                Flaw.FlawMajorIncident.REJECTED,
                 ["Closed", "Closed"],
                 False,
             ),
             (
                 Flaw.FlawMajorIncident.ZERO_DAY,
-                Flaw.FlawMajorIncident.NOVALUE,
+                Flaw.FlawMajorIncident.REJECTED,
                 ["Closed", "Open"],
                 True,
             ),
@@ -2149,6 +2149,30 @@ class TestFlawValidators:
         assert should_raise == bool(
             flaw.valid_alerts.filter(name="unsupported_impact_change").exists()
         )
+
+    def test_validate_major_incident_state_revert_to_novalue(self):
+        """
+        Test that changing major_incident_state back to NOVALUE raises a ValidationError.
+        """
+        # Create a flaw with NOVALUE initially
+        flaw = FlawFactory.build(
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            impact=Impact.MODERATE,
+        )
+        flaw.save()
+        AffectFactory(flaw=flaw)
+
+        # Change to a non-NOVALUE state (should succeed)
+        flaw.major_incident_state = Flaw.FlawMajorIncident.REQUESTED
+        flaw.save()
+
+        # Try to change back to NOVALUE (should raise ValidationError)
+        flaw.major_incident_state = Flaw.FlawMajorIncident.NOVALUE
+        with pytest.raises(
+            ValidationError, match="Cannot revert major_incident_state back to NOVALUE"
+        ):
+            flaw.save()
 
     @pytest.mark.parametrize(
         "is_rhscl,ps_component,alerts",

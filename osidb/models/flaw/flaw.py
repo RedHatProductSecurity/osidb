@@ -310,6 +310,21 @@ class Flaw(
 
         super().save(*args, **kwargs)
 
+    def _validate_major_incident_state_reset(self, **kwargs) -> None:
+        """
+        Checks that major_incident_state can't be reset.
+        """
+        if self._state.adding:
+            return
+
+        old_flaw = Flaw.objects.get(pk=self.pk)
+
+        if (
+            old_flaw.major_incident_state != self.major_incident_state
+            and self.major_incident_state == Flaw.FlawMajorIncident.NOVALUE
+        ):
+            raise ValidationError("Cannot revert major_incident_state back to NOVALUE")
+
     def _validate_rh_nist_cvss_score_diff(self, **kwargs):
         """
         Checks that the difference between the RH and NIST CVSSv3 score is not >= 1.0.
