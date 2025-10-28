@@ -460,56 +460,6 @@ class BZTrackerDownloadManager(SyncManager):
         return result
 
     @staticmethod
-    @app.task(name="sync_manager.bz_tracker_download", bind=True)
-    def sync_task(task, tracker_id, **kwargs):
-        from collectors.bzimport import collectors
-
-        BZTrackerDownloadManager.started(tracker_id, task)
-
-        set_user_acls(settings.ALL_GROUPS)
-
-        # Code adapted from collectors.bzimport.collectors.BugzillaTrackerCollector.collect
-        collector = collectors.BugzillaTrackerCollector()
-        try:
-            collector.sync_tracker(tracker_id)
-
-            # Schedule linking tracker => affect
-            BZTrackerLinkManager.schedule(tracker_id)
-        except Exception as e:
-            BZTrackerDownloadManager.failed(tracker_id, e)
-        else:
-            BZTrackerDownloadManager.finished(tracker_id)
-        finally:
-            collector.free_queriers()
-
-    def update_synced_links(self):
-        from osidb.models import Tracker
-
-        Tracker.objects.filter(external_system_id=self.sync_id).update(
-            bz_download_manager=self
-        )
-
-
-class BZTrackerLinkManager(SyncManager):
-    """
-    Sync manager class for Bugzilla => OSIDB Tracker synchronization where only links between
-    Tracker and Affects are updated.
-    """
-
-    def __str__(self):
-        from osidb.models import Affect
-
-        result = super().__str__()
-
-        affects = Affect.objects.filter(tracker__external_system_id=self.sync_id)
-        affect_strings = [
-            f"{a.flaw.bz_id}|{a.ps_update_stream}|{a.ps_component}" for a in affects
-        ]
-        result += f"Affects: {affect_strings}\n"
-
-        return result
-
-    @staticmethod
     def link_tracker_with_affects(tracker_id):
         # Code adapted from collectors.bzimport.convertors.BugzillaTrackerConvertor.affects
 
@@ -592,21 +542,23 @@ class BZTrackerLinkManager(SyncManager):
         return affects, failed_flaws, failed_affects
 
     @staticmethod
-    @app.task(name="sync_manager.bz_tracker_link", bind=True)
+    @app.task(name="sync_manager.bz_tracker_download", bind=True)
     def sync_task(task, tracker_id, **kwargs):
-        BZTrackerLinkManager.started(tracker_id, task)
+        from collectors.bzimport import collectors
+
+        BZTrackerDownloadManager.started(tracker_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
+        # Code adapted from collectors.bzimport.collectors.BugzillaTrackerCollector.collect
+        collector = collectors.BugzillaTrackerCollector()
         try:
-            result = BZTrackerLinkManager.link_tracker_with_affects(tracker_id)
-        except Exception as e:
-            BZTrackerLinkManager.failed(tracker_id, e)
-        else:
+            collector.sync_tracker(tracker_id)
+            result = BZTrackerDownloadManager.link_tracker_with_affects(tracker_id)
             # Handle link failures
             affects, failed_flaws, failed_affects = result
             if failed_flaws:
-                BZTrackerLinkManager.failed(
+                BZTrackerDownloadManager.failed(
                     tracker_id,
                     RuntimeError(
                         f"Flaws do not exist: {failed_flaws}, "
@@ -614,23 +566,27 @@ class BZTrackerLinkManager(SyncManager):
                     ),
                 )
             elif failed_affects:
-                BZTrackerLinkManager.failed(
+                BZTrackerDownloadManager.failed(
                     tracker_id,
                     RuntimeError(f"Affects do not exist: {failed_affects}"),
                     permanent=True,
                 )
             elif not affects:
-                BZTrackerLinkManager.failed(
+                BZTrackerDownloadManager.failed(
                     tracker_id, RuntimeError("No Affects found")
                 )
-            else:
-                BZTrackerLinkManager.finished(tracker_id)
+        except Exception as e:
+            BZTrackerDownloadManager.failed(tracker_id, e)
+        else:
+            BZTrackerDownloadManager.finished(tracker_id)
+        finally:
+            collector.free_queriers()
 
     def update_synced_links(self):
         from osidb.models import Tracker
 
         Tracker.objects.filter(external_system_id=self.sync_id).update(
-            bz_link_manager=self
+            bz_download_manager=self
         )
 
 
@@ -924,55 +880,6 @@ class JiraTrackerDownloadManager(SyncManager):
         return result
 
     @staticmethod
-    @app.task(name="sync_manager.jira_tracker_download", bind=True)
-    def sync_task(task, tracker_id, **kwargs):
-        from collectors.jiraffe.convertors import JiraTrackerConvertor
-        from collectors.jiraffe.core import JiraQuerier
-
-        JiraTrackerDownloadManager.started(tracker_id, task)
-
-        set_user_acls(settings.ALL_GROUPS)
-
-        try:
-            tracker_data = JiraQuerier().get_issue(tracker_id)
-            tracker = JiraTrackerConvertor(tracker_data).tracker
-            if tracker:
-                tracker.save()
-                # Schedule linking tracker => affect
-                JiraTrackerLinkManager.schedule(tracker_id)
-        except Exception as e:
-            JiraTrackerDownloadManager.failed(tracker_id, e)
-        else:
-            JiraTrackerDownloadManager.finished(tracker_id)
-
-    def update_synced_links(self):
-        from osidb.models import Tracker
-
-        Tracker.objects.filter(external_system_id=self.sync_id).update(
-            jira_download_manager=self
-        )
-
-
-class JiraTrackerLinkManager(SyncManager):
-    """
-    Sync manager class for Jira => OSIDB Tracker synchronization where only links between
-    Tracker and Affects are updated.
-    """
-
-    def __str__(self):
-        from osidb.models import Affect
-
-        result = super().__str__()
-
-        affects = Affect.objects.filter(tracker__external_system_id=self.sync_id)
-        affect_strings = [
-            f"{a.flaw.bz_id}|{a.ps_update_stream}|{a.ps_component}" for a in affects
-        ]
-        result += f"Affects: {affect_strings}\n"
-
-        return result
-
-    @staticmethod
     def link_tracker_with_affects(tracker_id):
         # Code adapted from collectors.jiraffe.convertors.JiraTrackerConvertor.affects
 
@@ -1052,43 +959,52 @@ class JiraTrackerLinkManager(SyncManager):
         return affects, failed_flaws, failed_affects
 
     @staticmethod
-    @app.task(name="sync_manager.jira_tracker_link", bind=True)
+    @app.task(name="sync_manager.jira_tracker_download", bind=True)
     def sync_task(task, tracker_id, **kwargs):
-        JiraTrackerLinkManager.started(tracker_id, task)
+        from collectors.jiraffe.convertors import JiraTrackerConvertor
+        from collectors.jiraffe.core import JiraQuerier
+
+        JiraTrackerDownloadManager.started(tracker_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
         try:
-            result = JiraTrackerLinkManager.link_tracker_with_affects(tracker_id)
+            tracker_data = JiraQuerier().get_issue(tracker_id)
+            tracker = JiraTrackerConvertor(tracker_data).tracker
+            if tracker:
+                tracker.save()
+                result = JiraTrackerDownloadManager.link_tracker_with_affects(
+                    tracker_id
+                )
+
+                # Handle link failures
+                affects, failed_flaws, failed_affects = result
+                if failed_flaws:
+                    JiraTrackerDownloadManager.failed(
+                        tracker_id,
+                        RuntimeError(
+                            f"Flaws do not exist: {failed_flaws}, "
+                            f"Affects do not exist: {failed_affects}"
+                        ),
+                    )
+                elif failed_affects:
+                    JiraTrackerDownloadManager.failed(
+                        tracker_id,
+                        RuntimeError(f"Affects do not exist: {failed_affects}"),
+                        permanent=True,
+                    )
+                elif not affects:
+                    JiraTrackerDownloadManager.failed(
+                        tracker_id, RuntimeError("No Affects found")
+                    )
         except Exception as e:
-            JiraTrackerLinkManager.failed(tracker_id, e)
+            JiraTrackerDownloadManager.failed(tracker_id, e)
         else:
-            # Handle link failures
-            affects, failed_flaws, failed_affects = result
-            if failed_flaws:
-                JiraTrackerLinkManager.failed(
-                    tracker_id,
-                    RuntimeError(
-                        f"Flaws do not exist: {failed_flaws}, "
-                        f"Affects do not exist: {failed_affects}"
-                    ),
-                )
-            elif failed_affects:
-                JiraTrackerLinkManager.failed(
-                    tracker_id,
-                    RuntimeError(f"Affects do not exist: {failed_affects}"),
-                    permanent=True,
-                )
-            elif not affects:
-                JiraTrackerLinkManager.failed(
-                    tracker_id, RuntimeError("No Affects found")
-                )
-            else:
-                JiraTrackerLinkManager.finished(tracker_id)
+            JiraTrackerDownloadManager.finished(tracker_id)
 
     def update_synced_links(self):
         from osidb.models import Tracker
 
         Tracker.objects.filter(external_system_id=self.sync_id).update(
-            jira_link_manager=self
+            jira_download_manager=self
         )
