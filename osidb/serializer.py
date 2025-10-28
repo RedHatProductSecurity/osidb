@@ -2280,10 +2280,17 @@ class FlawSerializer(
             )
 
 
-@extend_schema_serializer(exclude_fields=["updated_dt"])
+@extend_schema_serializer(
+    exclude_fields=["updated_dt"], deprecate_fields=["major_incident_state"]
+)
 class FlawPostSerializer(FlawSerializer):
     # extra serializer for POST request as there is no last update
     # timestamp but we need to make the field mandatory otherwise
+    pass
+
+
+@extend_schema_serializer(deprecate_fields=["major_incident_state"])
+class FlawPutSerializer(FlawSerializer):
     pass
 
 
@@ -2401,3 +2408,8 @@ class IntegrationTokenPatchSerializer(serializers.Serializer):
                 "At least one third-party integration token must be provided"
             )
         return attrs
+
+
+class IncidentRequestSerializer(serializers.Serializer):
+    comment = serializers.CharField(write_only=True)
+    kind = serializers.ChoiceField(choices=Flaw.FlawMajorIncident.request_states())

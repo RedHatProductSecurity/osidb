@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `unembargo_dt` is changed (OSIDB-4296)
 - Improve performance in Alerts and ACL serialization (OSIDB-4313)
 - Implement affects v2 (OSIDB-4023)
+- Require an internal comment on incident request (OSIDB-3852)
 
 ### Removed
 - Remove deprecated fields/models: `PsProduct`'s `team`, `FlawComment`'s `order` 
