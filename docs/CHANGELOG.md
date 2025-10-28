@@ -66,6 +66,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   match a user-provided PsComponent (OSIDB-4367)
 - Initialize ACLs as internal (OSIDB-4274)
 
+### Fixed
+- Fix the available-flaws API giving a 404 on non-existent flaws instead of 204 (OSIDB-4397).
+- Fix CVE_id parsing for OSV in linux DB (OSIDB-4548) 
+
 ## [4.14.0] - 2025-07-23
 ### Added
 - Add endpoint that checks if flaw is public or has its work completed (OSIDB-4328)

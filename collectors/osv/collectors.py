@@ -352,4 +352,3 @@ class OSVCollector(Collector):
         }
 
         return osv_id, cve_ids, content
-

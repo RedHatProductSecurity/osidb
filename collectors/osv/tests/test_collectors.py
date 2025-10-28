@@ -59,7 +59,6 @@ class TestOSVCollector:
         assert snippet.external_id == f"{osv_id}/{cve_id}"
         assert snippet.flaw == flaw
 
-
     @pytest.mark.vcr
     @pytest.mark.default_cassette("osv_record_with_cve_no_alias.yaml")
     def test_collect_osv_record_with_cve_no_alias(self):
@@ -84,7 +83,6 @@ class TestOSVCollector:
         assert snippet.content["cve_id"] == cve_id
         assert snippet.external_id == f"{osv_id}/{cve_id}"
         assert snippet.flaw == flaw
-
 
     @pytest.mark.vcr
     def test_collect_multi_osv_record_with_cves(self):
