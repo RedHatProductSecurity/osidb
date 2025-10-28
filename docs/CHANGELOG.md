@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve performance in Alerts and ACL serialization (OSIDB-4313)
 - Implement affects v2 (OSIDB-4023)
 - Prevent deleting affects with open trackers (OSIDB-4545)
+- Prevent resetting major_incident_state to blank (OSIDB-3856)
 
 ### Removed
 - Remove deprecated fields/models: `PsProduct`'s `team`, `FlawComment`'s `order` 

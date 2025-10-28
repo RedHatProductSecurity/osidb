@@ -171,7 +171,7 @@ class TestEndpoints(object):
             "state": "DONE",
         }
 
-        flaw.major_incident_state = Flaw.FlawMajorIncident.NOVALUE
+        flaw.major_incident_state = Flaw.FlawMajorIncident.REJECTED
         flaw.save()
 
         response = auth_client().post(f"{test_api_uri}/workflows/{flaw.uuid}/adjust")

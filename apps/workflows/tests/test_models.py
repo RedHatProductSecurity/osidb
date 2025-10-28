@@ -925,7 +925,7 @@ class TestFlaw:
 
         assert flaw.classification["workflow"] == "MAJOR_INCIDENT"
 
-        flaw.major_incident_state = Flaw.FlawMajorIncident.NOVALUE
+        flaw.major_incident_state = Flaw.FlawMajorIncident.REJECTED
         flaw.adjust_classification()
 
         assert flaw.classification["workflow"] == "DEFAULT"
