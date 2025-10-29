@@ -60,6 +60,31 @@ class TestOSVCollector:
         assert snippet.flaw == flaw
 
     @pytest.mark.vcr
+    @pytest.mark.default_cassette("osv_record_with_cve_no_alias.yaml")
+    def test_collect_osv_record_with_cve_no_alias(self):
+        """
+        Test that only a snippet is created if a flaw already exists and the CVE ID is not in the aliases.
+
+        There seems to be a new format for linux the OSV record where the CVE ID is not in the aliases.
+        """
+        osv_id = "CVE-2014-125064"
+        cve_id = "CVE-2014-125064"
+        flaw = FlawFactory(cve_id=cve_id)
+
+        osvc = OSVCollector()
+        osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = None
+        osvc.collect(osv_id=osv_id)
+
+        assert Flaw.objects.count() == 1
+
+        assert Snippet.objects.count() == 1
+        snippet = Snippet.objects.first()
+        assert snippet.content["cve_id"] == cve_id
+        assert snippet.external_id == f"{osv_id}/{cve_id}"
+        assert snippet.flaw == flaw
+
+    @pytest.mark.vcr
     def test_collect_multi_osv_record_with_cves(self):
         """
         Test that only snippets are created if flaws already exist.
