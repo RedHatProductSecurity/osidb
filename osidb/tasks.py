@@ -1,10 +1,12 @@
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.mail.message import EmailMessage
 from django.db.models import OuterRef, Q, Subquery
 from django.db.models.functions import Cast
 
 from config.celery import app
+from config.settings import EmailSettings
 from osidb.core import set_user_acls
 from osidb.mixins import Alert
 from osidb.sync_manager import (
@@ -83,3 +85,17 @@ def stale_alert_cleanup():
     logger.info(f"Deleted {deleted_alerts_count} stale alerts")
 
     return f"Deleted {deleted_alerts_count} Stale Alerts"
+
+
+@app.task
+def async_send_email(**kwargs) -> int:
+    if not EmailSettings().send_enabled:
+        return 0
+    try:
+        email_message = EmailMessage(**kwargs)
+        result = email_message.send()
+        logger.info(f"Email sent successfully to {email_message.to}")
+        return result
+    except Exception as e:
+        logger.error(f"Failed to send email: {str(e)}")
+        raise
