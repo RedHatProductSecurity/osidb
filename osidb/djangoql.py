@@ -68,6 +68,7 @@ class FlawQLSchema(DjangoQLSchema):
                 FlawComponentField(),
                 FlawEmbargoedField(),
                 FlawNonCommunityAffectsNoTrackersField(),
+                FlawLabelsField(),
             ]
         elif model == FlawCollaborator:
             exclude += ["created_dt", "updated_dt", "uuid"]
@@ -174,3 +175,44 @@ class FlawNonCommunityAffectsNoTrackersField(BoolField):
                 )
 
             return ~has_non_community_affects | has_non_community_affects_with_trackers
+
+
+class FlawLabelsField(StrField):
+    model = Flaw
+    name = "flaw_labels"
+    suggest_options = True
+
+    def get_options(self, search):
+        return FlawCollaborator.objects.values_list("label", flat=True).distinct()
+
+    def get_lookup(self, path, operator, value):
+        """
+        Handle label filtering with one or more labels.
+        The "in" operator is used as an AND operation rather than the usual OR operation.
+
+        Examples:
+            flaw_labels = "label_a" - flaws with label_a
+            flaw_labels in ("label_a", "label_b") - flaws with both label_a AND label_b
+            flaw_labels != "label_a" - flaws without label_a
+            flaw_labels not in ("label_a", "label_b") - flaws without label_a OR without label_b
+        """
+
+        if operator == "=":
+            return Q(labels__label=value)
+        elif operator == "!=":
+            return ~Q(labels__label=value)
+
+        num_labels = len(value)
+
+        flaw_ids = (
+            FlawCollaborator.objects.filter(label__in=value)
+            .values("flaw_id")
+            .annotate(label_count=models.Count("label", distinct=True))
+            .filter(label_count=num_labels)
+            .values_list("flaw_id", flat=True)
+        )
+
+        if operator == "in":
+            return Q(uuid__in=list(flaw_ids))
+        elif operator == "not in":
+            return ~Q(uuid__in=list(flaw_ids))

@@ -401,6 +401,7 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     flaw_has_no_non_community_affects_trackers = BooleanFilter(
         method="flaw_has_no_non_community_affects_trackers_filter"
     )
+    flaw_labels = CharInFilter(method="labels_filter")
 
     # Emptiness filters
     cve_id__isempty = EmptyOrNullStringFilter(field_name="cve_id")
@@ -477,6 +478,16 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             return queryset.filter(
                 ~has_non_community_affects | has_non_community_affects_with_trackers
             )
+
+    def labels_filter(self, queryset, name, value):
+        """
+        Returns flaws that have all of the specified labels.
+        """
+
+        for label in value:
+            queryset = queryset.filter(labels__label=label)
+
+        return queryset
 
     class Meta:
         """

@@ -3010,6 +3010,15 @@ paths:
         schema:
           type: boolean
       - in: query
+        name: flaw_labels
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: impact
         schema:
           type: string
@@ -8949,6 +8958,15 @@ paths:
         name: flaw_has_no_non_community_affects_trackers
         schema:
           type: boolean
+      - in: query
+        name: flaw_labels
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: impact
         schema:

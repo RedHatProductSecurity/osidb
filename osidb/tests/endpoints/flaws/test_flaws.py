@@ -14,8 +14,10 @@ from osidb.filters import FlawFilter
 from osidb.models import (
     Affect,
     Flaw,
+    FlawCollaborator,
     FlawComment,
     FlawCVSS,
+    FlawLabel,
     FlawReference,
     FlawSource,
     Impact,
@@ -631,6 +633,106 @@ class TestEndpointsFlaws:
         response = auth_client().get(f"{test_api_uri}/flaws?bz_id={meta_attr['bz_id']}")
         assert response.status_code == 200
         assert response.json()["count"] == 1
+
+    def test_list_flaws_filter_by_labels(self, auth_client, test_api_uri):
+        """test multi-label filtering"""
+        label_a = FlawLabel.objects.create(
+            name="label_a", type=FlawLabel.FlawLabelType.CONTEXT_BASED
+        )
+        label_b = FlawLabel.objects.create(
+            name="label_b", type=FlawLabel.FlawLabelType.CONTEXT_BASED
+        )
+        label_c = FlawLabel.objects.create(
+            name="label_c", type=FlawLabel.FlawLabelType.CONTEXT_BASED
+        )
+
+        flaw1 = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw1)
+        flaw1.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw1.save()
+        FlawCollaborator.objects.create(
+            flaw=flaw1,
+            label=label_a.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+
+        flaw2 = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw2)
+        flaw2.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw2.save()
+        FlawCollaborator.objects.create(
+            flaw=flaw2,
+            label=label_a.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+        FlawCollaborator.objects.create(
+            flaw=flaw2,
+            label=label_b.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+
+        flaw3 = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw3)
+        flaw3.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw3.save()
+        FlawCollaborator.objects.create(
+            flaw=flaw3,
+            label=label_a.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+        FlawCollaborator.objects.create(
+            flaw=flaw3,
+            label=label_b.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+        FlawCollaborator.objects.create(
+            flaw=flaw3,
+            label=label_c.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+
+        response = auth_client().get(f"{test_api_uri}/flaws?flaw_labels=label_a")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 3
+        assert {flaw["cve_id"] for flaw in body["results"]} == {
+            flaw1.cve_id,
+            flaw2.cve_id,
+            flaw3.cve_id,
+        }
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?flaw_labels=label_a,label_b"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 2
+        assert {flaw["cve_id"] for flaw in body["results"]} == {
+            flaw2.cve_id,
+            flaw3.cve_id,
+        }
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?flaw_labels=label_a,label_b,label_c"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert {flaw["cve_id"] for flaw in body["results"]} == {flaw3.cve_id}
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?flaw_labels=label_b,label_c"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert {flaw["cve_id"] for flaw in body["results"]} == {flaw3.cve_id}
 
     def test_list_flaws_invalid(self, auth_client, test_api_uri, datetime_with_tz):
         """retrieve list of flaws from endpoint"""
