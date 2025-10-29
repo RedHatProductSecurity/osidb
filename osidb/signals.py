@@ -4,11 +4,13 @@ from bugzilla import Bugzilla
 from django.contrib.auth.models import User
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils import timezone
 from jira import JIRA
 
 from apps.workflows.workflow import WorkflowModel
 from collectors.jiraffe.constants import HTTPS_PROXY
+from config.settings import EmailSettings
 from osidb.helpers import get_env
 from osidb.models import (
     Affect,
@@ -25,6 +27,7 @@ from osidb.models import (
 from osidb.models.flaw.acknowledgment import FlawAcknowledgment
 from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.reference import FlawReference
+from osidb.tasks import async_send_email
 
 logger = logging.getLogger(__name__)
 
@@ -284,3 +287,45 @@ def update_denormalized_labels_on_affect_change(sender, instance, **kwargs):
             or instance.ps_component != db_instance.ps_component
         ):
             instance.update_denormalized_labels()
+
+
+@receiver(pre_save, sender=Flaw)
+def send_email_on_incident_request(
+    sender: type[Flaw], instance: Flaw, **kwargs
+) -> None:
+    """
+    Sends a notification email to key stakeholders whenever the incident
+    process is triggered.
+    """
+    send = False
+    if (
+        instance._state.adding
+        and instance.major_incident_state in Flaw.FlawMajorIncident.request_states()
+    ):
+        send = True
+    elif not instance._state.adding:
+        db_instance = Flaw.objects.get(pk=instance.pk)
+        if (
+            instance.major_incident_state != db_instance.major_incident_state
+            and instance.major_incident_state in Flaw.FlawMajorIncident.request_states()
+        ):
+            send = True
+
+    if send:
+        flaw_id = instance.cve_id or instance.uuid
+        incident_kind = instance.major_incident_state.split("_")[0].capitalize()
+        flaw_url = reverse("flaw-detail", kwargs={"id": instance.uuid})
+        recipient = EmailSettings().incident_request_recipient
+        payload = {
+            "subject": f"{incident_kind} incident requested for {flaw_id}",
+            "body": f"A new {incident_kind} incident has been requested.<br />"
+            f'For more details see <a href="{flaw_url}">here</a>.',
+            "to": [recipient],
+            "reply_to": [recipient],
+            "headers": {
+                "List-Post": f"<mailto:{recipient}>",
+            },
+        }
+        # Celery dynamically adds the .delay() method to task functions at runtime,
+        # which static type checkers don't recognize, hence the type ignore
+        async_send_email.delay(**payload)  # type: ignore[attr-defined]
