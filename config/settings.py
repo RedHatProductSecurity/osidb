@@ -10,6 +10,7 @@ from pathlib import Path
 from celery.schedules import crontab
 from corsheaders.defaults import default_headers
 from django.core.management.utils import get_random_secret_key
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from osidb.helpers import get_env
 
@@ -324,3 +325,21 @@ CORS_ALLOW_CREDENTIALS = True
 # audit history is immutable
 # NOTE: this will have to be switched to False to bulk import historical BZ
 PGHISTORY_APPEND_ONLY = True
+
+# Email configuration
+
+
+class EmailSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="OSIDB_EMAIL_")
+
+    send_enabled: bool = True
+    host: str = "smtp.example.com"
+    default_from: str = "Foo <foo@example.com>"
+    incident_request_recipient: str = "bar@example.com"
+
+
+email_settings = EmailSettings()
+
+
+EMAIL_HOST = email_settings.host
+DEFAULT_FROM_EMAIL = email_settings.default_from

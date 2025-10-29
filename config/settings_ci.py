@@ -92,3 +92,7 @@ STATIC_ROOT = "/var/www/osidb/static/"
 STATIC_URL = "/static/"
 
 INSTALLED_APPS += ["osidb.tests"]
+
+# Email configuration
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

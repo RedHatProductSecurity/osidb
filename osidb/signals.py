@@ -4,12 +4,14 @@ from bugzilla import Bugzilla
 from django.contrib.auth.models import User
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
+from django.template.loader import render_to_string
 from django.utils import timezone
 from jira import JIRA
 
 from apps.workflows.workflow import WorkflowModel
 from collectors.jiraffe.constants import HTTPS_PROXY
-from osidb.helpers import get_env
+from config.settings import EmailSettings
+from osidb.helpers import get_env, get_execution_env
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -25,6 +27,7 @@ from osidb.models import (
 from osidb.models.flaw.acknowledgment import FlawAcknowledgment
 from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.reference import FlawReference
+from osidb.tasks import async_send_email
 
 logger = logging.getLogger(__name__)
 
@@ -284,3 +287,60 @@ def update_denormalized_labels_on_affect_change(sender, instance, **kwargs):
             or instance.ps_component != db_instance.ps_component
         ):
             instance.update_denormalized_labels()
+
+
+@receiver(pre_save, sender=Flaw)
+def send_email_on_incident_state_change(
+    sender: type[Flaw], instance: Flaw, **kwargs
+) -> None:
+    """
+    Sends a notification email to key stakeholders whenever the incident
+    state field on Flaw changes.
+    """
+    previous_incident_state = None
+    if (
+        instance._state.adding
+        and instance.major_incident_state == Flaw.FlawMajorIncident.NOVALUE
+    ):
+        # No notification on Flaw creation with empty incident value
+        return
+    elif not instance._state.adding:
+        # No notification on Flaw update with no incident state changes
+        db_instance = Flaw.objects.get(pk=instance.pk)
+        if instance.major_incident_state == db_instance.major_incident_state:
+            return
+        previous_incident_state = db_instance.major_incident_state
+
+    def get_osim_url():
+        if (env := get_execution_env()) == "prod":
+            return "https://osim.prodsec.redhat.com"
+        elif env in ["stage", "uat"]:
+            return f"https://osim-{env}.prodsec.redhat.com"
+        return "http://localhost:8000"
+
+    flaw_id = instance.cve_id or instance.uuid
+    context = {
+        "flaw_id": flaw_id,
+        "previous_incident_state": previous_incident_state,
+        "new_incident_state": instance.major_incident_state,
+        "osim_url": get_osim_url(),
+    }
+
+    text_body = render_to_string("email/incident_state_change.txt", context=context)
+    html_body = render_to_string("email/incident_state_change.html", context=context)
+
+    recipient = EmailSettings().incident_request_recipient
+    payload = {
+        "subject": f"Incident state change for Flaw {flaw_id}",
+        "to": [recipient],
+        "body": text_body,
+        # We don't want to receive replies as service providers, assumes
+        # recipient is a mailing list
+        "reply_to": [recipient],
+        "headers": {
+            "List-Post": f"<mailto:{recipient}>",
+        },
+    }
+    # Celery dynamically adds the .delay() method to task functions at runtime,
+    # which static type checkers don't recognize, hence the type ignore
+    async_send_email.delay(**payload, html_body=html_body)  # type: ignore[attr-defined]

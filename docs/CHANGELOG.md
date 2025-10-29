@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix tracker grouping in affect v1 materialized view (OSIDB-4642)
 
+### Added
+- Add a notification sent to incident commanders on incident state change (OSIDB-3855)
+
 ## [5.2.0] - 2025-11-12
 ### Changed
 - Update API link on OSIDB landing page to v2 flaws endpoint (OSIDB-4614)
