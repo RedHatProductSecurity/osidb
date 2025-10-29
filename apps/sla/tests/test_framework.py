@@ -323,7 +323,7 @@ sla:
             """
             flaw1 = FlawFactory(
                 embargoed=False,
-                major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+                major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 reported_dt=make_aware(reported_dt1),
             )
             flaw2 = FlawFactory(
@@ -359,7 +359,7 @@ name: Major Incident
 description: only for very serious cases
 conditions:
   flaw:
-    - major incident state is approved
+    - major incident state is major incident approved
 sla:
   duration: {mi_duration}
   start: reported date
@@ -516,7 +516,7 @@ name: Major Incident
 description: only for very serious cases
 conditions:
   flaw:
-    - major incident state is approved
+    - major incident state is major incident approved
 sla:
   duration: 2
   start: reported date

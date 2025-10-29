@@ -2212,11 +2212,10 @@ class FlawSerializer(
             return bool(
                 {flaw1.major_incident_state, flaw2.major_incident_state}.intersection(
                     [
-                        Flaw.FlawMajorIncident.APPROVED,
-                        Flaw.FlawMajorIncident.CISA_APPROVED,
-                        # Flaw.FlawMajorIncident.MINOR is not
+                        Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                        Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+                        # Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED is not
                         # included as it has no engineering impact
-                        Flaw.FlawMajorIncident.ZERO_DAY,
                     ]
                 )
             )

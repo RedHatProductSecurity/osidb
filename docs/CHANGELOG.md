@@ -21,11 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implement affects v2 (OSIDB-4023)
 - Prevent deleting affects with open trackers (OSIDB-4545)
 - Prevent resetting major_incident_state to blank (OSIDB-3856)
+- Make CVE ID case insensitive for flaw queries (OSIDB-3766)
+- Update Incident state fields (OSIDB-3959)
 
 ### Removed
 - Remove deprecated fields/models: `PsProduct`'s `team`, `FlawComment`'s `order` 
   and models in `package_versions.py` (OSIDB-3552)
-- Make CVE ID case insensitive for flaw queries (OSIDB-3766)
 
 ## [4.16.0] - 2025-09-16
 ### Fixed

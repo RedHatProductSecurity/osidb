@@ -80,7 +80,7 @@ class TestFlaw:
             impact=Impact.CRITICAL,
             source=FlawSource.APPLE,
             statement="statement",
-            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
             nist_cvss_validation=Flaw.FlawNistCvssValidation.REQUESTED,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
@@ -111,7 +111,10 @@ class TestFlaw:
             type=FlawReference.FlawReferenceType.ARTICLE,
             url="https://access.redhat.com/link123",
         )
-        assert vuln_1.major_incident_state == Flaw.FlawMajorIncident.APPROVED
+        assert (
+            vuln_1.major_incident_state
+            == Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+        )
         assert vuln_1.nist_cvss_validation == Flaw.FlawNistCvssValidation.REQUESTED
 
         affect1 = AffectFactory(flaw=vuln_1)
@@ -633,7 +636,7 @@ class TestFlaw:
         # Initially it is not a MI so it should have no date
         assert f.major_incident_start_dt is None
         with freeze_time(tzdatetime(2077, 1, 1, 13, 39, 0)):
-            f.major_incident_state = Flaw.FlawMajorIncident.APPROVED
+            f.major_incident_state = Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
             f.save()
             assert f.major_incident_start_dt == timezone.now()
 
@@ -1662,19 +1665,21 @@ class TestFlawValidators:
             assert not flaw.valid_alerts.exists()
 
     @pytest.mark.parametrize(
-        "state,should_raise",
+        "state",
         [
-            (Flaw.FlawMajorIncident.NOVALUE, False),
-            (Flaw.FlawMajorIncident.REQUESTED, False),
-            (Flaw.FlawMajorIncident.REJECTED, False),
-            (Flaw.FlawMajorIncident.APPROVED, False),
-            (Flaw.FlawMajorIncident.CISA_APPROVED, False),
-            (Flaw.FlawMajorIncident.MINOR, False),
-            (Flaw.FlawMajorIncident.ZERO_DAY, False),
-            (Flaw.FlawMajorIncident.INVALID, True),
+            Flaw.FlawMajorIncident.NOVALUE,
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_REQUESTED,
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED,
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_REQUESTED,
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_REJECTED,
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+            Flaw.FlawMajorIncident.MINOR_INCIDENT_REQUESTED,
+            Flaw.FlawMajorIncident.MINOR_INCIDENT_REJECTED,
+            Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED,
         ],
     )
-    def test_validate_major_incident_state(self, state, should_raise):
+    def test_validate_major_incident_state(self, state):
         """
         Tests that a flaw has a valid Major Incident state.
         """
@@ -1695,12 +1700,7 @@ class TestFlawValidators:
             url="https://access.redhat.com/link123",
         )
 
-        if should_raise:
-            error_msg = "A flaw does not have a valid Major Incident state."
-            with pytest.raises(ValidationError, match=error_msg):
-                flaw.save()
-        else:
-            assert flaw.save() is None
+        assert flaw.save() is None
 
     @pytest.mark.parametrize(
         "mitigation,statement,cve_description,requires_cve_description,article,should_alert,alerts",
@@ -1790,7 +1790,7 @@ class TestFlawValidators:
         * has exactly one article
         """
         flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
             mitigation=mitigation,
             statement=statement,
             cve_description=cve_description,
@@ -1832,7 +1832,7 @@ class TestFlawValidators:
                 "cve_description text",
                 Flaw.FlawRequiresCVEDescription.APPROVED,
                 True,
-                ["cisa_mi_statement_missing"],
+                ["exploits_kev_statement_missing"],
             ),
             # empty cve_description
             (
@@ -1841,12 +1841,12 @@ class TestFlawValidators:
                 Flaw.FlawRequiresCVEDescription.NOVALUE,
                 True,
                 [
-                    "cisa_mi_cve_description_missing",
+                    "exploits_kev_cve_description_missing",
                 ],
             ),
         ],
     )
-    def test_validate_cisa_major_incident_fields(
+    def test_validate_exploits_kev_fields(
         self,
         statement,
         cve_description,
@@ -1860,7 +1860,7 @@ class TestFlawValidators:
         * has a cve_description
         """
         flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.CISA_APPROVED,
+            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
             statement=statement,
             cve_description=cve_description,
             requires_cve_description=requires_cve_description,
@@ -2075,40 +2075,34 @@ class TestFlawValidators:
                 False,
             ),
             (
-                Flaw.FlawMajorIncident.APPROVED,
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 ["Closed", "Open"],
                 False,
             ),
             (
                 Flaw.FlawMajorIncident.NOVALUE,
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 ["Closed", "Open"],
                 True,
             ),
             (
-                Flaw.FlawMajorIncident.APPROVED,
-                Flaw.FlawMajorIncident.REJECTED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED,
                 ["Closed", "Open"],
                 True,
             ),
             (
                 Flaw.FlawMajorIncident.NOVALUE,
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 ["Closed", "Closed"],
                 False,
             ),
             (
-                Flaw.FlawMajorIncident.APPROVED,
-                Flaw.FlawMajorIncident.REJECTED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED,
                 ["Closed", "Closed"],
                 False,
-            ),
-            (
-                Flaw.FlawMajorIncident.ZERO_DAY,
-                Flaw.FlawMajorIncident.REJECTED,
-                ["Closed", "Open"],
-                True,
             ),
         ],
     )
@@ -2164,7 +2158,7 @@ class TestFlawValidators:
         AffectFactory(flaw=flaw)
 
         # Change to a non-NOVALUE state (should succeed)
-        flaw.major_incident_state = Flaw.FlawMajorIncident.REQUESTED
+        flaw.major_incident_state = Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED
         flaw.save()
 
         # Try to change back to NOVALUE (should raise ValidationError)

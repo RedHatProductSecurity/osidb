@@ -137,28 +137,39 @@ class Flaw(
         """
         Stores a Major Incident (MI) state.
 
-        Valid states are: NOVALUE, REQUESTED, REJECTED, APPROVED, CISA_APPROVED.
+        Valid states are:
+        - No value:NOVALUE
+        - Major Incident:
+            MAJOR_INCIDENT_REQUESTED, MAJOR_INCIDENT_REJECTED, MAJOR_INCIDENT_APPROVED
+        - Exploits (KEV):
+            EXPLOITS_KEV_REQUESTED, EXPLOITS_KEV_REJECTED, EXPLOITS_KEV_APPROVED
+        - Minor Incident:
+            MINOR_INCIDENT_REQUESTED, MINOR_INCIDENT_REJECTED, MINOR_INCIDENT_APPROVED
 
         Valid states represent the following BZ combinations in the format
         `<hightouch flag>|<hightouch-lite flag>`:
 
             ( | ): no flags set (NOVALUE)
-            (?| ), ( |?), (?|?): MI, CISA MI, or both requested (REQUESTED)
-            (-| ), ( |-), (-|-): MI, CISA MI, or both rejected (REJECTED)
-            (+| ), (+|-): MI approved (APPROVED)
-            ( |+), (-|+): CISA MI approved (CISA_APPROVED)
+            (?| ), (?|?): MI requested (MAJOR_INCIDENT_REQUESTED)
+            ( |?): Exploits (KEV) requested (EXPLOITS_KEV_REQUESTED)
+            (-| ), (-|-): MI rejected (MAJOR_INCIDENT_REJECTED)
+            ( |-): Exploits (KEV) rejected (EXPLOITS_KEV_REJECTED)
+            (+| ), (+|-): MI approved (MAJOR_INCIDENT_APPROVED)
+            ( |+), (-|+): Exploits (KEV) approved (EXPLOITS_KEV_APPROVED)
 
         If a state does not match any of BZ combinations, INVALID is set.
         """
 
         NOVALUE = ""
-        REQUESTED = "REQUESTED"
-        REJECTED = "REJECTED"
-        APPROVED = "APPROVED"
-        CISA_APPROVED = "CISA_APPROVED"
-        MINOR = "MINOR"
-        ZERO_DAY = "ZERO_DAY"
-        INVALID = "INVALID"
+        MAJOR_INCIDENT_REQUESTED = "MAJOR_INCIDENT_REQUESTED"
+        MAJOR_INCIDENT_REJECTED = "MAJOR_INCIDENT_REJECTED"
+        MAJOR_INCIDENT_APPROVED = "MAJOR_INCIDENT_APPROVED"
+        EXPLOITS_KEV_REQUESTED = "EXPLOITS_KEV_REQUESTED"
+        EXPLOITS_KEV_REJECTED = "EXPLOITS_KEV_REJECTED"
+        EXPLOITS_KEV_APPROVED = "EXPLOITS_KEV_APPROVED"
+        MINOR_INCIDENT_REQUESTED = "MINOR_INCIDENT_REQUESTED"
+        MINOR_INCIDENT_REJECTED = "MINOR_INCIDENT_REJECTED"
+        MINOR_INCIDENT_APPROVED = "MINOR_INCIDENT_APPROVED"
 
     class FlawNistCvssValidation(models.TextChoices):
         """
@@ -195,7 +206,7 @@ class Flaw(
               this is the only state where cve_description is propagated to the flaw's CVE page
         * (-) "REJECTED": cve_description is not required for this flaw
 
-        Note that if a flaw is MI or CISA MI, requires_cve_description should be "APPROVED".
+        Note that if a flaw is MI or Exploits (KEV), requires_cve_description should be "APPROVED".
         """
 
         NOVALUE = ""
@@ -250,7 +261,7 @@ class Flaw(
     mitigation = models.TextField(blank=True)
 
     major_incident_state = models.CharField(
-        choices=FlawMajorIncident.choices, max_length=20, blank=True
+        choices=FlawMajorIncident.choices, max_length=24, blank=True
     )
 
     # The date when the flaw became a major incident, or null if it's not a major incident.
@@ -639,22 +650,9 @@ class Flaw(
                 **kwargs,
             )
 
-    def _validate_major_incident_state(self, **kwargs):
-        """
-        Checks that a flaw has a valid Major Incident state.
-        """
-        if self.major_incident_state == self.FlawMajorIncident.INVALID:
-            raise ValidationError("A flaw does not have a valid Major Incident state.")
-
-        # XXX: In SFM2 we check that the REQUIRES_DOC_TEXT flag is set by
-        # someone who has review access rights, it is uncertain whether
-        # we'd need this in OSIDB as ideally we would block non-authorized
-        # users from reviewing in the first place, in which case we don't
-        # need to perform this validation
-
     def _validate_major_incident_fields(self, **kwargs):
         """
-        Validate that a Flaw that is Major Incident or 0-day complies with the following:
+        Validate that a Flaw that is Major Incident complies with the following:
         * has a mitigation
         * has a statement
         * has a cve_description
@@ -662,10 +660,7 @@ class Flaw(
         """
         from .reference import FlawReference
 
-        if self.major_incident_state not in [
-            Flaw.FlawMajorIncident.APPROVED,
-            Flaw.FlawMajorIncident.ZERO_DAY,
-        ]:
+        if self.major_incident_state != Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED:
             return
 
         if not self.mitigation:
@@ -697,26 +692,26 @@ class Flaw(
                 **kwargs,
             )
 
-    def _validate_cisa_major_incident_fields(self, **kwargs):
+    def _validate_exploits_kev_fields(self, **kwargs):
         """
-        Validate that a Flaw that is CISA Major Incident complies with the following:
+        Validate that a Flaw that is a Exploits (KEV) complies with the following:
         * has a statement
         * has a cve_description
         """
-        if self.major_incident_state != Flaw.FlawMajorIncident.CISA_APPROVED:
+        if self.major_incident_state != Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED:
             return
 
         if not self.statement:
             self.alert(
-                "cisa_mi_statement_missing",
-                "Flaw marked as CISA Major Incident does not have a statement.",
+                "exploits_kev_statement_missing",
+                "Flaw marked as Exploits (KEV) does not have a statement.",
                 **kwargs,
             )
 
         if not self.cve_description:
             self.alert(
-                "cisa_mi_cve_description_missing",
-                "Flaw marked as CISA Major Incident does not have a cve_description.",
+                "exploits_kev_cve_description_missing",
+                "Flaw marked as Exploits (KEV) does not have a cve_description.",
                 **kwargs,
             )
 
@@ -813,21 +808,19 @@ class Flaw(
             Impact.CRITICAL,
             Impact.IMPORTANT,
         ] or old_flaw.major_incident_state in [
-            Flaw.FlawMajorIncident.APPROVED,
-            Flaw.FlawMajorIncident.CISA_APPROVED,
-            # Flaw.FlawMajorIncident.MINOR is not
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+            # Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED is not
             # included as it is only informative
-            Flaw.FlawMajorIncident.ZERO_DAY,
         ]
         is_high_impact = self.impact in [
             Impact.CRITICAL,
             Impact.IMPORTANT,
         ] or self.major_incident_state in [
-            Flaw.FlawMajorIncident.APPROVED,
-            Flaw.FlawMajorIncident.CISA_APPROVED,
-            # Flaw.FlawMajorIncident.MINOR is not
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+            # Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED is not
             # included as it is only informative
-            Flaw.FlawMajorIncident.ZERO_DAY,
         ]
         if (
             was_high_impact != is_high_impact

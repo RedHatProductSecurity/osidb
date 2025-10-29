@@ -487,7 +487,7 @@ class TestTrackerSuggestionsV1:
                 ["stream2"],
                 [],
                 [],
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 ["stream1", "stream2"],
                 ["stream2"],  # Major Incident enforces default
             ),
@@ -498,18 +498,7 @@ class TestTrackerSuggestionsV1:
                 ["stream1"],
                 [],
                 [],
-                Flaw.FlawMajorIncident.CISA_APPROVED,
-                ["stream1", "stream2"],
-                ["stream1"],  # Major Incident enforces default
-            ),
-            (
-                Impact.LOW,
-                ["stream1", "stream2", "stream3"],
-                ["stream1", "stream2"],
-                ["stream1"],
-                [],
-                [],
-                Flaw.FlawMajorIncident.ZERO_DAY,
+                Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
                 ["stream1", "stream2"],
                 ["stream1"],  # Major Incident enforces default
             ),
@@ -520,7 +509,7 @@ class TestTrackerSuggestionsV1:
                 ["stream1"],
                 ["stream2"],
                 [],
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 ["stream1", "stream2"],
                 ["stream1"],  # Major Incident beats moderate
             ),
@@ -531,7 +520,7 @@ class TestTrackerSuggestionsV1:
                 ["stream1"],
                 ["stream2"],
                 [],
-                Flaw.FlawMajorIncident.MINOR,
+                Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED,
                 ["stream1", "stream2"],
                 ["stream2"],  # Minor Incident makes no change
             ),
@@ -542,7 +531,7 @@ class TestTrackerSuggestionsV1:
                 ["stream1"],
                 [],
                 ["stream2"],
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 ["stream1", "stream2"],
                 ["stream1"],  # Major Incident beats unacked
             ),
@@ -1167,7 +1156,7 @@ class TestTrackerSuggestions:
                 ["stream2"],
                 [],
                 [],
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 ["stream1", "stream2"],
                 ["stream2"],  # Major Incident enforces default
             ),
@@ -1178,18 +1167,7 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 [],
                 [],
-                Flaw.FlawMajorIncident.CISA_APPROVED,
-                ["stream1", "stream2"],
-                ["stream1"],  # Major Incident enforces default
-            ),
-            (
-                Impact.LOW,
-                ["stream1", "stream2", "stream3"],
-                ["stream1", "stream2"],
-                ["stream1"],
-                [],
-                [],
-                Flaw.FlawMajorIncident.ZERO_DAY,
+                Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
                 ["stream1", "stream2"],
                 ["stream1"],  # Major Incident enforces default
             ),
@@ -1200,7 +1178,7 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 ["stream2"],
                 [],
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 ["stream1", "stream2"],
                 ["stream1"],  # Major Incident beats moderate
             ),
@@ -1211,7 +1189,7 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 ["stream2"],
                 [],
-                Flaw.FlawMajorIncident.MINOR,
+                Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED,
                 ["stream1", "stream2"],
                 ["stream2"],  # Minor Incident makes no change
             ),
@@ -1222,7 +1200,7 @@ class TestTrackerSuggestions:
                 ["stream1"],
                 [],
                 ["stream2"],
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 ["stream1", "stream2"],
                 ["stream1"],  # Major Incident beats unacked
             ),
@@ -1465,12 +1443,15 @@ class TestMajorIncidentHandler:
     @pytest.mark.parametrize(
         "major_incident_state,is_applicable",
         [
-            (Flaw.FlawMajorIncident.APPROVED, True),
-            (Flaw.FlawMajorIncident.CISA_APPROVED, True),
-            (Flaw.FlawMajorIncident.MINOR, False),
-            (Flaw.FlawMajorIncident.ZERO_DAY, True),
-            (Flaw.FlawMajorIncident.REQUESTED, False),
-            (Flaw.FlawMajorIncident.REJECTED, False),
+            (Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED, True),
+            (Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED, True),
+            (Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED, False),
+            (Flaw.FlawMajorIncident.MAJOR_INCIDENT_REQUESTED, False),
+            (Flaw.FlawMajorIncident.EXPLOITS_KEV_REQUESTED, False),
+            (Flaw.FlawMajorIncident.MINOR_INCIDENT_REQUESTED, False),
+            (Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED, False),
+            (Flaw.FlawMajorIncident.EXPLOITS_KEV_REJECTED, False),
+            (Flaw.FlawMajorIncident.MINOR_INCIDENT_REJECTED, False),
             (Flaw.FlawMajorIncident.NOVALUE, False),
         ],
     )
