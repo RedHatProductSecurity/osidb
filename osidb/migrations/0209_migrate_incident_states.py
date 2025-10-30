@@ -18,7 +18,6 @@ def migrate_incident_states(apps, schema_editor):
     - "" -> "" (no change)
     """
     Flaw = apps.get_model('osidb', 'Flaw')
-    FlawAudit = apps.get_model('osidb', 'FlawAudit')
     
     state_mapping = {
         'REQUESTED': 'MAJOR_INCIDENT_REQUESTED',
@@ -35,17 +34,12 @@ def migrate_incident_states(apps, schema_editor):
                 major_incident_state=old_state
             ).update(major_incident_state=new_state)
 
-            FlawAudit.objects.filter(
-                major_incident_state=old_state
-            ).update(major_incident_state=new_state)
-
 def reverse_migrate_incident_states(apps, schema_editor):
     """
     Reverse migration. Converts new states back to old ones.
     Note: This is a lossy conversion.
     """
     Flaw = apps.get_model('osidb', 'Flaw')
-    FlawAudit = apps.get_model('osidb', 'FlawAudit')
     
     # Reverse mapping (note: this is lossy)
     reverse_mapping = {
@@ -64,11 +58,6 @@ def reverse_migrate_incident_states(apps, schema_editor):
         Flaw.objects.filter(
             major_incident_state=new_state
         ).update(major_incident_state=old_state)
-            
-        FlawAudit.objects.filter(
-            major_incident_state=new_state
-        ).update(major_incident_state=old_state)
-
 
 
 class Migration(migrations.Migration):
