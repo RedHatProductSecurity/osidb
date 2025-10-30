@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `unembargo_dt` is changed (OSIDB-4296)
 - Improve performance in Alerts and ACL serialization (OSIDB-4313)
 
+## [4.16.1] - 2025-10-01
+### Added
+- Add SLA policies in the new Jira field (OSIDB-4404)
+
 ## [4.16.0] - 2025-09-16
 ### Fixed
 - Fix `owner` update in Jira not reflected in OSIDB (OSIDB-4306)

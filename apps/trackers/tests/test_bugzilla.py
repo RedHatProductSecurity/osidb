@@ -10,7 +10,8 @@ from django.utils.timezone import datetime, make_aware
 from apps.bbsync.constants import RHSCL_BTS_KEY
 from apps.bbsync.exceptions import ProductDataError
 from apps.bbsync.tests.factories import BugzillaComponentFactory, BugzillaProductFactory
-from apps.sla.tests.test_framework import load_sla_policies
+from apps.sla.models import SLOPolicy
+from apps.sla.tests.test_framework import load_policies
 from apps.trackers.bugzilla.query import TrackerBugzillaQueryBuilder
 from osidb.models import Affect, Impact, Tracker
 from osidb.tests.factories import (
@@ -118,20 +119,20 @@ class TestTrackerBugzillaQueryBuilder:
             type=Tracker.TrackerType.BUGZILLA,
         )
 
-        sla_file = """
+        slo_file = """
 ---
 name: Not Embargoed
 description: suitable for whatever we find on the street
 conditions:
   flaw:
     - is not embargoed
-sla:
+slo:
   duration: 10
   start: reported date
   type: calendar days
 """
 
-        load_sla_policies(sla_file)
+        load_policies(SLOPolicy, slo_file)
         query = TrackerBugzillaQueryBuilder(tracker).query
 
         assert "deadline" in query

@@ -3,13 +3,13 @@ SLA exceptions
 """
 
 
-class SLAException(Exception):
+class TemporalPolicyException(Exception):
     """
-    base exception class for SLA specific exceptions
+    base exception class for TemporalPolicy specific exceptions
     """
 
 
-class SLAExecutionError(SLAException):
+class TemporalPolicyExecutionError(TemporalPolicyException):
     """
-    exception class for SLA execution errors
+    exception class for TemporalPolicy execution errors
     """
