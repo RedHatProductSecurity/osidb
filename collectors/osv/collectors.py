@@ -248,11 +248,21 @@ class OSVCollector(Collector):
         Fields that don't have their equivalents in the Flaw model can be used as well if we
         think they may be useful in the future.
         """
-        cve_ids = [
-            alias
-            for alias in osv_vuln.get("aliases", [])
-            if re.match(CVE_RE_STR, alias)
-        ]
+
+        def get_cve_ids_from_osv_vuln(osv_vuln: dict) -> list[str]:
+            # Try to get CVE ID from aliases first (it was the original field to get from)
+            vln_aliases_ids = osv_vuln.get("aliases", [])
+            vln_aliases_ids.append(osv_vuln.get("id"))
+
+            CVE_ids = {
+                alias
+                for alias in vln_aliases_ids
+                if alias and re.match(CVE_RE_STR, alias)
+            }
+
+            return list(CVE_ids)
+
+        cve_ids = get_cve_ids_from_osv_vuln(osv_vuln)
         osv_id = osv_vuln["id"]
 
         def get_refs(data: dict) -> list:

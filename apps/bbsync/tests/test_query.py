@@ -323,9 +323,7 @@ class TestGenerateGroups:
         """
         flaw = FlawFactory(embargoed=False, meta_attr={})
         FlawCommentFactory(flaw=flaw)
-        affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         ps_module = PsModuleFactory(
-            name=affect.ps_module,
             bts_groups={
                 "embargoed": [
                     "private",
@@ -333,6 +331,11 @@ class TestGenerateGroups:
             },
         )
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.NEW,
+        )
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.is_embargoed,
@@ -353,9 +356,7 @@ class TestGenerateGroups:
         """
         flaw = FlawFactory(embargoed=True, meta_attr={})
         FlawCommentFactory(flaw=flaw)
-        affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         ps_module = PsModuleFactory(
-            name=affect.ps_module,
             bts_groups={
                 "embargoed": [
                     "private",
@@ -363,6 +364,11 @@ class TestGenerateGroups:
             },
         )
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.NEW,
+        )
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.is_embargoed,
@@ -387,9 +393,7 @@ class TestGenerateGroups:
         """
         flaw = FlawFactory(embargoed=True)
         FlawCommentFactory(flaw=flaw)
-        affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         ps_module = PsModuleFactory(
-            name=affect.ps_module,
             bts_groups={
                 "embargoed": [
                     "redhat",
@@ -397,6 +401,11 @@ class TestGenerateGroups:
             },
         )
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.NEW,
+        )
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.is_embargoed,
@@ -420,9 +429,7 @@ class TestGenerateGroups:
             meta_attr={"groups": '["private", "qe_staff", "security"]', "bz_id": "1"},
         )
         FlawCommentFactory(flaw=flaw)
-        affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         ps_module = PsModuleFactory(
-            name=affect.ps_module,
             bts_groups={
                 "embargoed": [
                     "private",
@@ -430,6 +437,11 @@ class TestGenerateGroups:
             },
         )
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.NEW,
+        )
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.is_embargoed,
@@ -459,9 +471,7 @@ class TestGenerateGroups:
             meta_attr={"groups": '["private", "qe_staff", "security"]', "bz_id": "1"},
         )
         FlawCommentFactory(flaw=flaw)
-        affect = AffectFactory(flaw=flaw, affectedness=Affect.AffectAffectedness.NEW)
         ps_module = PsModuleFactory(
-            name=affect.ps_module,
             bts_groups={
                 "embargoed": [
                     "secalert",
@@ -469,6 +479,11 @@ class TestGenerateGroups:
             },
         )
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.NEW,
+        )
         TrackerFactory(
             affects=[affect],
             embargoed=flaw.is_embargoed,
@@ -546,15 +561,12 @@ class TestGenerateFlags:
         "mi_state,hightouch,hightouch_lite,should_convert",
         [
             # flags to convert
-            (Flaw.FlawMajorIncident.REQUESTED, "?", "?", True),
-            (Flaw.FlawMajorIncident.REJECTED, "-", "-", True),
-            (Flaw.FlawMajorIncident.APPROVED, "+", "-", True),
-            (Flaw.FlawMajorIncident.CISA_APPROVED, "-", "+", True),
+            (Flaw.FlawMajorIncident.MAJOR_INCIDENT_REQUESTED, "?", "?", True),
+            (Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED, "-", "-", True),
+            (Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED, "+", "-", True),
+            (Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED, "-", "+", True),
             # flags to ignore
             (Flaw.FlawMajorIncident.NOVALUE, None, None, False),
-            (Flaw.FlawMajorIncident.MINOR, None, None, False),
-            (Flaw.FlawMajorIncident.ZERO_DAY, None, None, False),
-            (Flaw.FlawMajorIncident.INVALID, None, None, False),
         ],
     )
     def test_generate_hightouch_and_hightouch_lite(

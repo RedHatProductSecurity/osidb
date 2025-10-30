@@ -12,7 +12,6 @@ from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from apps.workflows.models import Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
-from collectors.bzimport.convertors import FlawConvertor
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
 from osidb.mixins import Alert, AlertMixin
@@ -30,6 +29,7 @@ from osidb.tests.factories import (
     FlawFactory,
     PsModuleFactory,
     PsProductFactory,
+    PsUpdateStreamFactory,
 )
 
 from .test_flaw import tzdatetime
@@ -414,52 +414,6 @@ class TestTrackingMixin:
             "resolution": "",
         }
 
-    def get_flaw_bug_convertor(self):
-        """shortcut to create minimal flaw bug convertor"""
-        return FlawConvertor(
-            flaw_bug=self.get_flaw_bug(),
-            flaw_comments=[],
-            task_bug=None,
-        )
-
-    @freeze_time(tzdatetime(2022, 12, 24))
-    def test_import_new(self):
-        """
-        test Bugzilla flaw bug convertion and save when importing a new flaw
-        """
-        convertor = self.get_flaw_bug_convertor()
-        pre_flaw = convertor.flaws[0]
-        pre_flaw.save()
-        # assume a flaw can be loaded multiple times by collector
-        # and it should always respect the collected timestamps
-        # - resync or some collector debugging ...
-        pre_flaw.save()
-
-        flaw = Flaw.objects.get(cve_id="CVE-2020-12345")
-        assert flaw.created_dt == tzdatetime(2020, 12, 24)
-        assert flaw.updated_dt == tzdatetime(2021, 12, 24)
-
-    @freeze_time(tzdatetime(2022, 12, 24))
-    def test_import_existing(self):
-        """
-        test Bugzilla flaw bug convertion and save when importing an existing flaw
-        """
-        meta_attr = {"bz_id": "12345"}
-        flaw = self.create_flaw(cve_id="CVE-2020-12345", meta_attr=meta_attr)
-        flaw.save()
-
-        convertor = self.get_flaw_bug_convertor()
-        pre_flaw = convertor.flaws[0]
-        pre_flaw.save()
-        # assume a flaw can be loaded multiple times by collector
-        # and it should always respect the collected timestamps
-        # - resync or some collector debugging ...
-        pre_flaw.save()
-
-        flaw = Flaw.objects.get(cve_id="CVE-2020-12345")
-        assert flaw.created_dt == tzdatetime(2020, 12, 24)
-        assert flaw.updated_dt == tzdatetime(2021, 12, 24)
-
     @freeze_time(tzdatetime(2023, 10, 11))
     def test_tracking_mixin_manager_auto_timestamps(self):
         """
@@ -592,12 +546,13 @@ class TestBugzillaJiraMixinIntegration:
             force_synchronous_sync=True,
         )
 
-        PsModuleFactory(name="ps-module-0")
+        ps_module = PsModuleFactory(name="ps-module-0")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         assert flaw.bz_id
         assert flaw.task_key
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
 
-        AffectFactory(flaw=flaw, ps_module="ps-module-0")
+        AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw = Flaw.objects.get(uuid=flaw.uuid)
 
         flaw.promote(jira_token=jira_token, bz_api_key=bugzilla_token)
@@ -654,11 +609,12 @@ class TestBugzillaJiraMixinIntegration:
         created_uuid = body["uuid"]
         flaw = Flaw.objects.get(pk=created_uuid)
 
-        PsModuleFactory(name="ps-module-0")
+        ps_module = PsModuleFactory(name="ps-module-0")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         assert flaw.task_key
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
 
-        AffectFactory(flaw=flaw, ps_module="ps-module-0")
+        AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
 
         response = auth_client().post(
             f"{test_api_uri}/flaws/{created_uuid}/promote",
@@ -723,7 +679,7 @@ class TestMultiMixinIntegration:
         enable_jira_task_sync,
         enable_jira_tracker_sync,
         jira_token,
-        test_api_uri,
+        test_api_v2_uri,
     ):
         """Tests that validations will block for Trackers with all sync enabled"""
         flaw = FlawFactory(embargoed=False)
@@ -738,6 +694,15 @@ class TestMultiMixinIntegration:
             bts_groups={"public": [], "embargoed": []},
         )
         ps_module.save()
+
+        stream = PsUpdateStream(
+            name="rhel-8",
+            ps_module=ps_module,
+            default_to_ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            version="40",
+        )
+        stream.save()
 
         JiraProjectFieldsFactory(
             project_key=ps_module.bts_key,
@@ -768,20 +733,11 @@ class TestMultiMixinIntegration:
 
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=stream.name,
             ps_component="kernel",
             affectedness="NEW",
             resolution=Affect.AffectResolution.DEFER,
         )
-
-        stream = PsUpdateStream(
-            name="rhel-8",
-            ps_module=ps_module,
-            default_to_ps_module=ps_module,
-            active_to_ps_module=ps_module,
-            version="40",
-        )
-        stream.save()
 
         tracker_data = {
             "affects": [affect.uuid],
@@ -792,7 +748,7 @@ class TestMultiMixinIntegration:
         assert Tracker.objects.all().count() == 0
 
         response = auth_client().post(
-            f"{test_api_uri}/trackers",
+            f"{test_api_v2_uri}/trackers",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -803,7 +759,7 @@ class TestMultiMixinIntegration:
             for error in response.json()["non_field_errors"]
         )
         assert response.status_code == 400
-        assert affect.trackers.count() == 0
+        assert affect.tracker is None
         assert Tracker.objects.all().count() == 0
 
     @pytest.mark.vcr
@@ -816,7 +772,7 @@ class TestMultiMixinIntegration:
         enable_jira_tracker_sync,
         jira_token,
         monkeypatch,
-        test_api_uri,
+        test_api_v2_uri,
     ):
         """Test that bugzilla Tracker endpoint only recreates alerts when needed"""
         validation_counter = {}
@@ -864,7 +820,7 @@ class TestMultiMixinIntegration:
         }
 
         response = auth_client().post(
-            f"{test_api_uri}/flaws",
+            f"{test_api_v2_uri}/flaws",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -879,14 +835,14 @@ class TestMultiMixinIntegration:
                 "flaw": str(flaw.uuid),
                 "affectedness": "AFFECTED",
                 "resolution": "DELEGATED",
-                "ps_module": ps_module.name,
+                "ps_update_stream": ps_update_stream.name,
                 "ps_component": "kernel",
                 "impact": "MODERATE",
                 "embargoed": False,
             }
         ]
         response = auth_client().post(
-            f"{test_api_uri}/affects/bulk",
+            f"{test_api_v2_uri}/affects/bulk",
             affects_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -903,7 +859,7 @@ class TestMultiMixinIntegration:
         }
         monkeypatch.setattr(AlertMixin, "validate", counter_validate)
         response = auth_client().post(
-            f"{test_api_uri}/trackers",
+            f"{test_api_v2_uri}/trackers",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -924,7 +880,7 @@ class TestMultiMixinIntegration:
         enable_jira_tracker_sync,
         jira_token,
         monkeypatch,
-        test_api_uri,
+        test_api_v2_uri,
     ):
         """Test that jira Tracker endpoint only recreates alerts when needed"""
         validation_counter = {}
@@ -999,7 +955,7 @@ class TestMultiMixinIntegration:
         }
 
         response = auth_client().post(
-            f"{test_api_uri}/flaws",
+            f"{test_api_v2_uri}/flaws",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -1014,14 +970,14 @@ class TestMultiMixinIntegration:
                 "flaw": str(flaw.uuid),
                 "affectedness": "AFFECTED",
                 "resolution": "DELEGATED",
-                "ps_module": ps_module.name,
+                "ps_update_stream": ps_update_stream.name,
                 "ps_component": "kernel",
                 "impact": "MODERATE",
                 "embargoed": False,
             }
         ]
         response = auth_client().post(
-            f"{test_api_uri}/affects/bulk",
+            f"{test_api_v2_uri}/affects/bulk",
             affects_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -1038,7 +994,7 @@ class TestMultiMixinIntegration:
         }
         monkeypatch.setattr(AlertMixin, "validate", counter_validate)
         response = auth_client().post(
-            f"{test_api_uri}/trackers",
+            f"{test_api_v2_uri}/trackers",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -1059,7 +1015,7 @@ class TestMultiMixinIntegration:
         enable_jira_task_sync,
         enable_jira_tracker_sync,
         jira_token,
-        test_api_uri,
+        test_api_v2_uri,
         monkeypatch,
     ):
         """Test that Affect endpoint only recreates alerts when needed"""
@@ -1088,7 +1044,7 @@ class TestMultiMixinIntegration:
         }
 
         response = auth_client().post(
-            f"{test_api_uri}/flaws",
+            f"{test_api_v2_uri}/flaws",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -1099,20 +1055,21 @@ class TestMultiMixinIntegration:
 
         monkeypatch.setattr(AlertMixin, "validate", counter_validate)
         ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         JiraBugIssuetype(project=ps_module.bts_key).save()
         affects_data = [
             {
                 "flaw": str(flaw.uuid),
                 "affectedness": "NEW",
                 "resolution": "",
-                "ps_module": ps_module.name,
+                "ps_update_stream": ps_update_stream.name,
                 "ps_component": "kernel",
                 "impact": "MODERATE",
                 "embargoed": flaw.embargoed,
             }
         ]
         response = auth_client().post(
-            f"{test_api_uri}/affects/bulk",
+            f"{test_api_v2_uri}/affects/bulk",
             affects_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -1133,7 +1090,7 @@ class TestMultiMixinIntegration:
         validation_counter = {}
 
         response = auth_client().put(
-            f"{test_api_uri}/affects/bulk",
+            f"{test_api_v2_uri}/affects/bulk",
             affects_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -1197,7 +1154,8 @@ class TestMultiMixinIntegration:
         flaw = Flaw.objects.get(uuid=body["uuid"])
 
         ps_module = PsModuleFactory()
-        AffectFactory(flaw=flaw, ps_module=ps_module.name)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw_data["title"] = "new test validations"
         flaw_data["updated_dt"] = flaw.updated_dt
 

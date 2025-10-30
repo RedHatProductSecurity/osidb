@@ -259,13 +259,13 @@ sla: null
             """
             flaw = FlawFactory(embargoed=False)
             ps_module = PsModuleFactory()
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect = AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
             )
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.embargoed,
@@ -323,7 +323,7 @@ sla:
             """
             flaw1 = FlawFactory(
                 embargoed=False,
-                major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+                major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 reported_dt=make_aware(reported_dt1),
             )
             flaw2 = FlawFactory(
@@ -332,20 +332,20 @@ sla:
                 reported_dt=make_aware(reported_dt2),
             )
             ps_module = PsModuleFactory()
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect1 = AffectFactory(
                 flaw=flaw1,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
             )
             affect2 = AffectFactory(
                 flaw=flaw2,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 ps_component=affect1.ps_component,
             )
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect1, affect2],
                 embargoed=flaw1.embargoed,
@@ -359,7 +359,7 @@ name: Major Incident
 description: only for very serious cases
 conditions:
   flaw:
-    - major incident state is approved
+    - major incident state is major incident approved
 sla:
   duration: {mi_duration}
   start: reported date
@@ -426,20 +426,20 @@ sla:
                 major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             )
             ps_module = PsModuleFactory(name="ps-module")
-            affect = AffectFactory(
-                flaw=flaw,
-                impact=Impact.MODERATE,
-                affectedness=Affect.AffectAffectedness.AFFECTED,
-                resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
-                ps_component="component-1",
-            )
             PsUpdateStream(
                 name="upd-stream-1",
                 ps_module=ps_module,
                 active_to_ps_module=ps_module,
                 unacked_to_ps_module=ps_module,
             ).save()
+            affect = AffectFactory(
+                flaw=flaw,
+                impact=Impact.MODERATE,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_update_stream="upd-stream-1",
+                ps_component="component-1",
+            )
             status = "CLOSED" if is_closed else "NEW"
             tracker = TrackerFactory(
                 affects=[affect],
@@ -516,7 +516,7 @@ name: Major Incident
 description: only for very serious cases
 conditions:
   flaw:
-    - major incident state is approved
+    - major incident state is major incident approved
 sla:
   duration: 2
   start: reported date
@@ -528,15 +528,15 @@ sla:
                 major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             )
             ps_module = PsModuleFactory(name="rhel-8")
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect = AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 ps_component=component,
                 impact=Impact.LOW,
             )
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.embargoed,

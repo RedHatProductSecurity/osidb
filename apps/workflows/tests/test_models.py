@@ -179,15 +179,15 @@ class TestCheck:
         of the property returning TextChoices values
         """
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory(embargoed=False, impact=Impact.LOW)
         affect = AffectFactory(
             flaw=flaw,
             impact=None,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=False,
@@ -343,7 +343,8 @@ class TestCheck:
             assert not check(flaw)
             tracker = TrackerFactory.build()
             tracker.save(raise_validation_error=False)
-            tracker.affects.add(affect)
+            affect.tracker = tracker
+            affect.save(raise_validation_error=False)
             assert check(flaw)
 
 
@@ -910,7 +911,7 @@ class TestFlaw:
                 "description": "random description",
                 "priority": 1,  # is more prior than default one
                 "conditions": [
-                    "major_incident_state_is_approved"
+                    "major_incident_state_is_major_incident_approved"
                 ],  # major incident flaws are classified here
                 "states": [],  # this is not valid but OK for this test
             }
@@ -918,13 +919,15 @@ class TestFlaw:
         workflow.states = states
         workflow_framework.register_workflow(workflow)
 
-        flaw = FlawFactory(major_incident_state=Flaw.FlawMajorIncident.APPROVED)
+        flaw = FlawFactory(
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+        )
         AffectFactory(flaw=flaw)
         flaw.adjust_classification()
 
         assert flaw.classification["workflow"] == "MAJOR_INCIDENT"
 
-        flaw.major_incident_state = Flaw.FlawMajorIncident.NOVALUE
+        flaw.major_incident_state = Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED
         flaw.adjust_classification()
 
         assert flaw.classification["workflow"] == "DEFAULT"

@@ -21,7 +21,7 @@ class TestEndpointsTrackers:
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])
-    def test_tracker_create(self, auth_client, test_api_uri, embargoed, bts_name):
+    def test_tracker_create(self, auth_client, test_api_v2_uri, embargoed, bts_name):
         """
         Test the creation of Tracker records via a REST API POST request.
         """
@@ -31,7 +31,7 @@ class TestEndpointsTrackers:
             flaw__embargoed=embargoed,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
 
         assert Tracker.objects.count() == 0
@@ -42,7 +42,7 @@ class TestEndpointsTrackers:
             "ps_update_stream": ps_update_stream.name,
         }
         response = auth_client().post(
-            f"{test_api_uri}/trackers",
+            f"{test_api_v2_uri}/trackers",
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
@@ -57,7 +57,7 @@ class TestEndpointsTrackers:
 
     @pytest.mark.parametrize("sync_to_bz", [False, True, None])
     def test_tracker_create_jira_bulk_enablement(
-        self, auth_client, test_api_uri, monkeypatch, sync_to_bz
+        self, auth_client, test_api_v2_uri, monkeypatch, sync_to_bz
     ):
         """
         Test the creation of Tracker records via a REST API POST request
@@ -96,7 +96,7 @@ class TestEndpointsTrackers:
             affect = AffectFactory(
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
             )
 
             assert Tracker.objects.count() == 0
@@ -118,7 +118,7 @@ class TestEndpointsTrackers:
             if sync_to_bz is None:
                 del tracker_data["sync_to_bz"]
             response = auth_client().post(
-                f"{test_api_uri}/trackers",
+                f"{test_api_v2_uri}/trackers",
                 tracker_data,
                 format="json",
                 HTTP_BUGZILLA_API_KEY="SECRET",
@@ -132,39 +132,39 @@ class TestEndpointsTrackers:
             assert tracker.affects.first().uuid == affect.uuid
 
             if sync_to_bz is False:
-                # Flaw was not synced.
-                assert len(shared_state["runs"]) == 2
+                # Flaw was not synced but affect was
+                assert len(shared_state["runs"]) == 3
             else:
                 # Flaw was synced.
-                assert len(shared_state["runs"]) == 3
+                assert len(shared_state["runs"]) == 4
                 assert shared_state["runs"][-1] == (Flaw, {"success": True})
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])
-    def test_tracker_update(self, auth_client, test_api_uri, embargoed, bts_name):
+    def test_tracker_update(self, auth_client, test_api_v2_uri, embargoed, bts_name):
         """
         Test the update of Tracker records via a REST API PUT request.
         """
         ps_module = PsModuleFactory(bts_name=bts_name)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw__embargoed=embargoed,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
             ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
-        response = auth_client().get(f"{test_api_uri}/trackers/{tracker.uuid}")
+        response = auth_client().get(f"{test_api_v2_uri}/trackers/{tracker.uuid}")
         assert response.status_code == 200
         original_body = response.json()
 
         response = auth_client().put(
-            f"{test_api_uri}/trackers/{tracker.uuid}",
+            f"{test_api_v2_uri}/trackers/{tracker.uuid}",
             {
                 **original_body,
                 "resolution": "this is different",
@@ -177,24 +177,28 @@ class TestEndpointsTrackers:
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])
-    def test_tracker_update_link(self, auth_client, test_api_uri, embargoed, bts_name):
+    def test_tracker_update_link(
+        self, auth_client, test_api_v2_uri, embargoed, bts_name
+    ):
         """
         Test the update of Tracker records via a REST API PUT request.
         """
+        flaw1 = FlawFactory(embargoed=embargoed)
+        flaw2 = FlawFactory(embargoed=embargoed)
         ps_module = PsModuleFactory(bts_name=bts_name)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect1 = AffectFactory(
-            flaw__embargoed=embargoed,
+            flaw=flaw1,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         affect2 = AffectFactory(
-            flaw__embargoed=embargoed,
+            flaw=flaw2,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect1],
             embargoed=affect1.flaw.embargoed,
@@ -202,14 +206,14 @@ class TestEndpointsTrackers:
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
-        response = auth_client().get(f"{test_api_uri}/trackers/{tracker.uuid}")
+        response = auth_client().get(f"{test_api_v2_uri}/trackers/{tracker.uuid}")
         assert response.status_code == 200
         original_body = response.json()
         assert affect1.uuid in response.data["affects"]
         assert affect2.uuid not in response.data["affects"]
 
         response = auth_client().put(
-            f"{test_api_uri}/trackers/{tracker.uuid}",
+            f"{test_api_v2_uri}/trackers/{tracker.uuid}",
             {
                 **original_body,
                 "affects": [
@@ -225,24 +229,24 @@ class TestEndpointsTrackers:
         assert affect2.uuid in response.data["affects"]
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
-    def test_tracker_delete(self, auth_client, test_api_uri, bts_name):
+    def test_tracker_delete(self, auth_client, test_api_v2_uri, bts_name):
         """
         Test the deletion of Tracker records via a REST API DELETE request.
         """
         ps_module = PsModuleFactory(bts_name=bts_name)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
             ps_update_stream=ps_update_stream.name,
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
-        tracker_url = f"{test_api_uri}/trackers/{tracker.uuid}"
+        tracker_url = f"{test_api_v2_uri}/trackers/{tracker.uuid}"
         response = auth_client().get(tracker_url)
         assert response.status_code == 200
 
@@ -255,13 +259,13 @@ class TestEndpointsTrackers:
     def test_get_tracker_with_cve_id(self, auth_client, test_api_uri):
         flaw = FlawFactory(cve_id="CVE-2025-1234")
         ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=affect.flaw.embargoed,
@@ -277,13 +281,13 @@ class TestEndpointsTrackers:
     def test_filter_tracker_by_cve_id(self, auth_client, test_api_uri):
         flaw = FlawFactory(cve_id="CVE-2025-1234")
         ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             embargoed=affect.flaw.embargoed,

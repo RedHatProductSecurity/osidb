@@ -326,13 +326,13 @@ class TestSLA:
             for attribute, value in context.get("flaw", {}):
                 setattr(flaw, attribute, make_aware(value))
             ps_module = PsModuleFactory()
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect = AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
             )
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.embargoed,
@@ -622,40 +622,46 @@ class TestSLAPolicy:
             [
                 (
                     {
-                        "flaw": ["major incident state is approved"],
+                        "flaw": ["major incident state is major incident approved"],
                     },
                     [],
-                    ["major incident state is approved"],
+                    ["major incident state is major incident approved"],
                     [],
                 ),
                 (
                     {
                         "flaw": [
-                            "major incident state is cisa approved",
+                            "major incident state is exploits kev approved",
                             "is not embargoed",
                         ],
                     },
                     [],
-                    ["major incident state is cisa approved", "is not embargoed"],
+                    [
+                        "major incident state is exploits kev approved",
+                        "is not embargoed",
+                    ],
                     [],
                 ),
                 (
                     {
                         "affect": ["is community"],
                         "flaw": [
-                            "major incident state is approved",
+                            "major incident state is major incident approved",
                             "is not embargoed",
                         ],
                     },
                     ["is community"],
-                    ["major incident state is approved", "is not embargoed"],
+                    [
+                        "major incident state is major incident approved",
+                        "is not embargoed",
+                    ],
                     [],
                 ),
                 (
                     {
                         "affect": ["is community"],
                         "flaw": [
-                            "major incident state is approved",
+                            "major incident state is major incident approved",
                             "is not embargoed",
                             "state is not triage",
                         ],
@@ -663,7 +669,7 @@ class TestSLAPolicy:
                     },
                     ["is community"],
                     [
-                        "major incident state is approved",
+                        "major incident state is major incident approved",
                         "is not embargoed",
                         "state is not triage",
                     ],
@@ -734,7 +740,7 @@ class TestSLAPolicy:
                         "is community",
                     ],
                     "flaw": [
-                        "major incident state is approved",
+                        "major incident state is major incident approved",
                         "is not embargoed",
                     ],
                     "tracker": [
@@ -752,19 +758,19 @@ class TestSLAPolicy:
             flaw = FlawFactory(
                 components=["dnf"],
                 embargoed=False,
-                major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+                major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 impact=Impact.LOW,
             )
             ps_product = PsProductFactory(business_unit="Community")
             ps_module = PsModuleFactory(ps_product=ps_product)
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect = AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 impact=Impact.MODERATE,
             )
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.embargoed,
@@ -795,7 +801,7 @@ class TestSLAPolicy:
                         "ps_component is dnf",
                     ],
                     "flaw": [
-                        "major incident state is approved",
+                        "major incident state is major incident approved",
                         "is not embargoed",
                     ],
                 },
@@ -810,7 +816,7 @@ class TestSLAPolicy:
             flaw1 = FlawFactory(
                 components=["dnf"],
                 embargoed=False,
-                major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+                major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 impact=Impact.LOW,
                 title="real flaw",
             )
@@ -823,11 +829,12 @@ class TestSLAPolicy:
             )
             ps_product = PsProductFactory(business_unit="Community")
             ps_module = PsModuleFactory(ps_product=ps_product)
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect1 = AffectFactory(
                 flaw=flaw1,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 ps_component="dnf",
                 impact=Impact.MODERATE,
             )
@@ -835,11 +842,10 @@ class TestSLAPolicy:
                 flaw=flaw2,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 ps_component="dnf",
                 impact=Impact.LOW,
             )
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect1, affect2],
                 embargoed=flaw1.embargoed,
@@ -897,15 +903,15 @@ class TestSLAPolicy:
 
             flaw = FlawFactory()
             ps_module = PsModuleFactory()
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect = AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 impact=Impact.MODERATE,
                 ps_component=component,
             )
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.embargoed,
@@ -948,13 +954,13 @@ class TestSLAPolicy:
                 embargoed=False,
             )
             ps_module = PsModuleFactory()
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect = AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
             )
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect],
                 embargoed=flaw.embargoed,
@@ -1006,21 +1012,21 @@ class TestSLAPolicy:
                 unembargo_dt=make_aware(datetime(2020, 1, 1)),
             )
             ps_module = PsModuleFactory()
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect1 = AffectFactory(
                 flaw=flaw1,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 ps_component="dnf",
             )
             affect2 = AffectFactory(
                 flaw=flaw2,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 ps_component="dnf",
             )
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             tracker = TrackerFactory(
                 affects=[affect1, affect2],
                 embargoed=flaw1.embargoed,
@@ -1079,14 +1085,14 @@ class TestSLAPolicy:
                 embargoed=False,
             )
             ps_module = PsModuleFactory()
+            ps_update_stream = PsUpdateStreamFactory(
+                ps_module=ps_module, rhsa_sla_applicable=False
+            )
             affect = AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
-            )
-            ps_update_stream = PsUpdateStreamFactory(
-                ps_module=ps_module, rhsa_sla_applicable=False
+                ps_update_stream=ps_update_stream.name,
             )
             tracker = TrackerFactory(
                 affects=[affect],

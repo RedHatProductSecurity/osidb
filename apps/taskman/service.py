@@ -195,10 +195,9 @@ class JiraTaskmanQuerier(JiraQuerier):
     def _generate_task_data(self, flaw: Flaw):
         labels = [f"flawuuid:{str(flaw.uuid)}", f"impact:{flaw.impact}"]
         if flaw.major_incident_state in [
-            Flaw.FlawMajorIncident.APPROVED,
-            Flaw.FlawMajorIncident.CISA_APPROVED,
-            Flaw.FlawMajorIncident.MINOR,
-            Flaw.FlawMajorIncident.ZERO_DAY,
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+            Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED,
         ]:
             labels.append("major_incident")
         if flaw.cve_id:

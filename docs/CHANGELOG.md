@@ -7,15 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Fixed
 - Fix PUT request being allowed for `AuditView` endpoint (OSIDB-4428)
+- Fix creation of related objects for public flaws having internal visibility (OSIDB-4552)
+- Fix CVE_id parsing for OSV in linux DB (OSIDB-4548) 
 - Prevent unintended publicizing flaws when workflow state has unexpected value during sync tasks (OSIDB-4446)
 
 ### Added
 - Add query for finding flaw whose non-community affects are missing trackers (OSIDB-4104)
+- Add /revert and /reset flaw workflow endpoints (OSIDB-4487)
+- Add filter and Djangoql field for multi-label flaws (OSIDB-4531)
 
 ### Changed
 - Adjust `unembargo_dt` validation for embargoed flaws to only trigger when 
   `unembargo_dt` is changed (OSIDB-4296)
 - Improve performance in Alerts and ACL serialization (OSIDB-4313)
+- Implement affects v2 (OSIDB-4023)
+- Prevent deleting affects with open trackers (OSIDB-4545)
+- Prevent resetting major_incident_state to blank (OSIDB-3856)
+- Make CVE ID case insensitive for flaw queries (OSIDB-3766)
+- Update Incident state fields (OSIDB-3959)
+
+### Removed
+- Remove deprecated fields/models: `PsProduct`'s `team`, `FlawComment`'s `order` 
+  and models in `package_versions.py` (OSIDB-3552)
 
 ## [4.16.0] - 2025-09-16
 ### Fixed
@@ -29,6 +42,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add `aegis_meta` field on `Flaw` objects for Aegis metadata (OSIDB-4454)
+
+## [4.15.0] - 2025-08-21
+### Fixed
+- Fix FlawSource enum reference in OpenAPI schema (OSIDB-4401)
+- Fix the available-flaws API giving a 404 on non-existent flaws instead of 204 (OSIDB-4397).
+- Prevent emails from being sent for *rejected* critical flaws (OSIDB-4274)
+
+
+## [4.16.0] - 2025-09-16
+### Fixed
+- Fix `owner` update in Jira not reflected in OSIDB (OSIDB-4306)
+- Fix not affected justifications from Jira not being collected by OSIDB (OSIDB-4418)
+- Fix use full component name for CC lists (OSIDB-4371)
+
+### Changed
+- Make `affect` model's `flaw` field un-nullable (OSIDB-4202)
+- Remove CVE description validation for Major Incident Flaws (OSIDB-4440)
 
 ## [4.15.0] - 2025-08-21
 ### Fixed

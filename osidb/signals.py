@@ -2,7 +2,7 @@ import logging
 
 from bugzilla import Bugzilla
 from django.contrib.auth.models import User
-from django.db.models.signals import m2m_changed, post_delete, post_save, pre_save
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from jira import JIRA
@@ -18,6 +18,8 @@ from osidb.models import (
     FlawCVSS,
     Impact,
     Profile,
+    PsModule,
+    PsUpdateStream,
     Tracker,
 )
 from osidb.models.flaw.acknowledgment import FlawAcknowledgment
@@ -79,11 +81,10 @@ def get_jira_user_id(email: str) -> str:
 def update_major_incident_start_dt(flaw: Flaw) -> None:
     # Set the date when the flaw became a MI if needed
     is_major_incident = flaw.major_incident_state in {
-        Flaw.FlawMajorIncident.APPROVED,
-        Flaw.FlawMajorIncident.CISA_APPROVED,
-        # Flaw.FlawMajorIncident.MINOR is not
+        Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+        Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+        # Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED is not
         # included as it has no impact on the SLA
-        Flaw.FlawMajorIncident.ZERO_DAY,
     }
     if is_major_incident and flaw.major_incident_start_dt is None:
         flaw.major_incident_start_dt = timezone.now()
@@ -126,11 +127,10 @@ def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Tracker)
-@receiver(m2m_changed, sender=Tracker.affects.through)
+@receiver(post_save, sender=Affect)
+@receiver(post_delete, sender=Affect)
 def update_local_updated_dt_tracker(sender, instance, **kwargs):
     flaws = set()
-    # /!\ in the case of an m2m_changed signal, instance can be either a
-    # Tracker or an Affect object, see Django docs on m2m_changed signal
     if isinstance(instance, Affect):
         flaws.add(instance.flaw)
     else:
@@ -180,13 +180,11 @@ def update_last_impact_increase_dt_affect(sender, instance, **kwargs):
     if not instance._state.adding and Impact(instance.impact) > Impact(
         Affect.objects.get(pk=instance.pk).impact
     ):
-        to_update = set()
-        for tracker in instance.trackers.all():
-            if Impact(instance.impact) > tracker.aggregated_impact:
-                to_update.add(tracker.uuid)
-
-        if to_update:
-            Tracker.objects.filter(uuid__in=to_update).update(
+        if (
+            instance.tracker is not None
+            and Impact(instance.impact) > instance.tracker.aggregated_impact
+        ):
+            Tracker.objects.filter(uuid=instance.tracker.uuid).update(
                 last_impact_increase_dt=timezone.now()
             )
 
@@ -231,10 +229,32 @@ def update_denormalized_cve_ids_on_flaw_update(sender, instance, **kwargs):
         if instance.cve_id != db_instance.cve_id:
             instance.affects.all().update(cve_id=instance.cve_id)
             for affect in instance.affects.all():
-                for tracker in affect.trackers.all():
-                    tracker.cve_id = instance.cve_id
-                    trackers.add(tracker)
+                if affect.tracker is not None:
+                    affect.tracker.cve_id = instance.cve_id
+                    trackers.add(affect.tracker)
             Tracker.objects.bulk_update(list(trackers), fields=["cve_id"])
+
+
+@receiver(pre_save, sender=PsModule)
+@receiver(pre_save, sender=PsUpdateStream)
+def update_denormalized_ps_module(sender, instance, **kwargs):
+    # Cover the extremely unlikely case in which a ps_module changes name or a
+    # ps_update_stream changes module
+    if not instance._state.adding:
+        if sender is PsModule:
+            db_instance = PsModule.objects.get(pk=instance.pk)
+            if instance.name != db_instance.name:
+                Affect.objects.filter(ps_module=db_instance.name).update(
+                    ps_module=instance.name
+                )
+        elif sender is PsUpdateStream:
+            db_instance = PsUpdateStream.objects.get(pk=instance.pk)
+            new_ps_module = PsModule.objects.filter(name=instance.ps_module).first()
+            old_ps_module = PsModule.objects.filter(name=db_instance.ps_module).first()
+            if new_ps_module != old_ps_module:
+                Affect.objects.filter(ps_module=db_instance.ps_module).update(
+                    ps_module=new_ps_module.name
+                )
 
 
 @receiver(pre_save, sender=Affect)
@@ -246,3 +266,21 @@ def mirror_parent_cve_id(sender, instance, **kwargs):
         parent = instance.affects.first()
     if parent:
         instance.cve_id = parent.cve_id
+
+
+@receiver(pre_save, sender=Affect)
+def update_denormalized_labels_on_affect_change(sender, instance, **kwargs):
+    """
+    Update denormalized labels when ps_module or ps_component change.
+    """
+    if instance._state.adding:
+        # New affect - always update labels
+        instance.update_denormalized_labels()
+    else:
+        # Existing affect - check if ps_module or ps_component changed
+        db_instance = Affect.objects.get(pk=instance.pk)
+        if (
+            instance.ps_module != db_instance.ps_module
+            or instance.ps_component != db_instance.ps_component
+        ):
+            instance.update_denormalized_labels()

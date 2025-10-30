@@ -14,8 +14,10 @@ from osidb.filters import FlawFilter
 from osidb.models import (
     Affect,
     Flaw,
+    FlawCollaborator,
     FlawComment,
     FlawCVSS,
+    FlawLabel,
     FlawReference,
     FlawSource,
     Impact,
@@ -38,13 +40,11 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.unit
 
 
-def is_meta_attr_correct(
-    meta_attr: Union[Set[str], None], expected_keys: Set[str]
-) -> bool:
+def is_meta_attr_correct(meta_attr: Union[dict, None], expected_keys: Set[str]) -> bool:
     """Helper function for meta attr correctness check"""
     if meta_attr is None and not expected_keys:
         return True
-    elif set(meta_attr.keys()) == expected_keys:
+    elif meta_attr is not None and set(meta_attr.keys()) == expected_keys:
         return True
     else:
         return False
@@ -122,7 +122,7 @@ class TestEndpointsFlaws:
         """retrieve specific flaw from endpoint"""
 
         flaw1 = FlawFactory.build(
-            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
             requires_cve_description=Flaw.FlawRequiresCVEDescription.APPROVED,
             nist_cvss_validation=Flaw.FlawNistCvssValidation.NOVALUE,
         )
@@ -141,7 +141,10 @@ class TestEndpointsFlaws:
         response = auth_client().get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
         assert response.status_code == 200
         body = response.json()
-        assert body["major_incident_state"] == Flaw.FlawMajorIncident.APPROVED
+        assert (
+            body["major_incident_state"]
+            == Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+        )
         assert body["nist_cvss_validation"] == Flaw.FlawNistCvssValidation.NOVALUE
         assert len(body["comments"]) == 1
 
@@ -239,9 +242,9 @@ class TestEndpointsFlaws:
             body["count"] == 1
         )  # One Flaw that was changed after a past date AND before a future date
 
-    def test_list_flaws_filters(self, auth_client, test_api_uri):
+    def test_list_flaws_filters(self, auth_client, test_api_v2_uri):
         """retrieve list of flaws from endpoint"""
-        response = auth_client().get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_v2_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -249,7 +252,7 @@ class TestEndpointsFlaws:
         flaw = FlawFactory()
 
         for field_filter in FlawFilter.get_fields():
-            response = auth_client().get(f"{test_api_uri}/flaws?{field_filter}=0")
+            response = auth_client().get(f"{test_api_v2_uri}/flaws?{field_filter}=0")
             if response.status_code == 200:
                 assert response.json()["count"] == 0 or getattr(flaw, field_filter) == 0
                 # There can be either no match or a matching boolean value
@@ -358,12 +361,12 @@ class TestEndpointsFlaws:
     @pytest.mark.enable_signals
     def test_changed_after_from_tracker(self, auth_client, test_api_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=(affect,),
             embargoed=affect.flaw.embargoed,
@@ -438,12 +441,13 @@ class TestEndpointsFlaws:
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
-        assert body["results"][0]["uuid"] == str(affect.flaw.uuid)
+        assert body["results"][0]["uuid"] == str(affect1.flaw.uuid)
 
     @freeze_time(datetime(2021, 11, 23))
     @pytest.mark.enable_signals
     def test_changed_before_from_tracker(self, auth_client, test_api_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory(
             unembargo_dt=make_aware(datetime(2001, 11, 23)),
             embargoed=False,
@@ -451,12 +455,11 @@ class TestEndpointsFlaws:
         )
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=(affect,),
             embargoed=affect.flaw.embargoed,
@@ -527,6 +530,8 @@ class TestEndpointsFlaws:
     @pytest.mark.enable_signals
     def test_changed_before_from_multi_tracker(self, auth_client, test_api_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory(
             unembargo_dt=make_aware(datetime(2001, 11, 23)),
             embargoed=False,
@@ -534,30 +539,29 @@ class TestEndpointsFlaws:
         )
         affect1 = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream1.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
         affect2 = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream2.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker1 = TrackerFactory(
             affects=(affect1,),
             embargoed=flaw.embargoed,
-            ps_update_stream=ps_update_stream.name,
+            ps_update_stream=ps_update_stream1.name,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
             type=Tracker.TrackerType.BUGZILLA,
         )
         tracker2 = TrackerFactory(
             affects=(affect2,),
             embargoed=flaw.embargoed,
-            ps_update_stream=ps_update_stream.name,
+            ps_update_stream=ps_update_stream2.name,
             updated_dt=datetime(2021, 11, 23, tzinfo=timezone.utc),
             type=Tracker.TrackerType.BUGZILLA,
         )
@@ -586,7 +590,7 @@ class TestEndpointsFlaws:
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
-        assert body["results"][0]["uuid"] == str(tracker.affects.first().flaw.uuid)
+        assert body["results"][0]["uuid"] == str(tracker1.affects.first().flaw.uuid)
 
     def test_list_flaws_filter_by_components(self, auth_client, test_api_uri):
         """retrieve list of flaws from endpoint"""
@@ -629,6 +633,106 @@ class TestEndpointsFlaws:
         response = auth_client().get(f"{test_api_uri}/flaws?bz_id={meta_attr['bz_id']}")
         assert response.status_code == 200
         assert response.json()["count"] == 1
+
+    def test_list_flaws_filter_by_labels(self, auth_client, test_api_uri):
+        """test multi-label filtering"""
+        label_a = FlawLabel.objects.create(
+            name="label_a", type=FlawLabel.FlawLabelType.CONTEXT_BASED
+        )
+        label_b = FlawLabel.objects.create(
+            name="label_b", type=FlawLabel.FlawLabelType.CONTEXT_BASED
+        )
+        label_c = FlawLabel.objects.create(
+            name="label_c", type=FlawLabel.FlawLabelType.CONTEXT_BASED
+        )
+
+        flaw1 = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw1)
+        flaw1.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw1.save()
+        FlawCollaborator.objects.create(
+            flaw=flaw1,
+            label=label_a.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+
+        flaw2 = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw2)
+        flaw2.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw2.save()
+        FlawCollaborator.objects.create(
+            flaw=flaw2,
+            label=label_a.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+        FlawCollaborator.objects.create(
+            flaw=flaw2,
+            label=label_b.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+
+        flaw3 = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw3)
+        flaw3.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw3.save()
+        FlawCollaborator.objects.create(
+            flaw=flaw3,
+            label=label_a.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+        FlawCollaborator.objects.create(
+            flaw=flaw3,
+            label=label_b.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+        FlawCollaborator.objects.create(
+            flaw=flaw3,
+            label=label_c.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        )
+
+        response = auth_client().get(f"{test_api_uri}/flaws?flaw_labels=label_a")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 3
+        assert {flaw["cve_id"] for flaw in body["results"]} == {
+            flaw1.cve_id,
+            flaw2.cve_id,
+            flaw3.cve_id,
+        }
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?flaw_labels=label_a,label_b"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 2
+        assert {flaw["cve_id"] for flaw in body["results"]} == {
+            flaw2.cve_id,
+            flaw3.cve_id,
+        }
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?flaw_labels=label_a,label_b,label_c"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert {flaw["cve_id"] for flaw in body["results"]} == {flaw3.cve_id}
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?flaw_labels=label_b,label_c"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert {flaw["cve_id"] for flaw in body["results"]} == {flaw3.cve_id}
 
     def test_list_flaws_invalid(self, auth_client, test_api_uri, datetime_with_tz):
         """retrieve list of flaws from endpoint"""
@@ -697,7 +801,7 @@ class TestEndpointsFlaws:
         for _ in range(5):
             affect = AffectFactory(
                 flaw=flaw,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
             )
@@ -709,13 +813,18 @@ class TestEndpointsFlaws:
             )
 
         flaw_exclude_fields = ["resolution", "state", "uuid", "impact"]
-        affect_exclude_fields = ["ps_module", "ps_component", "type", "affectedness"]
+        affect_exclude_fields = [
+            "ps_update_stream",
+            "ps_component",
+            "type",
+            "affectedness",
+        ]
         tracker_exclude_fields = ["type", "external_system_id", "status", "resolution"]
 
         exclude_fields_param = ",".join(
             flaw_exclude_fields
             + [f"affects.{field}" for field in affect_exclude_fields]
-            + [f"affects.trackers.{field}" for field in tracker_exclude_fields]
+            + [f"affects.tracker.{field}" for field in tracker_exclude_fields]
         )
 
         response = auth_client().get(
@@ -732,13 +841,13 @@ class TestEndpointsFlaws:
             for field in affect_exclude_fields:
                 assert field not in affect
 
-            for tracker in affect["trackers"]:
+            if affect.get("tracker"):
                 for tracker_field in tracker_exclude_fields:
-                    assert tracker_field not in tracker
+                    assert tracker_field not in affect["tracker"]
 
-    def test_list_flaws_include_fields(self, auth_client, test_api_uri):
+    def test_list_flaws_include_fields(self, auth_client, test_api_v2_uri):
         """retrieve list of flaws from endpoint"""
-        response = auth_client().get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_v2_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -749,7 +858,7 @@ class TestEndpointsFlaws:
         for _ in range(5):
             affect = AffectFactory(
                 flaw=flaw,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
             )
@@ -761,17 +870,17 @@ class TestEndpointsFlaws:
             )
 
         flaw_include_fields = ["uuid", "impact"]
-        affect_include_fields = ["ps_module", "ps_component", "affectedness"]
+        affect_include_fields = ["ps_update_stream", "ps_component", "affectedness"]
         tracker_include_fields = ["type", "external_system_id", "status", "resolution"]
 
         include_fields_param = ",".join(
             flaw_include_fields
             + [f"affects.{field}" for field in affect_include_fields]
-            + [f"affects.trackers.{field}" for field in tracker_include_fields]
+            + [f"affects.tracker.{field}" for field in tracker_include_fields]
         )
 
         response = auth_client().get(
-            f"{test_api_uri}/flaws?include_fields={include_fields_param}"
+            f"{test_api_v2_uri}/flaws?include_fields={include_fields_param}"
         )
         assert response.status_code == 200
         body = response.json()
@@ -784,23 +893,23 @@ class TestEndpointsFlaws:
             assert field in body["results"][0]
 
         for affect in body["results"][0]["affects"]:
-            # length of the include fields plus 1 for "trackers" which will be present as well
+            # length of the include fields plus 1 for "tracker" which will be present as well
             assert len(affect) == len(affect_include_fields) + 1
 
             for field in affect_include_fields:
                 assert field in affect
 
-            for tracker in affect["trackers"]:
-                assert len(tracker) == len(tracker_include_fields)
+            if affect.get("tracker"):
+                assert len(affect["tracker"]) == len(tracker_include_fields)
                 for tracker_field in tracker_include_fields:
-                    assert tracker_field in tracker
+                    assert tracker_field in affect["tracker"]
 
-    def test_list_flaws_nested_include_fields_only(self, auth_client, test_api_uri):
+    def test_list_flaws_nested_include_fields_only(self, auth_client, test_api_v2_uri):
         """
         retrieve list of flaws from endpoint with included
         fields only in nested serializers
         """
-        response = auth_client().get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_v2_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -811,7 +920,7 @@ class TestEndpointsFlaws:
         for _ in range(5):
             affect = AffectFactory(
                 flaw=flaw,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
             )
@@ -822,14 +931,14 @@ class TestEndpointsFlaws:
                 type=Tracker.TrackerType.BUGZILLA,
             )
 
-        affect_include_fields = ["ps_module", "ps_component", "affectedness"]
+        affect_include_fields = ["ps_update_stream", "ps_component", "affectedness"]
 
         include_fields_param = ",".join(
             [f"affects.{field}" for field in affect_include_fields]
         )
 
         response = auth_client().get(
-            f"{test_api_uri}/flaws?include_fields={include_fields_param}"
+            f"{test_api_v2_uri}/flaws?include_fields={include_fields_param}"
         )
         assert response.status_code == 200
         body = response.json()
@@ -847,9 +956,9 @@ class TestEndpointsFlaws:
             for field in affect_include_fields:
                 assert field in affect
 
-    def test_list_flaws_include_and_exclude_fields(self, auth_client, test_api_uri):
+    def test_list_flaws_include_and_exclude_fields(self, auth_client, test_api_v2_uri):
         """retrieve list of flaws from endpoint"""
-        response = auth_client().get(f"{test_api_uri}/flaws")
+        response = auth_client().get(f"{test_api_v2_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
@@ -860,7 +969,7 @@ class TestEndpointsFlaws:
         for _ in range(5):
             affect = AffectFactory(
                 flaw=flaw,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
             )
@@ -872,27 +981,27 @@ class TestEndpointsFlaws:
             )
 
         flaw_include_fields = ["uuid", "impact"]
-        affect_include_fields = ["ps_module", "ps_component", "affectedness"]
+        affect_include_fields = ["ps_update_stream", "ps_component", "affectedness"]
         tracker_include_fields = ["type", "external_system_id", "status", "resolution"]
 
         include_fields_param = ",".join(
             flaw_include_fields
             + [f"affects.{field}" for field in affect_include_fields]
-            + [f"affects.trackers.{field}" for field in tracker_include_fields]
+            + [f"affects.tracker.{field}" for field in tracker_include_fields]
         )
 
         flaw_exclude_fields = ["cve_id"]
-        affect_exclude_fields = ["ps_module", "ps_component"]
+        affect_exclude_fields = ["ps_update_stream", "ps_component"]
         tracker_exclude_fields = ["type", "external_system_id"]
 
         exclude_fields_param = ",".join(
             flaw_exclude_fields
             + [f"affects.{field}" for field in affect_exclude_fields]
-            + [f"affects.trackers.{field}" for field in tracker_exclude_fields]
+            + [f"affects.tracker.{field}" for field in tracker_exclude_fields]
         )
 
         response = auth_client().get(
-            f"{test_api_uri}/flaws?include_fields={include_fields_param}&exclude_fields={exclude_fields_param}"
+            f"{test_api_v2_uri}/flaws?include_fields={include_fields_param}&exclude_fields={exclude_fields_param}"
         )
         assert response.status_code == 200
         body = response.json()
@@ -905,16 +1014,16 @@ class TestEndpointsFlaws:
             assert field in body["results"][0]
 
         for affect in body["results"][0]["affects"]:
-            # length of the include fields plus 1 for "trackers" which will be present as well
+            # length of the include fields plus 1 for "tracker" which will be present as well
             assert len(affect) == len(affect_include_fields) + 1
 
             for field in affect_include_fields:
                 assert field in affect
 
-            for tracker in affect["trackers"]:
-                assert len(tracker) == len(tracker_include_fields)
+            if affect.get("tracker"):
+                assert len(affect["tracker"]) == len(tracker_include_fields)
                 for tracker_field in tracker_include_fields:
-                    assert tracker_field in tracker
+                    assert tracker_field in affect["tracker"]
 
     def test_list_flaws_include_fields_relation(self, auth_client, test_api_uri):
         """
@@ -1024,7 +1133,7 @@ class TestEndpointsFlaws:
         [
             ("", {"flaw": set(), "affect": set(), "tracker": set()}),
             (
-                "include_meta_attr=test_key_1,affects.test_key_2,affects.trackers.test_key_3",
+                "include_meta_attr=test_key_1,affects.test_key_2,affects.tracker.test_key_3",
                 {
                     "flaw": {"test_key_1"},
                     "affect": {"test_key_2"},
@@ -1048,7 +1157,7 @@ class TestEndpointsFlaws:
                 },
             ),
             (
-                "include_meta_attr=*,affects.*,affects.trackers.*",
+                "include_meta_attr=*,affects.*,affects.tracker.*",
                 {
                     "flaw": {f"test_key_{i}" for i in range(5)},
                     "affect": {f"test_key_{i}" for i in range(5)},
@@ -1069,7 +1178,7 @@ class TestEndpointsFlaws:
             for _ in range(3):
                 affect = AffectFactory(
                     flaw=flaw,
-                    ps_module=ps_module.name,
+                    ps_update_stream=ps_update_stream.name,
                     meta_attr={f"test_key_{i}": "test" for i in range(5)},
                     affectedness=Affect.AffectAffectedness.AFFECTED,
                     resolution=Affect.AffectResolution.DELEGATED,
@@ -1095,9 +1204,9 @@ class TestEndpointsFlaws:
                     affect.get("meta_attr"), expected_keys["affect"]
                 )
 
-                for tracker in affect["trackers"]:
+                if affect.get("tracker"):
                     assert is_meta_attr_correct(
-                        tracker.get("meta_attr"), expected_keys["tracker"]
+                        affect["tracker"].get("meta_attr"), expected_keys["tracker"]
                     )
 
     @pytest.mark.parametrize(
@@ -1136,7 +1245,7 @@ class TestEndpointsFlaws:
         [
             ("", {"flaw": set(), "affect": set(), "tracker": set()}),
             (
-                "include_meta_attr=test_key_1,affects.test_key_2,affects.trackers.test_key_3",
+                "include_meta_attr=test_key_1,affects.test_key_2,affects.tracker.test_key_3",
                 {
                     "flaw": {"test_key_1"},
                     "affect": {"test_key_2"},
@@ -1160,7 +1269,7 @@ class TestEndpointsFlaws:
                 },
             ),
             (
-                "include_meta_attr=*,affects.*,affects.trackers.*",
+                "include_meta_attr=*,affects.*,affects.tracker.*",
                 {
                     "flaw": {f"test_key_{i}" for i in range(5)},
                     "affect": {f"test_key_{i}" for i in range(5)},
@@ -1180,7 +1289,7 @@ class TestEndpointsFlaws:
         for _ in range(3):
             affect = AffectFactory(
                 flaw=flaw,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 meta_attr={f"test_key_{i}": "test" for i in range(5)},
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
@@ -1206,9 +1315,9 @@ class TestEndpointsFlaws:
                 affect.get("meta_attr"), expected_keys["affect"]
             )
 
-            for tracker in affect["trackers"]:
+            if affect.get("tracker"):
                 assert is_meta_attr_correct(
-                    tracker.get("meta_attr"), expected_keys["tracker"]
+                    affect["tracker"].get("meta_attr"), expected_keys["tracker"]
                 )
 
     def test_flaw_including_package_versions(self, auth_client, test_api_uri):
@@ -1243,16 +1352,16 @@ class TestEndpointsFlaws:
         assert body["classification"]["workflow"] is not None
         assert body["classification"]["state"] is not None
 
-    def test_flaw_including_delegated_resolution(self, auth_client, test_api_uri):
+    def test_flaw_including_delegated_resolution(self, auth_client, test_api_v2_uri):
         ps_module = PsModuleFactory(bts_name="bugzilla")
-        PsUpdateStreamFactory(
+        ps_update_stream = PsUpdateStreamFactory(
             name="rhel-7.0", active_to_ps_module=ps_module, ps_module=ps_module
         )
         flaw = FlawFactory()
         delegated_affect = AffectFactory(
             flaw=flaw,
             impact=Impact.MODERATE,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
@@ -1264,14 +1373,14 @@ class TestEndpointsFlaws:
             type=Tracker.TrackerType.BUGZILLA,
         )
 
-        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.cve_id}")
         assert response.status_code == 200
         body = response.json()
         assert "affects" in body
         affect = body["affects"][0]
-        assert "trackers" in affect
+        assert "tracker" in affect
         assert affect["delegated_resolution"] == Affect.AffectFix.WONTFIX
-        assert affect["trackers"][0]["ps_update_stream"] == "rhel-7.0"
+        assert affect["tracker"]["ps_update_stream"] == "rhel-7.0"
 
     def test_get_flaw_with_token(
         self,
@@ -1296,7 +1405,7 @@ class TestEndpointsFlaws:
         # reset ACLs
         set_user_acls(settings.ALL_GROUPS)
         flaw1 = FlawFactory.build(
-            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
             requires_cve_description=Flaw.FlawRequiresCVEDescription.APPROVED,
         )
         flaw1.save(raise_validation_error=False)
@@ -1319,7 +1428,10 @@ class TestEndpointsFlaws:
         )
         assert response.status_code == 200
         body = response.json()
-        assert body["major_incident_state"] == Flaw.FlawMajorIncident.APPROVED
+        assert (
+            body["major_incident_state"]
+            == Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+        )
         assert len(body["comments"]) == 1
 
     def test_flaw_create(self, auth_client, test_api_uri):
@@ -1586,7 +1698,7 @@ class TestEndpointsFlaws:
             assert response.status_code == 200
             assert Flaw.objects.first().unembargo_dt == new_date
 
-    def test_embargoed_deadlock(self, auth_client, test_api_uri):
+    def test_embargoed_deadlock(self, auth_client, test_api_v2_uri):
         flaw = FlawFactory(
             embargoed=True,
             workflow_state=WorkflowModel.WorkflowState.TRIAGE,
@@ -1597,12 +1709,13 @@ class TestEndpointsFlaws:
 
         with freeze_time(datetime(2025, 1, 1, tzinfo=timezone.utc)):
             ps_module = PsModuleFactory()
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affects_data = [
                 {
                     "flaw": str(flaw.uuid),
                     "affectedness": "NEW",
                     "resolution": "",
-                    "ps_module": ps_module.name,
+                    "ps_update_stream": ps_update_stream.name,
                     "ps_component": "kernel",
                     "impact": "MODERATE",
                     "embargoed": True,
@@ -1610,7 +1723,7 @@ class TestEndpointsFlaws:
             ]
 
             res1 = auth_client().post(
-                f"{test_api_uri}/affects/bulk",
+                f"{test_api_v2_uri}/affects/bulk",
                 affects_data,
                 format="json",
                 HTTP_BUGZILLA_API_KEY="SECRET",
@@ -1622,7 +1735,7 @@ class TestEndpointsFlaws:
 
             flaw.refresh_from_db()
             res2 = auth_client().put(
-                f"{test_api_uri}/flaws/{flaw.uuid}",
+                f"{test_api_v2_uri}/flaws/{flaw.uuid}",
                 {
                     "title": flaw.title,
                     "comment_zero": flaw.comment_zero,
@@ -1686,11 +1799,10 @@ class TestEndpointsFlaws:
             assert not FlawComment._base_manager.filter(flaw=flaw).exists()
             return flaw
 
-        def get_response(flaw, new_comment, order):
+        def get_response(flaw, new_comment):
             return auth_client().post(
                 f"{test_api_uri}/flaws/{flaw.uuid}/comments",
                 {
-                    "order": order,
                     "embargoed": False,
                     "text": new_comment,
                 },
@@ -1701,7 +1813,7 @@ class TestEndpointsFlaws:
 
         flaw = new_flaw()
         assert not FlawComment.objects.filter(flaw=flaw).exists()
-        response = get_response(flaw, "HELLO WORLD COMMENT", 1)
+        response = get_response(flaw, "HELLO WORLD COMMENT")
         assert response.status_code == 201
 
         # NOTE: In this test, `SYNC_TO_BZ and bz_api_key is not None` is False in BugzillaSyncMixin.
@@ -1716,7 +1828,7 @@ class TestEndpointsFlaws:
         assert first_comment == FlawComment.objects.get(external_system_id="")
 
         # Behaves like an ordinary non-idempotent POST endpoint. You can just simply post comments.
-        response = get_response(flaw, "ANOTHER HELLO WORLD COMMENT", 2)
+        response = get_response(flaw, "ANOTHER HELLO WORLD COMMENT")
         assert response.status_code == 201
         response = auth_client().post(
             f"{test_api_uri}/flaws/{flaw.uuid}/comments",
@@ -1745,7 +1857,7 @@ class TestEndpointsFlaws:
         # define the conditions under which a flaw can be deleted
         assert response.status_code == 405
 
-    def test_list_flaws_tracker_ids(self, auth_client, test_api_uri):
+    def test_list_flaws_tracker_ids(self, auth_client, test_api_v2_uri):
         """
         retrieve list of flaws that are related to specified trackers
         through affects and ensure that only those affects related to
@@ -1756,12 +1868,13 @@ class TestEndpointsFlaws:
         FlawFactory()
 
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affects_with_trackers_to_fetch = [
             AffectFactory(
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
             )
             for _ in range(5)
         ]
@@ -1770,12 +1883,11 @@ class TestEndpointsFlaws:
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
             )
             for _ in range(5)
         ]
 
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         trackers_to_fetch = [
             TrackerFactory(
                 affects=[affects_with_trackers_to_fetch[idx]],
@@ -1797,7 +1909,7 @@ class TestEndpointsFlaws:
         tracker_ids = {str(tracker.external_system_id) for tracker in trackers_to_fetch}
 
         response = auth_client().get(
-            f"{test_api_uri}/flaws?tracker_ids={','.join(tracker_ids)}"
+            f"{test_api_v2_uri}/flaws?tracker_ids={','.join(tracker_ids)}"
         )
         assert response.status_code == 200
         body = response.json()
@@ -1809,14 +1921,12 @@ class TestEndpointsFlaws:
         fetched_tracker_ids = set()
         for affect in flaw["affects"]:
             fetched_affect_ids.add(affect["uuid"])
-
-            for tracker in affect["trackers"]:
-                fetched_tracker_ids.add(tracker["external_system_id"])
-
+            if affect["tracker"]:
+                fetched_tracker_ids.add(affect["tracker"]["external_system_id"])
         assert fetched_affect_ids == affect_ids
         assert fetched_tracker_ids == tracker_ids
 
-    def test_flaw_history(self, auth_client, test_api_uri):
+    def test_flaw_history(self, auth_client, test_api_v2_uri):
         """ """
 
         with pghistory.context(source="testcase"):
@@ -1824,12 +1934,13 @@ class TestEndpointsFlaws:
             FlawFactory()
 
             ps_module = PsModuleFactory(bts_name="octopus")
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affects = [
                 AffectFactory(
                     flaw=flaw,
                     affectedness=Affect.AffectAffectedness.AFFECTED,
                     resolution=Affect.AffectResolution.DELEGATED,
-                    ps_module=ps_module.name,
+                    ps_update_stream=ps_update_stream.name,
                 )
                 for _ in range(5)
             ]
@@ -1839,14 +1950,14 @@ class TestEndpointsFlaws:
                     flaw=flaw,
                     affectedness=Affect.AffectAffectedness.AFFECTED,
                     resolution=Affect.AffectResolution.DELEGATED,
-                    ps_module=ps_module.name,
+                    ps_update_stream=ps_update_stream.name,
                 )
                 for _ in range(5)
             ]
             assert len(affects_other) == 5
 
             response = auth_client().get(
-                f"{test_api_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
+                f"{test_api_v2_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
             )
 
             assert response.status_code == 200
@@ -1867,7 +1978,7 @@ class TestEndpointsFlaws:
             flaw.save()
 
             response = auth_client().get(
-                f"{test_api_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
+                f"{test_api_v2_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
             )
 
             body = response.json()
@@ -1876,13 +1987,13 @@ class TestEndpointsFlaws:
             assert flaw_json["history"][1]["pgh_diff"]
             assert "last_validated_dt" not in flaw_json["history"][1]["pgh_diff"]
 
-    def test_flaw_history_no_history(self, auth_client, test_api_uri):
+    def test_flaw_history_no_history(self, auth_client, test_api_v2_uri):
         with pghistory.context(disable=True):
             flaw = FlawFactory()
             flaw.save()
 
         response = auth_client().get(
-            f"{test_api_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
+            f"{test_api_v2_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
         )
 
         body = response.json()
@@ -1951,3 +2062,19 @@ class TestEndpointsFlaws:
         response = client.get(f"{test_api_uri}/available-flaws/not-an-id")
         assert response.status_code == 400
         assert response.data is None
+
+    def test_cve_id_case_insensitive(self, auth_client, test_api_uri):
+        """
+        Test that the API endpoint is case-insensitive when matching CVE IDs
+        """
+
+        flaw = FlawFactory(cve_id="CVE-2999-9999")
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        assert response.status_code == 200
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id.lower()}")
+        assert response.status_code == 200
+
+        response = auth_client().get(f"{test_api_uri}/flaws/CvE-2999-9999")
+        assert response.status_code == 200

@@ -127,18 +127,18 @@ class TestOldTrackerJiraQueryBuilder:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             title="some description",
         )
-        affect = AffectFactory(
-            flaw=flaw,
-            ps_module="foo-module",
-            ps_component="foo-component",
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            impact=affect_impact,
-        )
         ps_module = PsModuleFactory(
             name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
         )
         stream = PsUpdateStreamFactory(
             ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            ps_component="foo-component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=affect_impact,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -183,14 +183,14 @@ class TestOldTrackerJiraQueryBuilder:
         """
         flaw1 = FlawFactory(cve_id="CVE-2000-2000", embargoed=embargoed)
         ps_module = PsModuleFactory(bts_name="jboss", private_trackers_allowed=private)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect1 = AffectFactory(
             flaw=flaw1,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect1],
             ps_update_stream=ps_update_stream.name,
@@ -385,28 +385,28 @@ class TestBothNewOldTrackerJiraQueryBuilder:
             cve_id="CVE-2000-2001",
         )
         ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect1 = AffectFactory(
             flaw=flaw1,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
         affect2 = AffectFactory(
             flaw=flaw2,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
         affect3 = AffectFactory(
             flaw=flaw3,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect1, affect2, affect3],
             type=Tracker.TrackerType.JIRA,
@@ -468,19 +468,19 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         flaw1 = FlawFactory(bz_id="1", cve_id="CVE-2000-2000")
         flaw2 = FlawFactory(bz_id="2", embargoed=flaw1.embargoed, cve_id=None)
         ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect1 = AffectFactory(
             flaw=flaw1,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
             affectedness=affectedness,
         )
         affect2 = AffectFactory(
             flaw=flaw2,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
             affectedness=affectedness,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
 
         if not external_system_id:
             # New tracker being created
@@ -576,7 +576,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         flaw = FlawFactory(embargoed=False)
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
         )
         tracker = TrackerFactory(
@@ -655,7 +655,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         flaw = FlawFactory()
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             ps_component=component,
         )
@@ -741,7 +741,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         flaw = FlawFactory()
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
         )
         tracker = TrackerFactory(
@@ -804,7 +804,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         )
         assert PsUpdateStream.objects.first().target_release == ""
         affect = AffectFactory(
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.NEW,
             resolution=Affect.AffectResolution.NOVALUE,
         )
@@ -876,7 +876,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         flaw = FlawFactory()
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             ps_component=component,
         )
@@ -951,18 +951,18 @@ class TestBothNewOldTrackerJiraQueryBuilder:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             title="some description",
         )
-        affect = AffectFactory(
-            flaw=flaw,
-            ps_module="foo-module",
-            ps_component="foo-component",
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            impact=Impact.LOW,
-        )
         ps_module = PsModuleFactory(
             name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
         )
         stream = PsUpdateStreamFactory(
             ps_module=ps_module, name="bar-1.2.3", version=pd_version
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            ps_component="foo-component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=Impact.LOW,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -1105,7 +1105,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         flaw = FlawFactory(source=source)
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
             affectedness=Affect.AffectAffectedness.AFFECTED,
         )
@@ -1191,18 +1191,18 @@ class TestTrackerJiraQueryBuilder:
             title="some description",
             source="REDHAT",
         )
-        affect = AffectFactory(
-            flaw=flaw,
-            ps_module="foo-module",
-            ps_component="foo-component",
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            impact=affect_impact,
-        )
         ps_module = PsModuleFactory(
             name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
         )
         stream = PsUpdateStreamFactory(
             ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            ps_component="foo-component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=affect_impact,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -1314,7 +1314,7 @@ class TestTrackerJiraQueryBuilder:
         )
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=stream.name,
             ps_component="jetty",
             purl=purl,
             affectedness=Affect.AffectAffectedness.AFFECTED,
@@ -1435,15 +1435,15 @@ class TestTrackerJiraQueryBuilder:
             bts_name="jboss",
             private_trackers_allowed=False,
         )
+        ps_update_stream = PsUpdateStreamFactory(
+            name="stream-1", ps_module=ps_module, version="1.2.3"
+        )
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             impact=affect_impact,
-        )
-        ps_update_stream = PsUpdateStreamFactory(
-            name="stream-1", ps_module=ps_module, version="1.2.3"
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -1524,18 +1524,18 @@ class TestTrackerJiraQueryBuilder:
             title="some description",
             source=model_src,
         )
-        affect = AffectFactory(
-            flaw=flaw,
-            ps_module="foo-module",
-            ps_component="foo-component",
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            impact=Impact.MODERATE,
-        )
         ps_module = PsModuleFactory(
             name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
         )
         stream = PsUpdateStreamFactory(
             ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            ps_component="foo-component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=Impact.MODERATE,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -1628,18 +1628,18 @@ class TestTrackerJiraQueryBuilder:
             source="REDHAT",
             cwe_id="CWE-1",
         )
-        affect = AffectFactory(
-            flaw=flaw,
-            ps_module="foo-module",
-            ps_component="foo-component",
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            impact=Impact.MODERATE,
-        )
         ps_module = PsModuleFactory(
             name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
         )
         stream = PsUpdateStreamFactory(
             ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            ps_component="foo-component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=Impact.MODERATE,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -1827,17 +1827,17 @@ class TestTrackerJiraQueryBuilder:
             title="some description",
             source="REDHAT",
         )
-        affect = AffectFactory(
-            flaw=flaw,
-            ps_module="foo-module",
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            impact=Impact.MODERATE,
-        )
         ps_module = PsModuleFactory(
             name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
         )
         stream = PsUpdateStreamFactory(
             ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=Impact.MODERATE,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -1920,17 +1920,17 @@ class TestTrackerJiraQueryBuilder:
             source="REDHAT",
             components=components,
         )
-        affect = AffectFactory(
-            flaw=flaw,
-            ps_module="foo-module",
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            impact=Impact.MODERATE,
-        )
         ps_module = PsModuleFactory(
             name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
         )
         stream = PsUpdateStreamFactory(
             ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=Impact.MODERATE,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -2037,17 +2037,17 @@ class TestTrackerJiraQueryBuilder:
             title="some description",
             source="REDHAT",
         )
-        affect = AffectFactory(
-            flaw=flaw,
-            ps_module="foo-module",
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            impact=Impact.MODERATE,
-        )
         ps_module = PsModuleFactory(
             name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
         )
         stream = PsUpdateStreamFactory(
             ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=Impact.MODERATE,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -2111,19 +2111,25 @@ class TestTrackerJiraQueryBuilder:
     @pytest.mark.parametrize(
         "major_incident_state,expected,missing",
         [
-            (Flaw.FlawMajorIncident.APPROVED, [{"value": "Major Incident"}], False),
             (
-                Flaw.FlawMajorIncident.CISA_APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                [{"value": "Major Incident"}],
+                False,
+            ),
+            (
+                Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
                 [{"value": "KEV (active exploit case)"}],
                 False,
             ),
-            (Flaw.FlawMajorIncident.MINOR, [{"value": "Minor Incident"}], False),
-            (Flaw.FlawMajorIncident.ZERO_DAY, [{"value": "0-day"}], False),
+            (
+                Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED,
+                [{"value": "Minor Incident"}],
+                False,
+            ),
             (Flaw.FlawMajorIncident.NOVALUE, [], False),
-            (Flaw.FlawMajorIncident.APPROVED, None, True),
-            (Flaw.FlawMajorIncident.CISA_APPROVED, None, True),
-            (Flaw.FlawMajorIncident.MINOR, None, True),
-            (Flaw.FlawMajorIncident.ZERO_DAY, None, True),
+            (Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED, None, True),
+            (Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED, None, True),
+            (Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED, None, True),
             (Flaw.FlawMajorIncident.NOVALUE, None, True),
         ],
     )
@@ -2141,18 +2147,18 @@ class TestTrackerJiraQueryBuilder:
             title="some description",
             source="REDHAT",
         )
-        affect = AffectFactory(
-            flaw=flaw,
-            ps_module="foo-module",
-            ps_component="foo-component",
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            impact=Impact.MODERATE,
-        )
         ps_module = PsModuleFactory(
             name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
         )
         stream = PsUpdateStreamFactory(
             ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            ps_component="foo-component",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            impact=Impact.MODERATE,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -2199,6 +2205,12 @@ class TestTrackerJiraQueryBuilder:
         test that query has all fields correctly generated for a multi-flaw tracker
         """
 
+        ps_module = PsModuleFactory(
+            name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
+        )
+        stream = PsUpdateStreamFactory(
+            ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
+        )
         flaw = FlawFactory(
             embargoed=False,
             bz_id="123",
@@ -2216,7 +2228,7 @@ class TestTrackerJiraQueryBuilder:
         )
         affect = AffectFactory(
             flaw=flaw,
-            ps_module="foo-module",
+            ps_update_stream=stream.name,
             ps_component="foo-component",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             impact=Impact.MODERATE,
@@ -2239,7 +2251,7 @@ class TestTrackerJiraQueryBuilder:
         )
         affect2 = AffectFactory(
             flaw=flaw2,
-            ps_module="foo-module",
+            ps_update_stream=stream.name,
             ps_component="foo-component",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             impact=Impact.CRITICAL,
@@ -2264,7 +2276,7 @@ class TestTrackerJiraQueryBuilder:
         )
         affect3 = AffectFactory(
             flaw=flaw3,
-            ps_module="foo-module",
+            ps_update_stream=stream.name,
             ps_component="foo-component",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             impact=Impact.CRITICAL,
@@ -2287,17 +2299,12 @@ class TestTrackerJiraQueryBuilder:
         )
         affect4 = AffectFactory(
             flaw=flaw4,
-            ps_module="foo-module",
+            ps_update_stream=stream.name,
             ps_component="foo-component",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             impact=Impact.CRITICAL,
         )
-        ps_module = PsModuleFactory(
-            name="foo-module", bts_name="jboss", bts_key="FOOPROJECT"
-        )
-        stream = PsUpdateStreamFactory(
-            ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
-        )
+
         tracker = TrackerFactory(
             affects=[affect, affect2, affect3, affect4],
             external_system_id=None,
@@ -2491,13 +2498,13 @@ class TestOldTrackerJiraQueryBuilderSla:
             reported_dt=make_aware(datetime(2000, 1, 1)),
         )
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=flaw.embargoed,
@@ -2596,13 +2603,13 @@ class TestTrackerJiraQueryBuilderSla:
             bts_name="bugzilla",
             private_trackers_allowed=False,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory(
             affects=[affect],
             embargoed=flaw.embargoed,

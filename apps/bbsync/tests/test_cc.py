@@ -2,11 +2,15 @@ import json
 
 import pytest
 
-from apps.bbsync.cc import AffectCCBuilder, CCBuilder, RHSCLAffectCCBuilder
 from apps.bbsync.constants import RHSCL_BTS_KEY, USER_BLACKLIST
 from apps.bbsync.tests.factories import BugzillaComponentFactory, BugzillaProductFactory
-from osidb.cc import JiraAffectCCBuilder
-from osidb.models import Affect, Flaw, PsModule
+from osidb.cc import (
+    BugzillaAffectCCBuilder,
+    BugzillaFlawCCBuilder,
+    JiraAffectCCBuilder,
+    RHSCLBugzillaAffectCCBuilder,
+)
+from osidb.models import Affect, Flaw, PsModule, PsUpdateStream
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -37,19 +41,29 @@ class TestCCBuilder:
             helper to initialize affect
             """
             if isinstance(affect, tuple):
+                # affect = (ps_module, ps_update_stream, ps_component, affectedness, resolution)
                 if not PsModule.objects.filter(name=affect[0]).exists():
                     PsModuleFactory(
                         name=affect[0],
-                        default_cc=[f"{affect[0]}.{affect[1]}@redhat.com"],
+                        default_cc=[f"{affect[0]}.{affect[2]}@redhat.com"],
+                    )
+                if not PsUpdateStream.objects.filter(
+                    ps_module__name=affect[0],
+                    name=affect[1],
+                ).exists():
+                    PsUpdateStreamFactory(
+                        ps_module=PsModule.objects.get(name=affect[0]),
+                        name=affect[1],
                     )
                 return {
                     "ps_module": affect[0],
-                    "ps_component": affect[1],
-                    "affectedness": affect[2]
-                    if len(affect) > 2
-                    else Affect.AffectAffectedness.AFFECTED,
-                    "resolution": affect[3]
+                    "ps_update_stream": affect[1],
+                    "ps_component": affect[2],
+                    "affectedness": affect[3]
                     if len(affect) > 3
+                    else Affect.AffectAffectedness.AFFECTED,
+                    "resolution": affect[4]
+                    if len(affect) > 4
                     else Affect.AffectResolution.DELEGATED,
                 }
             else:
@@ -84,11 +98,11 @@ class TestCCBuilder:
     def test_prepare(self):
         self.prepare_flaw(
             affects=[
-                ("rhel-6", "kernel"),
-                ("rhel-7", "openssl"),
+                ("rhel-6", "rhel-6.1", "kernel"),
+                ("rhel-7", "rhel-7.1", "openssl"),
             ],
             old_affects=[
-                ("rhel-6", "kernel"),
+                ("rhel-6", "rhel-6.1", "kernel"),
             ],
             old_cc=[
                 "email@redhat.com",
@@ -101,7 +115,7 @@ class TestCCBuilder:
         assert flaw.meta_attr["cc"] == '["email@redhat.com", "someone@gmail.com"]'
         assert (
             flaw.meta_attr["original_srtnotes"]
-            == '{"affects": [{"ps_module": "rhel-6", "ps_component": "kernel", "affectedness": "AFFECTED", "resolution": "DELEGATED"}]}'
+            == '{"affects": [{"ps_module": "rhel-6", "ps_update_stream": "rhel-6.1", "ps_component": "kernel", "affectedness": "AFFECTED", "resolution": "DELEGATED"}]}'
         )
         assert flaw.affects.count() == 2
         assert flaw.affects.filter(ps_module="rhel-6", ps_component="kernel").exists()
@@ -123,7 +137,7 @@ class TestCCBuilder:
         """
         flaw = FlawFactory()
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -139,7 +153,7 @@ class TestCCBuilder:
             resolution=Affect.AffectResolution.DELEGATED,
         )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -149,19 +163,20 @@ class TestCCBuilder:
         test that community affect results in empty CCs
         """
         flaw = FlawFactory()
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-        )
         ps_product = PsProductFactory(business_unit="Community")
-        PsModuleFactory(
-            name=affect.ps_module,
+        ps_module = PsModuleFactory(
             default_cc=["me@redhat.com"],
             ps_product=ps_product,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -179,24 +194,27 @@ class TestCCBuilder:
         however this restriction only applies to embargoed flaws
         """
         flaw = FlawFactory(embargoed=embargoed)
-        affect1 = AffectFactory(
-            flaw=flaw, affectedness=Affect.AffectAffectedness.NOTAFFECTED
+        ps_module_1 = PsModuleFactory(
+            default_cc=["me@redhat.com"],
         )
-        affect2 = AffectFactory(
+        ps_module_2 = PsModuleFactory(
+            default_cc=["you@redhat.com"],
+        )
+        ps_update_stream_1 = PsUpdateStreamFactory(ps_module=ps_module_1)
+        ps_update_stream_2 = PsUpdateStreamFactory(ps_module=ps_module_2)
+        AffectFactory(
             flaw=flaw,
+            ps_update_stream=ps_update_stream_1.name,
+            affectedness=Affect.AffectAffectedness.NOTAFFECTED,
+        )
+        AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream_2.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.WONTFIX,
         )
-        PsModuleFactory(
-            name=affect1.ps_module,
-            default_cc=["me@redhat.com"],
-        )
-        PsModuleFactory(
-            name=affect2.ps_module,
-            default_cc=["you@redhat.com"],
-        )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == cc
         assert not remove_cc
@@ -215,17 +233,17 @@ class TestCCBuilder:
         ]
         flaw = self.prepare_flaw(
             affects=[
-                ("rhel-6", "kernel"),
-                ("rhel-7", "openssl"),
+                ("rhel-6", "rhel-6.1", "kernel"),
+                ("rhel-7", "rhel-7.1", "openssl"),
             ],
             old_affects=[
-                ("rhel-6", "kernel"),
-                ("rhel-7", "openssl"),
+                ("rhel-6", "rhel-6.1", "kernel"),
+                ("rhel-7", "rhel-7.1", "openssl"),
             ],
             old_cc=old_cc,
         )
 
-        cc_builder = CCBuilder(flaw, old_cc)
+        cc_builder = BugzillaFlawCCBuilder(flaw, old_cc)
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -237,12 +255,12 @@ class TestCCBuilder:
         old_cc = ["rhel-6.kernel@redhat.com"]
         new_flaw = self.prepare_flaw(
             affects=[
-                ("rhel-6", "kernel"),
-                ("rhel-7", "openssl"),
+                ("rhel-6", "rhel-6.1", "kernel"),
+                ("rhel-7", "rhel-7.1", "openssl"),
             ],
         )
 
-        cc_builder = CCBuilder(new_flaw, old_cc)
+        cc_builder = BugzillaFlawCCBuilder(new_flaw, old_cc)
         add_cc, remove_cc = cc_builder.content
         assert add_cc == ["rhel-7.openssl@redhat.com"]
         assert not remove_cc
@@ -257,11 +275,11 @@ class TestCCBuilder:
         ]
         new_flaw = self.prepare_flaw(
             affects=[
-                ("rhel-6", "kernel"),
+                ("rhel-6", "rhel-6.1", "kernel"),
             ],
         )
 
-        cc_builder = CCBuilder(new_flaw, old_cc)
+        cc_builder = BugzillaFlawCCBuilder(new_flaw, old_cc)
         add_cc, remove_cc = cc_builder.content
         assert not add_cc
         assert not remove_cc
@@ -281,18 +299,19 @@ class TestAffectCCBuilder:
         when private trackers are not allowed
         """
         flaw = FlawFactory(embargoed=True)
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-        )
-        PsModuleFactory(
-            name=affect.ps_module,
+        ps_module = PsModuleFactory(
             default_cc=["me@redhat.com", "you@redhat.com"],
             private_trackers_allowed=private_trackers_allowed,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == cc
         assert not remove_cc
@@ -302,18 +321,19 @@ class TestAffectCCBuilder:
         test that non-RH CC is not added when the flaw is embargoed
         """
         flaw = FlawFactory(embargoed=True)
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-        )
-        PsModuleFactory(
-            name=affect.ps_module,
+        ps_module = PsModuleFactory(
             default_cc=["me@fedora.org", "you@redhat.com"],
             private_trackers_allowed=True,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == ["you@redhat.com"]
         assert not remove_cc
@@ -323,18 +343,19 @@ class TestAffectCCBuilder:
         test that blacklisted CC is not added when the flaw is embargoed
         """
         flaw = FlawFactory(embargoed=True)
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-        )
-        PsModuleFactory(
-            name=affect.ps_module,
+        ps_module = PsModuleFactory(
             default_cc=USER_BLACKLIST[:10] + ["you@redhat.com"],
             private_trackers_allowed=True,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == ["you@redhat.com"]
         assert not remove_cc
@@ -351,20 +372,21 @@ class TestAffectCCBuilder:
         test that RH domain is added to CC without a domain for BZ-based affects
         """
         flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-        )
-        mod = PsModuleFactory(
-            name=affect.ps_module,
+        ps_module = PsModuleFactory(
             default_cc=["cat", "dog", "duck@fedora.org"],
             bts_name=bts_name,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
 
-        cc_builder = AffectCCBuilder(affect, False)
+        cc_builder = BugzillaAffectCCBuilder(affect, False)
         cc_list = set(cc_builder.cc)
-        if mod.bts_name == "bugzilla":
+        if ps_module.bts_name == "bugzilla":
             assert cc_list == {
                 "cat@redhat.com",
                 "dog@redhat.com",
@@ -383,45 +405,47 @@ class TestAffectCCBuilder:
         test that CC aliases are correctly expanded
         """
         flaw = FlawFactory(embargoed=False)
-        affect1 = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-        )
-        PsModuleFactory(
+        ps_module_1 = PsModuleFactory(
             bts_name="bugzilla",
-            name=affect1.ps_module,
             default_cc=["cat", "duck@fedora.org"],
         )
+        ps_module_2 = PsModuleFactory(
+            bts_name="jboss",
+            default_cc=["dog", "horse@redhat.com"],
+        )
+        ps_update_stream_1 = PsUpdateStreamFactory(ps_module=ps_module_1)
+        ps_update_stream_2 = PsUpdateStreamFactory(ps_module=ps_module_2)
         PsContactFactory(
             username="cat",
             bz_username="catfish@email.org",
             jboss_username="tomcat@domain.de",
-        )
-        affect2 = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-        )
-        PsModuleFactory(
-            bts_name="jboss",
-            name=affect2.ps_module,
-            default_cc=["dog", "horse@redhat.com"],
         )
         PsContactFactory(
             username="dog",
             bz_username="puppy@domain.au",
             jboss_username="hotdog@email.org",
         )
+        affect1 = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream_1.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        affect2 = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream_2.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
 
-        cc_builder1 = AffectCCBuilder(affect1, False)
+        cc_builder1 = BugzillaAffectCCBuilder(affect1, False)
         cc_list1 = set(cc_builder1.cc)
         assert cc_list1 == {
             "catfish@email.org",
             "duck@fedora.org",
         }
 
-        cc_builder2 = AffectCCBuilder(affect2, False)
+        cc_builder2 = BugzillaAffectCCBuilder(affect2, False)
         cc_list2 = set(cc_builder2.cc)
         assert cc_list2 == {
             "horse@redhat.com",
@@ -433,38 +457,40 @@ class TestAffectCCBuilder:
         test that CC aliases are created based on override bts name
         """
         flaw = FlawFactory(embargoed=False)
-        affect1 = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-        )
-        PsModuleFactory(
+        ps_module_1 = PsModuleFactory(
             bts_name="bugzilla",
-            name=affect1.ps_module,
             default_cc=["cat", "duck@fedora.org"],
         )
+        ps_module_2 = PsModuleFactory(
+            bts_name="jboss",
+            default_cc=["dog", "horse@redhat.com"],
+        )
+        ps_update_stream_1 = PsUpdateStreamFactory(ps_module=ps_module_1)
+        ps_update_stream_2 = PsUpdateStreamFactory(ps_module=ps_module_2)
         PsContactFactory(
             username="cat",
             bz_username="catfish@email.org",
             jboss_username="tomcat@domain.de",
-        )
-        affect2 = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-        )
-        PsModuleFactory(
-            bts_name="jboss",
-            name=affect2.ps_module,
-            default_cc=["dog", "horse@redhat.com"],
         )
         PsContactFactory(
             username="dog",
             bz_username="puppy@domain.au",
             jboss_username="hotdog@email.org",
         )
+        AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream_1.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream_2.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert set(add_cc) == {
             "catfish@email.org",
@@ -490,18 +516,19 @@ class TestAffectCCBuilder:
         test that PS module CCs are correctly added
         """
         flaw = FlawFactory()
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-        )
-        PsModuleFactory(
-            name=affect.ps_module,
+        ps_module = PsModuleFactory(
             default_cc=default_cc,
             private_trackers_allowed=True,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == expected_cc
         assert not remove_cc
@@ -510,23 +537,26 @@ class TestAffectCCBuilder:
         """
         test that PS module private tracker CCs are correctly added
         """
-        flaw = FlawFactory(embargoed=True)
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-        )
         private_tracker_cc = ["me@redhat.com", "you@redhat.com"]
-        PsModuleFactory(
-            name=affect.ps_module,
+        flaw = FlawFactory(embargoed=True)
+        ps_module = PsModuleFactory(
             private_trackers_allowed=True,
             private_tracker_cc=private_tracker_cc,
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
 
         # no private tracker CC is expected for the flaw
-        assert not AffectCCBuilder(affect, flaw.embargoed, destination="flaw").cc
+        assert not BugzillaAffectCCBuilder(
+            affect, flaw.embargoed, destination="flaw"
+        ).cc
         assert sorted(
-            AffectCCBuilder(affect, flaw.embargoed, destination="tracker").cc
+            BugzillaAffectCCBuilder(affect, flaw.embargoed, destination="tracker").cc
         ) == ["me@redhat.com", "you@redhat.com"]
 
     @pytest.mark.parametrize(
@@ -607,21 +637,22 @@ class TestAffectCCBuilder:
         the Bugzilla one while generating the CCs
         """
         flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_component=ps_component,
-        )
-        PsModuleFactory(
-            name=affect.ps_module,
+        ps_module = PsModuleFactory(
             bts_name="bugzilla",
             component_cc=component_cc,
             component_overrides=component_overrides,
             default_cc=[],
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_component=ps_component,
+        )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == (
             ["me@redhat.com"] if component_overrides and component_cc else []
@@ -673,20 +704,21 @@ class TestAffectCCBuilder:
         test that CCs based on Bugzilla component are correctly added
         """
         flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_component="brick",
-        )
-        PsModuleFactory(
-            name=affect.ps_module,
+        ps_module = PsModuleFactory(
             bts_name="bugzilla",
             component_cc=component_cc,
             default_cc=[],
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_component="brick",
+        )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == expected_cc
         assert not remove_cc
@@ -703,27 +735,28 @@ class TestAffectCCBuilder:
         test that CCs based on Bugzilla product and component are correctly added
         """
         flaw = FlawFactory(embargoed=False)
+        bz_product = BugzillaProductFactory()
+        ps_module = PsModuleFactory(
+            bts_name="bugzilla",
+            bts_key=bz_product.name,
+            component_cc={},
+            default_cc=[],
+        )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
-        bz_product = BugzillaProductFactory()
         BugzillaComponentFactory(
             name=affect.ps_component,
             default_cc=default_cc,
             default_owner="me@redhat.com",
             product=bz_product,
         )
-        PsModuleFactory(
-            name=affect.ps_module,
-            bts_name="bugzilla",
-            bts_key=bz_product.name,
-            component_cc={},
-            default_cc=[],
-        )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == expected_cc
         assert not remove_cc
@@ -736,14 +769,7 @@ class TestRHSCLAffectCCBuilder:
         even in the case of RHSCL where the mechanism is different
         """
         flaw = FlawFactory(embargoed=False)
-        affect1 = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_component="brick-collection",
-        )
         ps_module1 = PsModuleFactory(
-            name=affect1.ps_module,
             bts_key=RHSCL_BTS_KEY,
             bts_name="bugzilla",
             component_cc={
@@ -753,21 +779,22 @@ class TestRHSCLAffectCCBuilder:
             },
             default_cc=[],
         )
-        PsUpdateStreamFactory(
+        ps_update_stream1 = PsUpdateStreamFactory(
             collections=[
                 "brick",
                 "stick",
             ],
             ps_module=ps_module1,
         )
-        affect2 = AffectFactory(
+        AffectFactory(
             flaw=flaw,
+            ps_update_stream=ps_update_stream1.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_component="apple-juice",
+            ps_component="brick-collection",
         )
+
         ps_module2 = PsModuleFactory(
-            name=affect2.ps_module,
             bts_key=RHSCL_BTS_KEY,
             bts_name="bugzilla",
             component_cc={
@@ -777,15 +804,22 @@ class TestRHSCLAffectCCBuilder:
             },
             default_cc=[],
         )
-        PsUpdateStreamFactory(
+        ps_update_stream2 = PsUpdateStreamFactory(
             collections=[
                 "apple-juice",
                 "juice",
             ],
             ps_module=ps_module2,
         )
+        AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream2.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_component="apple-juice",
+        )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
         assert add_cc == ["dog@redhat.com", "me@redhat.com", "you@redhat.com"]
         assert not remove_cc
@@ -796,14 +830,7 @@ class TestRHSCLAffectCCBuilder:
         even when no collection is matched
         """
         flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_component="stick",
-        )
         ps_module = PsModuleFactory(
-            name=affect.ps_module,
             bts_key=RHSCL_BTS_KEY,
             bts_name="bugzilla",
             component_cc={
@@ -812,16 +839,23 @@ class TestRHSCLAffectCCBuilder:
             },
             default_cc=["you@redhat.com"],
         )
-        PsUpdateStreamFactory(
+        ps_update_stream = PsUpdateStreamFactory(
             collections=[
                 "brick",
             ],
             ps_module=ps_module,
         )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_component="stick",
+        )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
-        assert RHSCLAffectCCBuilder(affect, flaw.embargoed).collection is None
+        assert RHSCLBugzillaAffectCCBuilder(affect, flaw.embargoed).collection is None
         assert add_cc == ["her@redhat.com", "you@redhat.com"]
         assert not remove_cc
 
@@ -831,14 +865,7 @@ class TestRHSCLAffectCCBuilder:
         even when extra collection is matched
         """
         flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_component="stick-brick",
-        )
         ps_module = PsModuleFactory(
-            name=affect.ps_module,
             bts_key=RHSCL_BTS_KEY,
             bts_name="bugzilla",
             component_cc={
@@ -847,17 +874,24 @@ class TestRHSCLAffectCCBuilder:
             },
             default_cc=["you@redhat.com"],
         )
-        PsUpdateStreamFactory(
+        ps_update_stream = PsUpdateStreamFactory(
             collections=[
                 "stick",
                 "stick-brick",
             ],
             ps_module=ps_module,
         )
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_component="stick-brick",
+        )
 
-        cc_builder = CCBuilder(flaw, [])
+        cc_builder = BugzillaFlawCCBuilder(flaw, [])
         add_cc, remove_cc = cc_builder.content
-        assert RHSCLAffectCCBuilder(affect, flaw.embargoed).collection is None
+        assert RHSCLBugzillaAffectCCBuilder(affect, flaw.embargoed).collection is None
         assert add_cc == ["you@redhat.com"]
         assert not remove_cc
 
@@ -879,14 +913,17 @@ class TestJiraAffectCCBuilder:
         ],
     )
     def test_component_cc(self, ps_module, component_cc, ps_component, cc_contact):
-        PsModuleFactory(
+        ps_module = PsModuleFactory(
             name=ps_module,
             bts_name="jboss",
             component_cc={
                 component_cc: [cc_contact],
             },
         )
-        affect = AffectFactory(ps_module=ps_module, ps_component=ps_component)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            ps_update_stream=ps_update_stream.name, ps_component=ps_component
+        )
         cc = JiraAffectCCBuilder(affect, False)
 
         assert cc.generate_cc() == [cc_contact]

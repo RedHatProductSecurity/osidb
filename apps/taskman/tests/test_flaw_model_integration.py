@@ -97,7 +97,7 @@ class TestFlawModelIntegration(object):
         assert flaw.save() is None
         assert sync_count == 1
 
-    def test_create_api(self, monkeypatch, auth_client, test_osidb_api_uri):
+    def test_create_api(self, monkeypatch, auth_client, test_osidb_api_v2_uri):
         sync_count = 0
 
         def mock_create_or_update_task(self, flaw):
@@ -121,7 +121,7 @@ class TestFlawModelIntegration(object):
             "embargoed": False,
         }
         response = auth_client().post(
-            f"{test_osidb_api_uri}/flaws",
+            f"{test_osidb_api_v2_uri}/flaws",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
@@ -130,7 +130,7 @@ class TestFlawModelIntegration(object):
         assert response.status_code == 201
         assert sync_count == 1
 
-    def test_update_api(self, monkeypatch, auth_client, test_osidb_api_uri):
+    def test_update_api(self, monkeypatch, auth_client, test_osidb_api_v2_uri):
         sync_count = 0
 
         def mock(self, flaw):
@@ -145,11 +145,11 @@ class TestFlawModelIntegration(object):
         AffectFactory(flaw=flaw)
         flaw.task_key = "TASK-123"
         flaw.save()
-        response = auth_client().get(f"{test_osidb_api_uri}/flaws/{flaw.uuid}")
+        response = auth_client().get(f"{test_osidb_api_v2_uri}/flaws/{flaw.uuid}")
         assert response.status_code == 200
 
         response = auth_client().put(
-            f"{test_osidb_api_uri}/flaws/{flaw.uuid}",
+            f"{test_osidb_api_v2_uri}/flaws/{flaw.uuid}",
             {
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
@@ -170,7 +170,7 @@ class TestFlawModelIntegration(object):
 
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         response = auth_client().put(
-            f"{test_osidb_api_uri}/flaws/{flaw.uuid}",
+            f"{test_osidb_api_v2_uri}/flaws/{flaw.uuid}",
             {
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
@@ -189,7 +189,9 @@ class TestFlawModelIntegration(object):
         # changes require sync
         assert sync_count == 1
 
-    def test_create_jira_task_param(self, monkeypatch, auth_client, test_osidb_api_uri):
+    def test_create_jira_task_param(
+        self, monkeypatch, auth_client, test_osidb_api_v2_uri
+    ):
         def mock_create_or_update_task(self, flaw):
             flaw.task_key = "TASK-123"
             return "TASK-123"
@@ -206,7 +208,7 @@ class TestFlawModelIntegration(object):
         # Update flaw with no task without using the create_jira_task param:
         # it should not create any task
         response = auth_client().put(
-            f"{test_osidb_api_uri}/flaws/{flaw.uuid}",
+            f"{test_osidb_api_v2_uri}/flaws/{flaw.uuid}",
             {
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
@@ -228,7 +230,7 @@ class TestFlawModelIntegration(object):
         # it should not create any task
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         response = auth_client().put(
-            f"{test_osidb_api_uri}/flaws/{flaw.uuid}",
+            f"{test_osidb_api_v2_uri}/flaws/{flaw.uuid}",
             {
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
@@ -250,7 +252,7 @@ class TestFlawModelIntegration(object):
         # Now use the create_jira_task to force the creation of a task for the flaw
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         response = auth_client().put(
-            f"{test_osidb_api_uri}/flaws/{flaw.uuid}?create_jira_task=1",
+            f"{test_osidb_api_v2_uri}/flaws/{flaw.uuid}?create_jira_task=1",
             {
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
