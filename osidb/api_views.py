@@ -53,6 +53,7 @@ from osidb.core import set_user_acls
 from osidb.helpers import get_bugzilla_api_key, get_flaw_or_404
 from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import Affect, AffectCVSS, AffectV1, Flaw, FlawLabel, Tracker
+from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.cvss import FlawCVSS
 
 from .constants import OSIDB_API_VERSION, PYPI_URL
@@ -105,11 +106,13 @@ from .serializer import (
     FlawPackageVersionPutSerializer,
     FlawPackageVersionSerializer,
     FlawPostSerializer,
+    FlawPutSerializer,
     FlawReferencePostSerializer,
     FlawReferencePutSerializer,
     FlawReferenceSerializer,
     FlawSerializer,
     FlawV1Serializer,
+    IncidentRequestSerializer,
     IntegrationTokenGetSerializer,
     IntegrationTokenPatchSerializer,
     TrackerPostSerializer,
@@ -570,7 +573,7 @@ class FlawIntrospectionView(RudimentaryUserPathLoggingMixin, APIView):
         parameters=[id_param],
     ),
     update=extend_schema(
-        responses=FlawSerializer,
+        responses=FlawPutSerializer,
         parameters=[
             id_param,
             OpenApiParameter(
@@ -1607,3 +1610,30 @@ class OsidbTokenObtainPairView(TokenObtainPairView):
             },
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
+
+
+@extend_schema(
+    methods=["POST"],
+    request=OpenApiRequest(request=IncidentRequestSerializer),
+    responses={200: {}},
+)
+class IncidentRequestView(
+    RudimentaryUserPathLoggingMixin,
+    SubFlawViewGetMixin,
+    APIView,
+):
+    def post(self, request, *args, **kwargs):
+        flaw = self.get_flaw()
+        serializer = IncidentRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        FlawComment.objects.create(
+            creator=getattr(request.user, "email", ""),
+            is_private=True,
+            text=serializer.validated_data["comment"],
+            flaw=flaw,
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
+        )
+        flaw.major_incident_state = serializer.validated_data["kind"]
+        flaw.save()
+        return Response()
