@@ -389,13 +389,14 @@ class WorkflowModel(models.Model):
     def adjust_acls(self, save=True):
         # a flaw can have internal ACLs before the triage is
         # completed or if it was rejected during the triage
-        internal_supported = [
-            WorkflowModel.WorkflowState.NEW,
-            WorkflowModel.WorkflowState.TRIAGE,
-            WorkflowModel.WorkflowState.REJECTED,
+
+        public_stages = [
+            WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT,
+            WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
+            WorkflowModel.WorkflowState.DONE,
         ]
 
-        if self.workflow_state not in internal_supported and self.is_internal:
+        if self.is_internal and self.workflow_state in public_stages:
             self.set_public()
             # updates ACLs of all related objects except for snippets
             self.set_public_nested()

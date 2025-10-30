@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Fixed
 - Fix PUT request being allowed for `AuditView` endpoint (OSIDB-4428)
+- Prevent unintended publicizing flaws when workflow state has unexpected value during sync tasks (OSIDB-4446)
 
 ### Added
 - Add query for finding flaw whose non-community affects are missing trackers (OSIDB-4104)
