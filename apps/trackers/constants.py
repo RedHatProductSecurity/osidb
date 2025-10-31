@@ -4,7 +4,8 @@ common tracker constants
 
 from osidb.helpers import get_env
 
-TRACKERS_API_VERSION = "v1"
+TRACKERS_API_V1 = "v1"
+TRACKERS_API_VERSION = "v2"
 
 # switch to enable or disable the Jira tracker sync
 # - the one controlling the Bugzilla sync is defined in the BBSync app

@@ -28,7 +28,6 @@ FLAW_PLACEHOLDER_KEYWORD = "Tracking"
 BZ_MAX_CONNECTION_AGE = get_env("BZ_MAX_CONNECTION_AGE")
 
 # Switches to turn each collector on/off
-FLAW_COLLECTOR_ENABLED = get_env("FLAW_COLLECTOR_ENABLED", default="True", is_bool=True)
 BZ_TRACKER_COLLECTOR_ENABLED = get_env(
     "BZ_TRACKER_COLLECTOR_ENABLED", default="True", is_bool=True
 )

@@ -1,4 +1,4 @@
-from osidb.models import Affect, Impact, PsModule
+from osidb.models import Affect, Impact, PsUpdateStream
 
 
 class ProductDefinitionRules:
@@ -18,44 +18,47 @@ class ProductDefinitionRules:
             UnackedHandler(),
         ]
 
-    def file_tracker_offers(
+    def file_tracker_offer(
         self,
         affect: Affect,
         impact: Impact,
-        ps_module: PsModule,
+        ps_update_stream: PsUpdateStream,
         exclude_existing_trackers=False,
     ):
-        offers = {}
+        # Only generate offers for active streams
+        if not ps_update_stream.is_active:
+            return None
 
-        active_ps_update_streams = ps_module.active_ps_update_streams.all()
-        if exclude_existing_trackers:
-            active_ps_update_streams = active_ps_update_streams.exclude(
-                name__in=affect.trackers.values_list("ps_update_stream", flat=True)
-            )
+        if (
+            exclude_existing_trackers
+            and affect.tracker is not None
+            and affect.tracker.ps_update_stream == ps_update_stream.name
+        ):
+            # Stream already tracked
+            return None
 
         # generate the initial offer without any pre-selection
-        for stream in active_ps_update_streams:
-            offers[stream.name] = {
-                "ps_update_stream": stream.name,
-                "selected": False,
-                "acked": not bool(
-                    ps_module.unacked_ps_update_stream.filter(name=stream.name)
-                ),
-                "eus": bool(ps_module.eus_ps_update_streams.filter(name=stream.name)),
-                "aus": bool(ps_module.aus_ps_update_streams.filter(name=stream.name)),
-            }
+        offer = {
+            "ps_update_stream": ps_update_stream.name,
+            "selected": False,
+            "acked": not ps_update_stream.is_unacked,
+            "eus": ps_update_stream.is_eus,
+            "aus": ps_update_stream.is_aus,
+        }
 
         for handler in self.handlers:
-            if handler.is_applicable(affect, impact, ps_module):
-                return handler.get_offer(affect, impact, ps_module, offers)
+            if handler.is_applicable(affect, impact, ps_update_stream):
+                return handler.get_offer(affect, impact, ps_update_stream, offer)
         # there should always probably always be an applicable handler
         # but if there is none we just return the the offer unchanged
-        return offers
+        return offer
 
 
 class ProductDefinitionHandler:
     @staticmethod
-    def is_applicable(affect: Affect, impact: Impact, ps_module: PsModule) -> bool:
+    def is_applicable(
+        affect: Affect, impact: Impact, ps_update_stream: PsUpdateStream
+    ) -> bool:
         """
         check whether the hanler is applicable to the given affect
         the caller is responsible for checking the applicability before getting the offer
@@ -64,7 +67,9 @@ class ProductDefinitionHandler:
             "Inheritants of ProductDefinitionHandler must implement the is_applicable method"
         )
 
-    def get_offer(self, affect: Affect, impact: Impact, ps_module: PsModule, offers):
+    def get_offer(
+        self, affect: Affect, impact: Impact, ps_update_stream: PsUpdateStream, offers
+    ):
         """
         pre-select the streams
         """

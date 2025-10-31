@@ -94,7 +94,7 @@ class TestIntegration(object):
             "Content-type: application/json",
             "-H",
             f"Authorization: Bearer {tokens['access']}",
-            f"{live_server.url}/osidb/api/v1/flaws?limit=1&include_fields=uuid",
+            f"{live_server.url}/osidb/api/v2/flaws?limit=1&include_fields=uuid",
         ]
         curl_result = subprocess.run(
             cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE

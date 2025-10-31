@@ -17,13 +17,11 @@ class AffectFixer:
         self,
         affect_obj: Affect,
         affect_json: Any,
-        ps_module: str,
         ps_component: str,
     ) -> None:
         """init resources"""
         self.affect_obj = affect_obj
         self.affect_json = affect_json
-        self.ps_module = ps_module
         self.ps_component = ps_component
         self.errors = []
 
@@ -35,7 +33,6 @@ class AffectFixer:
         self.fix_affectedness()
         self.fix_resolution()
         self.fix_impact()
-        self.fix_ps_module()
 
         return self.affect_obj, self.errors
 
@@ -101,10 +98,6 @@ class AffectFixer:
             self.affect_obj.impact = impact.upper()
         else:
             self.affect_obj.impact = Impact.NOVALUE
-
-    def fix_ps_module(self) -> None:
-        """PS module fixup"""
-        self.affect_obj.ps_module = self.fixplace_ps_module(self.affect_obj.ps_module)
 
     @staticmethod
     def fixplace_ps_module(ps_module):

@@ -6,12 +6,18 @@ from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
-from apps.workflows.api import promote, reject
+from apps.workflows.api import (
+    PromoteWorkflow,
+    RejectWorkflow,
+    ResetWorkflow,
+    RevertWorkflow,
+)
 from osidb.helpers import get_execution_env
 
 from .api_views import (
     AffectCVSSV2View,
     AffectCVSSView,
+    AffectV1View,
     AffectView,
     AlertView,
     AuditView,
@@ -24,11 +30,13 @@ from .api_views import (
     FlawPackageVersionView,
     FlawReferenceView,
     FlawSuggestionsView,
+    FlawV1View,
     FlawView,
     JiraStageForwarderView,
     LabelView,
     ManifestView,
     StatusView,
+    TrackerV1View,
     TrackerView,
     flaw_available,
     healthy,
@@ -38,7 +46,7 @@ from .api_views import (
 from .constants import OSIDB_API_VERSION, OSIDB_API_VERSION_NEXT
 
 router = routers.DefaultRouter(trailing_slash=False)
-router.register(r"flaws", FlawView)
+router.register(r"flaws", FlawV1View)
 router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/acknowledgments",
     FlawAcknowledgmentView,
@@ -66,11 +74,11 @@ router.register(
     basename="flawlabels",
 )
 router.register("labels", LabelView)
-router.register(r"affects", AffectView)
+router.register(r"affects", AffectV1View)
 router.register(
     r"affects/(?P<affect_id>[^/.]+)/cvss_scores", AffectCVSSView, basename="affectcvss"
 )
-router.register(r"trackers", TrackerView)
+router.register(r"trackers", TrackerV1View)
 router.register(r"alerts", AlertView)
 router.register(r"audit", AuditView)
 
@@ -83,6 +91,11 @@ vnext_router.register(
     AffectCVSSV2View,
     basename="affectcvss",
 )
+# New views for the affects v2
+vnext_router.register(r"flaws", FlawView)
+vnext_router.register(r"affects", AffectView, basename="affectsv2")
+vnext_router.register(r"trackers", TrackerView)
+
 
 urlpatterns = [
     path("healthy", healthy),
@@ -95,11 +108,19 @@ urlpatterns = [
     ),
     re_path(
         rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/promote$",
-        promote.as_view(),
+        PromoteWorkflow.as_view(),
+    ),
+    re_path(
+        rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/revert$",
+        RevertWorkflow.as_view(),
+    ),
+    re_path(
+        rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/reset$",
+        ResetWorkflow.as_view(),
     ),
     re_path(
         rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/reject$",
-        reject.as_view(),
+        RejectWorkflow.as_view(),
     ),
     path(f"api/{OSIDB_API_VERSION}/status", StatusView.as_view()),
     path(f"api/{OSIDB_API_VERSION}/manifest", ManifestView.as_view()),

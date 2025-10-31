@@ -28,7 +28,7 @@ def test_data():
     flaw1 = FlawFactory()
     affect1 = AffectFactory(
         flaw=flaw1,
-        ps_module=ps_module.name,
+        ps_update_stream=ps_update_stream.name,
         affectedness=Affect.AffectAffectedness.AFFECTED,
     )
 
@@ -43,7 +43,7 @@ def test_data():
     flaw2 = FlawFactory()
     AffectFactory(
         flaw=flaw2,
-        ps_module=ps_module.name,
+        ps_update_stream=ps_update_stream.name,
         affectedness=Affect.AffectAffectedness.AFFECTED,
     )
 
@@ -51,7 +51,7 @@ def test_data():
     flaw3 = FlawFactory()
     AffectFactory(
         flaw=flaw3,
-        ps_module=community_module.name,
+        ps_update_stream=community_update_stream.name,
         affectedness=Affect.AffectAffectedness.AFFECTED,
     )
 
@@ -61,14 +61,14 @@ def test_data():
     # Community affect with tracker for flaw4
     AffectFactory(
         flaw=flaw4,
-        ps_module=community_module.name,
+        ps_update_stream=community_update_stream.name,
         affectedness=Affect.AffectAffectedness.AFFECTED,
     )
 
     # Non-community affect with tracker for flaw4
     affect4a = AffectFactory(
         flaw=flaw4,
-        ps_module=ps_module.name,
+        ps_update_stream=ps_update_stream.name,
         affectedness=Affect.AffectAffectedness.AFFECTED,
     )
     TrackerFactory(
@@ -81,7 +81,7 @@ def test_data():
     # Non-community affect without tracker for flaw4
     AffectFactory(
         flaw=flaw4,
-        ps_module=ps_module.name,
+        ps_update_stream=ps_update_stream.name,
         affectedness=Affect.AffectAffectedness.AFFECTED,
     )
 
@@ -91,7 +91,7 @@ def test_data():
     # Community affect with tracker for flaw5
     affect5a = AffectFactory(
         flaw=flaw5,
-        ps_module=community_module.name,
+        ps_update_stream=community_update_stream.name,
         affectedness=Affect.AffectAffectedness.AFFECTED,
     )
 
@@ -106,7 +106,7 @@ def test_data():
     # Non-community affect without tracker for flaw5
     AffectFactory(
         flaw=flaw5,
-        ps_module=ps_module.name,
+        ps_update_stream=ps_update_stream.name,
         affectedness=Affect.AffectAffectedness.AFFECTED,
     )
 

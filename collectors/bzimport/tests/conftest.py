@@ -3,7 +3,7 @@ import uuid
 import pytest
 from django.conf import settings
 
-from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
+from collectors.bzimport.collectors import BugzillaTrackerCollector
 from osidb.core import generate_acls
 
 
@@ -49,11 +49,6 @@ def bz_bug_cve_id():
 @pytest.fixture
 def bz_tracker_id():
     return 619104
-
-
-@pytest.fixture
-def flaw_collector():
-    return FlawCollector()
 
 
 @pytest.fixture

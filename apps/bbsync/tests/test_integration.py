@@ -10,7 +10,7 @@ from apps.bbsync.exceptions import UnsaveableFlawError
 from apps.bbsync.save import FlawBugzillaSaver
 from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
-from collectors.bzimport.collectors import BugzillaTrackerCollector, FlawCollector
+from collectors.bzimport.collectors import BugzillaTrackerCollector
 from collectors.jiraffe.collectors import JiraTrackerCollector
 from osidb.models import (
     Affect,
@@ -64,6 +64,7 @@ class TestBBSyncIntegration:
         self,
         auth_client,
         test_api_uri,
+        test_api_v2_uri,
         bugzilla_token,
         jira_token,
         enable_bz_async_sync,
@@ -89,7 +90,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().post(
-            f"{test_api_uri}/flaws",
+            f"{test_api_v2_uri}/flaws",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -146,8 +147,17 @@ class TestBBSyncIntegration:
         assert "curl" in response.json()["components"]
         assert response.json()["mitigation"] == "mitigation"
 
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{created_uuid}")
+        assert response.status_code == 200
+        assert response.json()["cve_id"] == "CVE-2024-0126"
+        assert response.json()["title"] == "Foo"
+        assert "curl" in response.json()["components"]
+        assert response.json()["mitigation"] == "mitigation"
+
     @pytest.mark.vcr
-    def test_flaw_update(self, auth_client, bugzilla_token, jira_token, test_api_uri):
+    def test_flaw_update(
+        self, auth_client, bugzilla_token, jira_token, test_api_uri, test_api_v2_uri
+    ):
         """
         test updating a flaw with Bugzilla two-way sync
         """
@@ -162,10 +172,11 @@ class TestBBSyncIntegration:
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="rhel-8")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="kernel",
         )
 
@@ -179,7 +190,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -191,9 +202,13 @@ class TestBBSyncIntegration:
         assert response.status_code == 200
         assert response.json()["title"] == "Bar"
 
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["title"] == "Bar"
+
     @pytest.mark.vcr
     def test_flaw_update_add_cve(
-        self, auth_client, bugzilla_token, jira_token, test_api_uri
+        self, auth_client, bugzilla_token, jira_token, test_api_uri, test_api_v2_uri
     ):
         """
         test adding a CVE to an existing CVE-less flaw
@@ -212,16 +227,18 @@ class TestBBSyncIntegration:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             embargoed=False,
         )
-        PsModuleFactory(name="jbcs-1")
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="jbcs-1")
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
         AffectFactory(
             flaw=flaw,
-            ps_module="jbcs-1",
+            ps_update_stream=ps_update_stream1.name,
             ps_component="ssh",
         )
+        ps_module = PsModuleFactory(name="rhel-8")
         AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream2.name,
             ps_component="libssh",
         )
 
@@ -233,7 +250,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -245,9 +262,13 @@ class TestBBSyncIntegration:
         assert response.status_code == 200
         assert response.json()["cve_id"] == "CVE-2000-3000"
 
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["cve_id"] == "CVE-2000-3000"
+
     @pytest.mark.vcr
     def test_flaw_update_remove_cve(
-        self, auth_client, bugzilla_token, jira_token, test_api_uri
+        self, auth_client, bugzilla_token, jira_token, test_api_uri, test_api_v2_uri
     ):
         """
         test removing of a CVE from a flaw
@@ -266,16 +287,17 @@ class TestBBSyncIntegration:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             embargoed=False,
         )
-        PsModuleFactory(name="jbcs-1")
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="jbcs-1")
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
         AffectFactory(
             flaw=flaw,
-            ps_module="jbcs-1",
+            ps_update_stream=ps_update_stream1.name,
             ps_component="ssh",
         )
         AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream2.name,
             ps_component="libssh",
         )
 
@@ -287,7 +309,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -299,9 +321,13 @@ class TestBBSyncIntegration:
         assert response.status_code == 200
         assert response.json()["cve_id"] is None
 
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["cve_id"] is None
+
     @pytest.mark.vcr
     def test_flaw_update_modify_cve(
-        self, auth_client, bugzilla_token, jira_token, test_api_uri
+        self, auth_client, bugzilla_token, jira_token, test_api_uri, test_api_v2_uri
     ):
         """
         Test modifying the CVE of an existing flaw which already had a CVE.
@@ -322,16 +348,17 @@ class TestBBSyncIntegration:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             embargoed=False,
         )
-        PsModuleFactory(name="jbcs-1")
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="jbcs-1")
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
         AffectFactory(
             flaw=flaw,
-            ps_module="jbcs-1",
+            ps_update_stream=ps_update_stream1.name,
             ps_component="ssh",
         )
         AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream2.name,
             ps_component="libssh",
         )
 
@@ -355,9 +382,13 @@ class TestBBSyncIntegration:
         assert response.status_code == 200
         assert response.json()["cve_id"] == "CVE-2024-666666"
 
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["cve_id"] == "CVE-2024-666666"
+
     @pytest.mark.vcr
     def test_flaw_update_remove_unembargo_dt(
-        self, auth_client, bugzilla_token, test_api_uri
+        self, auth_client, bugzilla_token, test_api_uri, test_api_v2_uri
     ):
         """
         test removing unembargo_dt from an embargoed flaw
@@ -382,10 +413,11 @@ class TestBBSyncIntegration:
             updated_dt=last_change_time,
         )
         flaw.save(raise_validation_error=False)
-        PsModuleFactory(component_cc={}, default_cc=[], name="rhel-9")
+        ps_module = PsModuleFactory(component_cc={}, default_cc=[], name="rhel-9")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         AffectFactory(
             flaw=flaw,
-            ps_module="rhel-9",
+            ps_update_stream=ps_update_stream.name,
             ps_component="samba",
             affectedness="AFFECTED",
             resolution="DELEGATED",
@@ -400,7 +432,7 @@ class TestBBSyncIntegration:
             "updated_dt": flaw.updated_dt,
         }
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -411,8 +443,12 @@ class TestBBSyncIntegration:
         assert response.status_code == 200
         assert response.json()["unembargo_dt"] is None
 
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        assert response.json()["unembargo_dt"] is None
+
     @pytest.mark.vcr
-    def test_flaw_unembargo(self, auth_client, bugzilla_token, test_api_uri):
+    def test_flaw_unembargo(self, auth_client, bugzilla_token, test_api_v2_uri):
         """
         test flaw unembargo with Bugzilla two-way sync
         """
@@ -436,14 +472,15 @@ class TestBBSyncIntegration:
                 },
                 embargoed=True,
             )
-        PsModuleFactory(
+        ps_module = PsModuleFactory(
             name="rhcertification-8",
             default_cc=[],
             component_cc={},
         )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
-            ps_module="rhcertification-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="openssl",
         )
         assert Affect.objects.get(uuid=affect.uuid).is_embargoed
@@ -459,11 +496,12 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
         )
+
         assert response.status_code == 200
         assert not Affect.objects.get(uuid=affect.uuid).is_embargoed
         assert not Flaw.objects.get(uuid=flaw.uuid).is_embargoed
@@ -476,7 +514,7 @@ class TestBBSyncIntegration:
         enable_bz_sync,
         enable_jira_tracker_sync,
         jira_token,
-        test_api_uri,
+        test_api_v2_uri,
     ):
         """
         test flaw unembargo with Bugzilla two-way sync
@@ -528,18 +566,18 @@ class TestBBSyncIntegration:
             default_cc=[],
             component_cc={},
         )
-        affect1 = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module1.name,
-            ps_component="openssl",
-            impact=None,
-        )
         ps_update_stream1 = PsUpdateStreamFactory(
             name="rhcertification-8-default",
             ps_module=ps_module1,
             version="1.0",
+        )
+        affect1 = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream1.name,
+            ps_component="openssl",
+            impact=None,
         )
         tracker1 = TrackerFactory(
             affects=[affect1],
@@ -564,18 +602,18 @@ class TestBBSyncIntegration:
             default_cc=[],
             component_cc={},
         )
+        ps_update_stream2 = PsUpdateStreamFactory(
+            name="costmanagement-metrics-operator-container",
+            ps_module=ps_module2,
+        )
         JiraBugIssuetype(project=ps_module2.bts_key).save()
         affect2 = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module2.name,
+            ps_update_stream=ps_update_stream2.name,
             ps_component="cost-management",
             impact=None,
-        )
-        ps_update_stream2 = PsUpdateStreamFactory(
-            name="costmanagement-metrics-operator-container",
-            ps_module=ps_module2,
         )
         tracker2 = TrackerFactory(
             affects=[affect2],
@@ -631,7 +669,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -641,7 +679,7 @@ class TestBBSyncIntegration:
 
         # explicitly reload to make sure the
         # changes happened in Bugzilla and Jira
-        FlawCollector().collect_flaw(flaw.bz_id)
+
         BugzillaTrackerCollector().sync_tracker(tracker1.external_system_id)
         JiraTrackerCollector().collect(tracker2.external_system_id)
 
@@ -653,7 +691,9 @@ class TestBBSyncIntegration:
         assert not Tracker.objects.get(uuid=tracker2.uuid).is_embargoed
 
     @pytest.mark.vcr
-    def test_affect_create(self, auth_client, bugzilla_token, test_api_uri):
+    def test_affect_create(
+        self, auth_client, bugzilla_token, test_api_uri, test_api_v2_uri
+    ):
         """
         test creating a flaw affect with Bugzilla two-way sync
         """
@@ -669,18 +709,19 @@ class TestBBSyncIntegration:
             acl_write=self.acl_write,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="rhel-8")
+        PsUpdateStreamFactory(name="rhel-8.1", ps_module=ps_module)
 
         affect_data = {
             "flaw": flaw.uuid,
-            "ps_module": "rhel-8",
+            "ps_update_stream": "rhel-8.1",
             "ps_component": "kernel",
             "affectedness": "AFFECTED",
             "resolution": "DELEGATED",
             "embargoed": False,
         }
         response = auth_client().post(
-            f"{test_api_uri}/affects",
+            f"{test_api_v2_uri}/affects",
             affect_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -696,8 +737,18 @@ class TestBBSyncIntegration:
         assert response.json()["affectedness"] == "AFFECTED"
         assert response.json()["resolution"] == "DELEGATED"
 
+        response = auth_client().get(f"{test_api_v2_uri}/affects/{created_uuid}")
+        assert response.status_code == 200
+        assert response.json()["ps_update_stream"] == "rhel-8.1"
+        assert response.json()["ps_module"] == "rhel-8"
+        assert response.json()["ps_component"] == "kernel"
+        assert response.json()["affectedness"] == "AFFECTED"
+        assert response.json()["resolution"] == "DELEGATED"
+
     @pytest.mark.vcr
-    def test_affect_update(self, auth_client, bugzilla_token, jira_token, test_api_uri):
+    def test_affect_update(
+        self, auth_client, bugzilla_token, jira_token, test_api_uri, test_api_v2_uri
+    ):
         """
         test updating a flaw affect with Bugzilla two-way sync
         """
@@ -713,10 +764,11 @@ class TestBBSyncIntegration:
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="rhel-8")
+        ps_update_stream = PsUpdateStreamFactory(name="rhel-8.1", ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="kernel",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -725,14 +777,14 @@ class TestBBSyncIntegration:
 
         affect_data = {
             "flaw": flaw.uuid,
-            "ps_module": "rhel-8",
+            "ps_update_stream": "rhel-8.1",
             "ps_component": "kernel",
             "resolution": "WONTFIX",
             "embargoed": False,
             "updated_dt": affect.updated_dt,
         }
         response = auth_client().put(
-            f"{test_api_uri}/affects/{affect.uuid}",
+            f"{test_api_v2_uri}/affects/{affect.uuid}",
             affect_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -747,8 +799,18 @@ class TestBBSyncIntegration:
         assert response.json()["affectedness"] == "AFFECTED"
         assert response.json()["resolution"] == "WONTFIX"
 
+        response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
+        assert response.status_code == 200
+        assert response.json()["ps_update_stream"] == "rhel-8.1"
+        assert response.json()["ps_module"] == "rhel-8"
+        assert response.json()["ps_component"] == "kernel"
+        assert response.json()["affectedness"] == "AFFECTED"
+        assert response.json()["resolution"] == "WONTFIX"
+
     @pytest.mark.vcr
-    def test_affect_delete(self, auth_client, bugzilla_token, test_api_uri):
+    def test_affect_delete(
+        self, auth_client, bugzilla_token, test_api_uri, test_api_v2_uri
+    ):
         """
         test deleting a flaw affect with Bugzilla two-way sync
         """
@@ -764,23 +826,24 @@ class TestBBSyncIntegration:
             acl_write=self.acl_write,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="rhel-8")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         # we need to create an extra affect
         # not to result in an affect-less flaw
         # which would not pass the validations
         AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="kernel",
         )
         affect = AffectFactory(
             flaw=flaw,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="openssl",
         )
 
         response = auth_client().delete(
-            f"{test_api_uri}/affects/{affect.uuid}",
+            f"{test_api_v2_uri}/affects/{affect.uuid}",
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
         )
@@ -789,10 +852,13 @@ class TestBBSyncIntegration:
         response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == 404
 
+        response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
+        assert response.status_code == 404
+
     @pytest.mark.vcr(
         vcr_cassette_name="cassettes/TestBBSyncIntegration.test_flaw_create.yaml"
     )
-    def test_flaw_validations(self, auth_client, bugzilla_token, test_api_uri):
+    def test_flaw_validations(self, auth_client, bugzilla_token, test_api_v2_uri):
         """
         test that flaw validations are not bypassed when syncing to Bugzilla
         """
@@ -805,7 +871,7 @@ class TestBBSyncIntegration:
             "embargoed": False,
         }
         response = auth_client().post(
-            f"{test_api_uri}/flaws",
+            f"{test_api_v2_uri}/flaws",
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
@@ -813,7 +879,7 @@ class TestBBSyncIntegration:
         assert response.status_code == 400
         assert "Components value is required" in str(response.content)
 
-    def test_flaw_update_multi_cve_restricted(self, auth_client, test_api_uri):
+    def test_flaw_update_multi_cve_restricted(self, auth_client, test_api_v2_uri):
         """
         test that CVE ID cannot be removed from a multi-CVE flaw
 
@@ -842,15 +908,16 @@ class TestBBSyncIntegration:
             acl_read=self.acl_read,
             acl_write=self.acl_write,
         )
-        PsModuleFactory(name="rhel-8")
+        ps_module = PsModuleFactory(name="rhel-8")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         AffectFactory(
             flaw=flaw1,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="kernel",
         )
         AffectFactory(
             flaw=flaw2,
-            ps_module="rhel-8",
+            ps_update_stream=ps_update_stream.name,
             ps_component="kernel",
         )
 
@@ -867,7 +934,7 @@ class TestBBSyncIntegration:
         }
         with pytest.raises(UnsaveableFlawError, match="Unable to remove a CVE ID"):
             auth_client().put(
-                f"{test_api_uri}/flaws/{flaw1.uuid}",
+                f"{test_api_v2_uri}/flaws/{flaw1.uuid}",
                 flaw_data,
                 format="json",
                 HTTP_BUGZILLA_API_KEY="SECRET",

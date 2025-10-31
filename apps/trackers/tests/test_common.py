@@ -46,7 +46,7 @@ class TestTrackerQueryBuilderSummary:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -128,7 +128,7 @@ class TestTrackerQueryBuilderSummary:
                     flaw=flaw,
                     affectedness=Affect.AffectAffectedness.AFFECTED,
                     resolution=Affect.AffectResolution.DELEGATED,
-                    ps_module=ps_module.name,
+                    ps_update_stream=ps_update_stream.name,
                     ps_component="large-component",
                 )
             )
@@ -171,7 +171,7 @@ class TestTrackerQueryBuilderSummary:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -199,61 +199,79 @@ class TestTrackerQueryBuilderSummary:
             (
                 "CVE-2000-1234",
                 False,
-                Flaw.FlawMajorIncident.REQUESTED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_REQUESTED,
                 "CVE-2000-1234 ",
             ),
-            (None, True, Flaw.FlawMajorIncident.REJECTED, "EMBARGOED "),
+            (None, True, Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED, "EMBARGOED "),
             (
                 "CVE-2000-1234",
                 True,
                 Flaw.FlawMajorIncident.NOVALUE,
                 "EMBARGOED CVE-2000-1234 ",
             ),
-            (None, False, Flaw.FlawMajorIncident.APPROVED, "[Major Incident] "),
+            (
+                None,
+                False,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                "[Major Incident] ",
+            ),
             (
                 "CVE-2000-1234",
                 False,
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 "[Major Incident] CVE-2000-1234 ",
             ),
             (
                 None,
                 True,
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 "EMBARGOED [Major Incident] ",
             ),
             (
                 "CVE-2000-1234",
                 True,
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 "EMBARGOED [Major Incident] CVE-2000-1234 ",
             ),
             (
+                "CVE-2000-1234",
+                False,
+                Flaw.FlawMajorIncident.EXPLOITS_KEV_REQUESTED,
+                "CVE-2000-1234 ",
+            ),
+            (None, True, Flaw.FlawMajorIncident.EXPLOITS_KEV_REJECTED, "EMBARGOED "),
+            (
                 None,
                 False,
-                Flaw.FlawMajorIncident.CISA_APPROVED,
-                "[CISA Major Incident] ",
+                Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+                "[Exploits (KEV)] ",
             ),
             (
                 "CVE-2000-1234",
                 False,
-                Flaw.FlawMajorIncident.CISA_APPROVED,
-                "[CISA Major Incident] CVE-2000-1234 ",
+                Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+                "[Exploits (KEV)] CVE-2000-1234 ",
             ),
             (
                 None,
                 True,
-                Flaw.FlawMajorIncident.CISA_APPROVED,
-                "EMBARGOED [CISA Major Incident] ",
+                Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+                "EMBARGOED [Exploits (KEV)] ",
             ),
             (
                 "CVE-2000-1234",
                 True,
-                Flaw.FlawMajorIncident.CISA_APPROVED,
-                "EMBARGOED [CISA Major Incident] CVE-2000-1234 ",
+                Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+                "EMBARGOED [Exploits (KEV)] CVE-2000-1234 ",
             ),
-            (None, False, Flaw.FlawMajorIncident.MINOR, "[Minor Incident] "),
-            (None, False, Flaw.FlawMajorIncident.ZERO_DAY, "[0-day] "),
+            (None, False, Flaw.FlawMajorIncident.MINOR_INCIDENT_REQUESTED, ""),
+            (None, False, Flaw.FlawMajorIncident.MINOR_INCIDENT_REJECTED, ""),
+            (
+                None,
+                False,
+                Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED,
+                "[Minor Incident] ",
+            ),
         ],
     )
     def test_prefixes(self, cve_id, embargoed, major_incident_state, summary_prefix):
@@ -274,7 +292,7 @@ class TestTrackerQueryBuilderSummary:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -322,7 +340,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -365,7 +383,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -396,7 +414,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -425,7 +443,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=ps_component,
         )
         tracker = TrackerFactory(
@@ -462,7 +480,7 @@ class TestTrackerQueryBuilderDescription:
                 flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 ps_component="large-component",
                 # created datetime defines the query result
                 # ordering which is later reflected in description
@@ -512,7 +530,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -561,7 +579,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="large-component",
         )
         tracker = TrackerFactory(
@@ -602,7 +620,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component=ps_component,
         )
         tracker = TrackerFactory(
@@ -639,7 +657,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -670,7 +688,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -702,7 +720,7 @@ class TestTrackerQueryBuilderDescription:
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
         )
         tracker = TrackerFactory(
             affects=[affect],
@@ -756,14 +774,14 @@ class TestTrackerQueryBuilderSLA:
             bts_key="BZPROJECT",
             bts_name="bugzilla",
         )
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module1)
         affect1 = AffectFactory(
             flaw=flaw,
             impact=Impact.NOVALUE,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module1.name,
+            ps_update_stream=ps_update_stream1.name,
         )
-        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module1)
         tracker1 = TrackerFactory(
             affects=[affect1],
             embargoed=flaw.embargoed,
@@ -777,14 +795,14 @@ class TestTrackerQueryBuilderSLA:
             bts_name="jboss",
             private_trackers_allowed=False,
         )
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
         affect2 = AffectFactory(
             flaw=flaw,
             impact=Impact.NOVALUE,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module2.name,
+            ps_update_stream=ps_update_stream2.name,
         )
-        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module2)
         tracker2 = TrackerFactory(
             affects=[affect2],
             embargoed=flaw.embargoed,

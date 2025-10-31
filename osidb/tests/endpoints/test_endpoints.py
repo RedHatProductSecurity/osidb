@@ -10,6 +10,7 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIClient
 
+from apps.workflows.workflow import WorkflowModel
 from osidb.core import generate_acls, set_user_acls
 from osidb.helpers import ensure_list, get_execution_env
 from osidb.models import Affect, Flaw, Impact
@@ -439,13 +440,57 @@ class TestEndpointsACLs:
         assert original_body["cve_description"] != body["cve_description"]
         assert body["requires_cve_description"] == "REQUESTED"
 
+    @pytest.mark.parametrize(
+        "embargoed,acl_read,acl_write",
+        [
+            (False, settings.INTERNAL_READ_GROUP, settings.INTERNAL_WRITE_GROUP),
+        ],
+    )
+    def test_prevent_unintentional_public_flaw(
+        self, auth_client, test_api_uri, embargoed, acl_read, acl_write
+    ):
+        """
+        test proper embargo status and ACLs when creating a flaw by sending a POST request
+        """
+        flaw_data = {
+            "title": "Foo",
+            "comment_zero": "test",
+            "impact": "LOW",
+            "components": ["curl"],
+            "source": "DEBIAN",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": None if embargoed else "2000-1-1T22:03:26.065Z",
+            "mitigation": "mitigation",
+            "embargoed": embargoed,
+        }
+        auth_client().post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        flaw = Flaw.objects.first()
+        assert flaw.is_internal
+        flaw.workflow_state = WorkflowModel.WorkflowState.NOVALUE
+        flaw.adjust_acls()  # adjust_acls() saves the flaw by default
+        assert not flaw.is_public
+        internal_read = [
+            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])
+        ]
+        internal_write = [
+            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
+        ]
+        assert flaw.acl_read == internal_read
+        assert flaw.acl_write == internal_write
+
 
 class TestEndpointsAtomicity:
     """
     API atomicity specific tests
     """
 
-    def test_atomic_api(self, auth_client, monkeypatch, test_api_uri):
+    def test_atomic_api(self, auth_client, monkeypatch, test_api_v2_uri):
         """
         test that the API requests are atomic
 
@@ -474,7 +519,7 @@ class TestEndpointsAtomicity:
             m.setattr(Flaw, "save", failure_factory)
 
             response = auth_client().delete(
-                f"{test_api_uri}/affects/{affect.uuid}",
+                f"{test_api_v2_uri}/affects/{affect.uuid}",
                 HTTP_BUGZILLA_API_KEY="SECRET",
                 HTTP_JIRA_API_KEY="SECRET",
             )
@@ -484,7 +529,7 @@ class TestEndpointsAtomicity:
         # check that no affect was deleted
         assert Affect.objects.count() == 2
 
-    def test_atomic_error_handling(self, auth_client, monkeypatch, test_api_uri):
+    def test_atomic_error_handling(self, auth_client, monkeypatch, test_api_v2_uri):
         """
         test that the API requests are atomic even when handling an error
         """
@@ -508,7 +553,7 @@ class TestEndpointsAtomicity:
             m.setattr(Flaw, "save", failure_factory)
 
             response = auth_client().delete(
-                f"{test_api_uri}/affects/{affect.uuid}",
+                f"{test_api_v2_uri}/affects/{affect.uuid}",
                 HTTP_BUGZILLA_API_KEY="SECRET",
                 HTTP_JIRA_API_KEY="SECRET",
             )
@@ -518,7 +563,7 @@ class TestEndpointsAtomicity:
         # check that no affect was deleted
         assert Affect.objects.count() == 2
 
-    def test_nonatomic_api(self, auth_client, monkeypatch, test_api_uri):
+    def test_nonatomic_api(self, auth_client, monkeypatch, test_api_v2_uri):
         """
         test that the API requests are not atomic when the settings option is disabled
         """
@@ -547,7 +592,7 @@ class TestEndpointsAtomicity:
             m.setattr(settings, "DATABASES", db_settings)
 
             response = auth_client().delete(
-                f"{test_api_uri}/affects/{affect.uuid}",
+                f"{test_api_v2_uri}/affects/{affect.uuid}",
                 HTTP_BUGZILLA_API_KEY="SECRET",
                 HTTP_JIRA_API_KEY="SECRET",
             )

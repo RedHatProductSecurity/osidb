@@ -82,10 +82,9 @@ class FlawFactory(BaseFactory):
         is_mi = factory.LazyAttribute(
             lambda f: f.major_incident_state
             in [
-                Flaw.FlawMajorIncident.APPROVED,
-                Flaw.FlawMajorIncident.CISA_APPROVED,
-                Flaw.FlawMajorIncident.MINOR,
-                Flaw.FlawMajorIncident.ZERO_DAY,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+                Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED,
             ]
         )
 
@@ -125,7 +124,7 @@ class FlawFactory(BaseFactory):
     embargoed = factory.Faker("random_element", elements=[False, True])
     major_incident_state = factory.Faker(
         "random_element",
-        elements=list(set(Flaw.FlawMajorIncident) - {Flaw.FlawMajorIncident.INVALID}),
+        elements=list(set(Flaw.FlawMajorIncident)),
     )
     nist_cvss_validation = factory.Faker(
         "random_element",
@@ -298,7 +297,7 @@ class AffectFactory(BaseFactory):
             else ""
         )
     )
-    ps_module = factory.sequence(lambda n: f"ps-module-{n}")
+    ps_update_stream = factory.LazyAttribute(lambda a: PsUpdateStreamFactory().name)
     ps_component = factory.sequence(lambda n: f"ps-component-{n}")
     impact = factory.Faker(
         "random_element",
@@ -345,7 +344,6 @@ class FlawCommentFactory(factory.django.DjangoModelFactory):
     # let us inherit the parent flaw ACLs if not specified
     acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
     acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
-    order = factory.Sequence(lambda n: n)
     text = "some comment text"
 
     flaw = factory.SubFactory(FlawFactory)

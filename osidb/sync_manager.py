@@ -81,7 +81,7 @@ class SyncManager(models.Model):
         return result
 
     @staticmethod
-    def sync_task():
+    def sync_task(*args, **kwargs):
         """
         Override this method with a Celery task to perform external data synchronization.
         """
@@ -141,7 +141,9 @@ class SyncManager(models.Model):
         def schedule_task():
             try:
                 cls.sync_task.apply_async(
-                    args=[sync_id, *args], kwargs=kwargs, **schedule_options
+                    args=[sync_id, *args],
+                    kwargs=kwargs | {"object_id": sync_id},
+                    **schedule_options,
                 )
             except AttributeError:
                 raise NotImplementedError(
@@ -441,48 +443,6 @@ class SyncManager(models.Model):
         )
 
 
-class FlawDownloadManager(SyncManager):
-    """
-    Sync manager class for Bugzilla => OSIDB Flaw synchronization.
-    """
-
-    def __str__(self):
-        from osidb.models import Flaw
-
-        result = super().__str__()
-
-        flaws = Flaw.objects.filter(meta_attr__bz_id=self.sync_id)
-        cves = [f.cve_id or f.uuid for f in flaws]
-        result += f"Flaws: {cves}\n"
-
-        return result
-
-    @staticmethod
-    @app.task(name="sync_manager.flaw_download", bind=True)
-    def sync_task(self, flaw_id):
-        from collectors.bzimport import collectors
-
-        FlawDownloadManager.started(flaw_id, self)
-
-        set_user_acls(settings.ALL_GROUPS)
-
-        # Code adapted from collectors.bzimport.collectors.FlawCollector.collect
-        collector = collectors.FlawCollector()
-        try:
-            collector.sync_flaw(flaw_id)
-        except Exception as e:
-            FlawDownloadManager.failed(flaw_id, e)
-        else:
-            FlawDownloadManager.finished(flaw_id)
-        finally:
-            collector.free_queriers()
-
-    def update_synced_links(self):
-        from osidb.models import Flaw
-
-        Flaw.objects.filter(meta_attr__bz_id=self.sync_id).update(download_manager=self)
-
-
 class BZTrackerDownloadManager(SyncManager):
     """
     Sync manager class for Bugzilla => OSIDB Tracker synchronization.
@@ -501,10 +461,10 @@ class BZTrackerDownloadManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.bz_tracker_download", bind=True)
-    def sync_task(self, tracker_id):
+    def sync_task(task, tracker_id, **kwargs):
         from collectors.bzimport import collectors
 
-        BZTrackerDownloadManager.started(tracker_id, self)
+        BZTrackerDownloadManager.started(tracker_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -541,9 +501,9 @@ class BZTrackerLinkManager(SyncManager):
 
         result = super().__str__()
 
-        affects = Affect.objects.filter(trackers__external_system_id=self.sync_id)
+        affects = Affect.objects.filter(tracker__external_system_id=self.sync_id)
         affect_strings = [
-            f"{a.flaw.bz_id}|{a.ps_module}|{a.ps_component}" for a in affects
+            f"{a.flaw.bz_id}|{a.ps_update_stream}|{a.ps_component}" for a in affects
         ]
         result += f"Affects: {affect_strings}\n"
 
@@ -569,14 +529,14 @@ class BZTrackerLinkManager(SyncManager):
             for flaw in flaws:
                 try:
                     affect = flaw.affects.get(
-                        ps_module=tracker.meta_attr["ps_module"],
+                        ps_update_stream=tracker.ps_update_stream,
                         ps_component=tracker.meta_attr["ps_component"],
                     )
                 except Affect.DoesNotExist:
                     failed_affects.append(
                         (
                             bz_id,
-                            tracker.meta_attr["ps_module"],
+                            tracker.ps_update_stream,
                             tracker.meta_attr["ps_component"],
                         )
                     )
@@ -604,7 +564,7 @@ class BZTrackerLinkManager(SyncManager):
 
                 try:
                     affect = flaw.affects.get(
-                        ps_module=tracker.meta_attr["ps_module"],
+                        ps_update_stream=tracker.ps_update_stream,
                         ps_component=tracker.meta_attr["ps_component"],
                     )
                 except Affect.DoesNotExist:
@@ -613,7 +573,7 @@ class BZTrackerLinkManager(SyncManager):
                     failed_affects.append(
                         (
                             flaw_uuid,
-                            tracker.meta_attr["ps_module"],
+                            tracker.ps_update_stream,
                             tracker.meta_attr["ps_component"],
                         )
                     )
@@ -633,8 +593,8 @@ class BZTrackerLinkManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.bz_tracker_link", bind=True)
-    def sync_task(self, tracker_id):
-        BZTrackerLinkManager.started(tracker_id, self)
+    def sync_task(task, tracker_id, **kwargs):
+        BZTrackerLinkManager.started(tracker_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -752,11 +712,11 @@ class BZSyncManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.bzsync", bind=True)
-    def sync_task(self, flaw_id):
+    def sync_task(task, flaw_id, **kwargs):
         # flaw_id is the flaw UUID
         from osidb.models import Flaw
 
-        BZSyncManager.started(flaw_id, self)
+        BZSyncManager.started(flaw_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -792,14 +752,14 @@ class JiraTaskDownloadManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.jira_task_download", bind=True)
-    def sync_task(self, task_id):
+    def sync_task(task, task_id, **kwargs):
         from collectors.jiraffe.convertors import JiraTaskConvertor
         from collectors.jiraffe.core import JiraQuerier
 
         set_user_acls(settings.ALL_GROUPS)
         JiraTaskDownloadManager.started(
             task_id,
-            self,
+            task,
             related_managers=[JiraTaskSyncManager, JiraTaskTransitionManager],
         )
 
@@ -867,7 +827,7 @@ class JiraTaskSyncManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.jira_task_sync", bind=True)
-    def sync_task(self, flaw_id):
+    def sync_task(task, flaw_id, **kwargs):
         """
         perform the sync of the task of the given flaw to Jira
 
@@ -876,7 +836,7 @@ class JiraTaskSyncManager(SyncManager):
         """
         from osidb.models import Flaw
 
-        JiraTaskSyncManager.started(flaw_id, self)
+        JiraTaskSyncManager.started(flaw_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -919,7 +879,7 @@ class JiraTaskTransitionManager(SyncManager):
         bind=True,
         lock_ttl=60,
     )
-    def sync_task(self, flaw_id):
+    def sync_task(task, flaw_id, **kwargs):
         """
         perform the sync of the task state of the given flaw to Jira
 
@@ -928,7 +888,7 @@ class JiraTaskTransitionManager(SyncManager):
         """
         from osidb.models import Flaw
 
-        JiraTaskTransitionManager.started(flaw_id, self)
+        JiraTaskTransitionManager.started(flaw_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -965,11 +925,11 @@ class JiraTrackerDownloadManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.jira_tracker_download", bind=True)
-    def sync_task(self, tracker_id):
+    def sync_task(task, tracker_id, **kwargs):
         from collectors.jiraffe.convertors import JiraTrackerConvertor
         from collectors.jiraffe.core import JiraQuerier
 
-        JiraTrackerDownloadManager.started(tracker_id, self)
+        JiraTrackerDownloadManager.started(tracker_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 
@@ -1004,9 +964,9 @@ class JiraTrackerLinkManager(SyncManager):
 
         result = super().__str__()
 
-        affects = Affect.objects.filter(trackers__external_system_id=self.sync_id)
+        affects = Affect.objects.filter(tracker__external_system_id=self.sync_id)
         affect_strings = [
-            f"{a.flaw.bz_id}|{a.ps_module}|{a.ps_component}" for a in affects
+            f"{a.flaw.bz_id}|{a.ps_update_stream}|{a.ps_component}" for a in affects
         ]
         result += f"Affects: {affect_strings}\n"
 
@@ -1067,7 +1027,7 @@ class JiraTrackerLinkManager(SyncManager):
         for flaw in flaws:
             try:
                 affect = flaw.affects.get(
-                    ps_module=tracker.meta_attr["ps_module"],
+                    ps_update_stream=tracker.ps_update_stream,
                     ps_component=tracker.meta_attr["ps_component"],
                 )
             except Affect.DoesNotExist:
@@ -1076,7 +1036,7 @@ class JiraTrackerLinkManager(SyncManager):
                 failed_affects.append(
                     (
                         flaw.bz_id,
-                        tracker.meta_attr["ps_module"],
+                        tracker.ps_update_stream,
                         tracker.meta_attr["ps_component"],
                     )
                 )
@@ -1093,8 +1053,8 @@ class JiraTrackerLinkManager(SyncManager):
 
     @staticmethod
     @app.task(name="sync_manager.jira_tracker_link", bind=True)
-    def sync_task(self, tracker_id):
-        JiraTrackerLinkManager.started(tracker_id, self)
+    def sync_task(task, tracker_id, **kwargs):
+        JiraTrackerLinkManager.started(tracker_id, task)
 
         set_user_acls(settings.ALL_GROUPS)
 

@@ -139,9 +139,9 @@ distlib==0.3.9 \
     --hash=sha256:47f8c22fd27c27e25a65601af709b38e4f0a45ea4fc2e710f65755fa8caaaf87 \
     --hash=sha256:a60f20dea646b8a33f3e7772f74dc0b2d0772d2837ee1342a00645c81edf9403
     # via virtualenv
-django==4.2.24 \
-    --hash=sha256:40cd7d3f53bc6cd1902eadce23c337e97200888df41e4a73b42d682f23e71d80 \
-    --hash=sha256:a6527112c58821a0dfc5ab73013f0bdd906539790a17196658e36e66af43c350
+django==4.2.25 \
+    --hash=sha256:2391ab3d78191caaae2c963c19fd70b99e9751008da22a0adcc667c5a4f8d311 \
+    --hash=sha256:9584cf26b174b35620e53c2558b09d7eb180a655a3470474f513ff9acb494f8c
     # via
     #   django-auth-ldap
     #   django-cors-headers
@@ -586,8 +586,8 @@ python-dotenv==1.1.0 \
     --hash=sha256:41f90bc6f5f177fb41f53e87666db362025010eb28f60a01c9143bfa33a2b2d5 \
     --hash=sha256:d7c01d9e2293916c18baf562d95698754b0dbbb5e74d457c45d4f6561fb9d55d
     # via pydantic-settings
-python-ldap==3.4.4 \
-    --hash=sha256:7edb0accec4e037797705f3a05cbf36a9fde50d08c8f67f2aef99a2628fab828
+python-ldap==3.4.5 \
+    --hash=sha256:b2f6ef1c37fe2c6a5a85212efe71311ee21847766a7d45fcb711f3b270a5f79a
     # via
     #   django-auth-ldap
     #   django-kaminarimon

@@ -1,7 +1,16 @@
 import pytest
+from django.core.exceptions import ValidationError
 
-from osidb.models import Affect, Impact
-from osidb.tests.factories import AffectFactory, FlawFactory, PsModuleFactory
+from osidb.models import Affect, Impact, Tracker
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
+    TrackerFactory,
+)
+
+pytestmark = pytest.mark.unit
 
 
 class TestAffect:
@@ -57,7 +66,7 @@ class TestAffect:
         assert affect.is_resolved == is_resolved
         assert affect.resolved_dt or not is_resolved
 
-        ps_module = PsModuleFactory(name="test-module")
+        ps_update_stream = PsUpdateStreamFactory(name="test-stream")
 
         # Check creation behavior
         affect = Affect(
@@ -66,7 +75,7 @@ class TestAffect:
             affectedness=affectedness,
             resolution=resolution,
             ps_component="component-10",
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             acl_read=flaw.acl_read,
             acl_write=flaw.acl_write,
         )
@@ -110,3 +119,85 @@ class TestAffect:
         affect = AffectFactory(purl=purl, ps_component=None)
 
         assert affect.ps_component == ps_component
+
+    def test_labels_field_default(self):
+        """Test that the labels field defaults to an empty list"""
+        affect = AffectFactory()
+        assert affect.labels == []
+
+    @pytest.mark.enable_signals
+    def test_labels_field_auto_populated(self):
+        """Test that the labels field is automatically populated when saving an affect"""
+        from osidb.models.flaw.label import FlawLabel
+
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        # Create a test label that matches our affect's ps_module and ps_component
+        FlawLabel.objects.create(
+            name="test-auto-label",
+            type=FlawLabel.FlawLabelType.PRODUCT_FAMILY,
+            ps_modules=[ps_module.name],
+            ps_components=["test-component"],
+        )
+
+        # Create an affect - the signal should automatically populate labels
+        affect = AffectFactory(
+            ps_update_stream=ps_update_stream.name,
+            ps_module=ps_module.name,
+            ps_component="test-component",
+        )
+        affect.save()
+
+        # Check that the label was automatically added to the labels field
+        assert "test-auto-label" in affect.labels
+
+    def test_delete_affect_with_open_tracker(self):
+        """Test that an affect with a non closed tracker can't be deleted"""
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory(embargoed=False)
+
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_module=ps_module.name,
+            ps_component="test-component",
+        )
+
+        tracker = TrackerFactory(
+            embargoed=False,
+            affects=[affect],
+            type=Tracker.TrackerType.JIRA,
+            external_system_id="OSIDB-1234",
+            ps_update_stream=ps_update_stream.name,
+            status="Open",
+        )
+
+        # Trying to delete the affect without first closing the Tracker should raise an error
+        with pytest.raises(ValidationError):
+            affect.delete()
+
+        tracker.status = "Closed"
+        tracker.save()
+
+        # Tracker is closed, should not raise an error
+        affect.delete()
+
+    def test_delete_affect_without_tracker(self):
+        """Test that an affect without a tracker can be deleted"""
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory(embargoed=False)
+
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_module=ps_module.name,
+            ps_component="test-component",
+        )
+        affect.delete()

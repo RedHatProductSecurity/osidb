@@ -78,12 +78,12 @@ class TestJiraTrackerConvertor:
         """
         flaw = FlawFactory(embargoed=False)
         ps_module = PsModuleFactory(name="amq-7")
-        PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
+        ps_update_stream = PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
         AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="elasticsearch",
         )
 
@@ -113,12 +113,12 @@ class TestJiraTrackerConvertor:
             meta_attr={"jira_trackers": json.dumps([{"key": self.tracker_id}])},
         )
         ps_module = PsModuleFactory(name="amq-7")
-        PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
+        ps_update_stream = PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="elasticsearch",
         )
 
@@ -151,7 +151,7 @@ class TestJiraTrackerConvertor:
             meta_attr={"jira_trackers": json.dumps([{"key": self.tracker_id}])},
         )
         ps_module = PsModuleFactory(name="amq-7")
-        PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
+        ps_update_stream = PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
 
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
@@ -172,7 +172,7 @@ class TestJiraTrackerConvertor:
         )
         assert tracker.affects.count() == 0
         assert failed_affects
-        assert (None, ps_module.name, "elasticsearch") in failed_affects
+        assert (None, ps_update_stream.name, "elasticsearch") in failed_affects
 
     @pytest.mark.vcr
     def test_convert_linked_from_tracker_side_cve(self):
@@ -185,12 +185,12 @@ class TestJiraTrackerConvertor:
             embargoed=False,
         )
         ps_module = PsModuleFactory(name="amq-7")
-        PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
+        ps_update_stream = PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="elasticsearch",
         )
 
@@ -238,12 +238,12 @@ class TestJiraTrackerConvertor:
             embargoed=False,
         )
         ps_module = PsModuleFactory(name="amq-7")
-        PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
+        ps_update_stream = PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="elasticsearch",
         )
 
@@ -274,12 +274,12 @@ class TestJiraTrackerConvertor:
             embargoed=False,
         )
         ps_module = PsModuleFactory(name="amq-7")
-        PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
+        ps_update_stream = PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="elasticsearch",
         )
         tracker_data = JiraQuerier().get_issue(self.tracker_id)

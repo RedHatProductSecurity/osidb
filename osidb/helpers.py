@@ -71,6 +71,20 @@ def filter_cves(strings, inverse=False):
     )
 
 
+def get_flaw_or_404(pk, queryset=None):
+    """
+    get flaw instance or raise HTTP 404 error
+    """
+    from django.http import Http404
+
+    from osidb.models import Flaw
+
+    try:
+        return Flaw.objects.get_by_identifier(pk, queryset=queryset)
+    except Flaw.DoesNotExist as e:
+        raise Http404 from e
+
+
 # Replaces strtobool from the deprecated distutils library
 def strtobool(val: str):
     val = val.lower()

@@ -80,7 +80,7 @@ class TestFlaw:
             impact=Impact.CRITICAL,
             source=FlawSource.APPLE,
             statement="statement",
-            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
             nist_cvss_validation=Flaw.FlawNistCvssValidation.REQUESTED,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
@@ -111,17 +111,22 @@ class TestFlaw:
             type=FlawReference.FlawReferenceType.ARTICLE,
             url="https://access.redhat.com/link123",
         )
-        assert vuln_1.major_incident_state == Flaw.FlawMajorIncident.APPROVED
+        assert (
+            vuln_1.major_incident_state
+            == Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+        )
         assert vuln_1.nist_cvss_validation == Flaw.FlawNistCvssValidation.REQUESTED
 
         affect1 = AffectFactory(flaw=vuln_1)
-        all_trackers = affect1.trackers.all()
+        affect_tracker = affect1.tracker
         assert vuln_1.save() is None
-        assert len(all_trackers) == 0
+        assert affect_tracker is None
 
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="fakemodule")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module, name="fakestream")
         affect2 = Affect.objects.create_affect(
             vuln_1,
-            "fakemodule",
+            "fakestream",
             "fake_component",
             affectedness=Affect.AffectAffectedness.NEW,
             resolution=Affect.AffectResolution.NOVALUE,
@@ -130,8 +135,6 @@ class TestFlaw:
             acl_write=self.acl_write,
         )
         affect2.save()
-        ps_module = PsModuleFactory(bts_name="bugzilla", name="fakemodule")
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker1 = TrackerFactory(
             affects=(affect2,),
             embargoed=affect2.flaw.embargoed,
@@ -146,14 +149,13 @@ class TestFlaw:
         assert affect1 in all_affects
         assert affect2 in all_affects
 
-        comment1 = FlawCommentFactory(flaw=vuln_1, order=0)
+        comment1 = FlawCommentFactory(flaw=vuln_1)
         comment2 = FlawComment(
             flaw=vuln_1,
             external_system_id="9999991",
             acl_read=self.acl_read,
             acl_write=self.acl_write,
             text="some comment text",
-            order=1,
         )
         comment2.save()
         all_comments = vuln_1.comments.all()
@@ -207,9 +209,6 @@ class TestFlaw:
         )
         assert vuln_2.validate() is None
 
-        # assert vuln_1.delete()
-        # assert vuln_2.delete()
-
     def test_create_flaw_method(self):
         Flaw.objects.all().delete()
         flaw1 = Flaw.objects.create_flaw(
@@ -246,12 +245,12 @@ class TestFlaw:
 
     def test_multi_affect_tracker(self):
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect1 = AffectFactory(
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory.create(
             affects=(affect1,),
             embargoed=affect1.flaw.is_embargoed,
@@ -262,7 +261,7 @@ class TestFlaw:
         affect2 = AffectFactory(
             flaw__embargoed=False,
             affectedness=Affect.AffectAffectedness.NEW,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
         Tracker.objects.create_tracker(
@@ -276,14 +275,14 @@ class TestFlaw:
     def test_trackers_filed(self):
         flaw = FlawFactory()
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         fix_affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             flaw=flaw,
         )
         assert not flaw.trackers_filed
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=(fix_affect,),
             embargoed=flaw.is_embargoed,
@@ -298,101 +297,44 @@ class TestFlaw:
         )
         assert not flaw.trackers_filed
 
-    def test_delegated_affects(self):
+    @pytest.mark.parametrize(
+        "status,resolution,delegated_resolution",
+        [
+            # no trackers = affected
+            (None, None, Affect.AffectFix.AFFECTED),
+            # Migrated/duplicate trackers should be ignored,
+            ("closed", "migrated", Affect.AffectFix.AFFECTED),
+            ("closed", "duplicate", Affect.AffectFix.AFFECTED),
+            ("done", "notabug", Affect.AffectFix.NOTAFFECTED),
+            ("closed", "deferred", Affect.AffectFix.DEFER),
+            ("done", "eol", Affect.AffectFix.OOSS),
+            ("won't fix", None, Affect.AffectFix.WONTFIX),
+            ("foo", "bar", Affect.AffectFix.AFFECTED),
+        ],
+    )
+    def test_delegated_resolution(self, status, resolution, delegated_resolution):
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         delegated_affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             flaw__embargoed=False,
             # prevent LOW special handling
             impact=Impact.MODERATE,
         )
-        # no trackers = affected
-        assert delegated_affect.delegated_resolution == Affect.AffectFix.AFFECTED
+        if status is not None:
+            TrackerFactory(
+                affects=(delegated_affect,),
+                ps_update_stream=ps_update_stream.name,
+                status=status,
+                resolution=resolution,
+                embargoed=delegated_affect.flaw.is_embargoed,
+                type=Tracker.TrackerType.BUGZILLA,
+            )
+        assert delegated_affect.delegated_resolution == delegated_resolution
 
-        # Migrated/duplicate trackers should be ignored
-        # regardless whether there are other trackers or not
-        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
-        TrackerFactory(
-            affects=(delegated_affect,),
-            ps_update_stream=ps_update_stream1.name,
-            status="closed",
-            resolution="migrated",
-            embargoed=delegated_affect.flaw.is_embargoed,
-            type=Tracker.TrackerType.BUGZILLA,
-        )
-        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
-        TrackerFactory(
-            affects=(delegated_affect,),
-            ps_update_stream=ps_update_stream2.name,
-            status="closed",
-            resolution="duplicate",
-            embargoed=delegated_affect.flaw.is_embargoed,
-            type=Tracker.TrackerType.BUGZILLA,
-        )
-        assert delegated_affect.delegated_resolution == Affect.AffectFix.AFFECTED
-
-        ps_update_stream3 = PsUpdateStreamFactory(ps_module=ps_module)
-        TrackerFactory(
-            affects=(delegated_affect,),
-            ps_update_stream=ps_update_stream3.name,
-            status="done",
-            resolution="notabug",
-            embargoed=delegated_affect.flaw.is_embargoed,
-            type=Tracker.TrackerType.BUGZILLA,
-        )
-        # if the only tracker is notaffected, delegated_resolution is notaffected
-        assert delegated_affect.delegated_resolution == Affect.AffectFix.NOTAFFECTED
-
-        ps_update_stream4 = PsUpdateStreamFactory(ps_module=ps_module)
-        TrackerFactory(
-            affects=(delegated_affect,),
-            ps_update_stream=ps_update_stream4.name,
-            status="closed",
-            resolution="deferred",
-            embargoed=delegated_affect.flaw.is_embargoed,
-            type=Tracker.TrackerType.BUGZILLA,
-        )
-        # DEFER is ranked higher than NOTAFFECTED
-        assert delegated_affect.delegated_resolution == Affect.AffectFix.DEFER
-
-        ps_update_stream5 = PsUpdateStreamFactory(ps_module=ps_module)
-        TrackerFactory(
-            affects=(delegated_affect,),
-            ps_update_stream=ps_update_stream5.name,
-            status="done",
-            resolution="eol",
-            embargoed=delegated_affect.flaw.is_embargoed,
-            type=Tracker.TrackerType.BUGZILLA,
-        )
-        # OOSS is ranked higher than DEFER
-        assert delegated_affect.delegated_resolution == Affect.AffectFix.OOSS
-
-        ps_update_stream6 = PsUpdateStreamFactory(ps_module=ps_module)
-        TrackerFactory(
-            affects=(delegated_affect,),
-            ps_update_stream=ps_update_stream6.name,
-            status="won't fix",
-            embargoed=delegated_affect.flaw.is_embargoed,
-            type=Tracker.TrackerType.BUGZILLA,
-        )
-        # WONTFIX is ranked higher than OOSS
-        assert delegated_affect.delegated_resolution == Affect.AffectFix.WONTFIX
-
-        # AFFECTED should have higher precedence than any other resolution
-        ps_update_stream7 = PsUpdateStreamFactory(ps_module=ps_module)
-        t = TrackerFactory(
-            affects=(delegated_affect,),
-            ps_update_stream=ps_update_stream7.name,
-            status="foo",
-            resolution="bar",
-            embargoed=delegated_affect.flaw.is_embargoed,
-            type=Tracker.TrackerType.BUGZILLA,
-        )
-        assert t.fix_state == Affect.AffectFix.AFFECTED
-        assert delegated_affect.delegated_resolution == Affect.AffectFix.AFFECTED
-
+    def test_empty_delegated_resolution(self):
         new_affect = AffectFactory(affectedness=Affect.AffectAffectedness.NEW)
         assert new_affect.delegated_resolution is None
         undelegated_affect = AffectFactory(
@@ -409,14 +351,14 @@ class TestFlaw:
 
     def test_delegated_resolution_low(self):
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             flaw__embargoed=False,
             impact=Impact.LOW,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         TrackerFactory(
             affects=[affect],
             ps_update_stream=ps_update_stream.name,
@@ -425,40 +367,31 @@ class TestFlaw:
         )
         assert affect.delegated_resolution == Affect.AffectFix.DEFER
 
-    def test_tracker_fix_state(self):
+    @pytest.mark.parametrize(
+        "status,resolution,expected_fix_state",
+        [
+            ("won't fix", None, Affect.AffectFix.WONTFIX),
+            ("foo", "bar", Affect.AffectFix.AFFECTED),
+            ("foo", "", Affect.AffectFix.AFFECTED),
+        ],
+    )
+    def test_tracker_fix_state(self, status, resolution, expected_fix_state):
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             flaw__embargoed=False,
         )
-        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
-        wontfix_tracker = TrackerFactory(
+        tracker = TrackerFactory(
             affects=[affect],
-            ps_update_stream=ps_update_stream1.name,
-            status="won't fix",
+            ps_update_stream=ps_update_stream.name,
+            status=status,
+            resolution=resolution,
             type=Tracker.TrackerType.BUGZILLA,
         )
-        assert wontfix_tracker.fix_state == Affect.AffectFix.WONTFIX
-        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
-        random_tracker = TrackerFactory(
-            ps_update_stream=ps_update_stream2.name,
-            status="foo",
-            resolution="bar",
-            affects=[affect],
-            type=Tracker.TrackerType.BUGZILLA,
-        )
-        assert random_tracker.fix_state == Affect.AffectFix.AFFECTED
-        ps_update_stream3 = PsUpdateStreamFactory(ps_module=ps_module)
-        empty_tracker = TrackerFactory(
-            ps_update_stream=ps_update_stream3.name,
-            status="foo",
-            resolution="",
-            affects=[affect],
-            type=Tracker.TrackerType.BUGZILLA,
-        )
-        assert empty_tracker.fix_state == Affect.AffectFix.AFFECTED
+        assert tracker.fix_state == expected_fix_state
 
     def test_objects_create_flaw(self, datetime_with_tz, good_cve_id):
         """test creating with manager .create_flow()"""
@@ -532,6 +465,7 @@ class TestFlaw:
     @pytest.mark.enable_signals
     def test_local_updated_dt(self):
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         f = FlawFactory(embargoed=False)
         assert f.local_updated_dt > f.updated_dt
 
@@ -539,14 +473,13 @@ class TestFlaw:
             a = AffectFactory(
                 flaw=f,
                 created_dt=timezone.now(),
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 ps_component="component",
                 affectedness=Affect.AffectAffectedness.AFFECTED,
             )
             assert f.local_updated_dt == timezone.now()
 
         with freeze_time(tzdatetime(3333, 3, 3, 3, 3, 3)):
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             _ = TrackerFactory(
                 affects=(a,),
                 created_dt=timezone.now(),
@@ -561,23 +494,24 @@ class TestFlaw:
     def test_local_updated_dt_inverse_relationship(self):
         f = FlawFactory(embargoed=False)
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         a = AffectFactory(
             flaw=f,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
             affectedness=Affect.AffectAffectedness.AFFECTED,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
-        t = TrackerFactory(
+        TrackerFactory(
             affects=(a,),
             ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
             embargoed=f.embargoed,
         )
         og_local_updated_dt = f.local_updated_dt
-        # try updating trackers from the affect (inverse relationship)
+        # try updating the tracker from the affect (inverse relationship)
         # it should not fail and update the timestamp correctly
-        a.trackers.remove(t)
+        a.trackers = None
+        a.save()
         assert Flaw.objects.first().local_updated_dt > og_local_updated_dt
 
     @pytest.mark.enable_signals
@@ -652,12 +586,14 @@ class TestFlaw:
         one given by the ps_module of the Affect.
         """
         if ps_module_name:
-            PsModuleFactory(
+            ps_module = PsModuleFactory(
                 name=ps_module_name, ps_product=PsProductFactory(name=ps_product_name)
             )
-            affect = AffectFactory(ps_module=ps_module_name)
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+            affect = AffectFactory(ps_update_stream=ps_update_stream.name)
         else:
-            affect = AffectFactory()
+            ps_update_stream = PsUpdateStreamFactory(ps_module=None)
+            affect = AffectFactory(ps_update_stream=ps_update_stream.name)
         assert affect.ps_product == ps_product_name
 
     @pytest.mark.enable_signals
@@ -668,9 +604,10 @@ class TestFlaw:
         """
         flaw = FlawFactory(embargoed=False)
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             ps_component="component",
             affectedness=Affect.AffectAffectedness.NOTAFFECTED,
         )
@@ -699,7 +636,7 @@ class TestFlaw:
         # Initially it is not a MI so it should have no date
         assert f.major_incident_start_dt is None
         with freeze_time(tzdatetime(2077, 1, 1, 13, 39, 0)):
-            f.major_incident_state = Flaw.FlawMajorIncident.APPROVED
+            f.major_incident_state = Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
             f.save()
             assert f.major_incident_start_dt == timezone.now()
 
@@ -715,7 +652,7 @@ class TestFlaw:
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         a = AffectFactory(
             flaw=f,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.NEW,
         )
         t = TrackerFactory(
@@ -752,7 +689,7 @@ class TestFlaw:
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         a = AffectFactory(
             flaw=f,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.NEW,
         )
         t = TrackerFactory(
@@ -770,7 +707,7 @@ class TestFlaw:
         )
         a2 = AffectFactory(
             flaw=f2,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.NEW,
         )
         t2 = TrackerFactory(
@@ -794,6 +731,55 @@ class TestFlaw:
         assert f.cve_id != a2.cve_id
         assert f.cve_id != t2.cve_id
         assert f2.cve_id == a2.cve_id == t2.cve_id
+
+    def test_get_by_identifier(self):
+        """
+        test that the flaw manager get_by_identifier method correctly
+        matches CVE IDs and UUIDs with flaws.
+        """
+
+        flaw = FlawFactory(cve_id="CVE-2999-9999")
+        flaw_uuid = str(flaw.uuid)
+
+        assert Flaw.objects.get_by_identifier("CVE-2999-9999") == flaw
+        assert Flaw.objects.get_by_identifier("cve-2999-9999") == flaw
+        assert Flaw.objects.get_by_identifier("CvE-2999-9999") == flaw
+
+        assert Flaw.objects.get_by_identifier(flaw_uuid) == flaw
+
+        with pytest.raises(Flaw.DoesNotExist):
+            Flaw.objects.get_by_identifier("CVE-2999-9998")
+
+        with pytest.raises(ValidationError):
+            Flaw.objects.get_by_identifier("foo")
+
+    def test_get_by_identifier_with_queryset(self):
+        """
+        test that the flaw manager get_by_identifier method works correctly
+        with a custom queryset parameter.
+        """
+        flaw1 = FlawFactory(cve_id="CVE-2999-9999", title="A")
+        flaw2 = FlawFactory(cve_id="CVE-2999-9998", title="B")
+
+        queryset = Flaw.objects.filter(title="A")
+        flaw1_uuid = str(flaw1.uuid)
+
+        assert (
+            Flaw.objects.get_by_identifier("CVE-2999-9999", queryset=queryset) == flaw1
+        )
+        assert Flaw.objects.get_by_identifier(flaw1_uuid, queryset=queryset) == flaw1
+
+        with pytest.raises(Flaw.DoesNotExist):
+            Flaw.objects.get_by_identifier("CVE-2999-9998", queryset=queryset)
+
+        with pytest.raises(Flaw.DoesNotExist):
+            Flaw.objects.get_by_identifier(str(flaw2.uuid), queryset=queryset)
+
+        # Confirm that a queryset of a different model raises a ValidationError
+        with pytest.raises(ValidationError):
+            Flaw.objects.get_by_identifier(
+                "CVE-2999-9998", queryset=Affect.objects.all()
+            )
 
 
 class TestImpact:
@@ -920,7 +906,8 @@ class TestFlawValidators:
                 comment="",
             )
 
-        AffectFactory(flaw=flaw)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=None)
+        AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw.save()
 
         if should_alert:
@@ -1050,10 +1037,11 @@ class TestFlawValidators:
         False otherwise.
         """
         flaw = FlawFactory()
-        PsModuleFactory(
+        ps_module = PsModuleFactory(
             name=name, ps_product=PsProductFactory(business_unit=business_unit)
         )
-        AffectFactory(flaw=flaw, ps_module=name)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw.save()
 
         if is_rh_product:
@@ -1169,10 +1157,11 @@ class TestFlawValidators:
             vector=rh_cvss,
             comment=rh_cvss_comment,
         )
-        PsModuleFactory(
+        ps_module = PsModuleFactory(
             name=ps_module, ps_product=PsProductFactory(business_unit="Core RHEL")
         )
-        AffectFactory(flaw=flaw, ps_module=ps_module)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw.save()
 
         # there may be an extra alert if the difference between the RH and NIST
@@ -1518,45 +1507,64 @@ class TestFlawValidators:
         assert flaw.valid_alerts.filter(name="embargoed_source_public").exists()
 
     @pytest.mark.parametrize(
-        "bz_id,ps_module,should_alert",
+        "bz_id,missing_module,should_alert",
         [
-            (BZ_ID_SENTINEL, "rhel-6.8.z", True),
-            (BZ_ID_SENTINEL - 1, "rhel-6.8.z", True),
-            (BZ_ID_SENTINEL, "rhel-6", False),
-            (BZ_ID_SENTINEL - 1, "rhel-6", False),
-            (BZ_ID_SENTINEL + 1, "rhel-6", False),
+            (BZ_ID_SENTINEL, True, True),
+            (BZ_ID_SENTINEL - 1, True, True),
+            (BZ_ID_SENTINEL, False, False),
+            (BZ_ID_SENTINEL - 1, False, False),
+            (BZ_ID_SENTINEL + 1, False, False),
         ],
     )
-    def test_validate_affect_ps_module_alerts(self, bz_id, ps_module, should_alert):
-        PsModuleFactory(name="rhel-6")
+    def test_validate_affect_ps_module_alerts(
+        self, bz_id, missing_module, should_alert
+    ):
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module if not missing_module else None
+        )
         flaw = FlawFactory(meta_attr={"bz_id": bz_id})
-        affect = AffectFactory(flaw=flaw, ps_module=ps_module)
+        affect = AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         if should_alert:
             assert affect.valid_alerts.filter(name="old_flaw_affect_ps_module").exists()
         else:
             assert not affect.valid_alerts.exists()
 
     @pytest.mark.parametrize(
-        "bz_id,ps_module,should_raise",
+        "bz_id,missing_module,should_raise",
         [
-            (BZ_ID_SENTINEL, "rhel-6.8.z", False),
-            (BZ_ID_SENTINEL - 1, "rhel-6.8.z", False),
-            (BZ_ID_SENTINEL + 1, "rhel-6.8.z", True),
-            (BZ_ID_SENTINEL + 1, "rhel-6", False),
-            (BZ_ID_SENTINEL - 1, "rhel-6", False),
-            (BZ_ID_SENTINEL, "rhel-6", False),
+            (BZ_ID_SENTINEL, True, False),
+            (BZ_ID_SENTINEL - 1, True, False),
+            (BZ_ID_SENTINEL + 1, True, True),
+            (BZ_ID_SENTINEL + 1, False, False),
+            (BZ_ID_SENTINEL - 1, False, False),
+            (BZ_ID_SENTINEL, False, False),
         ],
     )
-    def test_validate_affect_ps_module_errors(self, bz_id, ps_module, should_raise):
-        PsModuleFactory(name="rhel-6")
+    def test_validate_affect_ps_module_errors(
+        self, bz_id, missing_module, should_raise
+    ):
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module if not missing_module else None
+        )
         flaw = FlawFactory(meta_attr={"bz_id": bz_id})
         if should_raise:
             with pytest.raises(ValidationError) as e:
-                AffectFactory(flaw=flaw, ps_module=ps_module)
-            assert f"{ps_module} is not a valid ps_module" in str(e)
+                AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
+            assert "is not a valid ps_module" in str(e)
         else:
-            affect = AffectFactory(flaw=flaw, ps_module=ps_module)
+            affect = AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
             assert affect
+
+    def test_validate_affect_ps_update_stream(self):
+        """
+        test that the ValidationError is raised when the affect has an invalid ps_update_stream
+        """
+        flaw = FlawFactory()
+        with pytest.raises(ValidationError) as e:
+            AffectFactory(flaw=flaw, ps_update_stream="invalid-stream")
+        assert "is not a valid ps_update_stream" in str(e)
 
     def test_validate_reported_date_empty(self):
         """
@@ -1577,6 +1585,12 @@ class TestFlawValidators:
     @pytest.mark.parametrize(
         "embargoed,unembargo_date,error_str",
         [
+            (False, None, "Non-embargoed flaw has an empty unembargo_dt"),
+            (
+                False,
+                tzdatetime(2022, 11, 22),
+                "Non-embargoed flaw has a future unembargo_dt",
+            ),
             (False, None, "Non-embargoed flaw has an empty unembargo_dt"),
             (
                 False,
@@ -1651,19 +1665,21 @@ class TestFlawValidators:
             assert not flaw.valid_alerts.exists()
 
     @pytest.mark.parametrize(
-        "state,should_raise",
+        "state",
         [
-            (Flaw.FlawMajorIncident.NOVALUE, False),
-            (Flaw.FlawMajorIncident.REQUESTED, False),
-            (Flaw.FlawMajorIncident.REJECTED, False),
-            (Flaw.FlawMajorIncident.APPROVED, False),
-            (Flaw.FlawMajorIncident.CISA_APPROVED, False),
-            (Flaw.FlawMajorIncident.MINOR, False),
-            (Flaw.FlawMajorIncident.ZERO_DAY, False),
-            (Flaw.FlawMajorIncident.INVALID, True),
+            Flaw.FlawMajorIncident.NOVALUE,
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_REQUESTED,
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED,
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_REQUESTED,
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_REJECTED,
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+            Flaw.FlawMajorIncident.MINOR_INCIDENT_REQUESTED,
+            Flaw.FlawMajorIncident.MINOR_INCIDENT_REJECTED,
+            Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED,
         ],
     )
-    def test_validate_major_incident_state(self, state, should_raise):
+    def test_validate_major_incident_state(self, state):
         """
         Tests that a flaw has a valid Major Incident state.
         """
@@ -1684,12 +1700,7 @@ class TestFlawValidators:
             url="https://access.redhat.com/link123",
         )
 
-        if should_raise:
-            error_msg = "A flaw does not have a valid Major Incident state."
-            with pytest.raises(ValidationError, match=error_msg):
-                flaw.save()
-        else:
-            assert flaw.save() is None
+        assert flaw.save() is None
 
     @pytest.mark.parametrize(
         "mitigation,statement,cve_description,requires_cve_description,article,should_alert,alerts",
@@ -1779,7 +1790,7 @@ class TestFlawValidators:
         * has exactly one article
         """
         flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.APPROVED,
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
             mitigation=mitigation,
             statement=statement,
             cve_description=cve_description,
@@ -1821,7 +1832,7 @@ class TestFlawValidators:
                 "cve_description text",
                 Flaw.FlawRequiresCVEDescription.APPROVED,
                 True,
-                ["cisa_mi_statement_missing"],
+                ["exploits_kev_statement_missing"],
             ),
             # empty cve_description
             (
@@ -1830,12 +1841,12 @@ class TestFlawValidators:
                 Flaw.FlawRequiresCVEDescription.NOVALUE,
                 True,
                 [
-                    "cisa_mi_cve_description_missing",
+                    "exploits_kev_cve_description_missing",
                 ],
             ),
         ],
     )
-    def test_validate_cisa_major_incident_fields(
+    def test_validate_exploits_kev_fields(
         self,
         statement,
         cve_description,
@@ -1849,7 +1860,7 @@ class TestFlawValidators:
         * has a cve_description
         """
         flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.CISA_APPROVED,
+            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
             statement=statement,
             cve_description=cve_description,
             requires_cve_description=requires_cve_description,
@@ -1939,7 +1950,7 @@ class TestFlawValidators:
             affects.append(
                 AffectFactory(
                     flaw__embargoed=embargoed_flaw,
-                    ps_module="module",
+                    ps_update_stream=ps_update_stream.name,
                     ps_component="component",
                 )
             )
@@ -2033,13 +2044,13 @@ class TestFlawValidators:
             cve_description="cve_description",
         )
         ps_module = PsModuleFactory(bts_name="bugzilla")
-        affect = AffectFactory(
-            flaw=flaw,
-            ps_module=ps_module.name,
-            affectedness=Affect.AffectAffectedness.NEW,
-        )
         for status in tracker_statuses:
             ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+            affect = AffectFactory(
+                flaw=flaw,
+                ps_update_stream=ps_update_stream.name,
+                affectedness=Affect.AffectAffectedness.NEW,
+            )
             TrackerFactory(
                 embargoed=False,
                 ps_update_stream=ps_update_stream.name,
@@ -2064,40 +2075,34 @@ class TestFlawValidators:
                 False,
             ),
             (
-                Flaw.FlawMajorIncident.APPROVED,
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 ["Closed", "Open"],
                 False,
             ),
             (
                 Flaw.FlawMajorIncident.NOVALUE,
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 ["Closed", "Open"],
                 True,
             ),
             (
-                Flaw.FlawMajorIncident.APPROVED,
-                Flaw.FlawMajorIncident.NOVALUE,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED,
                 ["Closed", "Open"],
                 True,
             ),
             (
                 Flaw.FlawMajorIncident.NOVALUE,
-                Flaw.FlawMajorIncident.APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                 ["Closed", "Closed"],
                 False,
             ),
             (
-                Flaw.FlawMajorIncident.APPROVED,
-                Flaw.FlawMajorIncident.NOVALUE,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED,
                 ["Closed", "Closed"],
                 False,
-            ),
-            (
-                Flaw.FlawMajorIncident.ZERO_DAY,
-                Flaw.FlawMajorIncident.NOVALUE,
-                ["Closed", "Open"],
-                True,
             ),
         ],
     )
@@ -2118,13 +2123,13 @@ class TestFlawValidators:
             url="https://access.redhat.com/link123",
         )
         ps_module = PsModuleFactory(bts_name="bugzilla")
-        affect = AffectFactory(
-            flaw=flaw,
-            ps_module=ps_module.name,
-            affectedness=Affect.AffectAffectedness.NEW,
-        )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         for status in tracker_statuses:
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+            affect = AffectFactory(
+                flaw=flaw,
+                ps_update_stream=ps_update_stream.name,
+                affectedness=Affect.AffectAffectedness.NEW,
+            )
             TrackerFactory(
                 affects=(affect,),
                 embargoed=False,
@@ -2138,6 +2143,30 @@ class TestFlawValidators:
         assert should_raise == bool(
             flaw.valid_alerts.filter(name="unsupported_impact_change").exists()
         )
+
+    def test_validate_major_incident_state_revert_to_novalue(self):
+        """
+        Test that changing major_incident_state back to NOVALUE raises a ValidationError.
+        """
+        # Create a flaw with NOVALUE initially
+        flaw = FlawFactory.build(
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            impact=Impact.MODERATE,
+        )
+        flaw.save()
+        AffectFactory(flaw=flaw)
+
+        # Change to a non-NOVALUE state (should succeed)
+        flaw.major_incident_state = Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED
+        flaw.save()
+
+        # Try to change back to NOVALUE (should raise ValidationError)
+        flaw.major_incident_state = Flaw.FlawMajorIncident.NOVALUE
+        with pytest.raises(
+            ValidationError, match="Cannot revert major_incident_state back to NOVALUE"
+        ):
+            flaw.save()
 
     @pytest.mark.parametrize(
         "is_rhscl,ps_component,alerts",
@@ -2169,8 +2198,12 @@ class TestFlawValidators:
         VALID_COLLECTIONS = ["valid"]
         bts_key = "Not a RHSCL" if not is_rhscl else RHSCL_BTS_KEY
         module_obj = PsModuleFactory(name="test-module", bts_key=bts_key)
-        PsUpdateStreamFactory(collections=VALID_COLLECTIONS, ps_module=module_obj)
-        affect = AffectFactory(ps_module="test-module", ps_component=ps_component)
+        ps_update_stream = PsUpdateStreamFactory(
+            collections=VALID_COLLECTIONS, ps_module=module_obj
+        )
+        affect = AffectFactory(
+            ps_update_stream=ps_update_stream.name, ps_component=ps_component
+        )
         if alerts:
             assert set(alerts).issubset(
                 affect.valid_alerts.values_list("name", flat=True).distinct()
@@ -2326,11 +2359,12 @@ class TestFlawValidators:
 
         # Service product and low/medium impact is needed to test pass WONTREPORT affects validations
         if resolution == Affect.AffectResolution.WONTREPORT:
-            PsModuleFactory(
+            ps_module = PsModuleFactory(
                 name="other-services-test-module",
                 ps_product=PsProductFactory(short_name="other-services"),
             )
-            affect.ps_module = "other-services-test-module"
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+            affect.ps_update_stream = ps_update_stream.name
             affect.impact = Impact.LOW
 
         if should_raise:
@@ -2372,13 +2406,13 @@ class TestFlawValidators:
         status = "OPEN" if is_tracker_open else "CLOSED"
         flaw = FlawFactory(embargoed=False)
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=affectedness,
             resolution=Affect.AffectResolution.NOVALUE,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory.build(
             embargoed=False,
             ps_update_stream=ps_update_stream.name,
@@ -2386,10 +2420,11 @@ class TestFlawValidators:
             type=Tracker.TrackerType.BUGZILLA,
         )
         tracker.save(raise_validation_error=False)
-        tracker.affects.add(affect)
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
         error_message = (
             f"The tracker is associated with a {Affect.AffectAffectedness.NOTAFFECTED} affect: "
-            f"{affect.ps_module}/{affect.ps_component} \\({affect.uuid}\\)"
+            f"{affect.ps_update_stream}/{affect.ps_component} \\({affect.uuid}\\)"
         )
         match = (
             error_message
@@ -2436,14 +2471,14 @@ class TestFlawValidators:
         status = "OPEN" if is_tracker_open else "CLOSED"
         flaw = FlawFactory(embargoed=False)
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=resolution,
         )
 
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory.build(
             embargoed=False,
             ps_update_stream=ps_update_stream.name,
@@ -2451,10 +2486,11 @@ class TestFlawValidators:
             type=Tracker.TrackerType.BUGZILLA,
         )
         tracker.save(raise_validation_error=False)
-        tracker.affects.add(affect)
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
         error_message = (
             "The tracker is associated with an OOSS affect: "
-            f"{affect.ps_module}/{affect.ps_component} \\({affect.uuid}\\)"
+            f"{affect.ps_update_stream}/{affect.ps_component} \\({affect.uuid}\\)"
         )
         match = (
             error_message
@@ -2496,13 +2532,13 @@ class TestFlawValidators:
         status = "OPEN" if is_tracker_open else "CLOSED"
         flaw = FlawFactory(embargoed=False)
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=resolution,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory.build(
             embargoed=False,
             ps_update_stream=ps_update_stream.name,
@@ -2510,10 +2546,11 @@ class TestFlawValidators:
             type=Tracker.TrackerType.BUGZILLA,
         )
         tracker.save(raise_validation_error=False)
-        tracker.affects.add(affect)
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
         error_message = (
             f"The tracker is associated with a {Affect.AffectResolution.DEFER} affect: "
-            f"{affect.ps_module}/{affect.ps_component} \\({affect.uuid}\\)"
+            f"{affect.ps_update_stream}/{affect.ps_component} \\({affect.uuid}\\)"
         )
         match = (
             error_message
@@ -2555,13 +2592,13 @@ class TestFlawValidators:
         status = "OPEN" if is_tracker_open else "CLOSED"
         flaw = FlawFactory(embargoed=False)
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
             flaw=flaw,
-            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=resolution,
         )
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         tracker = TrackerFactory.build(
             embargoed=False,
             ps_update_stream=ps_update_stream.name,
@@ -2569,10 +2606,11 @@ class TestFlawValidators:
             type=Tracker.TrackerType.BUGZILLA,
         )
         tracker.save(raise_validation_error=False)
-        tracker.affects.add(affect)
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
         error_message = (
             f"The tracker is associated with a {Affect.AffectResolution.WONTFIX} affect: "
-            f"{affect.ps_module}/{affect.ps_component} \\({affect.uuid}\\)"
+            f"{affect.ps_update_stream}/{affect.ps_component} \\({affect.uuid}\\)"
         )
         match = (
             error_message
@@ -2768,7 +2806,7 @@ class TestFlawValidators:
             bts_key=bts_key,
             default_component="",
         )
-        PsUpdateStreamFactory(
+        ps_update_stream = PsUpdateStreamFactory(
             ps_module=ps_module, collections=["rhscl-custom-collection"]
         )
         product_name = (
@@ -2777,7 +2815,9 @@ class TestFlawValidators:
         bz_product = BugzillaProduct(name=product_name)
         bz_product.save()
         BugzillaComponent(name="test-module", product=bz_product).save()
-        affect = AffectFactory(ps_module="test-ps-module", ps_component=ps_component)
+        affect = AffectFactory(
+            ps_update_stream=ps_update_stream.name, ps_component=ps_component
+        )
 
         assert should_raise == bool(
             affect.valid_alerts.filter(name="flaw_affects_unknown_component").exists()
@@ -2815,10 +2855,11 @@ class TestFlawValidators:
             embargoed=False,
         )
         ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         with pytest.raises(ValidationError):
             AffectFactory(
                 flaw=flaw,
-                ps_module=ps_module.name,
+                ps_update_stream=ps_update_stream.name,
                 affectedness=Affect.AffectAffectedness.NOTAFFECTED,
                 not_affected_justification="",
             )
