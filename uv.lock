@@ -1034,7 +1034,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/bf/61/395013f4378b12f47
 
 [[package]]
 name = "osidb"
-version = "4.16.0"
+version = "5.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "backoff" },
