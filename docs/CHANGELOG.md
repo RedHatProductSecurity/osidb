@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Fixed
+- Fix missing SLA fields (OSIDB-4610)
 
 ## [5.0.0] - 2025-10-31
 ### Fixed
@@ -32,25 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove deprecated fields/models: `PsProduct`'s `team`, `FlawComment`'s `order` 
   and models in `package_versions.py` (OSIDB-3552)
 
-## [4.16.0] - 2025-09-16
-### Fixed
-- Fix `owner` update in Jira not reflected in OSIDB (OSIDB-4306)
-- Fix not affected justifications from Jira not being collected by OSIDB (OSIDB-4418)
-- Fix use full component name for CC lists (OSIDB-4371)
-
-### Changed
-- Make `affect` model's `flaw` field un-nullable (OSIDB-4202)
-- Remove CVE description validation for Major Incident Flaws (OSIDB-4440)
-
+## [4.16.1] - 2025-10-01
 ### Added
-- Add `aegis_meta` field on `Flaw` objects for Aegis metadata (OSIDB-4454)
-
-## [4.15.0] - 2025-08-21
-### Fixed
-- Fix FlawSource enum reference in OpenAPI schema (OSIDB-4401)
-- Fix the available-flaws API giving a 404 on non-existent flaws instead of 204 (OSIDB-4397).
-- Prevent emails from being sent for *rejected* critical flaws (OSIDB-4274)
-
+- Add SLA policies in the new Jira field (OSIDB-4404)
 
 ## [4.16.0] - 2025-09-16
 ### Fixed

@@ -84,7 +84,7 @@ def update_major_incident_start_dt(flaw: Flaw) -> None:
         Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
         Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
         # Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED is not
-        # included as it has no impact on the SLA
+        # included as it has no impact on the SLO
     }
     if is_major_incident and flaw.major_incident_start_dt is None:
         flaw.major_incident_start_dt = timezone.now()
