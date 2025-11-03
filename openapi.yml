@@ -11401,8 +11401,10 @@ components:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
         delegated_not_affected_justification:
-          type: string
           readOnly: true
+          oneOf:
+          - $ref: '#/components/schemas/DelegatedNotAffectedJustificationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         resolved_dt:
           type: string
           format: date-time
@@ -12094,6 +12096,14 @@ components:
       - V2
       - V3
       - V4
+      type: string
+    DelegatedNotAffectedJustificationEnum:
+      enum:
+      - Component not Present
+      - Inline Mitigations already Exist
+      - Vulnerable Code cannot be Controlled by Adversary
+      - Vulnerable Code not in Execute Path
+      - Vulnerable Code not Present
       type: string
     EPSS:
       type: object
