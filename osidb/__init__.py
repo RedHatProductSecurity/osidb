@@ -2,5 +2,5 @@
 osidb version
 """
 
-__version__ = "5.0.0"
+__version__ = "5.0.1"
 VERSION = __version__
