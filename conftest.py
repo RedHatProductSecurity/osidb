@@ -367,8 +367,10 @@ def set_recording_environments(
     # from envs but VCR needs them so we manually load values where it is needed
     config = dotenv_values(".env")
 
-    jira_url = config.get("JIRA_URL", "https://issues.redhat.com")
-    jira_task_url = config.get("JIRA_TASKMAN_URL", "https://issues.redhat.com")
+    jira_url = config.get("JIRA_URL", "https://uat-2-2-redhat.atlassian.net")
+    jira_task_url = config.get(
+        "JIRA_TASKMAN_URL", "https://uat-2-2-redhat.atlassian.net"
+    )
     bz_url = config.get("BZIMPORT_BZ_URL", "https://bugzilla.redhat.com")
 
     if "stage" not in jira_url:

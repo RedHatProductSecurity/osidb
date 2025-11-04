@@ -56,6 +56,7 @@ class JiraConnector:
                 "server": self._jira_server,
                 # avoid the JIRA lib auto-updating
                 "check_update": False,
+                "rest_api_version": "3",
             },
             basic_auth=(self._jira_email, self._jira_token),
             get_server_info=True,

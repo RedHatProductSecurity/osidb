@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from osidb.helpers import get_env
 
-JIRA_SERVER = get_env("JIRA_URL", default="https://uat-1-1-redhat.atlassian.net")
+JIRA_SERVER = get_env("JIRA_URL", default="https://uat-2-2-redhat.atlassian.net")
 JIRA_EMBARGO_SECURITY_LEVEL_NAME = get_env(
     "JIRA_EMBARGO_SECURITY_LEVEL_NAME", default="Embargoed Security Issue"
 )
