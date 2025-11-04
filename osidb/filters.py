@@ -760,6 +760,12 @@ class FlawV1Filter(FlawFilter):
         field_name="updated_dt", method="changed_after_filter"
     )
 
+    def _filter_fields(self, fields):
+        # account for affects__trackers(__foo)
+        return super()._filter_fields(
+            [field.replace("__trackers", "__tracker") for field in fields]
+        )
+
     def _get_flaw_ids_by_affect(self, affect_filter):
         return (
             AffectV1.objects.filter(**affect_filter)
@@ -1092,6 +1098,12 @@ class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFil
     cvss_scores__uuid = UUIDFilter(method="cvss_uuid_filter")
     cvss_scores__vector = CharFilter(method="cvss_vector_filter")
     cvss_scores__cvss_version = CharFilter(method="cvss_version_filter")
+
+    def _filter_fields(self, fields):
+        # account for (foo__)trackers(__bar)
+        return super()._filter_fields(
+            [field.replace("trackers", "tracker") for field in fields]
+        )
 
     def _filter_by_tracker_attribute(self, queryset, filter_key, value):
         """Helper method to find affects v1 from its trackers' fields"""
