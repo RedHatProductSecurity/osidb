@@ -40,6 +40,8 @@ from osidb.models import (
     FlawComment,
     FlawCVSS,
     FlawReference,
+    FlawSource,
+    Impact,
     Package,
     Tracker,
 )
@@ -629,6 +631,9 @@ class FlawV1Filter(FlawFilter):
     Filter for flaws adapted to affects v1
     """
 
+    # Explicitly exclude this filter from the parent
+    affects__tracker__embargoed = None
+
     # Override filters that depended on the v1 affect
     tracker_ids = CharInFilter(method="tracker_ids_filter", distinct=True)
     affects__embargoed = BooleanFilter(method="affects_embargoed_filter")
@@ -637,17 +642,39 @@ class FlawV1Filter(FlawFilter):
     )
 
     # Custom filters to match the current ones
-    affects__uuid = CharFilter(method="affect_direct_filter")
-    affects__affectedness = CharFilter(method="affect_direct_filter")
-    affects__resolution = CharFilter(method="affect_direct_filter")
+    affects__uuid = UUIDFilter(method="affect_direct_filter")
+    affects__affectedness = ChoiceFilter(
+        method="affect_direct_filter", choices=Affect.AffectAffectedness.choices
+    )
+    affects__resolution = ChoiceFilter(
+        method="affect_direct_filter", choices=Affect.AffectResolution.choices
+    )
     affects__ps_module = CharFilter(method="affect_direct_filter")
     affects__ps_component = CharFilter(method="affect_direct_filter")
-    affects__impact = CharFilter(method="affect_direct_filter")
+    affects__impact = ChoiceFilter(
+        method="affect_direct_filter", choices=Impact.choices
+    )
     affects__created_dt = DateTimeFilter(method="affect_datetime_filter")
+    affects__created_dt__lt = DateTimeFilter(method="affect_datetime_filter")
+    affects__created_dt__gt = DateTimeFilter(method="affect_datetime_filter")
+    affects__created_dt__lte = DateTimeFilter(method="affect_datetime_filter")
+    affects__created_dt__gte = DateTimeFilter(method="affect_datetime_filter")
+    affects__created_dt__date = DateFilter(method="affect_datetime_filter")
+    affects__created_dt__date__lte = DateFilter(method="affect_datetime_filter")
+    affects__created_dt__date__gte = DateFilter(method="affect_datetime_filter")
     affects__updated_dt = DateTimeFilter(method="affect_datetime_filter")
+    affects__updated_dt__lt = DateTimeFilter(method="affect_datetime_filter")
+    affects__updated_dt__gt = DateTimeFilter(method="affect_datetime_filter")
+    affects__updated_dt__lte = DateTimeFilter(method="affect_datetime_filter")
+    affects__updated_dt__gte = DateTimeFilter(method="affect_datetime_filter")
+    affects__updated_dt__date = DateFilter(method="affect_datetime_filter")
+    affects__updated_dt__date__lte = DateFilter(method="affect_datetime_filter")
+    affects__updated_dt__date__gte = DateFilter(method="affect_datetime_filter")
 
     affects__trackers__uuid = CharFilter(method="affect_trackers_filter")
-    affects__trackers__type = CharFilter(method="affect_trackers_filter")
+    affects__trackers__type = ChoiceFilter(
+        method="affect_trackers_filter", choices=Tracker.TrackerType.choices
+    )
     affects__trackers__external_system_id = CharFilter(method="affect_trackers_filter")
     affects__trackers__status = CharFilter(method="affect_trackers_filter")
     affects__trackers__resolution = CharFilter(method="affect_trackers_filter")
@@ -655,17 +682,76 @@ class FlawV1Filter(FlawFilter):
     affects__trackers__created_dt = DateTimeFilter(
         method="affect_trackers_datetime_filter"
     )
+    affects__trackers__created_dt__lt = DateTimeFilter(
+        "affect_trackers_datetime_filter"
+    )
+    affects__trackers__created_dt__gt = DateTimeFilter(
+        "affect_trackers_datetime_filter"
+    )
+    affects__trackers__created_dt__lte = DateTimeFilter(
+        "affect_trackers_datetime_filter"
+    )
+    affects__trackers__created_dt__gte = DateTimeFilter(
+        "affect_trackers_datetime_filter"
+    )
+    affects__trackers__created_dt__date = DateFilter("affect_trackers_datetime_filter")
+    affects__trackers__created_dt__date__lte = DateFilter(
+        "affect_trackers_datetime_filter"
+    )
+    affects__trackers__created_dt__date__gte = DateFilter(
+        "affect_trackers_datetime_filter"
+    )
     affects__trackers__updated_dt = DateTimeFilter(
         method="affect_trackers_datetime_filter"
+    )
+    affects__trackers__updated_dt__lt = DateTimeFilter(
+        "affect_trackers_datetime_filter"
+    )
+    affects__trackers__updated_dt__gt = DateTimeFilter(
+        "affect_trackers_datetime_filter"
+    )
+    affects__trackers__updated_dt__lte = DateTimeFilter(
+        "affect_trackers_datetime_filter"
+    )
+    affects__trackers__updated_dt__gte = DateTimeFilter(
+        "affect_trackers_datetime_filter"
+    )
+    affects__trackers__updated_dt__date = DateFilter("affect_trackers_datetime_filter")
+    affects__trackers__updated_dt__date__lte = DateFilter(
+        "affect_trackers_datetime_filter"
+    )
+    affects__trackers__updated_dt__date__gte = DateFilter(
+        "affect_trackers_datetime_filter"
     )
 
     affects__trackers__errata__advisory_name = CharFilter(
         method="affect_trackers_errata_filter"
     )
-    affects__trackers__errata__et_id = CharFilter(
+    affects__trackers__errata__et_id = NumberFilter(
         method="affect_trackers_errata_filter"
     )
     affects__trackers__errata__shipped_dt = DateTimeFilter(
+        method="affect_trackers_errata_datetime_filter"
+    )
+    affects__trackers__errata__shipped_dt__lt = DateTimeFilter(
+        method="affect_trackers_errata_datetime_filter"
+    )
+    affects__trackers__errata__shipped_dt__gt = DateTimeFilter(
+        method="affect_trackers_errata_datetime_filter"
+    )
+    affects__trackers__errata__shipped_dt__lte = DateTimeFilter(
+        method="affect_trackers_errata_datetime_filter"
+    )
+    affects__trackers__errata__shipped_dt__gte = DateTimeFilter(
+        method="affect_trackers_errata_datetime_filter"
+    )
+    affects__trackers__errata__shipped_dt__date = DateFilter(
+        method="affect_trackers_errata_datetime_filter"
+    )
+    affects__trackers__errata__shipped_dt__date__lte = DateFilter(
+        method="affect_trackers_errata_datetime_filter"
+    )
+    affects__trackers__errata__shipped_dt__date__gte = DateFilter(
         method="affect_trackers_errata_datetime_filter"
     )
 
@@ -771,6 +857,97 @@ class FlawV1Filter(FlawFilter):
         # which updates every 5 minutes. By getting flaws which were updated 5 minutes before the given value,
         # we ensure that we don't miss any flaws that were updated in that time window and maybe had stale data.
         return queryset.filter(local_updated_dt__gte=value - timedelta(minutes=5))
+
+    class Meta:
+        """
+        Class that defines some Filter properties. Can be used to auto-generate filters, but param names are less useful
+        """
+
+        model = Flaw
+        fields = {
+            # Flaw fields
+            "uuid": ["exact"],
+            "cve_id": ["exact"],
+            "created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "impact": ["exact"],
+            "cwe_id": ["exact"],
+            "unembargo_dt": ["exact"],
+            "source": ["exact"],
+            "reported_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "components": ["exact"],
+            "major_incident_state": ["exact"],
+            "major_incident_start_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "requires_cve_description": ["exact"],
+            "nist_cvss_validation": ["exact"],
+            # Workflow fields
+            "workflow_state": ["exact"],
+            "owner": ["exact"],
+            "team_id": ["exact"],
+            # Acknowledgment fields
+            "acknowledgments__uuid": ["exact"],
+            "acknowledgments__name": ["exact"],
+            "acknowledgments__affiliation": ["exact"],
+            "acknowledgments__from_upstream": ["exact"],
+            "acknowledgments__created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "acknowledgments__updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            # FlawCVSS fields
+            "cvss_scores__comment": ["exact"],
+            "cvss_scores__created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "cvss_scores__issuer": ["exact"],
+            "cvss_scores__score": ["exact"],
+            "cvss_scores__updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "cvss_scores__uuid": ["exact"],
+            "cvss_scores__vector": ["exact"],
+            # Reference fields
+            "references__created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "references__description": ["exact"],
+            "references__type": ["exact"],
+            "references__updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "references__url": ["exact"],
+            "references__uuid": ["exact"],
+        }
+
+    order_fields = [
+        "bz_id",
+        "cve_id",
+        "embargoed",
+        "comment_zero",
+        "statement",
+        "cve_description",
+        "title",
+    ] + list(Meta.fields.keys())
+    order = OrderingFilter(fields=order_fields)
 
 
 class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
@@ -1081,7 +1258,6 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
     flaw__components = CharInFilter(
         field_name="flaw__components", lookup_expr="contains"
     )
-    tracker__embargoed = BooleanFilter(field_name="tracker__embargoed")
     tracker__isnull = NullForeignKeyFilter(field_name="tracker")
 
     class Meta:
@@ -1247,23 +1423,96 @@ class TrackerV1Filter(TrackerFilter):
     affects__flaw__components = CharInFilter(method="tracker_flaw_components_filter")
 
     # Custom filters to match the current ones
-    affects__uuid = CharFilter(method="affect_direct_filter")
-    affects__affectedness = CharFilter(method="affect_direct_filter")
-    affects__resolution = CharFilter(method="affect_direct_filter")
+    affects__uuid = UUIDFilter(method="affect_direct_filter")
+    affects__affectedness = ChoiceFilter(
+        method="affect_direct_filter", choices=Affect.AffectAffectedness.choices
+    )
+    affects__resolution = ChoiceFilter(
+        method="affect_direct_filter", choices=Affect.AffectResolution.choices
+    )
     affects__ps_module = CharFilter(method="affect_direct_filter")
     affects__ps_component = CharFilter(method="affect_direct_filter")
-    affects__impact = CharFilter(method="affect_direct_filter")
+    affects__impact = ChoiceFilter(
+        method="affect_direct_filter", choices=Impact.choices
+    )
     affects__created_dt = DateTimeFilter(method="affect_datetime_filter")
+    affects__created_dt__lt = DateTimeFilter(method="affect_datetime_filter")
+    affects__created_dt__gt = DateTimeFilter(method="affect_datetime_filter")
+    affects__created_dt__lte = DateTimeFilter(method="affect_datetime_filter")
+    affects__created_dt__gte = DateTimeFilter(method="affect_datetime_filter")
+    affects__created_dt__date = DateFilter(method="affect_datetime_filter")
+    affects__created_dt__date__lte = DateFilter(method="affect_datetime_filter")
+    affects__created_dt__date__gte = DateFilter(method="affect_datetime_filter")
     affects__updated_dt = DateTimeFilter(method="affect_datetime_filter")
+    affects__updated_dt__lt = DateTimeFilter(method="affect_datetime_filter")
+    affects__updated_dt__gt = DateTimeFilter(method="affect_datetime_filter")
+    affects__updated_dt__lte = DateTimeFilter(method="affect_datetime_filter")
+    affects__updated_dt__gte = DateTimeFilter(method="affect_datetime_filter")
+    affects__updated_dt__date = DateFilter(method="affect_datetime_filter")
+    affects__updated_dt__date__lte = DateFilter(method="affect_datetime_filter")
+    affects__updated_dt__date__gte = DateFilter(method="affect_datetime_filter")
 
-    affects__flaw__uuid = CharFilter(method="affect_flaw_filter")
+    affects__flaw__uuid = UUIDFilter(method="affect_flaw_filter")
     affects__flaw__cve_id = CharFilter(method="affect_flaw_filter")
-    affects__flaw__impact = CharFilter(method="affect_flaw_filter")
+    affects__flaw__impact = ChoiceFilter(
+        method="affect_flaw_filter", choices=Impact.choices
+    )
     affects__flaw__cwe_id = CharFilter(method="affect_flaw_filter")
-    affects__flaw__source = CharFilter(method="affect_flaw_filter")
+    affects__flaw__source = ChoiceFilter(
+        method="affect_flaw_filter", choices=FlawSource.choices
+    )
     affects__flaw__created_dt = DateTimeFilter(method="affect_flaw_datetime_filter")
+    affects__flaw__created_dt__lt = DateTimeFilter(method="affect_flaw_datetime_filter")
+    affects__flaw__created_dt__gt = DateTimeFilter(method="affect_flaw_datetime_filter")
+    affects__flaw__created_dt__lte = DateTimeFilter(
+        method="affect_flaw_datetime_filter"
+    )
+    affects__flaw__created_dt__gte = DateTimeFilter(
+        method="affect_flaw_datetime_filter"
+    )
+    affects__flaw__created_dt__date = DateFilter(method="affect_flaw_datetime_filter")
+    affects__flaw__created_dt__date__lte = DateFilter(
+        method="affect_flaw_datetime_filter"
+    )
+    affects__flaw__created_dt__date__gte = DateFilter(
+        method="affect_flaw_datetime_filter"
+    )
     affects__flaw__updated_dt = DateTimeFilter(method="affect_flaw_datetime_filter")
+    affects__flaw__updated_dt__lt = DateTimeFilter(method="affect_flaw_datetime_filter")
+    affects__flaw__updated_dt__gt = DateTimeFilter(method="affect_flaw_datetime_filter")
+    affects__flaw__updated_dt__lte = DateTimeFilter(
+        method="affect_flaw_datetime_filter"
+    )
+    affects__flaw__updated_dt__gte = DateTimeFilter(
+        method="affect_flaw_datetime_filter"
+    )
+    affects__flaw__updated_dt__date = DateFilter(method="affect_flaw_datetime_filter")
+    affects__flaw__updated_dt__date__lte = DateFilter(
+        method="affect_flaw_datetime_filter"
+    )
+    affects__flaw__updated_dt__date__gte = DateFilter(
+        method="affect_flaw_datetime_filter"
+    )
     affects__flaw__reported_dt = DateTimeFilter(method="affect_flaw_datetime_filter")
+    affects__flaw__reported_dt__lt = DateTimeFilter(
+        method="affect_flaw_datetime_filter"
+    )
+    affects__flaw__reported_dt__gt = DateTimeFilter(
+        method="affect_flaw_datetime_filter"
+    )
+    affects__flaw__reported_dt__lte = DateTimeFilter(
+        method="affect_flaw_datetime_filter"
+    )
+    affects__flaw__reported_dt__gte = DateTimeFilter(
+        method="affect_flaw_datetime_filter"
+    )
+    affects__flaw__reported_dt__date = DateFilter(method="affect_flaw_datetime_filter")
+    affects__flaw__reported_dt__date__lte = DateFilter(
+        method="affect_flaw_datetime_filter"
+    )
+    affects__flaw__reported_dt__date__gte = DateFilter(
+        method="affect_flaw_datetime_filter"
+    )
     affects__flaw__unembargo_dt = DateTimeFilter(method="affect_flaw_datetime_filter")
 
     def _get_tracker_uuids_from_affect_v1_filter(self, affect_v1_filter):
@@ -1312,6 +1561,33 @@ class TrackerV1Filter(TrackerFilter):
             {"flaw__components__contains": value}
         )
         return queryset.filter(uuid__in=tracker_uuids)
+
+    class Meta:
+        model = Tracker
+        fields = {
+            "uuid": ["exact"],
+            "type": ["exact"],
+            "external_system_id": ["exact"],
+            "status": ["exact"],
+            "resolution": ["exact"],
+            "ps_update_stream": ["exact"],
+            "created_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "cve_id": ["exact"],
+            "updated_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+        }
+
+    order_fields = [
+        "embargoed",
+        "affects__embargoed",
+        "affects__flaw__embargoed",
+    ] + list(Meta.fields.keys())
+    order = OrderingFilter(fields=order_fields)
 
 
 class FlawAcknowledgmentFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
