@@ -89,7 +89,7 @@ def jira_vulnissuetype_fields_setup_without_versions():
     # Affects Versions field not set up here so that tests can customize it
     JiraProjectFields(
         project_key="FOOPROJECT",
-        field_id="customfield_10432",
+        field_id="customfield_10121",
         field_name="Source",
         # Severely pruned for the test
         allowed_values=["Red Hat", "Upstream"],
@@ -97,49 +97,49 @@ def jira_vulnissuetype_fields_setup_without_versions():
 
     JiraProjectFields(
         project_key="FOOPROJECT",
-        field_id="customfield_10282",
+        field_id="customfield_10101",
         field_name="CVE ID",
         allowed_values=[],
     ).save()
 
     JiraProjectFields(
         project_key="FOOPROJECT",
-        field_id="customfield_10290",
+        field_id="customfield_10055",
         field_name="CVSS Score",
         allowed_values=[],
     ).save()
 
     JiraProjectFields(
         project_key="FOOPROJECT",
-        field_id="customfield_10286",
+        field_id="customfield_10151",
         field_name="CWE ID",
         allowed_values=[],
     ).save()
 
     JiraProjectFields(
         project_key="FOOPROJECT",
-        field_id="customfield_10391",
+        field_id="customfield_10056",
         field_name="Downstream Component Name",
         allowed_values=[],
     ).save()
 
     JiraProjectFields(
         project_key="FOOPROJECT",
-        field_id="customfield_10392",
+        field_id="customfield_10057",
         field_name="Upstream Affected Component",
         allowed_values=[],
     ).save()
 
     JiraProjectFields(
         project_key="FOOPROJECT",
-        field_id="customfield_10433",
+        field_id="customfield_10058",
         field_name="Embargo Status",
         allowed_values=["True", "False"],
     ).save()
 
     JiraProjectFields(
         project_key="FOOPROJECT",
-        field_id="customfield_10294",
+        field_id="customfield_10155",
         field_name="Special Handling",
         allowed_values=[
             "0-day",
@@ -151,7 +151,7 @@ def jira_vulnissuetype_fields_setup_without_versions():
 
     JiraProjectFields(
         project_key="FOOPROJECT",
-        field_id="customfield_10296",
+        field_id="customfield_10054",
         field_name="Severity",
         allowed_values=[
             "Critical",

@@ -18,9 +18,9 @@ TRACKER_FEEDBACK_FORM_URL = get_env("TRACKER_FEEDBACK_FORM_URL")
 # Translate fields as defined in product definitions to the actual Jira field
 PS_ADDITIONAL_FIELD_TO_JIRA = {
     "fixVersions": "fixVersions",
-    "release_blocker": "customfield_10283",
-    "target_release": "customfield_10053",
-    "target_version": "customfield_10387",
+    "release_blocker": "customfield_10113",
+    "target_release": "customfield_10445",
+    "target_version": "customfield_10122",
 }
 
 
