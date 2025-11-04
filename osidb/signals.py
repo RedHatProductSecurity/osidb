@@ -55,7 +55,7 @@ def get_bz_user_id(email: str) -> str:
 
 def get_jira_user_id(email: str) -> str:
     auth_token = get_env("JIRA_AUTH_TOKEN")
-    jira_url = get_env("JIRA_URL", "https://issues.redhat.com")
+    jira_url = get_env("JIRA_URL", "https://uat-2-2-redhat.atlassian.net")
     try:
         jira_api = JIRA(
             options={
