@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [5.0.2] - 2025-11-04
+- Make affects v1 view into materialized view (OSIDB-4621)
+
 ## [5.0.1] - 2025-11-03
 ### Fixed
 - Fix missing SLA fields (OSIDB-4610)
