@@ -168,6 +168,17 @@ CELERY_BEAT_SCHEDULE = {
         # Run every hour
         "schedule": crontab(minute=0),
     },
+    "refresh_affect_v1_view": {
+        "task": "osidb.tasks.refresh_affect_v1_view",
+        # Run every 5 minutes
+        "schedule": crontab(minute="*/5"),
+        "options": {
+            # Don't let tasks queue up if one is stuck (4 min expiry)
+            # This prevents multiple refreshes from stacking up if one takes longer
+            # than 5 minutes.
+            "expires": 240,
+        },
+    },
 }
 
 # There are multiple possible memory leaks in Celery. To work around these issues it is

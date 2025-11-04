@@ -1,6 +1,9 @@
+from time import time
+
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.db import OperationalError, connection
 from django.db.models import OuterRef, Q, Subquery
 from django.db.models.functions import Cast
 
@@ -83,3 +86,26 @@ def stale_alert_cleanup():
     logger.info(f"Deleted {deleted_alerts_count} stale alerts")
 
     return f"Deleted {deleted_alerts_count} Stale Alerts"
+
+
+@app.task
+def refresh_affect_v1_view():
+    """Refresh the materialized view for affects v1."""
+    set_user_acls(settings.ALL_GROUPS)
+
+    start_time = time()
+    sql = "REFRESH MATERIALIZED VIEW CONCURRENTLY affect_v1;"
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+
+        elapsed = time() - start_time
+        message = f'Successfully refreshed "affect_v1" in {elapsed:.2f} seconds.'
+        logger.info(message)
+        return message
+    except OperationalError as e:
+        # This is expected if another refresh is already in progress, which is a possible scenario
+        # with concurrent refresh. Just log it and exit gracefully.
+        message = f'Could not refresh "affect_v1" (likely already in progress): {e}'
+        logger.warning(message)
+        return message

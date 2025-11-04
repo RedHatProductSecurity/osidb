@@ -116,6 +116,18 @@ def remove_host_response(response):
     return response
 
 
+@pytest.fixture(scope="function")
+def refresh_v1_view():
+    from django.db import connection, transaction
+
+    def refresh_func():
+        transaction.commit()
+        with connection.cursor() as cursor:
+            cursor.execute("REFRESH MATERIALIZED VIEW affect_v1;")
+
+    return refresh_func
+
+
 @pytest.fixture(scope="session")
 def vcr_config():
     return {
