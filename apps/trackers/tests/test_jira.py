@@ -796,7 +796,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         test generation of Target Release/Target Version fields
         with PsUpdateStream.target_release being an empty string
 
-        reproducer of https://uat-1-1-redhat.atlassian.net/browse/OSIDB-2909
+        reproducer of https://uat-2-2-redhat.atlassian.net/browse/OSIDB-2909
         """
         ps_module = PsModuleFactory(bts_name="jboss")
         ps_update_stream = PsUpdateStreamFactory(

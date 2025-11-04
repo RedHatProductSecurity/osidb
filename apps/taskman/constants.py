@@ -8,7 +8,7 @@ JIRA_EMAIL = get_env("JIRA_EMAIL")
 JIRA_SUMMARY_MAX_LENGTH = 255
 JIRA_STORY_ISSUE_TYPE_ID = get_env("JIRA_STORY_ISSUE_TYPE_ID")
 JIRA_TASKMAN_URL = get_env(
-    "JIRA_TASKMAN_URL", default="https://uat-1-1-redhat.atlassian.net"
+    "JIRA_TASKMAN_URL", default="https://uat-2-2-redhat.atlassian.net"
 )
 JIRA_TASKMAN_PROJECT_ID = get_env("JIRA_TASKMAN_PROJECT_ID")
 JIRA_TASKMAN_PROJECT_KEY = get_env("JIRA_TASKMAN_PROJECT_KEY", default="OSIM")
