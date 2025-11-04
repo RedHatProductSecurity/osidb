@@ -1412,6 +1412,12 @@ class AffectV1Serializer(
 
     @extend_schema_field(TrackerSerializer(many=True))
     def get_trackers(self, obj):
+        # Use pre-queried list when present
+        tracker_list = self.context.get("tracker_list_by_uuid")
+        if tracker_list is not None:
+            uuids = getattr(obj, "all_tracker_ids", None) or []
+            return [tracker_list[uuid] for uuid in uuids if uuid in tracker_list]
+
         context = {
             "include_fields": self._next_level_include_fields.get("trackers", []),
             "exclude_fields": self._next_level_exclude_fields.get("trackers", []),
@@ -1430,6 +1436,12 @@ class AffectV1Serializer(
         Takes the JSON data from the view's cvss_scores field
         and serializes it using the existing AffectCVSSSerializer.
         """
+        # Use pre-queried list when present
+        cvss_list = self.context.get("cvss_list_by_uuid")
+        if cvss_list is not None:
+            uuids = getattr(obj, "all_cvss_score_ids", None) or []
+            return [cvss_list[uuid] for uuid in uuids if uuid in cvss_list]
+
         if not obj.all_cvss_score_ids:
             return []
         cvss_objects = AffectCVSS.objects.filter(uuid__in=obj.all_cvss_score_ids)
@@ -1479,6 +1491,11 @@ class TrackerV1Serializer(TrackerSerializer):
         }
     )
     def get_affects(self, obj):
+        # Use pre-queried list when present
+        affect_list = self.context.get("affects_by_tracker")
+        if affect_list is not None:
+            return affect_list.get(obj.uuid, [])
+
         return AffectV1.objects.filter(
             all_tracker_ids__contains=[obj.uuid]
         ).values_list("uuid", flat=True)
@@ -2354,10 +2371,60 @@ class FlawV1Serializer(FlawSerializer):
             if request.query_params.get("include_history"):
                 context["include_history"] = request.query_params.get("include_history")
 
-        serializer = AffectV1Serializer(
-            instance=affects_v1, many=True, read_only=True, context=context
-        )
-        return serializer.data
+        # Materialize affect list so we don't re-run the query
+        affects = list(affects_v1)
+
+        # Build list of already queried entities to cascaded to the next serializer
+        tracker_uuid_set = set()
+        affects_by_tracker = defaultdict(list)
+        for a in affects:
+            ids = getattr(a, "all_tracker_ids", None) or []
+            for t in ids:
+                tracker_uuid_set.add(t)
+                affects_by_tracker[t].append(a.uuid)
+
+        # Fetch and serialize each tracker
+        tracker_list = {}
+        if tracker_uuid_set:
+            tracker_qs = Tracker.objects.filter(uuid__in=tracker_uuid_set)
+
+            # Send a pre-fetcheted affect list to TrackerV1Serializer
+            tracker_context = {
+                "include_fields": self._next_level_include_fields.get(
+                    "affects.trackers", []
+                ),
+                "exclude_fields": self._next_level_exclude_fields.get(
+                    "affects.trackers", []
+                ),
+                "include_meta_attr": self._next_level_include_meta_attr.get(
+                    "affects.trackers", []
+                ),
+                "affects_by_tracker": affects_by_tracker,
+            }
+            serialized = TrackerV1Serializer(
+                tracker_qs, many=True, read_only=True, context=tracker_context
+            ).data
+            for t in serialized:
+                tracker_list[t["uuid"]] = t
+
+        cvss_id_set = set()
+        for a in affects:
+            ids = getattr(a, "all_cvss_score_ids", None) or []
+            cvss_id_set.update(ids)
+
+        cvss_list = {}
+        if cvss_id_set:
+            cvss_qs = AffectCVSS.objects.filter(uuid__in=cvss_id_set)
+            for item in AffectCVSSSerializer(cvss_qs, many=True).data:
+                cvss_list[item["uuid"]] = item
+
+        # Pass down chaches
+        context["tracker_list_by_uuid"] = tracker_list
+        context["cvss_list_by_uuid"] = cvss_list
+
+        return AffectV1Serializer(
+            affects, many=True, read_only=True, context=context
+        ).data
 
 
 class ProfileSerializer(serializers.ModelSerializer):

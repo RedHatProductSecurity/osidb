@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Restore history for `Affect` model (OSIDB-4227)
+- Reduce round trips to database when serializing v1 models
 
 ## [5.0.1] - 2025-11-03
 ### Fixed
