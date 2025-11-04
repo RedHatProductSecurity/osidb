@@ -536,6 +536,7 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             "affects__resolution": ["exact"],
             "affects__ps_module": ["exact"],
             "affects__ps_component": ["exact"],
+            "affects__ps_update_stream": ["exact"],
             "affects__impact": ["exact"],
             "affects__created_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
@@ -1373,6 +1374,7 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
             "affects__resolution": ["exact"],
             "affects__ps_module": ["exact"],
             "affects__ps_component": ["exact"],
+            "affects__ps_update_stream": ["exact"],
             "affects__impact": ["exact"],
             "affects__created_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
