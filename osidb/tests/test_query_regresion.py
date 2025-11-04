@@ -148,7 +148,7 @@ class TestQuerySetRegression:
             response = auth_client().get(f"{test_api_v2_uri}/affects")
             assert response.status_code == 200
 
-    def test_related_flaws(self, auth_client, test_api_uri, embargoed):
+    def test_related_flaws(self, auth_client, test_api_v2_uri, embargoed):
         """
         Test query performance for related flaws endpoint.
         This query usually takes a lot of time to process from OSIM when
@@ -175,7 +175,7 @@ class TestQuerySetRegression:
 
         with assertNumQueries(58):
             response = auth_client().get(
-                f"{test_api_uri}/flaws?include_fields=cve_id,uuid,affects,"
+                f"{test_api_v2_uri}/flaws?include_fields=cve_id,uuid,affects,"
                 f"created_dt,updated_dt&affects__ps_module={ps_module.name}"
                 f"&affects__ps_component={ps_component}&order=-created_dt&limit=10"
             )

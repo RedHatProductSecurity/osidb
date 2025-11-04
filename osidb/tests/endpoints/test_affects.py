@@ -23,15 +23,19 @@ class TestEndpointsAffectsV1:
     """
 
     @pytest.mark.enable_signals
-    def test_get_affect_with_cvss(self, auth_client, test_api_uri):
+    def test_get_affect_with_cvss(
+        self, auth_client, test_api_uri, refresh_v1_view, transactional_db
+    ):
         """retrieve specific affect with affectcvss from endpoint"""
         affect = AffectFactory()
+        refresh_v1_view()
 
         response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["cvss_scores"]) == 0
 
         AffectCVSSFactory(affect=affect)
+        refresh_v1_view()
 
         response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == status.HTTP_200_OK
@@ -51,6 +55,8 @@ class TestEndpointsAffectsV1:
         filter_value,
         expected_with_trackers,
         expected_without_trackers,
+        refresh_v1_view,
+        transactional_db,
     ):
         """
         test that tracker__isempty filter is working correctly
@@ -73,6 +79,8 @@ class TestEndpointsAffectsV1:
 
         affect_without_trackers = AffectFactory(flaw=flaw)
 
+        refresh_v1_view()
+
         response = auth_client().get(
             f"{test_api_uri}/affects?trackers__isempty={str(filter_value).lower()}"
         )
@@ -92,19 +100,27 @@ class TestEndpointsAffectsV1:
             assert str(affect_without_trackers.uuid) in affect_uuids
 
     @pytest.mark.enable_signals
-    def test_get_affect_with_cve_id(self, auth_client, test_api_uri):
+    def test_get_affect_with_cve_id(
+        self, auth_client, test_api_uri, refresh_v1_view, transactional_db
+    ):
         """append cve_id from parent flaw to the Affect serializer"""
         flaw = FlawFactory(cve_id="CVE-2025-1234")
         affect = AffectFactory(flaw=flaw)
+
+        refresh_v1_view()
 
         response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["cve_id"] == flaw.cve_id
 
     @pytest.mark.enable_signals
-    def test_filter_affect_by_cve_id(self, auth_client, test_api_uri):
+    def test_filter_affect_by_cve_id(
+        self, auth_client, test_api_uri, refresh_v1_view, transactional_db
+    ):
         flaw = FlawFactory(cve_id="CVE-2025-1234")
         AffectFactory(flaw=flaw)
+
+        refresh_v1_view()
 
         response = auth_client().get(f"{test_api_uri}/affects?cve_id={flaw.cve_id}")
         assert response.status_code == status.HTTP_200_OK

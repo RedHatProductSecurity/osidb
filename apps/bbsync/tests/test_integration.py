@@ -692,7 +692,13 @@ class TestBBSyncIntegration:
 
     @pytest.mark.vcr
     def test_affect_create(
-        self, auth_client, bugzilla_token, test_api_uri, test_api_v2_uri
+        self,
+        auth_client,
+        bugzilla_token,
+        test_api_uri,
+        test_api_v2_uri,
+        refresh_v1_view,
+        transactional_db,
     ):
         """
         test creating a flaw affect with Bugzilla two-way sync
@@ -730,6 +736,7 @@ class TestBBSyncIntegration:
         body = response.json()
         created_uuid = body["uuid"]
 
+        refresh_v1_view()
         response = auth_client().get(f"{test_api_uri}/affects/{created_uuid}")
         assert response.status_code == 200
         assert response.json()["ps_module"] == "rhel-8"
@@ -747,7 +754,14 @@ class TestBBSyncIntegration:
 
     @pytest.mark.vcr
     def test_affect_update(
-        self, auth_client, bugzilla_token, jira_token, test_api_uri, test_api_v2_uri
+        self,
+        auth_client,
+        bugzilla_token,
+        jira_token,
+        test_api_uri,
+        test_api_v2_uri,
+        refresh_v1_view,
+        transactional_db,
     ):
         """
         test updating a flaw affect with Bugzilla two-way sync
@@ -792,6 +806,7 @@ class TestBBSyncIntegration:
         )
         assert response.status_code == 200
 
+        refresh_v1_view()
         response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
         assert response.json()["ps_module"] == "rhel-8"

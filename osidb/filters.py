@@ -2,6 +2,7 @@
 Implement filters for OSIDB REST API results
 """
 
+from datetime import timedelta
 from typing import Union
 
 from django.contrib.postgres.search import (
@@ -668,6 +669,10 @@ class FlawV1Filter(FlawFilter):
         method="affect_trackers_errata_datetime_filter"
     )
 
+    changed_after = DateTimeFilter(
+        field_name="updated_dt", method="changed_after_filter"
+    )
+
     def _get_flaw_ids_by_affect(self, affect_filter):
         return (
             AffectV1.objects.filter(**affect_filter)
@@ -760,6 +765,12 @@ class FlawV1Filter(FlawFilter):
         )
 
         return queryset.filter(uuid__in=flaw_ids)
+
+    def changed_after_filter(self, queryset, name, value):
+        # NOTE: This is a hack to solve the potential issue of the materialized view having stale data,
+        # which updates every 5 minutes. By getting flaws which were updated 5 minutes before the given value,
+        # we ensure that we don't miss any flaws that were updated in that time window and maybe had stale data.
+        return queryset.filter(local_updated_dt__gte=value - timedelta(minutes=5))
 
 
 class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
