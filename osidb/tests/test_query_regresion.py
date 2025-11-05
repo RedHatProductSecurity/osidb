@@ -139,17 +139,40 @@ class TestQuerySetRegression:
 
     def test_affect_list(self, auth_client, test_api_v2_uri, embargoed):
         for _ in range(3):
+            flaw = FlawFactory(
+                embargoed=embargoed,
+                impact=Impact.LOW,
+                major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            )
             AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+            )
+
+        with assertNumQueries(56 if embargoed else 57):  # initial value -> 69
+            response = auth_client().get(f"{test_api_v2_uri}/affects")
+            assert response.status_code == 200
+
+    def test_affect_list_history(self, auth_client, test_api_v2_uri, embargoed):
+        for _ in range(3):
+            flaw = FlawFactory(
+                embargoed=embargoed,
+                impact=Impact.LOW,
+                major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            )
+            AffectFactory(
+                flaw=flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
             )
 
         with assertNumQueries(56):  # initial value -> 69
-            response = auth_client().get(f"{test_api_v2_uri}/affects")
+            response = auth_client().get(f"{test_api_v2_uri}/affects?include_history=true")
             assert response.status_code == 200
-
     def test_related_flaws(self, auth_client, test_api_v2_uri, embargoed):
         """
+
         Test query performance for related flaws endpoint.
         This query usually takes a lot of time to process from OSIM when
         fetching flaws that have affects sharing the same ps_module and ps_component.
