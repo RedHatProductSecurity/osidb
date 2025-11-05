@@ -23,3 +23,22 @@ class WeightedReplicaRouter:
         Only allow migrations on default database as replicas are read-only.
         """
         return db == "default"
+
+
+class AffectV1ReplicaRouter:
+    def db_for_read(self, model, **hints):
+        """
+        Routes reads of the AffectV1 model to the read-replica-1 database.
+        """
+        if model._meta.app_label == "osidb" and model._meta.model_name == "affectv1":
+            return "read-replica-1"
+        return None
+
+    def db_for_write(self, model, **hints):
+        return "default"
+
+    def allow_relation(self, obj1, obj2, **hints):
+        return True
+
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        return db == "default"
