@@ -1398,7 +1398,10 @@ class AffectV1Serializer(
         }
 
         serializer = TrackerV1Serializer(
-            instance=obj.trackers.all(), many=True, read_only=True, context=context
+            instance=obj.trackers.using("read-replica-1").all(),
+            many=True,
+            read_only=True,
+            context=context,
         )
         return serializer.data
 
@@ -1409,7 +1412,9 @@ class AffectV1Serializer(
         """
         if not obj.all_cvss_score_ids:
             return []
-        cvss_objects = AffectCVSS.objects.filter(uuid__in=obj.all_cvss_score_ids)
+        cvss_objects = AffectCVSS.objects.using("read-replica-1").filter(
+            uuid__in=obj.all_cvss_score_ids
+        )
 
         return AffectCVSSSerializer(instance=cvss_objects, many=True).data
 
@@ -1454,9 +1459,11 @@ class TrackerV1Serializer(TrackerSerializer):
         }
     )
     def get_affects(self, obj):
-        return AffectV1.objects.filter(
-            all_tracker_ids__contains=[obj.uuid]
-        ).values_list("uuid", flat=True)
+        return (
+            AffectV1.objects.using("read-replica-1")
+            .filter(all_tracker_ids__contains=[obj.uuid])
+            .values_list("uuid", flat=True)
+        )
 
 
 class PackageVerSerializer(serializers.ModelSerializer):
@@ -2301,7 +2308,7 @@ class FlawV1Serializer(FlawSerializer):
     @extend_schema_field(AffectV1Serializer(many=True))
     def get_affects(self, obj):
         # Query the AffectV1 read-only model instead of the original Affect model.
-        affects_v1 = AffectV1.objects.filter(flaw=obj)
+        affects_v1 = AffectV1.objects.using("read-replica-1").filter(flaw=obj)
 
         context = {
             "include_fields": self._next_level_include_fields.get("affects", []),
@@ -2314,9 +2321,11 @@ class FlawV1Serializer(FlawSerializer):
             # Filter only affects with trackers corresponding to specified IDs
             tracker_ids_param = request.query_params.get("tracker_ids")
             if tracker_ids_param:
-                tracker_uuids = Tracker.objects.filter(
-                    external_system_id__in=tracker_ids_param.split(",")
-                ).values_list("uuid", flat=True)
+                tracker_uuids = (
+                    Tracker.objects.using("read-replica-1")
+                    .filter(external_system_id__in=tracker_ids_param.split(","))
+                    .values_list("uuid", flat=True)
+                )
                 affects_v1 = affects_v1.filter(
                     all_tracker_ids__overlap=list(tracker_uuids)
                 )
