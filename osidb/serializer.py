@@ -1459,11 +1459,7 @@ class TrackerV1Serializer(TrackerSerializer):
         }
     )
     def get_affects(self, obj):
-        return (
-            AffectV1.objects.using("read-replica-1")
-            .filter(all_tracker_ids__contains=[obj.uuid])
-            .values_list("uuid", flat=True)
-        )
+        return []
 
 
 class PackageVerSerializer(serializers.ModelSerializer):
