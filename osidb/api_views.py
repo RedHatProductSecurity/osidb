@@ -27,6 +27,7 @@ from drf_spectacular.utils import (
 )
 from packageurl import PackageURL
 from packaging.utils import canonicalize_name
+from pghistory.models import Events
 from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
@@ -502,6 +503,78 @@ def query_extend_schema_view(
     )(cls)
 
 
+class BulkHistoryMixin(ReadOnlyModelViewSet):
+    # Mixin to provide bulk history caching for views that support include_history parameter.
+
+    # This mixin provides optimized list() and retrieve() methods that bulk-fetch all history
+    # events for objects and their related models in a single query, avoiding the N+1 query
+    # problem when serializing with include_history=true.
+
+    def _build_history_cache(self, objects):
+        """
+        Build a history cache for objects and their related models.
+
+        Takes a list of objects (already evaluated with prefetch cache)
+        and bulk-fetches all history events in a single query.
+
+        Events.objects.references() automatically fetches events for both
+        the objects and all their related objects (affects, cvss scores, etc.)
+
+        Returns a dict mapping "app.ModelName:pk" to list of Events.
+        """
+        history_map = {}
+
+        if objects:
+            all_history_events = Events.objects.references(*objects)
+            for event in all_history_events:
+                key = f"{event.pgh_obj_model}:{event.pgh_obj_id}"
+                if key not in history_map:
+                    history_map[key] = []
+                history_map[key].append(event)
+
+        return history_map
+
+    def list(self, request, *args, **kwargs):
+        # Override list to bulk-fetch history for all objects.
+        # This prevents N+1 queries when requesting history for multiple objects.
+
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            objects = page
+        else:
+            objects = queryset
+
+        if request.query_params.get("include_history", False):
+            objects_list = list(objects)
+            history_cache = self._build_history_cache(objects_list)
+            context = self.get_serializer_context()
+            context["history_cache"] = history_cache
+            serializer = self.get_serializer(objects_list, many=True, context=context)
+        else:
+            serializer = self.get_serializer(objects, many=True)
+
+        if page is not None:
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        # Override retrieve to bulk-fetch history for a single object and its related models.
+        # This prevents N+1 queries when requesting history for an object with many related models.
+
+        instance = self.get_object()
+
+        if request.query_params.get("include_history", False):
+            history_cache = self._build_history_cache([instance])
+            context = self.get_serializer_context()
+            context["history_cache"] = history_cache
+            serializer = self.get_serializer(instance, context=context)
+        else:
+            serializer = self.get_serializer(instance)
+
+        return Response(serializer.data)
+
+
 @extend_schema(exclude=True)
 @permission_classes((IsAuthenticatedOrReadOnly,))
 class FlawSuggestionsView(RudimentaryUserPathLoggingMixin, APIView):
@@ -585,7 +658,7 @@ class FlawIntrospectionView(RudimentaryUserPathLoggingMixin, APIView):
         ],
     ),
 )
-class FlawView(RudimentaryUserPathLoggingMixin, ModelViewSet):
+class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
     queryset = Flaw.objects.prefetch_related(
         "acknowledgments",
         "affects",
@@ -1036,7 +1109,10 @@ class FlawPackageVersionView(
     ),
 )
 class AffectView(
-    RudimentaryUserPathLoggingMixin, SubFlawViewDestroyMixin, ModelViewSet
+    RudimentaryUserPathLoggingMixin,
+    BulkHistoryMixin,
+    SubFlawViewDestroyMixin,
+    ModelViewSet,
 ):
     queryset = Affect.objects.prefetch_related(
         "alerts",
@@ -1217,7 +1293,7 @@ class AffectView(
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
 @include_history_extend_schema_view
-class AffectV1View(ReadOnlyModelViewSet):
+class AffectV1View(BulkHistoryMixin, ReadOnlyModelViewSet):
     queryset = AffectV1.objects.all()
     serializer_class = AffectV1Serializer
     filterset_class = AffectV1Filter

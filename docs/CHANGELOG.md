@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix incorrect query parameters with "tracker" relationship in v1 readonly APIs (OSIDB-4611)
 - Fix include/exclude fields usage on v1 readyonl APIs (OSIDB-4611)
 
+### Changed
+- Restore history for `Affect` model (OSIDB-4227)
+
 ## [5.0.1] - 2025-11-03
 ### Fixed
 - Fix missing SLA fields (OSIDB-4610)

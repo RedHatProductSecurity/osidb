@@ -647,10 +647,25 @@ class HistoryMixinSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(HistoricalEventSerializer(many=True, read_only=True))
     def get_history(self, obj):
-        """history events serializer getter"""
-        history = pghistory.models.Events.objects.tracks(obj)
+        """
+        Retrieves history from the context cache for O(1) access,
+        or falls back to the N+1 query.
+        """
+        history_cache = self.context.get("history_cache")
+
+        if history_cache is not None:
+            # Construct the key based on the object's model name and PK
+            model_name = obj._meta.object_name
+            app_name = obj._meta.app_label
+            key = f"{app_name}.{model_name}:{obj.pk}"
+
+            history_queryset = history_cache.get(key, [])
+        else:
+            # Fallback for single-instance endpoints or missing context (N+1 query)
+            history_queryset = pghistory.models.Events.objects.tracks(obj)
+
         serializer = HistoricalEventSerializer(
-            instance=history, many=True, read_only=True
+            instance=history_queryset, many=True, read_only=True
         )
         return [
             event
@@ -709,6 +724,8 @@ class TrackerSerializer(
             "include_fields": self._next_level_include_fields.get("errata", []),
             "exclude_fields": self._next_level_exclude_fields.get("errata", []),
         }
+        if "history_cache" in self.context:
+            context["history_cache"] = self.context["history_cache"]
 
         serializer = ErratumSerializer(
             instance=obj.errata.all(), many=True, context=context
@@ -1145,6 +1162,7 @@ class AffectSerializer(
     IncludeExcludeFieldsMixin,
     IncludeMetaAttrMixin,
     JiraAPIKeyMixin,
+    HistoryMixinSerializer,
 ):
     """Affect serializer"""
 
@@ -1204,6 +1222,8 @@ class AffectSerializer(
             "exclude_fields": self._next_level_exclude_fields.get("tracker", []),
             "include_meta_attr": self._next_level_include_meta_attr.get("tracker", []),
         }
+        if "history_cache" in self.context:
+            context["history_cache"] = self.context["history_cache"]
 
         serializer = TrackerSerializer(
             instance=obj.tracker, read_only=True, context=context
@@ -1239,6 +1259,7 @@ class AffectSerializer(
             + ACLMixinSerializer.Meta.fields
             + AlertMixinSerializer.Meta.fields
             + TrackingMixinSerializer.Meta.fields
+            + HistoryMixinSerializer.Meta.fields
         )
 
     def update(self, new_affect, validated_data):
@@ -1396,6 +1417,8 @@ class AffectV1Serializer(
             "exclude_fields": self._next_level_exclude_fields.get("trackers", []),
             "include_meta_attr": self._next_level_include_meta_attr.get("trackers", []),
         }
+        if "history_cache" in self.context:
+            context["history_cache"] = self.context["history_cache"]
 
         serializer = TrackerV1Serializer(
             instance=obj.trackers.all(), many=True, read_only=True, context=context
@@ -1411,7 +1434,9 @@ class AffectV1Serializer(
             return []
         cvss_objects = AffectCVSS.objects.filter(uuid__in=obj.all_cvss_score_ids)
 
-        return AffectCVSSSerializer(instance=cvss_objects, many=True).data
+        return AffectCVSSSerializer(
+            instance=cvss_objects, many=True, context=self.context
+        ).data
 
     class Meta:
         model = AffectV1
@@ -2051,6 +2076,8 @@ class FlawSerializer(
             "exclude_fields": self._next_level_exclude_fields.get("affects", []),
             "include_meta_attr": self._next_level_include_meta_attr.get("affects", []),
         }
+        if "history_cache" in self.context:
+            context["history_cache"] = self.context["history_cache"]
 
         request = self.context.get("request")
         if request:
@@ -2308,6 +2335,8 @@ class FlawV1Serializer(FlawSerializer):
             "exclude_fields": self._next_level_exclude_fields.get("affects", []),
             "include_meta_attr": self._next_level_include_meta_attr.get("affects", []),
         }
+        if "history_cache" in self.context:
+            context["history_cache"] = self.context["history_cache"]
 
         request = self.context.get("request")
         if request:
