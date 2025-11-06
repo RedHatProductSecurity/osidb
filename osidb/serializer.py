@@ -2459,9 +2459,10 @@ class FlawV1Serializer(FlawSerializer):
             self.context["last_validated_by_object_id"] = last_validated_by_object
             context["alerts_by_object_id"] = alerts_by_object_id
             context["last_validated_by_object_id"] = last_validated_by_object
-        except Exception:
-            # Do not fail serialization if preloading alerts encounters an error
-            pass
+        except Exception as exc:
+            raise serializers.ValidationError(
+                f"Failed to preload alerts for flaw {getattr(obj, 'uuid', 'unknown')}: {exc}"
+            )
 
         # Fetch and serialize each tracker
         tracker_list = {}
