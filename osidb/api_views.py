@@ -1294,7 +1294,7 @@ class AffectView(
 @include_exclude_fields_extend_schema_view
 @include_history_extend_schema_view
 class AffectV1View(BulkHistoryMixin, ReadOnlyModelViewSet):
-    queryset = AffectV1.objects.all()
+    queryset = AffectV1.objects.filter(embargoed=False)
     serializer_class = AffectV1Serializer
     filterset_class = AffectV1Filter
     permission_classes = [IsAuthenticatedOrReadOnly]

@@ -27,7 +27,8 @@ class TestEndpointsAffectsV1:
         self, auth_client, test_api_uri, refresh_v1_view, transactional_db
     ):
         """retrieve specific affect with affectcvss from endpoint"""
-        affect = AffectFactory()
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw)
         refresh_v1_view()
 
         response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
@@ -61,7 +62,7 @@ class TestEndpointsAffectsV1:
         """
         test that tracker__isempty filter is working correctly
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(embargoed=False)
 
         ps_module = PsModuleFactory()
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
@@ -104,7 +105,7 @@ class TestEndpointsAffectsV1:
         self, auth_client, test_api_uri, refresh_v1_view, transactional_db
     ):
         """append cve_id from parent flaw to the Affect serializer"""
-        flaw = FlawFactory(cve_id="CVE-2025-1234")
+        flaw = FlawFactory(cve_id="CVE-2025-1234", embargoed=False)
         affect = AffectFactory(flaw=flaw)
 
         refresh_v1_view()
@@ -117,7 +118,7 @@ class TestEndpointsAffectsV1:
     def test_filter_affect_by_cve_id(
         self, auth_client, test_api_uri, refresh_v1_view, transactional_db
     ):
-        flaw = FlawFactory(cve_id="CVE-2025-1234")
+        flaw = FlawFactory(cve_id="CVE-2025-1234", embargoed=False)
         AffectFactory(flaw=flaw)
 
         refresh_v1_view()
