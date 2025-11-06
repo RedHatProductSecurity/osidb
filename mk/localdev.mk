@@ -185,3 +185,14 @@ compose-up:
 	@while ! $(podman) exec -it osidb-service bash -c '( { curl -f http://127.0.0.1:8000/osidb/healthy >/dev/null 2>&1 || exit 1 ; } )' ; do echo ">waiting for osidb-service" ; sleep 2 ; done
 	@sleep 2
 	@echo ">compose is up"
+
+
+
+#***********************************
+### Start development shell plus in osidb-service container with ipython
+#***********************************
+.PHONY : shell-service_plus
+shell-service_plus:
+	$(podman) exec -it osidb-service python3.12 -m ensurepip --upgrade
+	$(podman) exec -it osidb-service python3.12 -m pip install ipython
+	$(podman) exec -it osidb-service python3.12 manage.py shell_plus --settings=config.settings_local --ipython

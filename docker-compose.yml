@@ -140,6 +140,7 @@ services:
         - ${PWD}/etc/pg/local-server.key:/var/lib/postgresql/local-server.key:z
       ports:
         - "5432"
+        - "127.0.0.1:5432:5432"
       command: >
           -c ssl=on
           -c ssl_cert_file=/var/lib/postgresql/local-server.crt

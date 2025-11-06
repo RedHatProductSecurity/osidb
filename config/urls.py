@@ -37,3 +37,7 @@ urlpatterns = [
     path("auth/token/refresh", refresh_token, name="token_refresh"),
     path("auth/token/verify", TokenVerifyView.as_view(), name="token_verify"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+
+if settings.DEBUG:
+    urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]

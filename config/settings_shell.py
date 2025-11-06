@@ -24,6 +24,9 @@ ALL_GROUPS = [
 # Minimal group for managing the OSIDB service
 SERVICE_MANAGE_GROUP = "osidb-service-manage"
 
+ALLOWED_HOSTS = ["*"]
+DEBUG = True
+
 DATABASES = {
     "default": {
         "NAME": get_env("OSIDB_DB_NAME", default="osidb"),
@@ -44,5 +47,15 @@ DATABASES = {
     }
 }
 
+
 STATIC_ROOT = "/opt/app-root/static/"
 STATIC_URL = "/static/"
+
+# Add Silk to the INSTALLED_APPS and MIDDLEWARE
+INSTALLED_APPS.append("silk")
+MIDDLEWARE.append("silk.middleware.SilkyMiddleware")
+TEMPLATES[0]["OPTIONS"]["context_processors"].append(
+    "django.template.context_processors.request"
+)
+
+SILKY_PYTHON_PROFILER = True
