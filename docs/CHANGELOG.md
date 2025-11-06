@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [5.1.0] - 2025-11-06
 ### Fixed
 - Fix regressed query parameter types in v1 readonly APIs (OSIDB-4611)
 - Fix incorrect query parameters with "tracker" relationship in v1 readonly APIs (OSIDB-4611)
@@ -12,7 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Restore history for `Affect` model (OSIDB-4227)
-- Reduce round trips to database when serializing v1 models
+- Reduce round trips to database when serializing v1 models (OSIDB-4626)
+
+### Added
+- Added indexing for affects_v1 tables (OSIDB-4625)
+
+### Removed
+- Removed support for embargoed data in v1 endpoints
 
 ## [5.0.1] - 2025-11-03
 ### Fixed
