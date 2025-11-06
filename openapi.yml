@@ -2445,6 +2445,11 @@ paths:
         name: affects__affectedness
         schema:
           type: string
+          enum:
+          - ''
+          - AFFECTED
+          - NEW
+          - NOTAFFECTED
       - in: query
         name: affects__created_dt
         schema:
@@ -2493,6 +2498,12 @@ paths:
         name: affects__impact
         schema:
           type: string
+          enum:
+          - ''
+          - CRITICAL
+          - IMPORTANT
+          - LOW
+          - MODERATE
       - in: query
         name: affects__ps_component
         schema:
@@ -2505,168 +2516,51 @@ paths:
         name: affects__resolution
         schema:
           type: string
-      - in: query
-        name: affects__tracker__created_dt
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__created_dt__date
-        schema:
-          type: string
-          format: date
-      - in: query
-        name: affects__tracker__created_dt__date__gte
-        schema:
-          type: string
-          format: date
-      - in: query
-        name: affects__tracker__created_dt__date__lte
-        schema:
-          type: string
-          format: date
-      - in: query
-        name: affects__tracker__created_dt__gt
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__created_dt__gte
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__created_dt__lt
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__created_dt__lte
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__embargoed
-        schema:
-          type: boolean
-      - in: query
-        name: affects__tracker__errata__advisory_name
-        schema:
-          type: string
-      - in: query
-        name: affects__tracker__errata__et_id
-        schema:
-          type: integer
-      - in: query
-        name: affects__tracker__errata__shipped_dt
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__errata__shipped_dt__date
-        schema:
-          type: string
-          format: date
-      - in: query
-        name: affects__tracker__errata__shipped_dt__date__gte
-        schema:
-          type: string
-          format: date
-      - in: query
-        name: affects__tracker__errata__shipped_dt__date__lte
-        schema:
-          type: string
-          format: date
-      - in: query
-        name: affects__tracker__errata__shipped_dt__gt
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__errata__shipped_dt__gte
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__errata__shipped_dt__lt
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__errata__shipped_dt__lte
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__external_system_id
-        schema:
-          type: string
-      - in: query
-        name: affects__tracker__ps_update_stream
-        schema:
-          type: string
-      - in: query
-        name: affects__tracker__resolution
-        schema:
-          type: string
-      - in: query
-        name: affects__tracker__status
-        schema:
-          type: string
-      - in: query
-        name: affects__tracker__type
-        schema:
-          type: string
           enum:
-          - BUGZILLA
-          - JIRA
-      - in: query
-        name: affects__tracker__updated_dt
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__updated_dt__date
-        schema:
-          type: string
-          format: date
-      - in: query
-        name: affects__tracker__updated_dt__date__gte
-        schema:
-          type: string
-          format: date
-      - in: query
-        name: affects__tracker__updated_dt__date__lte
-        schema:
-          type: string
-          format: date
-      - in: query
-        name: affects__tracker__updated_dt__gt
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__updated_dt__gte
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__updated_dt__lt
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__updated_dt__lte
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: affects__tracker__uuid
-        schema:
-          type: string
-          format: uuid
+          - ''
+          - DEFER
+          - DELEGATED
+          - FIX
+          - OOSS
+          - WONTFIX
+          - WONTREPORT
       - in: query
         name: affects__trackers__created_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__created_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__created_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__created_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__created_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__created_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__created_dt__lte
         schema:
           type: string
           format: date-time
@@ -2681,9 +2575,44 @@ paths:
       - in: query
         name: affects__trackers__errata__et_id
         schema:
-          type: string
+          type: number
       - in: query
         name: affects__trackers__errata__shipped_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__errata__shipped_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__errata__shipped_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__errata__shipped_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__errata__shipped_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__errata__shipped_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__errata__shipped_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__errata__shipped_dt__lte
         schema:
           type: string
           format: date-time
@@ -2707,8 +2636,46 @@ paths:
         name: affects__trackers__type
         schema:
           type: string
+          enum:
+          - BUGZILLA
+          - JIRA
       - in: query
         name: affects__trackers__updated_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__updated_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__updated_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__updated_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__trackers__updated_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__updated_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__trackers__updated_dt__lte
         schema:
           type: string
           format: date-time
@@ -2760,6 +2727,7 @@ paths:
         name: affects__uuid
         schema:
           type: string
+          format: uuid
       - in: query
         name: bz_id
         schema:
@@ -3148,25 +3116,6 @@ paths:
             - -acknowledgments__name
             - -acknowledgments__updated_dt
             - -acknowledgments__uuid
-            - -affects__affectedness
-            - -affects__created_dt
-            - -affects__impact
-            - -affects__ps_component
-            - -affects__ps_module
-            - -affects__resolution
-            - -affects__tracker__created_dt
-            - -affects__tracker__errata__advisory_name
-            - -affects__tracker__errata__et_id
-            - -affects__tracker__errata__shipped_dt
-            - -affects__tracker__external_system_id
-            - -affects__tracker__ps_update_stream
-            - -affects__tracker__resolution
-            - -affects__tracker__status
-            - -affects__tracker__type
-            - -affects__tracker__updated_dt
-            - -affects__tracker__uuid
-            - -affects__updated_dt
-            - -affects__uuid
             - -bz_id
             - -comment_zero
             - -components
@@ -3209,25 +3158,6 @@ paths:
             - acknowledgments__name
             - acknowledgments__updated_dt
             - acknowledgments__uuid
-            - affects__affectedness
-            - affects__created_dt
-            - affects__impact
-            - affects__ps_component
-            - affects__ps_module
-            - affects__resolution
-            - affects__tracker__created_dt
-            - affects__tracker__errata__advisory_name
-            - affects__tracker__errata__et_id
-            - affects__tracker__errata__shipped_dt
-            - affects__tracker__external_system_id
-            - affects__tracker__ps_update_stream
-            - affects__tracker__resolution
-            - affects__tracker__status
-            - affects__tracker__type
-            - affects__tracker__updated_dt
-            - affects__tracker__uuid
-            - affects__updated_dt
-            - affects__uuid
             - bz_id
             - comment_zero
             - components
@@ -6220,6 +6150,11 @@ paths:
         name: affects__affectedness
         schema:
           type: string
+          enum:
+          - ''
+          - AFFECTED
+          - NEW
+          - NOTAFFECTED
       - in: query
         name: affects__created_dt
         schema:
@@ -6329,6 +6264,12 @@ paths:
         name: affects__flaw__impact
         schema:
           type: string
+          enum:
+          - ''
+          - CRITICAL
+          - IMPORTANT
+          - LOW
+          - MODERATE
       - in: query
         name: affects__flaw__reported_dt
         schema:
@@ -6373,6 +6314,97 @@ paths:
         name: affects__flaw__source
         schema:
           type: string
+          enum:
+          - ''
+          - ADOBE
+          - APPLE
+          - ASF
+          - BIND
+          - BK
+          - BUGTRAQ
+          - BUGZILLA
+          - CERT
+          - CERTIFI
+          - CORELABS
+          - CUSTOMER
+          - CVE
+          - CVEORG
+          - DAILYDAVE
+          - DEBIAN
+          - DISTROS
+          - FEDORA
+          - FETCHMAIL
+          - FREEDESKTOP
+          - FREERADIUS
+          - FRSIRT
+          - FULLDISCLOSURE
+          - GAIM
+          - GENTOO
+          - GENTOOBZ
+          - GIT
+          - GNOME
+          - GNUPG
+          - GOOGLE
+          - HP
+          - HW_VENDOR
+          - IBM
+          - IDEFENSE
+          - INTERNET
+          - ISC
+          - ISEC
+          - IT
+          - JBOSS
+          - JPCERT
+          - KERNELBUGZILLA
+          - KERNELSEC
+          - LKML
+          - LWN
+          - MACROMEDIA
+          - MAGEIA
+          - MAILINGLIST
+          - MILW0RM
+          - MIT
+          - MITRE
+          - MOZILLA
+          - MUTTDEV
+          - NETDEV
+          - NISCC
+          - NVD
+          - OCERT
+          - OPENOFFICE
+          - OPENSSL
+          - OPENSUSE
+          - ORACLE
+          - OSS
+          - OSSSECURITY
+          - OSV
+          - PHP
+          - PIDGIN
+          - POSTGRESQL
+          - PRESS
+          - REAL
+          - REDHAT
+          - RESEARCHER
+          - RT
+          - SAMBA
+          - SECALERT
+          - SECUNIA
+          - SECURITYFOCUS
+          - SKO
+          - SQUID
+          - SQUIRRELMAIL
+          - SUN
+          - SUNSOLVE
+          - SUSE
+          - TWITTER
+          - UBUNTU
+          - UPSTREAM
+          - VENDORSEC
+          - VULNWATCH
+          - WIRESHARK
+          - XCHAT
+          - XEN
+          - XPDF
       - in: query
         name: affects__flaw__unembargo_dt
         schema:
@@ -6422,10 +6454,17 @@ paths:
         name: affects__flaw__uuid
         schema:
           type: string
+          format: uuid
       - in: query
         name: affects__impact
         schema:
           type: string
+          enum:
+          - ''
+          - CRITICAL
+          - IMPORTANT
+          - LOW
+          - MODERATE
       - in: query
         name: affects__ps_component
         schema:
@@ -6438,6 +6477,14 @@ paths:
         name: affects__resolution
         schema:
           type: string
+          enum:
+          - ''
+          - DEFER
+          - DELEGATED
+          - FIX
+          - OOSS
+          - WONTFIX
+          - WONTREPORT
       - in: query
         name: affects__updated_dt
         schema:
@@ -6482,6 +6529,7 @@ paths:
         name: affects__uuid
         schema:
           type: string
+          format: uuid
       - in: query
         name: created_dt
         schema:
@@ -6583,26 +6631,8 @@ paths:
           items:
             type: string
             enum:
-            - -affects__affectedness
-            - -affects__created_dt
             - -affects__embargoed
-            - -affects__flaw__components
-            - -affects__flaw__created_dt
-            - -affects__flaw__cve_id
-            - -affects__flaw__cwe_id
             - -affects__flaw__embargoed
-            - -affects__flaw__impact
-            - -affects__flaw__reported_dt
-            - -affects__flaw__source
-            - -affects__flaw__unembargo_dt
-            - -affects__flaw__updated_dt
-            - -affects__flaw__uuid
-            - -affects__impact
-            - -affects__ps_component
-            - -affects__ps_module
-            - -affects__resolution
-            - -affects__updated_dt
-            - -affects__uuid
             - -created_dt
             - -cve_id
             - -embargoed
@@ -6613,26 +6643,8 @@ paths:
             - -type
             - -updated_dt
             - -uuid
-            - affects__affectedness
-            - affects__created_dt
             - affects__embargoed
-            - affects__flaw__components
-            - affects__flaw__created_dt
-            - affects__flaw__cve_id
-            - affects__flaw__cwe_id
             - affects__flaw__embargoed
-            - affects__flaw__impact
-            - affects__flaw__reported_dt
-            - affects__flaw__source
-            - affects__flaw__unembargo_dt
-            - affects__flaw__updated_dt
-            - affects__flaw__uuid
-            - affects__impact
-            - affects__ps_component
-            - affects__ps_module
-            - affects__resolution
-            - affects__updated_dt
-            - affects__uuid
             - created_dt
             - cve_id
             - embargoed
@@ -8493,6 +8505,10 @@ paths:
         schema:
           type: string
       - in: query
+        name: affects__ps_update_stream
+        schema:
+          type: string
+      - in: query
         name: affects__resolution
         schema:
           type: string
@@ -9102,6 +9118,7 @@ paths:
             - -affects__impact
             - -affects__ps_component
             - -affects__ps_module
+            - -affects__ps_update_stream
             - -affects__resolution
             - -affects__tracker__created_dt
             - -affects__tracker__errata__advisory_name
@@ -9163,6 +9180,7 @@ paths:
             - affects__impact
             - affects__ps_component
             - affects__ps_module
+            - affects__ps_update_stream
             - affects__resolution
             - affects__tracker__created_dt
             - affects__tracker__errata__advisory_name
@@ -10494,6 +10512,10 @@ paths:
         schema:
           type: string
       - in: query
+        name: affects__ps_update_stream
+        schema:
+          type: string
+      - in: query
         name: affects__resolution
         schema:
           type: string
@@ -10668,6 +10690,7 @@ paths:
             - -affects__impact
             - -affects__ps_component
             - -affects__ps_module
+            - -affects__ps_update_stream
             - -affects__resolution
             - -affects__updated_dt
             - -affects__uuid
@@ -10698,6 +10721,7 @@ paths:
             - affects__impact
             - affects__ps_component
             - affects__ps_module
+            - affects__ps_update_stream
             - affects__resolution
             - affects__updated_dt
             - affects__uuid
