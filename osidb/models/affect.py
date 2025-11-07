@@ -477,7 +477,7 @@ class Affect(
         if (
             self.affectedness == Affect.AffectAffectedness.NOTAFFECTED
             and self.tracker is not None
-            and self.tracker.status != "CLOSED"  # see tracker.is_closed
+            and self.tracker.status.upper() != "CLOSED"  # see tracker.is_closed
         ):
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as "
@@ -491,7 +491,7 @@ class Affect(
         if (
             self.resolution == Affect.AffectResolution.OOSS
             and self.tracker is not None
-            and self.tracker.status != "CLOSED"  # see tracker.is_closed
+            and self.tracker.status.upper() != "CLOSED"  # see tracker.is_closed
         ):
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as "
@@ -505,7 +505,7 @@ class Affect(
         if (
             self.resolution == Affect.AffectResolution.WONTFIX
             and self.tracker is not None
-            and self.tracker.status != "CLOSED"  # see tracker.is_closed
+            and self.tracker.status.upper() != "CLOSED"  # see tracker.is_closed
         ):
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as "
@@ -519,7 +519,7 @@ class Affect(
         if (
             self.resolution == Affect.AffectResolution.DEFER
             and self.tracker is not None
-            and self.tracker.status != "CLOSED"  # see tracker.is_closed
+            and self.tracker.status.upper() != "CLOSED"  # see tracker.is_closed
         ):
             raise ValidationError(
                 f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} cannot have "
