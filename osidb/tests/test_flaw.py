@@ -2378,32 +2378,51 @@ class TestFlawValidators:
 
     @pytest.mark.parametrize("entity", ["affect", "tracker"])
     @pytest.mark.parametrize(
-        "affectedness,is_tracker_open,should_raise",
+        "affectedness,status,should_raise",
         [
             (
                 Affect.AffectAffectedness.NOTAFFECTED,
+                "OPEN",
                 True,
+            ),
+            (
+                Affect.AffectAffectedness.NOTAFFECTED,
+                "Open",
+                True,
+            ),
+            (
+                Affect.AffectAffectedness.NOTAFFECTED,
+                "open",
                 True,
             ),
             (
                 Affect.AffectAffectedness.NEW,
-                True,
+                "OPEN",
                 False,
             ),
             (
                 Affect.AffectAffectedness.NOTAFFECTED,
+                "CLOSED",
                 False,
+            ),
+            (
+                Affect.AffectAffectedness.NOTAFFECTED,
+                "Closed",
+                False,
+            ),
+            (
+                Affect.AffectAffectedness.NOTAFFECTED,
+                "closed",
                 False,
             ),
         ],
     )
     def test_validate_notaffected_open_tracker(
-        self, entity, affectedness, is_tracker_open, should_raise
+        self, entity, affectedness, status, should_raise
     ):
         """
         Test that notaffected products with open trackers raises error.
         """
-        status = "OPEN" if is_tracker_open else "CLOSED"
         flaw = FlawFactory(embargoed=False)
         ps_module = PsModuleFactory(bts_name="bugzilla")
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
