@@ -46,7 +46,7 @@ RUN dnf --nodocs --setopt install_weak_deps=false -y install \
 COPY ./pyproject.toml ./uv.lock /opt/app-root/src/
 
 # Install uv
-RUN pip3.12 install uv==0.8.3
+RUN pip3.12 install uv==0.9.7
 
 # Sync development dependencies into a virtual environment 
 RUN uv sync --frozen --only-dev && \
