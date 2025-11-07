@@ -39,5 +39,5 @@ urlpatterns = [
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 
-if settings.DEBUG:
+if "silk" in settings.INSTALLED_APPS and settings.DEBUG:
     urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]
