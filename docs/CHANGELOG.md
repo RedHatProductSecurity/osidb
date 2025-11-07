@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Fixed
 - Fix n+1 on Flaws V1
+- Fix normalization on affects validation for tracker status (OSIDB-4630)
 
 ## [5.1.0] - 2025-11-06
 ### Fixed
