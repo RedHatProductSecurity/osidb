@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix n+1 on Flaws V1
 - Fix normalization on affects validation for tracker status (OSIDB-4630)
+- Fix no Trackers being shown through Flaw v1 endpoint
 
 ## [5.1.0] - 2025-11-06
 ### Fixed
