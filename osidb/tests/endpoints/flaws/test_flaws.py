@@ -2078,3 +2078,46 @@ class TestEndpointsFlaws:
 
         response = auth_client().get(f"{test_api_uri}/flaws/CvE-2999-9999")
         assert response.status_code == 200
+
+    @pytest.mark.enable_signals
+    def test_get_flaw_with_affect_trackers(
+        self, auth_client, test_api_uri, refresh_v1_view, transactional_db
+    ):
+        """
+        Regression test for tracker serialization bug in v1 API where UUIDs
+        were not being converted to strings when looking up trackers from the
+        cached tracker_list_by_uuid dictionary, causing no trackers to be
+        returned in affect data within flaw responses.
+        """
+        flaw = FlawFactory(embargoed=False)
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            ps_update_stream=ps_update_stream.name,
+            embargoed=flaw.embargoed,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        refresh_v1_view()
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.cve_id}")
+        assert response.status_code == status.HTTP_200_OK
+
+        # Verify that the flaw has affects
+        assert len(response.data["affects"]) == 1
+
+        # Verify that trackers are present in the affect data
+        affect_data = response.data["affects"][0]
+        assert len(affect_data["trackers"]) == 1
+
+        # Verify the tracker data contains expected fields
+        tracker_data = affect_data["trackers"][0]
+        assert tracker_data["uuid"] == str(tracker.uuid)
+        assert tracker_data["type"] == tracker.type
+        assert tracker_data["ps_update_stream"] == tracker.ps_update_stream

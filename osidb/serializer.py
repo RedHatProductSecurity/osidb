@@ -1427,7 +1427,9 @@ class AffectV1Serializer(
         tracker_list = self.context.get("tracker_list_by_uuid")
         if tracker_list is not None:
             uuids = getattr(obj, "all_tracker_ids", None) or []
-            return [tracker_list[uuid] for uuid in uuids if uuid in tracker_list]
+            return [
+                tracker_list[str(uuid)] for uuid in uuids if str(uuid) in tracker_list
+            ]
 
         context = {
             "include_fields": self._next_level_include_fields.get("trackers", []),
