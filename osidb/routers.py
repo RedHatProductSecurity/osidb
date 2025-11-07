@@ -30,8 +30,9 @@ class AffectV1ReplicaRouter:
         """
         Routes reads of the AffectV1 model to the read-replica-1 database.
         """
-        if model._meta.app_label == "osidb" and model._meta.model_name == "affectv1":
-            return "read-replica-1"
+        if model._meta.app_label == "osidb":
+            if model._meta.model_name in ["affectv1", "alert"]:
+                return "read-replica-1"
         return None
 
     def db_for_write(self, model, **hints):
