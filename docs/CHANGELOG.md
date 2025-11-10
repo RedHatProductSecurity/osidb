@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Fixed
 - Fix default component usage for modular components (OSIDB-4590)
+- Fix returning 500 error on comment creation / sync to BZ (OSIDB-4634)
 
 ## [5.1.1] - 2025-11-07
 ### Fixed
