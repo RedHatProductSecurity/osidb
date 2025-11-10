@@ -29,7 +29,7 @@ states:
     jira_state: To Do
     jira_resolution: null
     requirements:
-      - has affects
+      # - has affects
       - has source
       - has title
 
