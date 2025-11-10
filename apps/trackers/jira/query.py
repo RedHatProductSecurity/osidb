@@ -246,12 +246,13 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             # RHEL-specific modular ps_component splitting
             what_component = "modular rpm component"
             component = parsed_bz_component
-        elif (
+
+        if (
             self.ps_module.default_component
             and allowed_component_values
             and component not in allowed_component_values
         ):
-            # Use default when ps_component does not match a Jira component
+            # Current component is not allowed in Jira; fallback to prod-defs default component
             what_component = "default component"
             component = self.ps_module.default_component
             logger.warning(

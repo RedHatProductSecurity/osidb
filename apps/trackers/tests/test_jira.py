@@ -830,24 +830,84 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         query_builder.generate_target_release()
         assert not query_builder._query["fields"]
 
+    @pytest.mark.parametrize("bts_key", ["fooproj", "RHEL"])
     @pytest.mark.parametrize(
-        "bts_key,jpf_avail,component,default_component,result_component,result_exception",
+        "jpf_avail,component,default_component,result_component,result_exception",
         [
-            ("fooproj", True, "component", None, "component", False),
-            ("fooproj", True, "barfoo", None, "foobar", False),
-            ("fooproj", True, "imaginary", None, "imaginary", True),
-            ("fooproj", True, "mod:compo/nent", None, "nent", False),
-            ("fooproj", True, "mod:10.4/component", None, "component", False),
-            ("fooproj", True, "compo/nent", None, "compo/nent", False),
-            ("fooproj", True, "comp/onent", None, "comp/onent", True),
-            ("fooproj", False, "comp/onent", None, "comp/onent", False),
-            ("fooproj", True, "comp/onent", "comp-bar", "comp-bar", False),
-            ("fooproj", False, "comp/onent", "comp-bar", "comp/onent", False),
-            ("RHEL", True, "mod:compo/nent", None, "nent", False),
-            ("RHEL", True, "compo/nent", None, "compo/nent", False),
-            ("RHEL", True, "comp/onent", None, "comp/onent", True),
-            ("RHEL", False, "comp/onent", None, "comp/onent", False),
-            ("RHEL", True, "barfoo", None, "foobar", False),
+            (True, "allowed_component", None, "allowed_component", False),
+            (True, "overrided_component", None, "allowed_component", False),
+            (True, "invalid_component", None, "invalid_component", True),
+            (True, "module:stream/allowed_component", None, "allowed_component", False),
+            (True, "module:10.4/allowed_component", None, "allowed_component", False),
+            (
+                True,
+                "module:stream-10.4/allowed_component",
+                None,
+                "allowed_component",
+                False,
+            ),
+            (True, "allowed/component", None, "allowed/component", False),
+            (
+                True,
+                "invalid/allowed_component",
+                None,
+                "invalid/allowed_component",
+                True,
+            ),
+            (
+                True,
+                "invalid_component",
+                "allowed_component",
+                "allowed_component",
+                False,
+            ),
+            (
+                True,
+                "module:stream/invalid",
+                "allowed_component",
+                "allowed_component",
+                False,
+            ),
+            (False, "allowed_component", None, "allowed_component", False),
+            (False, "overrided_component", None, "allowed_component", False),
+            (False, "invalid_component", None, "invalid_component", False),
+            (
+                False,
+                "module:stream/allowed_component",
+                None,
+                "allowed_component",
+                False,
+            ),
+            (False, "module:10.4/allowed_component", None, "allowed_component", False),
+            (
+                False,
+                "module:stream-10.4/allowed_component",
+                None,
+                "allowed_component",
+                False,
+            ),
+            (False, "allowed/component", None, "allowed/component", False),
+            (
+                False,
+                "invalid/allowed_component",
+                None,
+                "invalid/allowed_component",
+                False,
+            ),
+            (
+                False,
+                "invalid_component",
+                "allowed_component",
+                "invalid_component",
+                False,
+            ),
+            (
+                False,
+                "module:stream/invalid",
+                "allowed_component",
+                "invalid",
+                False,
+            ),
         ],
     )
     def test_generate_component(
@@ -867,7 +927,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         ps_module = PsModuleFactory(
             bts_name="jboss",
             private_trackers_allowed=True,
-            component_overrides={"barfoo": "foobar"},
+            component_overrides={"overrided_component": "allowed_component"},
             bts_key=bts_key,
             default_component=default_component,
         )
@@ -894,12 +954,8 @@ class TestBothNewOldTrackerJiraQueryBuilder:
                 field_id="components",
                 field_name="components",
                 allowed_values=[
-                    "comp-foo",
-                    "comp-bar",
-                    "component",
-                    "foobar",
-                    "compo/nent",
-                    "nent",
+                    "allowed_component",
+                    "allowed/component",
                 ],
             )
 
