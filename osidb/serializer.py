@@ -2387,7 +2387,7 @@ class FlawV1Serializer(FlawSerializer):
         # Materialize affect list so we don't re-run the query
         affects = list(affects_v1)
 
-        # Build list of already queried entities to cascade to the next serializer
+        # Build list of already queried entities to cascaded to the next serializer
         tracker_uuid_set = set()
         affects_by_tracker = defaultdict(list)
         for a in affects:
@@ -2396,80 +2396,12 @@ class FlawV1Serializer(FlawSerializer):
                 tracker_uuid_set.add(t)
                 affects_by_tracker[t].append(a.uuid)
 
-        # Build a single alerts map for flaw, affects, and trackers
-        try:
-            object_ids = set()
-            last_validated_by_object = {}
-
-            # Flaw
-            object_ids.add(str(obj.uuid))
-            last_validated_by_object[str(obj.uuid)] = getattr(
-                obj, "last_validated_dt", timezone.now()
-            )
-
-            # Affects (using materialized list)
-            for a in affects:
-                object_ids.add(str(a.uuid))
-                last_validated_by_object[str(a.uuid)] = (
-                    getattr(a, "last_validated_dt", None) or timezone.now()
-                )
-
-            # Trackers from affects
-            if tracker_uuid_set:
-                tracker_rows = Tracker.objects.filter(
-                    uuid__in=list(tracker_uuid_set)
-                ).values("uuid", "last_validated_dt")
-                for row in tracker_rows:
-                    object_ids.add(str(row["uuid"]))
-                    last_validated_by_object[str(row["uuid"])] = (
-                        row["last_validated_dt"] or timezone.now()
-                    )
-
-            # Compute a global lower bound for created_dt to limit DB scan
-            if last_validated_by_object:
-                min_dt = min(last_validated_by_object.values())
-            else:
-                min_dt = timezone.now()
-
-            alerts_qs = (
-                Alert.objects.filter(
-                    object_id__in=list(object_ids), created_dt__gte=min_dt
-                )
-                .select_related("content_type")
-                .only(
-                    "uuid",
-                    "name",
-                    "description",
-                    "alert_type",
-                    "resolution_steps",
-                    "content_type",
-                    "object_id",
-                    "created_dt",
-                    "acl_read",
-                    "acl_write",
-                )
-            )
-
-            alerts_by_object_id = defaultdict(list)
-            for alert in alerts_qs:
-                alerts_by_object_id[str(alert.object_id)].append(alert)
-
-            # Attach to both parent and nested context
-            self.context["alerts_by_object_id"] = alerts_by_object_id
-            self.context["last_validated_by_object_id"] = last_validated_by_object
-            context["alerts_by_object_id"] = alerts_by_object_id
-            context["last_validated_by_object_id"] = last_validated_by_object
-        except Exception as exc:
-            raise serializers.ValidationError(
-                f"Failed to preload alerts for flaw {getattr(obj, 'uuid', 'unknown')}: {exc}"
-            )
-
         # Fetch and serialize each tracker
         tracker_list = {}
         if tracker_uuid_set:
             tracker_qs = Tracker.objects.filter(uuid__in=tracker_uuid_set)
 
-            # Send a pre-fetched affect list to TrackerV1Serializer
+            # Send a pre-fetcheted affect list to TrackerV1Serializer
             tracker_context = {
                 "include_fields": self._next_level_include_fields.get(
                     "affects.trackers", []
@@ -2482,13 +2414,6 @@ class FlawV1Serializer(FlawSerializer):
                 ),
                 "affects_by_tracker": affects_by_tracker,
             }
-            if "alerts_by_object_id" in context:
-                tracker_context["alerts_by_object_id"] = context["alerts_by_object_id"]
-            if "last_validated_by_object_id" in context:
-                tracker_context["last_validated_by_object_id"] = context[
-                    "last_validated_by_object_id"
-                ]
-
             serialized = TrackerV1Serializer(
                 tracker_qs, many=True, read_only=True, context=tracker_context
             ).data
@@ -2506,7 +2431,7 @@ class FlawV1Serializer(FlawSerializer):
             for item in AffectCVSSSerializer(cvss_qs, many=True).data:
                 cvss_list[item["uuid"]] = item
 
-        # Pass down caches
+        # Pass down chaches
         context["tracker_list_by_uuid"] = tracker_list
         context["cvss_list_by_uuid"] = cvss_list
 
