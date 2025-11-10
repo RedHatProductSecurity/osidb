@@ -57,7 +57,7 @@ class TestQuerySetRegression:
                 resolution=Affect.AffectResolution.DELEGATED,
                 impact=Impact.MODERATE,
             )
-        with assertNumQueries(71):  # initial value -> 113
+        with assertNumQueriesLessThan(62):  # initial value -> 113
             response = auth_client().get(f"{test_api_v2_uri}/flaws")
             assert response.status_code == 200
 
@@ -109,7 +109,7 @@ class TestQuerySetRegression:
             impact=Impact.MODERATE,
         )
 
-        with assertNumQueries(62):  # initial value -> 78
+        with assertNumQueries(60):  # initial value -> 78
             response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
@@ -127,7 +127,7 @@ class TestQuerySetRegression:
             impact=Impact.MODERATE,
         )
 
-        with assertNumQueries(63):  # initial value -> 82
+        with assertNumQueries(61):  # initial value -> 82
             response = auth_client().get(
                 f"{test_api_v2_uri}/flaws/{flaw.uuid}?include_history=true"
             )
@@ -155,7 +155,7 @@ class TestQuerySetRegression:
                 ps_update_stream=ps_update_stream.name,
                 type=Tracker.BTS2TYPE[ps_module.bts_name],
             )
-        with assertNumQueries(69):  # initial value -> 93
+        with assertNumQueriesLessThan(66):  # initial value -> 93
             response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
@@ -191,7 +191,7 @@ class TestQuerySetRegression:
                 resolution=Affect.AffectResolution.DELEGATED,
             )
 
-        with assertNumQueries(57):  # initial value -> 69
+        with assertNumQueries(54):  # initial value -> 69
             response = auth_client().get(
                 f"{test_api_v2_uri}/affects?include_history=true"
             )
