@@ -1046,7 +1046,10 @@ class Flaw(
             raise e
 
         # If the bzsync was performed correctly, remove any possible alert on previously failed bzsync
-        self.alerts.filter(name="bzsync_failed").delete()
+        # NOTE: .using() is necessary here as Django will by default reuse the
+        # db that was used for fetch for DELETE and UPDATE operations as of 4.2
+        # see https://code.djangoproject.com/ticket/32965
+        self.alerts.filter(name="bzsync_failed").using("default").delete()
 
     def tasksync(
         self,
