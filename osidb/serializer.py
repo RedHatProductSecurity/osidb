@@ -11,6 +11,7 @@ from typing import Dict, List, Tuple
 import pghistory
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import BadRequest
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
@@ -575,21 +576,24 @@ class AlertMixinSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(AlertSerializer(many=True))
     def get_alerts(self, instance):
-        alerts_by_object_id = self.context.get("alerts_by_object_id")
-        if alerts_by_object_id is not None:
-            last_validated_by_object = self.context.get(
-                "last_validated_by_object_id", {}
+        if hasattr(instance, "alerts"):
+            # Use prefetched alerts
+            if isinstance(instance.alerts, list):
+                # Already filtered in FlawV1Serializer
+                alerts = instance.alerts
+            else:
+                alerts = [
+                    alert
+                    for alert in instance.alerts.all()
+                    if alert.created_dt >= instance.last_validated_dt
+                ]
+        else:
+            # Fallback to individual query
+            alerts = Alert.objects.filter(
+                object_id=instance.uuid, created_dt__gte=instance.last_validated_dt
             )
-            key = str(instance.uuid)
-            items = alerts_by_object_id.get(key, [])
-            threshold = last_validated_by_object.get(key, instance.last_validated_dt)
-            filtered = [a for a in items if a.created_dt >= threshold]
-            return AlertSerializer(filtered, many=True, read_only=True).data
 
-        query_set = Alert.objects.filter(
-            object_id=instance.uuid, created_dt__gte=instance.last_validated_dt
-        )
-        serializer = AlertSerializer(query_set, many=True, read_only=True)
+        serializer = AlertSerializer(alerts, many=True, read_only=True)
         return serializer.data
 
 
@@ -2394,7 +2398,51 @@ class FlawV1Serializer(FlawSerializer):
         # Materialize affect list so we don't re-run the query
         affects = list(affects_v1)
 
-        # Build list of already queried entities to cascade to the next serializer
+        # Bulk prefetch alerts for all affects to avoid N+1 queries
+        if affects:
+            affect_uuid_set = {str(a.uuid) for a in affects}
+            # Alerts are linked to Affect model (not AffectV1), so use Affect ContentType
+            affect_content_type = ContentType.objects.get_for_model(Affect)
+            # Compute a global lower bound for created_dt to limit DB scan
+            min_last_validated = min(
+                (getattr(a, "last_validated_dt", None) or timezone.now())
+                for a in affects
+            )
+            alerts_qs = (
+                Alert.objects.filter(
+                    content_type=affect_content_type,
+                    object_id__in=affect_uuid_set,
+                    created_dt__gte=min_last_validated,
+                )
+                .select_related("content_type")
+                .only(
+                    "uuid",
+                    "name",
+                    "description",
+                    "alert_type",
+                    "resolution_steps",
+                    "content_type",
+                    "object_id",
+                    "created_dt",
+                    "acl_read",
+                    "acl_write",
+                )
+            )
+            alerts_by_object_id = defaultdict(list)
+            for alert in alerts_qs:
+                alerts_by_object_id[alert.object_id].append(alert)
+            # Attach prefetched alerts to each affect instance, filtered by last_validated_dt
+            for a in affects:
+                instance_last_validated = (
+                    getattr(a, "last_validated_dt", None) or timezone.now()
+                )
+                all_alerts = alerts_by_object_id.get(str(a.uuid), [])
+                a.alerts = [
+                    alert
+                    for alert in all_alerts
+                    if alert.created_dt >= instance_last_validated
+                ]
+
         tracker_uuid_set = set()
         affects_by_tracker = defaultdict(list)
         for a in affects:

@@ -674,6 +674,9 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         "package_versions",
         "references",
         "labels",
+        "alerts",
+        "affects__alerts",
+        "affects__tracker__alerts",
     ).all()
     serializer_class = FlawSerializer
     filter_backends = (DjangoFilterBackend,)
@@ -710,6 +713,7 @@ class FlawV1View(FlawView):
     serializer_class = FlawV1Serializer
     queryset = Flaw.objects.prefetch_related(
         "acknowledgments",
+        "alerts",
         "comments",
         "cvss_scores",
         "package_versions",
