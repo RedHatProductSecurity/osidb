@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix default component usage for modular components (OSIDB-4590)
 
+### Changed
+- Rework alert serializer (OSIDB-4313)
+
 ## [5.1.1] - 2025-11-07
 ### Fixed
 - Fix n+1 on Flaws V1

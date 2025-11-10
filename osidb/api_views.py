@@ -13,6 +13,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djangoql.serializers import SuggestionsAPISerializer
@@ -671,6 +672,9 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         "package_versions",
         "references",
         "labels",
+        Prefetch("alerts", to_attr="prefetched_alerts"),
+        Prefetch("affects__alerts", to_attr="prefetched_alerts"),
+        Prefetch("affects__tracker__alerts", to_attr="prefetched_alerts"),
     ).all()
     serializer_class = FlawSerializer
     filter_backends = (DjangoFilterBackend,)
@@ -707,6 +711,7 @@ class FlawV1View(FlawView):
     serializer_class = FlawV1Serializer
     queryset = Flaw.objects.prefetch_related(
         "acknowledgments",
+        "alerts",
         "comments",
         "cvss_scores",
         "package_versions",
@@ -1115,13 +1120,13 @@ class AffectView(
     ModelViewSet,
 ):
     queryset = Affect.objects.prefetch_related(
-        "alerts",
         "cvss_scores",
-        "cvss_scores__alerts",
+        Prefetch("cvss_scores__alerts", to_attr="prefetched_alerts"),
         "tracker",
         "tracker__errata",
         "tracker__affects",
-        "tracker__alerts",
+        Prefetch("alerts", to_attr="prefetched_alerts"),
+        Prefetch("tracker__alerts", to_attr="prefetched_alerts"),
     ).all()
     serializer_class = AffectSerializer
     filterset_class = AffectFilter
@@ -1412,7 +1417,11 @@ class AffectCVSSV2View(RudimentaryUserPathLoggingMixin, ModelViewSet):
     ),
 )
 class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
-    queryset = Tracker.objects.prefetch_related("alerts", "errata", "affects").all()
+    queryset = Tracker.objects.prefetch_related(
+        "errata",
+        "affects",
+        Prefetch("alerts", to_attr="prefetched_alerts"),
+    ).all()
     serializer_class = TrackerSerializer
     filterset_class = TrackerFilter
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])

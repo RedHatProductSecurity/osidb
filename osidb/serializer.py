@@ -575,21 +575,19 @@ class AlertMixinSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(AlertSerializer(many=True))
     def get_alerts(self, instance):
-        alerts_by_object_id = self.context.get("alerts_by_object_id")
-        if alerts_by_object_id is not None:
-            last_validated_by_object = self.context.get(
-                "last_validated_by_object_id", {}
+        if hasattr(instance, "prefetched_alerts"):
+            alerts = [
+                alert
+                for alert in instance.prefetched_alerts
+                if alert.created_dt >= instance.last_validated_dt
+            ]
+        else:
+            # Fallback to individual query
+            alerts = Alert.objects.filter(
+                object_id=instance.uuid, created_dt__gte=instance.last_validated_dt
             )
-            key = str(instance.uuid)
-            items = alerts_by_object_id.get(key, [])
-            threshold = last_validated_by_object.get(key, instance.last_validated_dt)
-            filtered = [a for a in items if a.created_dt >= threshold]
-            return AlertSerializer(filtered, many=True, read_only=True).data
 
-        query_set = Alert.objects.filter(
-            object_id=instance.uuid, created_dt__gte=instance.last_validated_dt
-        )
-        serializer = AlertSerializer(query_set, many=True, read_only=True)
+        serializer = AlertSerializer(alerts, many=True, read_only=True)
         return serializer.data
 
 
