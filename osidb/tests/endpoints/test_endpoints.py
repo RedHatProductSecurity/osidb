@@ -433,13 +433,14 @@ class TestEndpointsACLs:
             )
 
         response_body = response.json()
-        affect_in_response = response_body["affects"][0]
-        tracker_in_response = affect_in_response["trackers"][0]
-
         assert response.status_code == 200
         assert response_body["embargoed"] is False
-        assert affect_in_response["embargoed"] is False
-        assert tracker_in_response["embargoed"] is False
+
+        # Refresh affect and tracker from database to check their embargoed status
+        affect.refresh_from_db()
+        tracker_obj.refresh_from_db()
+        assert affect.is_embargoed is False
+        assert tracker_obj.is_embargoed is False
 
     def test_flaw_create_not_member(self, auth_client, test_api_uri):
         """
