@@ -4572,6 +4572,48 @@ paths:
                   version:
                     type: string
           description: ''
+  /osidb/api/v1/flaws/{flaw_id}/incident-requests:
+    post:
+      operationId: osidb_api_v1_flaws_incident_requests_create
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IncidentRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IncidentRequestRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /osidb/api/v1/flaws/{flaw_id}/labels:
     get:
       operationId: osidb_api_v1_flaws_labels_list
@@ -5839,7 +5881,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/Flaw'
+                - $ref: '#/components/schemas/FlawPut'
                 - type: object
                   properties:
                     dt:
@@ -10167,7 +10209,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/Flaw'
+                - $ref: '#/components/schemas/FlawPut'
                 - type: object
                   properties:
                     dt:
@@ -13040,6 +13082,7 @@ components:
         mitigation:
           type: string
         major_incident_state:
+          deprecated: true
           oneOf:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
           - $ref: '#/components/schemas/BlankEnum'
@@ -13070,6 +13113,175 @@ components:
       - comment_zero
       - embargoed
       - title
+    FlawPut:
+      type: object
+      description: serialize flaw model
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        cve_id:
+          type: string
+          nullable: true
+        impact:
+          oneOf:
+          - $ref: '#/components/schemas/ImpactEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        components:
+          type: array
+          items:
+            type: string
+            maxLength: 100
+        title:
+          type: string
+        trackers:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        comment_zero:
+          type: string
+        cve_description:
+          type: string
+        requires_cve_description:
+          oneOf:
+          - $ref: '#/components/schemas/RequiresCveDescriptionEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        statement:
+          type: string
+        cwe_id:
+          type: string
+          maxLength: 255
+        unembargo_dt:
+          type: string
+          format: date-time
+          nullable: true
+        source:
+          oneOf:
+          - $ref: '#/components/schemas/FlawSource'
+          - $ref: '#/components/schemas/BlankEnum'
+        reported_dt:
+          type: string
+          format: date-time
+          nullable: true
+        mitigation:
+          type: string
+        major_incident_state:
+          deprecated: true
+          oneOf:
+          - $ref: '#/components/schemas/MajorIncidentStateEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        major_incident_start_dt:
+          type: string
+          format: date-time
+          nullable: true
+        nist_cvss_validation:
+          oneOf:
+          - $ref: '#/components/schemas/NistCvssValidationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        affects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Affect'
+          readOnly: true
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+          readOnly: true
+        aegis_meta: {}
+        package_versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Package'
+          readOnly: true
+        acknowledgments:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawAcknowledgment'
+          readOnly: true
+        references:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawReference'
+          readOnly: true
+        cvss_scores:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawCVSS'
+          readOnly: true
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawCollaborator'
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        classification:
+          type: object
+          properties:
+            workflow:
+              type: string
+            state:
+              type: string
+              enum:
+              - ''
+              - NEW
+              - TRIAGE
+              - PRE_SECONDARY_ASSESSMENT
+              - SECONDARY_ASSESSMENT
+              - DONE
+              - REJECTED
+          readOnly: true
+        group_key:
+          type: string
+          maxLength: 60
+        owner:
+          type: string
+          maxLength: 60
+        task_key:
+          type: string
+          readOnly: true
+          nullable: true
+        team_id:
+          type: string
+          maxLength: 8
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+      required:
+      - acknowledgments
+      - affects
+      - alerts
+      - classification
+      - comment_zero
+      - comments
+      - created_dt
+      - cvss_scores
+      - embargoed
+      - labels
+      - package_versions
+      - references
+      - task_key
+      - title
+      - trackers
+      - updated_dt
+      - uuid
     FlawReference:
       type: object
       description: FlawReference serializer
@@ -13686,6 +13898,18 @@ components:
       - IMPORTANT
       - CRITICAL
       type: string
+    IncidentRequestRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+          writeOnly: true
+          minLength: 1
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+      required:
+      - comment
+      - kind
     IntegrationTokenGet:
       type: object
       properties:
@@ -13705,6 +13929,12 @@ components:
       - NIST
       - OSV
       - CISA
+      type: string
+    KindEnum:
+      enum:
+      - MAJOR_INCIDENT_REQUESTED
+      - EXPLOITS_KEV_REQUESTED
+      - MINOR_INCIDENT_REQUESTED
       type: string
     MajorIncidentStateEnum:
       enum:

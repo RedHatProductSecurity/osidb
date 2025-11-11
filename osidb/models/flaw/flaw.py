@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import re
@@ -170,6 +172,14 @@ class Flaw(
         MINOR_INCIDENT_REQUESTED = "MINOR_INCIDENT_REQUESTED"
         MINOR_INCIDENT_REJECTED = "MINOR_INCIDENT_REJECTED"
         MINOR_INCIDENT_APPROVED = "MINOR_INCIDENT_APPROVED"
+
+        @classmethod
+        def request_states(cls) -> list[Flaw.FlawMajorIncident]:
+            return [
+                cls.MAJOR_INCIDENT_REQUESTED,
+                cls.EXPLOITS_KEV_REQUESTED,
+                cls.MINOR_INCIDENT_REQUESTED,
+            ]
 
     class FlawNistCvssValidation(models.TextChoices):
         """

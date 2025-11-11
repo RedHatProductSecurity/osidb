@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevent resetting major_incident_state to blank (OSIDB-3856)
 - Make CVE ID case insensitive for flaw queries (OSIDB-3766)
 - Update Incident state fields (OSIDB-3959)
+- Require an internal comment on incident request (OSIDB-3852)
 
 ### Removed
 - Remove deprecated fields/models: `PsProduct`'s `team`, `FlawComment`'s `order` 

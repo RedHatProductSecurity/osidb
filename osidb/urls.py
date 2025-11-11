@@ -32,6 +32,7 @@ from .api_views import (
     FlawSuggestionsView,
     FlawV1View,
     FlawView,
+    IncidentRequestView,
     JiraStageForwarderView,
     LabelView,
     ManifestView,
@@ -121,6 +122,10 @@ urlpatterns = [
     re_path(
         rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/reject$",
         RejectWorkflow.as_view(),
+    ),
+    re_path(
+        rf"^api/{OSIDB_API_VERSION}/flaws/(?P<flaw_id>[^/.]+)/incident-requests$",
+        IncidentRequestView.as_view(),
     ),
     path(f"api/{OSIDB_API_VERSION}/status", StatusView.as_view()),
     path(f"api/{OSIDB_API_VERSION}/manifest", ManifestView.as_view()),
