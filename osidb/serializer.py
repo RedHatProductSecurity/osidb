@@ -577,7 +577,9 @@ class AlertMixinSerializer(serializers.ModelSerializer):
     def get_alerts(self, instance):
         alerts_by_object_id = self.context.get("alerts_by_object_id")
         if alerts_by_object_id is not None:
-            last_validated_by_object = self.context.get("last_validated_by_object_id", {})
+            last_validated_by_object = self.context.get(
+                "last_validated_by_object_id", {}
+            )
             key = str(instance.uuid)
             items = alerts_by_object_id.get(key, [])
             threshold = last_validated_by_object.get(key, instance.last_validated_dt)
@@ -2430,7 +2432,9 @@ class FlawV1Serializer(FlawSerializer):
                 min_dt = timezone.now()
 
             alerts_qs = (
-                Alert.objects.filter(object_id__in=list(object_ids), created_dt__gte=min_dt)
+                Alert.objects.filter(
+                    object_id__in=list(object_ids), created_dt__gte=min_dt
+                )
                 .select_related("content_type")
                 .only(
                     "uuid",
