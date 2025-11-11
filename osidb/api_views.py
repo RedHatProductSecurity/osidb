@@ -711,7 +711,7 @@ class FlawV1View(FlawView):
     serializer_class = FlawV1Serializer
     queryset = Flaw.objects.prefetch_related(
         "acknowledgments",
-        "alerts",
+        Prefetch("alerts", to_attr="prefetched_alerts"),
         "comments",
         "cvss_scores",
         "package_versions",
