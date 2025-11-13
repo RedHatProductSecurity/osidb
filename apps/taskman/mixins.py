@@ -14,7 +14,15 @@ class JiraTaskSyncMixin(models.Model):
     class Meta:
         abstract = True
 
-    def save(self, *args, diff=None, force_creation=False, jira_token=None, **kwargs):
+    def save(
+        self,
+        *args,
+        diff=None,
+        force_creation=False,
+        jira_token=None,
+        jira_email=None,
+        **kwargs,
+    ):
         """
         save the model and sync it to Jira
 
@@ -31,10 +39,11 @@ class JiraTaskSyncMixin(models.Model):
                 diff=diff,
                 force_creation=force_creation,
                 jira_token=jira_token,
+                jira_email=jira_email,
                 **kwargs,
             )
 
-    def tasksync(self, *args, jira_token, force_creation=False, **kwargs):
+    def tasksync(self, *args, jira_token, jira_email, force_creation=False, **kwargs):
         """
         Jira sync of a specific class instance
         """

@@ -1073,6 +1073,7 @@ class Flaw(
     def tasksync(
         self,
         jira_token,
+        jira_email,
         diff=None,
         force_creation=False,
         *args,
@@ -1121,7 +1122,7 @@ class Flaw(
 
         else:
             if update_task:
-                self._create_or_update_task(jira_token)
+                self._create_or_update_task(jira_token, jira_email)
 
             if transition_task:
                 # workflow transition may result in ACL change
@@ -1131,16 +1132,16 @@ class Flaw(
                     acl_write=self.acl_write,
                 )
 
-                self._transition_task(jira_token)
+                self._transition_task(jira_token, jira_email)
 
-    def _create_or_update_task(self, jira_token=None):
+    def _create_or_update_task(self, jira_token=None, jira_email=None):
         """
         create or update the Jira task of this flaw based on its existence
         """
         # import here to prevent cycles
         from apps.taskman.service import JiraTaskmanQuerier
 
-        jtq = JiraTaskmanQuerier(token=jira_token)
+        jtq = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         # creation
         if not self.task_key:
@@ -1153,13 +1154,13 @@ class Flaw(
         else:
             jtq.create_or_update_task(self)
 
-    def _transition_task(self, jira_token=None):
+    def _transition_task(self, jira_token=None, jira_email=None):
         """
         transition the Jira task of this flaw
         """
         # import here to prevent cycles
         from apps.taskman.service import JiraTaskmanQuerier
 
-        jtq = JiraTaskmanQuerier(token=jira_token)
+        jtq = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         jtq.transition_task(self)

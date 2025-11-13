@@ -42,13 +42,20 @@ class TestFlawModelIntegration(object):
         flaw1.save()
 
         # no important changes requires no syncing
-        assert flaw1.tasksync(jira_token="SECRET") is None  # nosec
+        assert (
+            flaw1.tasksync(jira_token="SECRET", jira_email="test@example.com") is None  # nosec
+        )
         assert sync_count == 0
 
         flaw1.cve_id = "CVE-2020-8003"
         # provide a fake diff just to pretend that CVE ID has changed
         assert (
-            flaw1.tasksync(diff={"cve_id": None}, jira_token="SECRET") is None  # nosec
+            flaw1.tasksync(
+                diff={"cve_id": None},
+                jira_token="SECRET",  # nosec
+                jira_email="test@example.com",
+            )
+            is None
         )
         assert sync_count == 1
 
@@ -57,7 +64,12 @@ class TestFlawModelIntegration(object):
         flaw2.cve_id = "CVE-2020-8005"
         # provide a fake diff just to pretend that CVE ID has changed
         assert (
-            flaw2.tasksync(diff={"cve_id": None}, jira_token="SECRET") is None  # nosec
+            flaw2.tasksync(
+                diff={"cve_id": None},
+                jira_token="SECRET",  # nosec
+                jira_email="test@example.com",
+            )
+            is None
         )
         # flaws without task_key were created by collectors should not sync in jira
         assert sync_count == 1
@@ -88,7 +100,7 @@ class TestFlawModelIntegration(object):
             created_dt=make_aware(datetime.now()),
             updated_dt=make_aware(datetime.now()),
         )
-        assert flaw.save(jira_token="SECRET") is None  # nosec
+        assert flaw.save(jira_token="SECRET", jira_email="test@example.com") is None  # nosec
         assert sync_count == 1
 
         AffectFactory(flaw=flaw)
@@ -272,7 +284,9 @@ class TestFlawModelIntegration(object):
         assert flaw.task_key == "TASK-123"
 
     @pytest.mark.vcr
-    def test_token_validation(self, monkeypatch, acl_read, acl_write, jira_token):
+    def test_token_validation(
+        self, monkeypatch, acl_read, acl_write, jira_token, jira_email
+    ):
         """
         Test that service is able validate user authentication and raise errors
         """
@@ -296,7 +310,7 @@ class TestFlawModelIntegration(object):
         )
 
         # Valid token; everything should work
-        assert flaw.save(jira_token=jira_token) is None
+        assert flaw.save(jira_token=jira_token, jira_email=jira_email) is None
         assert flaw.task_key
         assert Flaw.objects.get(uuid=uuid1)
 
@@ -317,7 +331,7 @@ class TestFlawModelIntegration(object):
             JIRAError, match="Client must be authenticated to access this resource."
         ):
             # Invalid token; Jira library should raise exception
-            flaw.save(jira_token="invalid_token")  # nosec
+            flaw.save(jira_token="invalid_token", jira_email=jira_email)  # nosec
 
         # enforce project without writing permissions
         import apps.taskman.service as service
@@ -330,7 +344,7 @@ class TestFlawModelIntegration(object):
             match="user doesn't have write permission in ISO project.",
         ):
             # Valid token for a project without permissions; should raise custom exception
-            flaw.save(jira_token=jira_token)
+            flaw.save(jira_token=jira_token, jira_email=jira_email)
 
     def test_tasksync_conditions(
         self, acl_read, acl_write, enable_jira_task_sync, monkeypatch
@@ -355,7 +369,7 @@ class TestFlawModelIntegration(object):
         monkeypatch.setattr(Flaw, "_transition_task", mock_transition_task)
 
         flaw = FlawFactory.build(bz_id=None, task_key=None)
-        assert flaw.save(jira_token="SECRET") is None  # nosec
+        assert flaw.save(jira_token="SECRET", jira_email="test@example.com") is None  # nosec
         # task creation on flaw creation
         assert create_or_update_performed
         assert not transition_performed
@@ -368,7 +382,7 @@ class TestFlawModelIntegration(object):
         transition_performed = False
 
         flaw.cve_id = flaw.cve_id + "0"
-        assert flaw.save(jira_token="SECRET") is None  # nosec
+        assert flaw.save(jira_token="SECRET", jira_email="test@example.com") is None  # nosec
         # task update on significant flaw change
         assert create_or_update_performed
         assert not transition_performed
@@ -377,7 +391,7 @@ class TestFlawModelIntegration(object):
         transition_performed = False
 
         flaw.title = flaw.title + "ing"
-        assert flaw.save(jira_token="SECRET") is None  # nosec
+        assert flaw.save(jira_token="SECRET", jira_email="test@example.com") is None  # nosec
         # no task update on insignificant change
         assert not create_or_update_performed
         assert not transition_performed
@@ -386,7 +400,7 @@ class TestFlawModelIntegration(object):
         transition_performed = False
 
         flaw.workflow_state = WorkflowModel.WorkflowState.NEW
-        assert flaw.save(jira_token="SECRET") is None  # nosec
+        assert flaw.save(jira_token="SECRET", jira_email="test@example.com") is None  # nosec
         # task state transition on workflow state change
         assert not create_or_update_performed
         assert transition_performed
@@ -397,7 +411,11 @@ class TestFlawModelIntegration(object):
         flaw.cve_id = flaw.cve_id + "0"
         flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
         assert (
-            flaw.save(jira_token="SECRET", raise_validation_error=False)  # nosec
+            flaw.save(
+                jira_token="SECRET",
+                jira_email="test@example.com",
+                raise_validation_error=False,
+            )  # nosec
             is None
         )
         # both task update and state transition on significant
