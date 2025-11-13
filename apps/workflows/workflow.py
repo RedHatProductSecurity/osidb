@@ -316,7 +316,7 @@ class WorkflowModel(models.Model):
         """
         WorkflowFramework().validate_classification(self, target_workflow, target_state)
 
-    def promote(self, save=True, jira_token=None, **kwargs):
+    def promote(self, save=True, jira_token=None, jira_email=None, **kwargs):
         """
         this is the cannonical way of changing classification
 
@@ -332,11 +332,12 @@ class WorkflowModel(models.Model):
         if save:
             self.save(
                 jira_token=jira_token,
+                jira_email=jira_email,
                 raise_validation_error=False,
                 **kwargs,
             )
 
-    def revert(self, save=True, jira_token=None, **kwargs) -> None:
+    def revert(self, save=True, jira_token=None, jira_email=None, **kwargs) -> None:
         """
         This is the canonical way of reverting to a previous valid state.
         """
@@ -348,11 +349,12 @@ class WorkflowModel(models.Model):
         if save:
             self.save(
                 jira_token=jira_token,
+                jira_email=jira_email,
                 raise_validation_error=False,
                 **kwargs,
             )
 
-    def reset(self, save=True, jira_token=None, **kwargs) -> None:
+    def reset(self, save=True, jira_token=None, jira_email=None, **kwargs) -> None:
         """
         This is the canonical way of resetting to the default workflow.
         """
@@ -360,9 +362,14 @@ class WorkflowModel(models.Model):
 
         self.classification = (default_workflow, WorkflowModel.WorkflowState.NEW)
         if save:
-            self.save(jira_token=jira_token, raise_validation_error=False, **kwargs)
+            self.save(
+                jira_token=jira_token,
+                jira_email=jira_email,
+                raise_validation_error=False,
+                **kwargs,
+            )
 
-    def reject(self, save=True, jira_token=None, **kwargs):
+    def reject(self, save=True, jira_token=None, jira_email=None, **kwargs):
         """
         this is the cannonical way of rejecting a flaw / task
 
@@ -379,6 +386,7 @@ class WorkflowModel(models.Model):
         if save:
             self.save(
                 jira_token=jira_token,
+                jira_email=jira_email,
                 raise_validation_error=False,
                 **kwargs,
             )

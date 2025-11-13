@@ -14,10 +14,13 @@ from rest_framework.viewsets import ModelViewSet
 from apps.taskman.service import JiraTaskmanQuerier
 from osidb.api_views import RudimentaryUserPathLoggingMixin, get_valid_http_methods
 from osidb.helpers import (
+    (
     get_bugzilla_api_key,
     get_flaw_or_404,
     get_flaw_with_related_objects,
+    get_jira_api_email,
     get_jira_api_key,
+),
 )
 
 from .exceptions import WorkflowsException
@@ -120,8 +123,11 @@ class PromoteWorkflow(RudimentaryUserPathLoggingMixin, APIView):
         flaw = get_flaw_or_404(flaw_id, queryset=optimized_queryset)
         try:
             jira_token = get_jira_api_key(request)
+            jira_email = get_jira_api_email(request)
             bz_token = get_bugzilla_api_key(request)
-            flaw.promote(jira_token=jira_token, bz_api_key=bz_token)
+            flaw.promote(
+                jira_token=jira_token, jira_email=jira_email, bz_api_key=bz_token
+            )
             return Response(
                 {
                     "flaw": flaw.pk,
@@ -146,8 +152,11 @@ class RevertWorkflow(RudimentaryUserPathLoggingMixin, APIView):
         flaw = get_flaw_or_404(flaw_id)
         try:
             jira_token = get_jira_api_key(request)
+            jira_email = get_jira_api_email(request)
             bz_token = get_bugzilla_api_key(request)
-            flaw.revert(jira_token=jira_token, bz_api_key=bz_token)
+            flaw.revert(
+                jira_token=jira_token, jira_email=jira_email, bz_api_key=bz_token
+            )
             return Response(
                 {
                     "flaw": flaw.pk,
@@ -172,8 +181,11 @@ class ResetWorkflow(RudimentaryUserPathLoggingMixin, APIView):
         flaw = get_flaw_or_404(flaw_id)
         try:
             jira_token = get_jira_api_key(request)
+            jira_email = get_jira_api_email(request)
             bz_token = get_bugzilla_api_key(request)
-            flaw.reset(jira_token=jira_token, bz_api_key=bz_token)
+            flaw.reset(
+                jira_token=jira_token, jira_email=jira_email, bz_api_key=bz_token
+            )
             return Response(
                 {
                     "flaw": flaw.pk,
@@ -203,9 +215,12 @@ class RejectWorkflow(RudimentaryUserPathLoggingMixin, APIView):
         flaw = get_flaw_or_404(flaw_id)
         try:
             jira_token = get_jira_api_key(request)
+            jira_email = get_jira_api_email(request)
             bz_token = get_bugzilla_api_key(request)
-            flaw.reject(jira_token=jira_token, bz_api_key=bz_token)
-            JiraTaskmanQuerier(token=jira_token).create_comment(
+            flaw.reject(
+                jira_token=jira_token, jira_email=jira_email, bz_api_key=bz_token
+            )
+            JiraTaskmanQuerier(token=jira_token, email=jira_email).create_comment(
                 issue_key=flaw.task_key,
                 body=request.data["reason"],
             )

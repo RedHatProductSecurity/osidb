@@ -165,7 +165,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
     def __str__(self):
         return str(self.uuid)
 
-    def save(self, *args, bz_api_key=None, jira_token=None, **kwargs):
+    def save(self, *args, bz_api_key=None, jira_token=None, jira_email=None, **kwargs):
         """
         save the tracker by storing to the backend and fetching back
 
@@ -235,7 +235,10 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 actual_jira_issuetype = self.meta_attr["jira_issuetype"]
 
             tracker_instance = TrackerSaver(
-                self, jira_token=jira_token, jira_issuetype=actual_jira_issuetype
+                self,
+                jira_email=jira_email,
+                jira_token=jira_token,
+                jira_issuetype=actual_jira_issuetype,
             ).save()
             # no save or fetch to prevent collisions
             # only schedule an asynchronous sync
