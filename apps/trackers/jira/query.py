@@ -43,6 +43,31 @@ from .constants import (
 logger = logging.getLogger(__name__)
 
 
+def text_to_adf(text):
+    """
+    Convert plain text to Atlassian Document Format (ADF)
+    """
+
+    content = []
+    if text:
+        paragraphs = text.split("\n\n")
+
+        for para in paragraphs:
+            if para.strip():
+                lines = para.split("\n")
+                para_content = []
+
+                for line in lines:
+                    if para_content:
+                        para_content.append({"type": "hardBreak"})
+                    para_content.append({"type": "text", "text": line})
+
+                if para_content:
+                    content.append({"type": "paragraph", "content": para_content})
+
+    return {"type": "doc", "version": 1, "content": content}
+
+
 class JiraPriority:
     """
     Allowed Jira priorities compliant with OJA-PRIS-001
@@ -293,8 +318,16 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
     def generate_description(self):
         """
         generates query for the tracker description
+
+        Jira requires Atlassian Document Format (ADF)
+        for the description field instead of plain text.
         """
-        self._query["fields"]["description"] = self.description
+
+        plain_text_description = self.description
+
+        adf_description = text_to_adf(plain_text_description)
+
+        self._query["fields"]["description"] = adf_description
 
     def generate_labels(self):
         """
