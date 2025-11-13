@@ -21,11 +21,11 @@ class TestTaskmanService(object):
         """
         Test that taskman is able to instantiate a Jira connection object
         """
-        assert JiraTaskmanQuerier(token="SECRET").jira_conn  # nosec
+        assert JiraTaskmanQuerier(token="SECRET", email="test@redhat.com").jira_conn  # nosec
 
     @pytest.mark.vcr
     @pytest.mark.enable_signals
-    def test_create_or_update_task(self, jira_token):
+    def test_create_or_update_task(self, jira_token, jira_email):
         """
         Test that service is able to create and update regular fields, team, assignment and status
         """
@@ -35,7 +35,7 @@ class TestTaskmanService(object):
             workflow_state=WorkflowModel.WorkflowState.NEW,
         )
         AffectFactory(flaw=flaw)
-        taskman = JiraTaskmanQuerier(token=jira_token)
+        taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
         assert response1 == "OSIM-14332"
@@ -71,14 +71,14 @@ class TestTaskmanService(object):
         assert not issue["fields"]["assignee"]
 
     @pytest.mark.vcr
-    def test_comments(self, jira_token):
+    def test_comments(self, jira_token, jira_email):
         """
         Test that service is able to create comment in Jira
         """
         # Remove randomness to reuse VCR every possible time
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
-        taskman = JiraTaskmanQuerier(token=jira_token)
+        taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
         assert response1 == "OSIM-421"
@@ -87,13 +87,13 @@ class TestTaskmanService(object):
         assert response2.status_code == 201
 
     @pytest.mark.vcr
-    def test_add_link(self, jira_token):
+    def test_add_link(self, jira_token, jira_email):
         """
         Test that service is able to create remote links in Jira issues.
         """
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
-        taskman = JiraTaskmanQuerier(token=jira_token)
+        taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
         assert response1 == "OSIM-11643"
@@ -104,14 +104,14 @@ class TestTaskmanService(object):
         assert response2.status_code == 201
 
     @pytest.mark.vcr
-    def test_update_link(self, jira_token, monkeypatch):
+    def test_update_link(self, jira_token, jira_email, monkeypatch):
         """
         Test that service is able to update remote links in Jira issues.
         """
         url = "https://www.redhat.com"
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
-        taskman = JiraTaskmanQuerier(token=jira_token)
+        taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         issue_key = taskman.create_or_update_task(flaw=flaw)
         assert issue_key == "OSIM-16568"
@@ -122,7 +122,7 @@ class TestTaskmanService(object):
         response = taskman.update_link(issue_key, link_id, url, "Red Hat Homepage")
         assert response.status_code == 204
 
-    def test_long_summary(self, jira_token):
+    def test_long_summary(self, jira_token, jira_email):
         """
         Test that the summary in a Jira task is trimmed when the flaw's cve_id
         and title exceed the maximum allowed length of 255 characters.
@@ -136,7 +136,7 @@ class TestTaskmanService(object):
         AffectFactory(flaw=flaw)
         assert len(flaw.cve_id) + len(flaw.title) > JIRA_SUMMARY_MAX_LENGTH
 
-        taskman = JiraTaskmanQuerier(token=jira_token)
+        taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
         issue_data = taskman._generate_task_data(flaw)
         assert len(issue_data["fields"]["summary"]) == JIRA_SUMMARY_MAX_LENGTH
         assert issue_data["fields"]["summary"].endswith("...")

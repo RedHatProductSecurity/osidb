@@ -524,6 +524,7 @@ class TestBugzillaJiraMixinIntegration:
         enable_jira_task_sync,
         enable_jira_tracker_sync,
         jira_token,
+        jira_email,
     ):
         """Test that sync occurs using internal OSIDB APIs"""
         self.setup_workflow()
@@ -542,6 +543,7 @@ class TestBugzillaJiraMixinIntegration:
 
         flaw.save(
             jira_token=jira_token,
+            jira_email=jira_email,
             bz_api_key=bugzilla_token,
             force_synchronous_sync=True,
         )
@@ -555,15 +557,19 @@ class TestBugzillaJiraMixinIntegration:
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw = Flaw.objects.get(uuid=flaw.uuid)
 
-        flaw.promote(jira_token=jira_token, bz_api_key=bugzilla_token)
+        flaw.promote(
+            jira_token=jira_token, jira_email=jira_email, bz_api_key=bugzilla_token
+        )
         flaw.refresh_from_db()  # need to refresh after update
         assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
 
-        jtq = JiraTaskmanQuerier(jira_token)
+        jtq = JiraTaskmanQuerier(jira_token, jira_email)
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Refinement"
-        flaw.reject(jira_token=jira_token, bz_api_key=bugzilla_token)
+        flaw.reject(
+            jira_token=jira_token, jira_email=jira_email, bz_api_key=bugzilla_token
+        )
         assert flaw.workflow_state == WorkflowModel.WorkflowState.REJECTED
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
@@ -580,6 +586,7 @@ class TestBugzillaJiraMixinIntegration:
         enable_jira_task_sync,
         enable_jira_tracker_sync,
         jira_token,
+        jira_email,
         test_api_uri,
     ):
         """Test that sync occurs using OSIDB REST API"""
@@ -626,7 +633,7 @@ class TestBugzillaJiraMixinIntegration:
         flaw = Flaw.objects.get(pk=created_uuid)
         assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
 
-        jtq = JiraTaskmanQuerier(jira_token)
+        jtq = JiraTaskmanQuerier(jira_token, jira_email)
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Refinement"
@@ -679,6 +686,7 @@ class TestMultiMixinIntegration:
         enable_jira_task_sync,
         enable_jira_tracker_sync,
         jira_token,
+        jira_email,
         test_api_v2_uri,
     ):
         """Tests that validations will block for Trackers with all sync enabled"""

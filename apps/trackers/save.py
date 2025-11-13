@@ -15,7 +15,14 @@ class TrackerSaver:
     provides the specific sub-handler
     """
 
-    def __new__(cls, tracker, bz_api_key=None, jira_token=None, jira_issuetype=None):
+    def __new__(
+        cls,
+        tracker,
+        bz_api_key=None,
+        jira_token=None,
+        jira_email=None,
+        jira_issuetype=None,
+    ):
         """
         detect and return the correct saver
         assuming that all prerequisites are met
@@ -36,7 +43,8 @@ class TrackerSaver:
 
         if tracker.type == Tracker.TrackerType.JIRA:
             assert jira_token, "Jira access token not provided"
-            return TrackerJiraSaver(tracker, jira_token, jira_issuetype)
+            assert jira_email, "Jira email not provided"
+            return TrackerJiraSaver(tracker, jira_token, jira_email, jira_issuetype)
 
         # we should never get here
         raise BTSException("Unknown BTS")
