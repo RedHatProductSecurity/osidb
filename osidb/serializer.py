@@ -11,6 +11,7 @@ from typing import Dict, List, Tuple
 import pghistory
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import BadRequest
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
@@ -575,21 +576,24 @@ class AlertMixinSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(AlertSerializer(many=True))
     def get_alerts(self, instance):
-        alerts_by_object_id = self.context.get("alerts_by_object_id")
-        if alerts_by_object_id is not None:
-            last_validated_by_object = self.context.get(
-                "last_validated_by_object_id", {}
+        if hasattr(instance, "alerts"):
+            # Use prefetched alerts
+            if isinstance(instance.alerts, list):
+                # Already filtered in FlawV1Serializer
+                alerts = instance.alerts
+            else:
+                alerts = [
+                    alert
+                    for alert in instance.alerts.all()
+                    if alert.created_dt >= instance.last_validated_dt
+                ]
+        else:
+            # Fallback to individual query
+            alerts = Alert.objects.filter(
+                object_id=instance.uuid, created_dt__gte=instance.last_validated_dt
             )
-            key = str(instance.uuid)
-            items = alerts_by_object_id.get(key, [])
-            threshold = last_validated_by_object.get(key, instance.last_validated_dt)
-            filtered = [a for a in items if a.created_dt >= threshold]
-            return AlertSerializer(filtered, many=True, read_only=True).data
 
-        query_set = Alert.objects.filter(
-            object_id=instance.uuid, created_dt__gte=instance.last_validated_dt
-        )
-        serializer = AlertSerializer(query_set, many=True, read_only=True)
+        serializer = AlertSerializer(alerts, many=True, read_only=True)
         return serializer.data
 
 
@@ -2394,53 +2398,21 @@ class FlawV1Serializer(FlawSerializer):
         # Materialize affect list so we don't re-run the query
         affects = list(affects_v1)
 
-        # Build list of already queried entities to cascade to the next serializer
-        tracker_uuid_set = set()
-        affects_by_tracker = defaultdict(list)
-        for a in affects:
-            ids = getattr(a, "all_tracker_ids", None) or []
-            for t in ids:
-                tracker_uuid_set.add(t)
-                affects_by_tracker[t].append(a.uuid)
-
-        # Build a single alerts map for flaw, affects, and trackers
-        try:
-            object_ids = set()
-            last_validated_by_object = {}
-
-            # Flaw
-            object_ids.add(str(obj.uuid))
-            last_validated_by_object[str(obj.uuid)] = getattr(
-                obj, "last_validated_dt", timezone.now()
-            )
-
-            # Affects (using materialized list)
-            for a in affects:
-                object_ids.add(str(a.uuid))
-                last_validated_by_object[str(a.uuid)] = (
-                    getattr(a, "last_validated_dt", None) or timezone.now()
-                )
-
-            # Trackers from affects
-            if tracker_uuid_set:
-                tracker_rows = Tracker.objects.filter(
-                    uuid__in=list(tracker_uuid_set)
-                ).values("uuid", "last_validated_dt")
-                for row in tracker_rows:
-                    object_ids.add(str(row["uuid"]))
-                    last_validated_by_object[str(row["uuid"])] = (
-                        row["last_validated_dt"] or timezone.now()
-                    )
-
+        # Bulk prefetch alerts for all affects to avoid N+1 queries
+        if affects:
+            affect_uuid_set = {str(a.uuid) for a in affects}
+            # Alerts are linked to Affect model (not AffectV1), so use Affect ContentType
+            affect_content_type = ContentType.objects.get_for_model(Affect)
             # Compute a global lower bound for created_dt to limit DB scan
-            if last_validated_by_object:
-                min_dt = min(last_validated_by_object.values())
-            else:
-                min_dt = timezone.now()
-
+            min_last_validated = min(
+                (getattr(a, "last_validated_dt", None) or timezone.now())
+                for a in affects
+            )
             alerts_qs = (
                 Alert.objects.filter(
-                    object_id__in=list(object_ids), created_dt__gte=min_dt
+                    content_type=affect_content_type,
+                    object_id__in=affect_uuid_set,
+                    created_dt__gte=min_last_validated,
                 )
                 .select_related("content_type")
                 .only(
@@ -2456,20 +2428,28 @@ class FlawV1Serializer(FlawSerializer):
                     "acl_write",
                 )
             )
-
             alerts_by_object_id = defaultdict(list)
             for alert in alerts_qs:
-                alerts_by_object_id[str(alert.object_id)].append(alert)
+                alerts_by_object_id[alert.object_id].append(alert)
+            # Attach prefetched alerts to each affect instance, filtered by last_validated_dt
+            for a in affects:
+                instance_last_validated = (
+                    getattr(a, "last_validated_dt", None) or timezone.now()
+                )
+                all_alerts = alerts_by_object_id.get(str(a.uuid), [])
+                a.alerts = [
+                    alert
+                    for alert in all_alerts
+                    if alert.created_dt >= instance_last_validated
+                ]
 
-            # Attach to both parent and nested context
-            self.context["alerts_by_object_id"] = alerts_by_object_id
-            self.context["last_validated_by_object_id"] = last_validated_by_object
-            context["alerts_by_object_id"] = alerts_by_object_id
-            context["last_validated_by_object_id"] = last_validated_by_object
-        except Exception as exc:
-            raise serializers.ValidationError(
-                f"Failed to preload alerts for flaw {getattr(obj, 'uuid', 'unknown')}: {exc}"
-            )
+        tracker_uuid_set = set()
+        affects_by_tracker = defaultdict(list)
+        for a in affects:
+            ids = getattr(a, "all_tracker_ids", None) or []
+            for t in ids:
+                tracker_uuid_set.add(t)
+                affects_by_tracker[t].append(a.uuid)
 
         # Fetch and serialize each tracker
         tracker_list = {}
@@ -2489,13 +2469,6 @@ class FlawV1Serializer(FlawSerializer):
                 ),
                 "affects_by_tracker": affects_by_tracker,
             }
-            if "alerts_by_object_id" in context:
-                tracker_context["alerts_by_object_id"] = context["alerts_by_object_id"]
-            if "last_validated_by_object_id" in context:
-                tracker_context["last_validated_by_object_id"] = context[
-                    "last_validated_by_object_id"
-                ]
-
             serialized = TrackerV1Serializer(
                 tracker_qs, many=True, read_only=True, context=tracker_context
             ).data
