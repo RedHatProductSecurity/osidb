@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import pytest
@@ -11,11 +12,19 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIClient
 
 from apps.workflows.workflow import WorkflowModel
+from collectors.jiraffe.convertors import JiraTrackerConvertor
+from collectors.jiraffe.core import JiraQuerier
 from osidb.core import generate_acls, set_user_acls
 from osidb.helpers import ensure_list, get_execution_env
 from osidb.models import Affect, Flaw, Impact
+from osidb.models.tracker import Tracker
 from osidb.pagination import HardLimitOffsetPagination
-from osidb.tests.factories import AffectFactory, FlawFactory
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -323,6 +332,115 @@ class TestEndpointsACLs:
         body = response.json()
         assert body["embargoed"] is False
         assert Flaw.objects.first().embargoed is False
+
+    @pytest.mark.vcr(record_mode="none")
+    @pytest.mark.enable_signals
+    @freeze_time(datetime(2014, 9, 11, tzinfo=timezone.get_current_timezone()))
+    def test_flaw_unembargo_tracker_security_level(
+        self, auth_client, test_api_uri, enable_jira_tracker_sync
+    ):
+        """
+        test that the tracker security levels are updated for closed status flaws
+        """
+        future_dt = datetime(2014, 9, 12, tzinfo=timezone.get_current_timezone())
+        tracker_id = "ENTMQ-755"
+
+        flaw = FlawFactory(
+            embargoed=True,
+            unembargo_dt=future_dt,
+            meta_attr={"jira_trackers": json.dumps([{"key": tracker_id}])},
+            workflow_state="DONE",
+        )
+        bts_name = Tracker.TYPE2BTS[Tracker.TrackerType.JIRA]
+
+        tracker_data = JiraQuerier().get_issue(tracker_id)
+        tracker_data.fields.security.name = "Embargoed Security Issue"
+
+        ps_module = PsModuleFactory(name="amq-7", bts_name=bts_name, bts_key="ENTMQ")
+        ps_update_stream = PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
+        ps_module.ps_update_stream = ps_update_stream
+
+        from apps.trackers.tests.factories import JiraProjectFieldsFactory
+
+        JiraProjectFieldsFactory(
+            project_key="ENTMQ",  # From the cassette data
+            field_id="security",
+            field_name="Security Level",
+            allowed_values=[
+                "Embargoed Security Issue",
+                "Red Hat Employee",
+                "Red Hat Engineering Authorized",
+                "Red Hat Partner",
+                "Restricted",
+                "Team",
+            ],
+        )
+
+        # Create JiraProjectFields record for embargo status field
+        JiraProjectFieldsFactory(
+            project_key="ENTMQ",
+            field_id="customfield_12345678",  # Dummy field ID
+            field_name="Embargo Status",
+            allowed_values=["True", "False"],
+        )
+
+        # Create JiraProjectFields record for priority field
+        JiraProjectFieldsFactory(
+            project_key="ENTMQ",
+            field_id="priority",
+            field_name="Priority",
+            allowed_values=[
+                "Blocker",
+                "Critical",
+                "Major",
+                "Normal",
+                "Minor",
+                "Undefined",
+            ],
+        )
+
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            ps_module=ps_module.name,
+            ps_component="elasticsearch",
+            ps_update_stream=ps_update_stream.name,
+        )
+
+        tracker_convertor = JiraTrackerConvertor(tracker_data)
+        tracker_obj = tracker_convertor._gen_tracker_object()
+        tracker_obj.status = "CLOSED"
+        tracker_obj.affects.add(affect)
+        tracker_obj.save(auto_timestamps=False, jira_token="SECRET")
+        # tracker.save(auto_timestamps=False, jira_token="SECRET")
+
+        assert affect.is_embargoed
+        assert tracker_obj.is_embargoed
+        assert tracker_obj.status == "CLOSED"
+
+        with freeze_time(future_dt):
+            response = auth_client().put(
+                f"{test_api_uri}/flaws/{flaw.uuid}",
+                {
+                    "title": flaw.title.replace("EMBARGOED", "").strip(),
+                    "comment_zero": flaw.comment_zero,
+                    "embargoed": False,
+                    "updated_dt": flaw.updated_dt,
+                },
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+
+        response_body = response.json()
+        assert response.status_code == 200
+        assert response_body["embargoed"] is False
+
+        # Refresh affect and tracker from database to check their embargoed status
+        affect.refresh_from_db()
+        tracker_obj.refresh_from_db()
+        assert affect.is_embargoed is False
+        assert tracker_obj.is_embargoed is False
 
     def test_flaw_create_not_member(self, auth_client, test_api_uri):
         """

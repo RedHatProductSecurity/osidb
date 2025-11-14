@@ -46,20 +46,6 @@ class TestEndpointsFlawsUpdateTrackers:
             status="NEW",
             type=Tracker.BTS2TYPE[ps_module1.bts_name],
         )
-        ps_update_stream12 = PsUpdateStreamFactory(ps_module=ps_module1)
-        affect2 = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_update_stream=ps_update_stream12.name,
-        )
-        TrackerFactory(
-            affects=[affect2],
-            embargoed=flaw.embargoed,
-            ps_update_stream=ps_update_stream12.name,
-            status="CLOSED",  # already resolved
-            type=Tracker.BTS2TYPE[ps_module1.bts_name],
-        )
         # one more community affect-tracker context
         ps_product2 = PsProductFactory(business_unit="Community")
         ps_module2 = PsModuleFactory(ps_product=ps_product2)
@@ -76,6 +62,22 @@ class TestEndpointsFlawsUpdateTrackers:
             ps_update_stream=ps_update_stream2.name,
             status="NEW",
             type=Tracker.BTS2TYPE[ps_module2.bts_name],
+        )
+        # create CLOSED tracker last to ensure it's processed after the NEW tracker
+        # (the production code returns early when encountering a closed tracker)
+        ps_update_stream12 = PsUpdateStreamFactory(ps_module=ps_module1)
+        affect2 = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream12.name,
+        )
+        TrackerFactory(
+            affects=[affect2],
+            embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream12.name,
+            status="CLOSED",  # already resolved
+            type=Tracker.BTS2TYPE[ps_module1.bts_name],
         )
 
         flaw_data = {

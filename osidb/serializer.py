@@ -1340,8 +1340,11 @@ class AffectSerializer(
             promote = True  # remember to only regenarate Jira trackers
 
         # no tracker updates for the closed ones
-        # because we consider these already done
-        if tracker.is_closed:
+        # unless unembargoing a closed tracker
+        is_unembargoing = (
+            old_affect.flaw.is_embargoed and not new_affect.flaw.is_embargoed
+        )
+        if tracker.is_closed and not is_unembargoing:
             return
 
         # only Jira trackers are regenerated on affect promotion
@@ -2313,9 +2316,10 @@ class FlawSerializer(
                 continue
 
             # no tracker updates for the closed ones
-            # because we consider these already done
-            if tracker.is_closed:
-                continue
+            # unless unembargoing a closed tracker
+            is_unembargoing = old_flaw.is_embargoed and not new_flaw.is_embargoed
+            if tracker.is_closed and not is_unembargoing:
+                return
 
             if (
                 tracker.meta_attr.get("jira_issuetype") != "Vulnerability"
