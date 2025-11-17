@@ -2582,3 +2582,43 @@ class IntegrationTokenPatchSerializer(serializers.Serializer):
 class IncidentRequestSerializer(serializers.Serializer):
     comment = serializers.CharField(write_only=True)
     kind = serializers.ChoiceField(choices=Flaw.FlawMajorIncident.request_states())
+
+
+class SyncManagerSerializer(serializers.Serializer):
+    """Serializer for SyncManager instances across all subclasses"""
+
+    manager_type = serializers.CharField(read_only=True)
+    sync_id = serializers.CharField(read_only=True)
+    last_scheduled_dt = serializers.DateTimeField(read_only=True, allow_null=True)
+    last_started_dt = serializers.DateTimeField(read_only=True, allow_null=True)
+    last_finished_dt = serializers.DateTimeField(read_only=True, allow_null=True)
+    last_failed_dt = serializers.DateTimeField(read_only=True, allow_null=True)
+    last_failed_reason = serializers.CharField(read_only=True, allow_null=True)
+    last_consecutive_failures = serializers.IntegerField(read_only=True)
+    permanently_failed = serializers.BooleanField(read_only=True)
+    last_rescheduled_dt = serializers.DateTimeField(read_only=True, allow_null=True)
+    last_rescheduled_reason = serializers.CharField(read_only=True, allow_null=True)
+    last_consecutive_reschedules = serializers.IntegerField(read_only=True)
+
+    def to_representation(self, instance):
+        """Convert SyncManager instance to dictionary"""
+
+        # Use annotated manager_type if available (from union query), otherwise use class name
+        manager_type = getattr(instance, "manager_type", instance.__class__.__name__)
+
+        data = {
+            "manager_type": manager_type,
+            "sync_id": instance.sync_id,
+            "last_scheduled_dt": instance.last_scheduled_dt,
+            "last_started_dt": instance.last_started_dt,
+            "last_finished_dt": instance.last_finished_dt,
+            "last_failed_dt": instance.last_failed_dt,
+            "last_failed_reason": instance.last_failed_reason,
+            "last_consecutive_failures": instance.last_consecutive_failures,
+            "permanently_failed": instance.permanently_failed,
+            "last_rescheduled_dt": instance.last_rescheduled_dt,
+            "last_rescheduled_reason": instance.last_rescheduled_reason,
+            "last_consecutive_reschedules": instance.last_consecutive_reschedules,
+        }
+
+        return data
