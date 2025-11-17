@@ -23,6 +23,74 @@ def add_days(dt: datetime, days: int) -> datetime:
 EASTERN = timezone("US/Eastern")
 UTC = timezone("UTC")
 WEEKEND = (6, 7)  # Sat, Sun
+HOLIDAY_DEADLINE_MONTH = 1  # January
+HOLIDAY_DEADLINE_DAY = 8
+
+
+def make_sure_date_is_date_object(day):
+    """
+    Make sure the given day is a date object.
+    """
+    try:
+        return day.date()  # get date from datetime
+    except AttributeError:
+        pass  # is already a date
+    return day
+
+
+def go_to_next_holiday_deadline(day):
+    """
+    Go to the very deadline (January 8th) after the given day.
+    Preserves the original time and timezone of the input datetime.
+    """
+    # Preserve original time and timezone if it's a datetime
+    if isinstance(day, datetime):
+        orig_tz = day.tzinfo
+        orig_time = (day.hour, day.minute, day.second, day.microsecond)
+    else:
+        orig_tz = None
+        orig_time = (0, 0, 0, 0)
+
+    day = make_sure_date_is_date_object(day)
+    # If month is December, go to the next year, otherwise stay in the same year
+    if day.month == 12:
+        year = day.year + 1
+    else:
+        year = day.year
+    holiday_deadline = datetime(
+        year,
+        HOLIDAY_DEADLINE_MONTH,
+        HOLIDAY_DEADLINE_DAY,
+        orig_time[0],
+        orig_time[1],
+        orig_time[2],
+        orig_time[3],
+    )
+    # Use original timezone if available, otherwise UTC
+    if orig_tz:
+        holiday_deadline = holiday_deadline.replace(tzinfo=orig_tz)
+    else:
+        holiday_deadline = holiday_deadline.replace(tzinfo=UTC)
+    while not is_business_day(holiday_deadline):
+        holiday_deadline = add_days(holiday_deadline, 1)
+    return holiday_deadline
+
+
+def is_in_holiday_period(day):
+    """
+    Returns True if the day is in the holiday period (Dec 24 - Jan 1).
+    """
+    day = make_sure_date_is_date_object(day)
+    return (day.month == 1 and day.day == 1) or (day.month == 12 and day.day > 23)
+
+
+def is_in_idle_period(day):
+    """
+    Returns True if the day is in the shutdown period (Dec 24 - Jan 2).
+    This is the company shutdown period where SLA dates should be adjusted.
+    """
+    day = make_sure_date_is_date_object(day)
+    return is_in_holiday_period(day) or (day.month == 1 and day.day <= 2)
 
 
 def is_business_day(day):
@@ -36,14 +104,8 @@ def is_business_day(day):
     Returns:
       boolean: if the day is a working day or not
     """
-    try:
-        day = day.date()  # get date from datetime
-    except AttributeError:
-        pass  # is already a date
-
-    return day.isoweekday() not in WEEKEND and not (
-        (day.month == 1 and day.day == 1) or (day.month == 12 and day.day > 23)
-    )
+    day = make_sure_date_is_date_object(day)
+    return day.isoweekday() not in WEEKEND and not is_in_holiday_period(day)
 
 
 def business_timedelta(start, end=None):

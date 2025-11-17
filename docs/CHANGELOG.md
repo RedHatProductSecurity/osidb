@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Changed
+- Adjust SLA end dates for non critical trackers falling during holiday period to Jan 8th (OSIDB-3834)
 - Rework alert serializer (OSIDB-4313)
 
 ## [5.2.1] - 2025-11-13

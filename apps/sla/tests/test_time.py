@@ -155,3 +155,28 @@ def test_subtract_business_days(dt, expected):
     bdt = time.add_business_days(dt, days=-1)
     assert bdt == expected
     assert time.business_timedelta(dt, bdt) == timedelta(days=-1)
+
+
+@pytest.mark.parametrize(
+    "dt,expected",
+    [
+        # Dates within shutdown period (Dec 24 - Jan 2)
+        (datetime(2024, 12, 24), True),  # Dec 24
+        (datetime(2024, 12, 25), True),  # Dec 25
+        (datetime(2024, 12, 31), True),  # Dec 31
+        (datetime(2025, 1, 1), True),  # Jan 1
+        (datetime(2025, 1, 2), True),  # Jan 2
+        # Dates outside shutdown period
+        (datetime(2024, 12, 23), False),  # Dec 23 (before)
+        (datetime(2025, 1, 3), False),  # Jan 3 (after)
+        (datetime(2025, 1, 8), False),  # Jan 8 (after)
+        # Test with timezone-aware datetime
+        (UTC.localize(datetime(2024, 12, 25)), True),
+        (EASTERN.localize(datetime(2024, 12, 31)), True),
+        (CET.localize(datetime(2025, 1, 1)), True),
+    ],
+)
+def test_is_in_idle_period(dt, expected):
+    """Test that is_in_idle_period correctly identifies shutdown period (Dec 24 - Jan 2)"""
+    result = time.is_in_idle_period(dt)
+    assert result is expected
