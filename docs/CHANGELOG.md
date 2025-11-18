@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Rework alert serializer (OSIDB-4313)
+- Support unmbargoing for closed trackers (OSIDB-3729)
 
 ## [5.2.1] - 2025-11-13
 ### Fixed
@@ -57,7 +58,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add query for finding flaw whose non-community affects are missing trackers (OSIDB-4104)
 - Add /revert and /reset flaw workflow endpoints (OSIDB-4487)
 - Add filter and Djangoql field for multi-label flaws (OSIDB-4531)
-- Support unmbargoing for closed trackers (OSIDB-3729)
 
 ### Changed
 - Adjust `unembargo_dt` validation for embargoed flaws to only trigger when 
