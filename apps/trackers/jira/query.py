@@ -445,6 +445,10 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
                 {"name": self.ps_update_stream.version}
             ]
 
+    def generate_only_security(self):
+        self.generate_base()
+        self.generate_security()
+
     def generate_security(self):
         """
         generate the appropriate security level for restricting who can access the Jira
@@ -904,6 +908,21 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             )
 
         self._query["fields"][field_id] = {"value": choice_str}
+
+    def generate_only_embargo_and_security_level(self):
+        """
+        Generate only the embargo status and security level fields.
+
+        The overwriting of _query, which initializes to None,
+        prevents class TrackerQueryBuilder's accessor method `query` from
+        generating the entire query, otherwise it will call `generate`
+        if `_query` is None.
+        """
+
+        self.generate_base()
+        self._query["fields"]["security"] = None
+        self.generate_embargo_status()
+        self.generate_security()
 
     def generate_special_handling(self):
         field_name = "Special Handling"

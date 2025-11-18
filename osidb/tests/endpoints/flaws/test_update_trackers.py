@@ -46,20 +46,6 @@ class TestEndpointsFlawsUpdateTrackers:
             status="NEW",
             type=Tracker.BTS2TYPE[ps_module1.bts_name],
         )
-        ps_update_stream12 = PsUpdateStreamFactory(ps_module=ps_module1)
-        affect2 = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_update_stream=ps_update_stream12.name,
-        )
-        TrackerFactory(
-            affects=[affect2],
-            embargoed=flaw.embargoed,
-            ps_update_stream=ps_update_stream12.name,
-            status="CLOSED",  # already resolved
-            type=Tracker.BTS2TYPE[ps_module1.bts_name],
-        )
         # one more community affect-tracker context
         ps_product2 = PsProductFactory(business_unit="Community")
         ps_module2 = PsModuleFactory(ps_product=ps_product2)
@@ -77,6 +63,36 @@ class TestEndpointsFlawsUpdateTrackers:
             status="NEW",
             type=Tracker.BTS2TYPE[ps_module2.bts_name],
         )
+        # create CLOSED tracker last to ensure it's processed after the NEW tracker
+        # (the production code returns early when encountering a closed tracker)
+        # We need to ensure affect2 has a later created_dt so it's processed last
+        from datetime import timedelta
+
+        from django.utils import timezone as django_timezone
+
+        ps_update_stream12 = PsUpdateStreamFactory(ps_module=ps_module1)
+        # Get the latest created_dt from existing affects to ensure affect2 comes last
+        latest_created_dt = max(
+            (affect.created_dt for affect in [affect1, affect3] if affect.created_dt),
+            default=django_timezone.now(),
+        )
+        # Create affect2 with an explicit later timestamp
+        affect2 = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream12.name,
+            created_dt=latest_created_dt + timedelta(seconds=1),
+        )
+        TrackerFactory(
+            affects=[affect2],
+            embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream12.name,
+            status="CLOSED",  # already resolved
+            type=Tracker.BTS2TYPE[ps_module1.bts_name],
+        )
+        # Refresh flaw to ensure we have the latest state
+        flaw.refresh_from_db()
 
         flaw_data = {
             "comment_zero": flaw.comment_zero,
