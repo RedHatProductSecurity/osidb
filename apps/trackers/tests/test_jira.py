@@ -1316,7 +1316,7 @@ class TestTrackerJiraQueryBuilder:
                 "customfield_12324752": "foo-component",
                 #
                 # Upstream Affected Component
-                "customfield_12324751": "; ".join(sorted(flaw.components)),
+                "customfield_12324751": "; ".join(sorted(set(flaw.components))),
                 #
                 # Embargo Status
                 "customfield_12324750": {"value": str(flaw.is_embargoed)},
@@ -1417,7 +1417,7 @@ class TestTrackerJiraQueryBuilder:
                 if feature_enabled
                 else "jetty",
                 # Upstream Affected Component
-                "customfield_12324751": "; ".join(sorted(flaw.components)),
+                "customfield_12324751": "; ".join(sorted(set(flaw.components))),
             }
         }
         query_builder = TrackerJiraQueryBuilder(
@@ -1931,7 +1931,7 @@ class TestTrackerJiraQueryBuilder:
                 "customfield_12324752": affect.ps_component,
                 #
                 # Upstream Affected Component
-                "customfield_12324751": "; ".join(sorted(flaw.components)),
+                "customfield_12324751": "; ".join(sorted(set(flaw.components))),
             }
         }
 
