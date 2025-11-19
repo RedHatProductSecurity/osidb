@@ -715,6 +715,28 @@ class Affect(
                 "belongs to a middleware product and cannot have its PURL removed."
             )
 
+    def _validate_version_in_purl(self, **kwargs):
+        """
+        Validate that new PURLs provide the version, matching the level of detail that
+        affects v2 provide.
+        """
+        old_affect = (
+            Affect.objects.get(uuid=self.uuid) if not self._state.adding else None
+        )
+        if self.purl and (self._state.adding or self.purl != old_affect.purl):
+            try:
+                purl = PackageURL.from_string(self.purl)
+            except ValueError as exc:
+                raise ValidationError(
+                    f"Affect ({self.uuid}) for {self.ps_update_stream} has "
+                    f"an invalid purl '{self.purl}': {exc}."
+                )
+            if not purl.version:
+                raise ValidationError(
+                    f"Affect ({self.uuid}) for {self.ps_update_stream} has a purl '{self.purl}' "
+                    "that does not specify a version."
+                )
+
     def _validate_not_affected_justification(self, **kwargs):
         """
         The not affected justification field becomes mandatory if the affectedness is NOTAFFECTED
