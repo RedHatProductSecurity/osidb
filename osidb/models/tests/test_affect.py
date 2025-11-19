@@ -110,7 +110,7 @@ class TestAffect:
                 "mainstream/nginx",
             ),
             (
-                "pkg:oci/example-component?repository_url=registry.example.io/namespace/example-component",
+                "pkg:oci/example-component@1.0.0?repository_url=registry.example.io/namespace/example-component",
                 "namespace/example-component",
             ),
         ],
@@ -301,5 +301,73 @@ class TestAffect:
             with pytest.raises(ValidationError) as exc_info:
                 affect.save()
             assert expected_error in str(exc_info.value)
+        else:
+            affect.save()
+
+    @pytest.mark.parametrize(
+        "initial_purl,updated_purl,should_fail",
+        [
+            # PURL addition - should validate
+            ("", "pkg:rpm/redhat/curl@7.76.1?arch=src", False),
+            ("", "pkg:rpm/redhat/curl?arch=src", True),
+            # PURL modification - should validate
+            (
+                "pkg:rpm/redhat/old-package@1.0.0?arch=src",
+                "pkg:rpm/redhat/curl@7.76.1?arch=src",
+                False,
+            ),
+            (
+                "pkg:rpm/redhat/curl?arch=src",
+                "pkg:rpm/redhat/curl@7.76.1?arch=src",
+                False,
+            ),
+            (
+                "pkg:rpm/redhat/old-package@1.0.0?arch=src",
+                "pkg:rpm/redhat/curl?arch=src",
+                True,
+            ),
+            (
+                "pkg:rpm/redhat/old-package?arch=src",
+                "pkg:rpm/redhat/curl?arch=src",
+                True,
+            ),
+            # PURL not changed - should not validate
+            (
+                "pkg:rpm/redhat/curl@7.76.1?arch=src",
+                "pkg:rpm/redhat/curl@7.76.1?arch=src",
+                False,
+            ),
+            ("pkg:rpm/redhat/curl?arch=src", "pkg:rpm/redhat/curl?arch=src", False),
+            # PURL deletion - should not validate
+            ("pkg:rpm/redhat/curl?arch=src", "", False),
+            ("pkg:rpm/redhat/curl@7.76.1?arch=src", "", False),
+        ],
+    )
+    def test_validate_version_in_purl(self, initial_purl, updated_purl, should_fail):
+        """
+        Test that _validate_version_in_purl validation is only run when PURL is
+        added or modified, and properly validates version presence.
+        """
+        flaw = FlawFactory()
+        ps_update_stream = PsUpdateStreamFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="test-component",
+            impact=Impact.MODERATE,
+        )
+        affect.purl = initial_purl
+        # Initially don't validate to set up test case, emulating old affects with invalid PURLs
+        affect.save(raise_validation_error=False)
+
+        affect.purl = updated_purl
+        if initial_purl == updated_purl:
+            # Test changing other field without PURL change
+            affect.impact = Impact.IMPORTANT
+
+        if should_fail:
+            with pytest.raises(ValidationError) as exc_info:
+                affect.save()
+            assert "does not specify a version" in str(exc_info.value)
         else:
             affect.save()
