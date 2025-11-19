@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rework alert serializer (OSIDB-4313)
 - Support unmbargoing for closed trackers (OSIDB-3729)
 
+### Added
+- Add `in` filter for API views (OSIDB-4588)
+
 ## [5.2.1] - 2025-11-13
 ### Fixed
 - Fix tracker grouping in affect v1 materialized view (OSIDB-4642)
