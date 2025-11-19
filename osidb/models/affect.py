@@ -239,7 +239,6 @@ class Affect(
     class Meta:
         """define meta"""
 
-        unique_together = ("flaw", "ps_update_stream", "ps_component")
         ordering = (
             "created_dt",
             "uuid",
@@ -250,6 +249,20 @@ class Affect(
             models.Index(fields=["flaw", "ps_update_stream"]),
             models.Index(fields=["flaw", "ps_component"]),
             GinIndex(fields=["acl_read"]),
+        ]
+        constraints = [
+            # If purl is empty, unique on (flaw, ps_update_stream, ps_component)
+            models.UniqueConstraint(
+                fields=["flaw", "ps_update_stream", "ps_component"],
+                condition=models.Q(purl=""),
+                name="affect_unique_flaw_stream_component_when_purl_empty",
+            ),
+            # If purl is not empty, unique on (flaw, ps_update_stream, purl)
+            models.UniqueConstraint(
+                fields=["flaw", "ps_update_stream", "purl"],
+                condition=models.Q(purl__gt=""),
+                name="affect_unique_flaw_stream_purl",
+            ),
         ]
 
     # objects = AffectManager()
@@ -302,6 +315,14 @@ class Affect(
                 if maybe_ps_component:
                     self.ps_component = maybe_ps_component
             except ValueError:
+                pass
+
+        if self.purl:
+            try:
+                # Order qualifiers by converting to dict and back to string to avoid duplicates
+                self.purl = PackageURL.from_string(self.purl).to_string()
+            except ValueError:
+                # PURL validation is handled in separate validator
                 pass
 
         if self.is_resolved:
