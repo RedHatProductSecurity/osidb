@@ -1709,6 +1709,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: comment__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: created_dt
         schema:
           type: string
@@ -1780,6 +1789,23 @@ paths:
           - NIST
           - OSV
           - RH
+      - in: query
+        name: issuer__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - CISA
+            - CVEORG
+            - NIST
+            - OSV
+            - RH
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - name: limit
         required: false
         in: query
@@ -1843,9 +1869,28 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: vector
         schema:
           type: string
+      - in: query
+        name: vector__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       tags:
       - osidb
       security:
@@ -2012,6 +2057,20 @@ paths:
           - ERROR
           - WARNING
       - in: query
+        name: alert_type__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ERROR
+            - WARNING
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: exclude_fields
         schema:
           type: array
@@ -2041,6 +2100,15 @@ paths:
           type: string
         description: Retrieve only Alerts with the specified name, which is given
           by the model's validation process.
+      - in: query
+        name: name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - name: offset
         required: false
         in: query
@@ -2075,6 +2143,16 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       tags:
       - osidb
       security:
@@ -2349,6 +2427,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: acknowledgments__affiliation__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: acknowledgments__created_dt
         schema:
           type: string
@@ -2397,6 +2484,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: acknowledgments__name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: acknowledgments__updated_dt
         schema:
           type: string
@@ -2441,6 +2537,16 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: acknowledgments__uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: affects__affectedness
         schema:
@@ -2764,6 +2870,15 @@ paths:
         explode: false
         style: form
       - in: query
+        name: components__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: created_dt
         schema:
           type: string
@@ -2821,6 +2936,15 @@ paths:
         explode: false
         style: form
       - in: query
+        name: cve_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: cve_id__isempty
         schema:
           type: boolean
@@ -2852,6 +2976,15 @@ paths:
         name: cvss_scores__comment
         schema:
           type: string
+      - in: query
+        name: cvss_scores__comment__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: cvss_scores__created_dt
         schema:
@@ -2907,6 +3040,23 @@ paths:
           - OSV
           - RH
       - in: query
+        name: cvss_scores__issuer__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - CISA
+            - CVEORG
+            - NIST
+            - OSV
+            - RH
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: cvss_scores__score
         schema:
           type: number
@@ -2957,13 +3107,41 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: cvss_scores__uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: cvss_scores__vector
         schema:
           type: string
       - in: query
+        name: cvss_scores__vector__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: cwe_id
         schema:
           type: string
+      - in: query
+        name: cwe_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: cwe_id__isempty
         schema:
@@ -3004,6 +3182,23 @@ paths:
           - IMPORTANT
           - LOW
           - MODERATE
+      - in: query
+        name: impact__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - CRITICAL
+            - IMPORTANT
+            - LOW
+            - MODERATE
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: include_fields
         schema:
@@ -3093,6 +3288,28 @@ paths:
           - MINOR_INCIDENT_REJECTED
           - MINOR_INCIDENT_REQUESTED
       - in: query
+        name: major_incident_state__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - EXPLOITS_KEV_APPROVED
+            - EXPLOITS_KEV_REJECTED
+            - EXPLOITS_KEV_REQUESTED
+            - MAJOR_INCIDENT_APPROVED
+            - MAJOR_INCIDENT_REJECTED
+            - MAJOR_INCIDENT_REQUESTED
+            - MINOR_INCIDENT_APPROVED
+            - MINOR_INCIDENT_REJECTED
+            - MINOR_INCIDENT_REQUESTED
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: mitigation__isempty
         schema:
           type: boolean
@@ -3105,6 +3322,22 @@ paths:
           - APPROVED
           - REJECTED
           - REQUESTED
+      - in: query
+        name: nist_cvss_validation__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - APPROVED
+            - REJECTED
+            - REQUESTED
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - name: offset
         required: false
         in: query
@@ -3212,6 +3445,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: owner__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: owner__isempty
         schema:
           type: boolean
@@ -3266,6 +3508,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: references__description__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: references__type
         schema:
           type: string
@@ -3274,6 +3525,22 @@ paths:
           - EXTERNAL
           - SOURCE
           - UPSTREAM
+      - in: query
+        name: references__type__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ARTICLE
+            - EXTERNAL
+            - SOURCE
+            - UPSTREAM
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: references__updated_dt
         schema:
@@ -3319,10 +3586,29 @@ paths:
         schema:
           type: string
       - in: query
+        name: references__url__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: references__uuid
         schema:
           type: string
           format: uuid
+      - in: query
+        name: references__uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: reported_dt
         schema:
@@ -3372,6 +3658,22 @@ paths:
           - APPROVED
           - REJECTED
           - REQUESTED
+      - in: query
+        name: requires_cve_description__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - APPROVED
+            - REJECTED
+            - REQUESTED
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: search
         schema:
@@ -3472,6 +3774,108 @@ paths:
           - XEN
           - XPDF
       - in: query
+        name: source__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - ADOBE
+            - APPLE
+            - ASF
+            - BIND
+            - BK
+            - BUGTRAQ
+            - BUGZILLA
+            - CERT
+            - CERTIFI
+            - CORELABS
+            - CUSTOMER
+            - CVE
+            - CVEORG
+            - DAILYDAVE
+            - DEBIAN
+            - DISTROS
+            - FEDORA
+            - FETCHMAIL
+            - FREEDESKTOP
+            - FREERADIUS
+            - FRSIRT
+            - FULLDISCLOSURE
+            - GAIM
+            - GENTOO
+            - GENTOOBZ
+            - GIT
+            - GNOME
+            - GNUPG
+            - GOOGLE
+            - HP
+            - HW_VENDOR
+            - IBM
+            - IDEFENSE
+            - INTERNET
+            - ISC
+            - ISEC
+            - IT
+            - JBOSS
+            - JPCERT
+            - KERNELBUGZILLA
+            - KERNELSEC
+            - LKML
+            - LWN
+            - MACROMEDIA
+            - MAGEIA
+            - MAILINGLIST
+            - MILW0RM
+            - MIT
+            - MITRE
+            - MOZILLA
+            - MUTTDEV
+            - NETDEV
+            - NISCC
+            - NVD
+            - OCERT
+            - OPENOFFICE
+            - OPENSSL
+            - OPENSUSE
+            - ORACLE
+            - OSS
+            - OSSSECURITY
+            - OSV
+            - PHP
+            - PIDGIN
+            - POSTGRESQL
+            - PRESS
+            - REAL
+            - REDHAT
+            - RESEARCHER
+            - RT
+            - SAMBA
+            - SECALERT
+            - SECUNIA
+            - SECURITYFOCUS
+            - SKO
+            - SQUID
+            - SQUIRRELMAIL
+            - SUN
+            - SUNSOLVE
+            - SUSE
+            - TWITTER
+            - UBUNTU
+            - UPSTREAM
+            - VENDORSEC
+            - VULNWATCH
+            - WIRESHARK
+            - XCHAT
+            - XEN
+            - XPDF
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: statement
         schema:
           type: string
@@ -3483,6 +3887,15 @@ paths:
         name: team_id
         schema:
           type: string
+      - in: query
+        name: team_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: title
         schema:
@@ -3547,6 +3960,16 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: visibility
         schema:
           type: string
@@ -3556,6 +3979,25 @@ paths:
           - PUBLIC
       - in: query
         name: workflow_state
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - DONE
+            - NEW
+            - PRE_SECONDARY_ASSESSMENT
+            - REJECTED
+            - SECONDARY_ASSESSMENT
+            - TRIAGE
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
+        name: workflow_state__in
         schema:
           type: array
           items:
@@ -3655,6 +4097,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: affiliation__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: created_dt
         schema:
           type: string
@@ -3732,6 +4183,15 @@ paths:
         name: name
         schema:
           type: string
+      - in: query
+        name: name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - name: offset
         required: false
         in: query
@@ -3783,6 +4243,16 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       tags:
       - osidb
       security:
@@ -4020,6 +4490,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: creator__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: exclude_fields
         schema:
           type: array
@@ -4032,6 +4511,15 @@ paths:
         name: external_system_id
         schema:
           type: string
+      - in: query
+        name: external_system_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: path
         name: flaw_id
         schema:
@@ -4071,6 +4559,16 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       tags:
       - osidb
       security:
@@ -4220,6 +4718,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: comment__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: created_dt
         schema:
           type: string
@@ -4297,6 +4804,23 @@ paths:
           - NIST
           - OSV
           - RH
+      - in: query
+        name: issuer__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - CISA
+            - CVEORG
+            - NIST
+            - OSV
+            - RH
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - name: limit
         required: false
         in: query
@@ -4360,9 +4884,28 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: vector
         schema:
           type: string
+      - in: query
+        name: vector__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       tags:
       - osidb
       security:
@@ -4928,6 +5471,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: package__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: updated_dt
         schema:
           type: string
@@ -4973,9 +5525,28 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: versions__version
         schema:
           type: string
+      - in: query
+        name: versions__version__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       tags:
       - osidb
       security:
@@ -5295,6 +5866,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: description__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: exclude_fields
         schema:
           type: array
@@ -5340,6 +5920,22 @@ paths:
           - SOURCE
           - UPSTREAM
       - in: query
+        name: type__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ARTICLE
+            - EXTERNAL
+            - SOURCE
+            - UPSTREAM
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: updated_dt
         schema:
           type: string
@@ -5384,10 +5980,29 @@ paths:
         schema:
           type: string
       - in: query
+        name: url__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: uuid
         schema:
           type: string
           format: uuid
+      - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       tags:
       - osidb
       security:
@@ -6650,6 +7265,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: cve_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: embargoed
         schema:
           type: boolean
@@ -6666,6 +7290,15 @@ paths:
         name: external_system_id
         schema:
           type: string
+      - in: query
+        name: external_system_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: include_fields
         schema:
@@ -6740,13 +7373,40 @@ paths:
         schema:
           type: string
       - in: query
+        name: ps_update_stream__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: resolution
         schema:
           type: string
       - in: query
+        name: resolution__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: status
         schema:
           type: string
+      - in: query
+        name: status__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: type
         schema:
@@ -6754,6 +7414,20 @@ paths:
           enum:
           - BUGZILLA
           - JIRA
+      - in: query
+        name: type__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - BUGZILLA
+            - JIRA
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: updated_dt
         schema:
@@ -6799,6 +7473,16 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: visibility
         schema:
@@ -6911,6 +7595,22 @@ paths:
           - NEW
           - NOTAFFECTED
       - in: query
+        name: affectedness__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - AFFECTED
+            - NEW
+            - NOTAFFECTED
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: created_dt
         schema:
           type: string
@@ -6955,9 +7655,27 @@ paths:
         schema:
           type: string
       - in: query
+        name: cve_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: cvss_scores__comment
         schema:
           type: string
+      - in: query
+        name: cvss_scores__comment__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: cvss_scores__created_dt
         schema:
@@ -7013,6 +7731,23 @@ paths:
           - OSV
           - RH
       - in: query
+        name: cvss_scores__issuer__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - CISA
+            - CVEORG
+            - NIST
+            - OSV
+            - RH
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: cvss_scores__score
         schema:
           type: number
@@ -7063,9 +7798,28 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: cvss_scores__uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: cvss_scores__vector
         schema:
           type: string
+      - in: query
+        name: cvss_scores__vector__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: embargoed
         schema:
@@ -7081,6 +7835,15 @@ paths:
           model fields. Example: `exclude_fields=field,related_model_field.field`'
       - in: query
         name: flaw__components
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: flaw__components__in
         schema:
           type: array
           items:
@@ -7133,9 +7896,27 @@ paths:
         schema:
           type: string
       - in: query
+        name: flaw__cve_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: flaw__cwe_id
         schema:
           type: string
+      - in: query
+        name: flaw__cwe_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: flaw__embargoed
         schema:
@@ -7150,6 +7931,23 @@ paths:
           - IMPORTANT
           - LOW
           - MODERATE
+      - in: query
+        name: flaw__impact__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - CRITICAL
+            - IMPORTANT
+            - LOW
+            - MODERATE
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: flaw__reported_dt
         schema:
@@ -7286,6 +8084,108 @@ paths:
           - XEN
           - XPDF
       - in: query
+        name: flaw__source__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - ADOBE
+            - APPLE
+            - ASF
+            - BIND
+            - BK
+            - BUGTRAQ
+            - BUGZILLA
+            - CERT
+            - CERTIFI
+            - CORELABS
+            - CUSTOMER
+            - CVE
+            - CVEORG
+            - DAILYDAVE
+            - DEBIAN
+            - DISTROS
+            - FEDORA
+            - FETCHMAIL
+            - FREEDESKTOP
+            - FREERADIUS
+            - FRSIRT
+            - FULLDISCLOSURE
+            - GAIM
+            - GENTOO
+            - GENTOOBZ
+            - GIT
+            - GNOME
+            - GNUPG
+            - GOOGLE
+            - HP
+            - HW_VENDOR
+            - IBM
+            - IDEFENSE
+            - INTERNET
+            - ISC
+            - ISEC
+            - IT
+            - JBOSS
+            - JPCERT
+            - KERNELBUGZILLA
+            - KERNELSEC
+            - LKML
+            - LWN
+            - MACROMEDIA
+            - MAGEIA
+            - MAILINGLIST
+            - MILW0RM
+            - MIT
+            - MITRE
+            - MOZILLA
+            - MUTTDEV
+            - NETDEV
+            - NISCC
+            - NVD
+            - OCERT
+            - OPENOFFICE
+            - OPENSSL
+            - OPENSUSE
+            - ORACLE
+            - OSS
+            - OSSSECURITY
+            - OSV
+            - PHP
+            - PIDGIN
+            - POSTGRESQL
+            - PRESS
+            - REAL
+            - REDHAT
+            - RESEARCHER
+            - RT
+            - SAMBA
+            - SECALERT
+            - SECUNIA
+            - SECURITYFOCUS
+            - SKO
+            - SQUID
+            - SQUIRRELMAIL
+            - SUN
+            - SUNSOLVE
+            - SUSE
+            - TWITTER
+            - UBUNTU
+            - UPSTREAM
+            - VENDORSEC
+            - VULNWATCH
+            - WIRESHARK
+            - XCHAT
+            - XEN
+            - XPDF
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: flaw__unembargo_dt
         schema:
           type: string
@@ -7336,6 +8236,16 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: flaw__uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: flaw__visibility
         schema:
           type: string
@@ -7372,6 +8282,23 @@ paths:
           - IMPORTANT
           - LOW
           - MODERATE
+      - in: query
+        name: impact__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - CRITICAL
+            - IMPORTANT
+            - LOW
+            - MODERATE
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: include_fields
         schema:
@@ -7506,13 +8433,40 @@ paths:
         schema:
           type: string
       - in: query
+        name: ps_component__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: ps_module
         schema:
           type: string
       - in: query
+        name: ps_module__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: ps_update_stream
         schema:
           type: string
+      - in: query
+        name: ps_update_stream__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: resolution
         schema:
@@ -7525,6 +8479,25 @@ paths:
           - OOSS
           - WONTFIX
           - WONTREPORT
+      - in: query
+        name: resolution__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - DEFER
+            - DELEGATED
+            - FIX
+            - OOSS
+            - WONTFIX
+            - WONTREPORT
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: tracker__created_dt
         schema:
@@ -7574,6 +8547,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: tracker__external_system_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: tracker__isnull
         schema:
           type: boolean
@@ -7582,13 +8564,40 @@ paths:
         schema:
           type: string
       - in: query
+        name: tracker__ps_update_stream__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: tracker__resolution
         schema:
           type: string
       - in: query
+        name: tracker__resolution__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: tracker__status
         schema:
           type: string
+      - in: query
+        name: tracker__status__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: tracker__type
         schema:
@@ -7596,6 +8605,20 @@ paths:
           enum:
           - BUGZILLA
           - JIRA
+      - in: query
+        name: tracker__type__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - BUGZILLA
+            - JIRA
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: tracker__updated_dt
         schema:
@@ -7641,6 +8664,16 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: tracker__uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: tracker__visibility
         schema:
@@ -7694,6 +8727,16 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: visibility
         schema:
@@ -7789,6 +8832,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: comment__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: created_dt
         schema:
           type: string
@@ -7860,6 +8912,23 @@ paths:
           - NIST
           - OSV
           - RH
+      - in: query
+        name: issuer__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - CISA
+            - CVEORG
+            - NIST
+            - OSV
+            - RH
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - name: limit
         required: false
         in: query
@@ -7923,9 +8992,28 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: vector
         schema:
           type: string
+      - in: query
+        name: vector__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       tags:
       - osidb
       security:
@@ -8448,6 +9536,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: acknowledgments__affiliation__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: acknowledgments__created_dt
         schema:
           type: string
@@ -8496,6 +9593,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: acknowledgments__name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: acknowledgments__updated_dt
         schema:
           type: string
@@ -8541,6 +9647,16 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: acknowledgments__uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: affects__affectedness
         schema:
           type: string
@@ -8549,6 +9665,22 @@ paths:
           - AFFECTED
           - NEW
           - NOTAFFECTED
+      - in: query
+        name: affects__affectedness__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - AFFECTED
+            - NEW
+            - NOTAFFECTED
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: affects__created_dt
         schema:
@@ -8604,17 +9736,61 @@ paths:
           - LOW
           - MODERATE
       - in: query
+        name: affects__impact__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - CRITICAL
+            - IMPORTANT
+            - LOW
+            - MODERATE
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: affects__ps_component
         schema:
           type: string
+      - in: query
+        name: affects__ps_component__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: affects__ps_module
         schema:
           type: string
       - in: query
+        name: affects__ps_module__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: affects__ps_update_stream
         schema:
           type: string
+      - in: query
+        name: affects__ps_update_stream__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: affects__resolution
         schema:
@@ -8627,6 +9803,25 @@ paths:
           - OOSS
           - WONTFIX
           - WONTREPORT
+      - in: query
+        name: affects__resolution__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - DEFER
+            - DELEGATED
+            - FIX
+            - OOSS
+            - WONTFIX
+            - WONTREPORT
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: affects__tracker__created_dt
         schema:
@@ -8676,6 +9871,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: affects__tracker__errata__advisory_name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: affects__tracker__errata__et_id
         schema:
           type: integer
@@ -8724,17 +9928,53 @@ paths:
         schema:
           type: string
       - in: query
+        name: affects__tracker__external_system_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: affects__tracker__ps_update_stream
         schema:
           type: string
+      - in: query
+        name: affects__tracker__ps_update_stream__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: affects__tracker__resolution
         schema:
           type: string
       - in: query
+        name: affects__tracker__resolution__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: affects__tracker__status
         schema:
           type: string
+      - in: query
+        name: affects__tracker__status__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: affects__tracker__type
         schema:
@@ -8742,6 +9982,20 @@ paths:
           enum:
           - BUGZILLA
           - JIRA
+      - in: query
+        name: affects__tracker__type__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - BUGZILLA
+            - JIRA
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: affects__tracker__updated_dt
         schema:
@@ -8787,6 +10041,16 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: affects__tracker__uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: affects__tracker__visibility
         schema:
@@ -8841,6 +10105,16 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: affects__uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: affects__visibility
         schema:
           type: string
@@ -8868,6 +10142,15 @@ paths:
           type: string
       - in: query
         name: components
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: components__in
         schema:
           type: array
           items:
@@ -8933,6 +10216,15 @@ paths:
         explode: false
         style: form
       - in: query
+        name: cve_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: cve_id__isempty
         schema:
           type: boolean
@@ -8964,6 +10256,15 @@ paths:
         name: cvss_scores__comment
         schema:
           type: string
+      - in: query
+        name: cvss_scores__comment__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: cvss_scores__created_dt
         schema:
@@ -9019,6 +10320,23 @@ paths:
           - OSV
           - RH
       - in: query
+        name: cvss_scores__issuer__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - CISA
+            - CVEORG
+            - NIST
+            - OSV
+            - RH
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: cvss_scores__score
         schema:
           type: number
@@ -9069,13 +10387,41 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: cvss_scores__uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: cvss_scores__vector
         schema:
           type: string
       - in: query
+        name: cvss_scores__vector__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: cwe_id
         schema:
           type: string
+      - in: query
+        name: cwe_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: cwe_id__isempty
         schema:
@@ -9116,6 +10462,23 @@ paths:
           - IMPORTANT
           - LOW
           - MODERATE
+      - in: query
+        name: impact__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - CRITICAL
+            - IMPORTANT
+            - LOW
+            - MODERATE
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: include_fields
         schema:
@@ -9205,6 +10568,28 @@ paths:
           - MINOR_INCIDENT_REJECTED
           - MINOR_INCIDENT_REQUESTED
       - in: query
+        name: major_incident_state__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - EXPLOITS_KEV_APPROVED
+            - EXPLOITS_KEV_REJECTED
+            - EXPLOITS_KEV_REQUESTED
+            - MAJOR_INCIDENT_APPROVED
+            - MAJOR_INCIDENT_REJECTED
+            - MAJOR_INCIDENT_REQUESTED
+            - MINOR_INCIDENT_APPROVED
+            - MINOR_INCIDENT_REJECTED
+            - MINOR_INCIDENT_REQUESTED
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: mitigation__isempty
         schema:
           type: boolean
@@ -9217,6 +10602,22 @@ paths:
           - APPROVED
           - REJECTED
           - REQUESTED
+      - in: query
+        name: nist_cvss_validation__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - APPROVED
+            - REJECTED
+            - REQUESTED
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - name: offset
         required: false
         in: query
@@ -9364,6 +10765,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: owner__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: owner__isempty
         schema:
           type: boolean
@@ -9418,6 +10828,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: references__description__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: references__type
         schema:
           type: string
@@ -9426,6 +10845,22 @@ paths:
           - EXTERNAL
           - SOURCE
           - UPSTREAM
+      - in: query
+        name: references__type__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ARTICLE
+            - EXTERNAL
+            - SOURCE
+            - UPSTREAM
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: references__updated_dt
         schema:
@@ -9471,10 +10906,29 @@ paths:
         schema:
           type: string
       - in: query
+        name: references__url__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: references__uuid
         schema:
           type: string
           format: uuid
+      - in: query
+        name: references__uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: reported_dt
         schema:
@@ -9524,6 +10978,22 @@ paths:
           - APPROVED
           - REJECTED
           - REQUESTED
+      - in: query
+        name: requires_cve_description__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - APPROVED
+            - REJECTED
+            - REQUESTED
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: search
         schema:
@@ -9624,6 +11094,108 @@ paths:
           - XEN
           - XPDF
       - in: query
+        name: source__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - ADOBE
+            - APPLE
+            - ASF
+            - BIND
+            - BK
+            - BUGTRAQ
+            - BUGZILLA
+            - CERT
+            - CERTIFI
+            - CORELABS
+            - CUSTOMER
+            - CVE
+            - CVEORG
+            - DAILYDAVE
+            - DEBIAN
+            - DISTROS
+            - FEDORA
+            - FETCHMAIL
+            - FREEDESKTOP
+            - FREERADIUS
+            - FRSIRT
+            - FULLDISCLOSURE
+            - GAIM
+            - GENTOO
+            - GENTOOBZ
+            - GIT
+            - GNOME
+            - GNUPG
+            - GOOGLE
+            - HP
+            - HW_VENDOR
+            - IBM
+            - IDEFENSE
+            - INTERNET
+            - ISC
+            - ISEC
+            - IT
+            - JBOSS
+            - JPCERT
+            - KERNELBUGZILLA
+            - KERNELSEC
+            - LKML
+            - LWN
+            - MACROMEDIA
+            - MAGEIA
+            - MAILINGLIST
+            - MILW0RM
+            - MIT
+            - MITRE
+            - MOZILLA
+            - MUTTDEV
+            - NETDEV
+            - NISCC
+            - NVD
+            - OCERT
+            - OPENOFFICE
+            - OPENSSL
+            - OPENSUSE
+            - ORACLE
+            - OSS
+            - OSSSECURITY
+            - OSV
+            - PHP
+            - PIDGIN
+            - POSTGRESQL
+            - PRESS
+            - REAL
+            - REDHAT
+            - RESEARCHER
+            - RT
+            - SAMBA
+            - SECALERT
+            - SECUNIA
+            - SECURITYFOCUS
+            - SKO
+            - SQUID
+            - SQUIRRELMAIL
+            - SUN
+            - SUNSOLVE
+            - SUSE
+            - TWITTER
+            - UBUNTU
+            - UPSTREAM
+            - VENDORSEC
+            - VULNWATCH
+            - WIRESHARK
+            - XCHAT
+            - XEN
+            - XPDF
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: statement
         schema:
           type: string
@@ -9635,6 +11207,15 @@ paths:
         name: team_id
         schema:
           type: string
+      - in: query
+        name: team_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: title
         schema:
@@ -9699,6 +11280,16 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: visibility
         schema:
           type: string
@@ -9708,6 +11299,25 @@ paths:
           - PUBLIC
       - in: query
         name: workflow_state
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - DONE
+            - NEW
+            - PRE_SECONDARY_ASSESSMENT
+            - REJECTED
+            - SECONDARY_ASSESSMENT
+            - TRIAGE
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
+        name: workflow_state__in
         schema:
           type: array
           items:
@@ -9806,6 +11416,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: comment__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: created_dt
         schema:
           type: string
@@ -9883,6 +11502,23 @@ paths:
           - NIST
           - OSV
           - RH
+      - in: query
+        name: issuer__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - CISA
+            - CVEORG
+            - NIST
+            - OSV
+            - RH
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - name: limit
         required: false
         in: query
@@ -9946,9 +11582,28 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: vector
         schema:
           type: string
+      - in: query
+        name: vector__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       tags:
       - osidb
       security:
@@ -10325,6 +11980,22 @@ paths:
           - NEW
           - NOTAFFECTED
       - in: query
+        name: affects__affectedness__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - AFFECTED
+            - NEW
+            - NOTAFFECTED
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: affects__created_dt
         schema:
           type: string
@@ -10378,6 +12049,15 @@ paths:
         explode: false
         style: form
       - in: query
+        name: affects__flaw__components__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: affects__flaw__created_dt
         schema:
           type: string
@@ -10422,9 +12102,27 @@ paths:
         schema:
           type: string
       - in: query
+        name: affects__flaw__cve_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: affects__flaw__cwe_id
         schema:
           type: string
+      - in: query
+        name: affects__flaw__cwe_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: affects__flaw__embargoed
         schema:
@@ -10439,6 +12137,23 @@ paths:
           - IMPORTANT
           - LOW
           - MODERATE
+      - in: query
+        name: affects__flaw__impact__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - CRITICAL
+            - IMPORTANT
+            - LOW
+            - MODERATE
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: affects__flaw__reported_dt
         schema:
@@ -10575,6 +12290,108 @@ paths:
           - XEN
           - XPDF
       - in: query
+        name: affects__flaw__source__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - ADOBE
+            - APPLE
+            - ASF
+            - BIND
+            - BK
+            - BUGTRAQ
+            - BUGZILLA
+            - CERT
+            - CERTIFI
+            - CORELABS
+            - CUSTOMER
+            - CVE
+            - CVEORG
+            - DAILYDAVE
+            - DEBIAN
+            - DISTROS
+            - FEDORA
+            - FETCHMAIL
+            - FREEDESKTOP
+            - FREERADIUS
+            - FRSIRT
+            - FULLDISCLOSURE
+            - GAIM
+            - GENTOO
+            - GENTOOBZ
+            - GIT
+            - GNOME
+            - GNUPG
+            - GOOGLE
+            - HP
+            - HW_VENDOR
+            - IBM
+            - IDEFENSE
+            - INTERNET
+            - ISC
+            - ISEC
+            - IT
+            - JBOSS
+            - JPCERT
+            - KERNELBUGZILLA
+            - KERNELSEC
+            - LKML
+            - LWN
+            - MACROMEDIA
+            - MAGEIA
+            - MAILINGLIST
+            - MILW0RM
+            - MIT
+            - MITRE
+            - MOZILLA
+            - MUTTDEV
+            - NETDEV
+            - NISCC
+            - NVD
+            - OCERT
+            - OPENOFFICE
+            - OPENSSL
+            - OPENSUSE
+            - ORACLE
+            - OSS
+            - OSSSECURITY
+            - OSV
+            - PHP
+            - PIDGIN
+            - POSTGRESQL
+            - PRESS
+            - REAL
+            - REDHAT
+            - RESEARCHER
+            - RT
+            - SAMBA
+            - SECALERT
+            - SECUNIA
+            - SECURITYFOCUS
+            - SKO
+            - SQUID
+            - SQUIRRELMAIL
+            - SUN
+            - SUNSOLVE
+            - SUSE
+            - TWITTER
+            - UBUNTU
+            - UPSTREAM
+            - VENDORSEC
+            - VULNWATCH
+            - WIRESHARK
+            - XCHAT
+            - XEN
+            - XPDF
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: affects__flaw__unembargo_dt
         schema:
           type: string
@@ -10625,6 +12442,16 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: affects__flaw__uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: affects__flaw__visibility
         schema:
           type: string
@@ -10643,17 +12470,61 @@ paths:
           - LOW
           - MODERATE
       - in: query
+        name: affects__impact__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - CRITICAL
+            - IMPORTANT
+            - LOW
+            - MODERATE
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
+      - in: query
         name: affects__ps_component
         schema:
           type: string
+      - in: query
+        name: affects__ps_component__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: affects__ps_module
         schema:
           type: string
       - in: query
+        name: affects__ps_module__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: affects__ps_update_stream
         schema:
           type: string
+      - in: query
+        name: affects__ps_update_stream__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: affects__resolution
         schema:
@@ -10666,6 +12537,25 @@ paths:
           - OOSS
           - WONTFIX
           - WONTREPORT
+      - in: query
+        name: affects__resolution__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - DEFER
+            - DELEGATED
+            - FIX
+            - OOSS
+            - WONTFIX
+            - WONTREPORT
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: affects__updated_dt
         schema:
@@ -10711,6 +12601,16 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: affects__uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: affects__visibility
         schema:
@@ -10764,6 +12664,15 @@ paths:
         schema:
           type: string
       - in: query
+        name: cve_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: embargoed
         schema:
           type: boolean
@@ -10780,6 +12689,15 @@ paths:
         name: external_system_id
         schema:
           type: string
+      - in: query
+        name: external_system_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: include_fields
         schema:
@@ -10892,13 +12810,40 @@ paths:
         schema:
           type: string
       - in: query
+        name: ps_update_stream__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: resolution
         schema:
           type: string
       - in: query
+        name: resolution__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: status
         schema:
           type: string
+      - in: query
+        name: status__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: type
         schema:
@@ -10906,6 +12851,20 @@ paths:
           enum:
           - BUGZILLA
           - JIRA
+      - in: query
+        name: type__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - BUGZILLA
+            - JIRA
+        description: |+
+          Multiple values may be separated by commas.
+
+        explode: false
+        style: form
       - in: query
         name: updated_dt
         schema:
@@ -10951,6 +12910,16 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: uuid__in
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: visibility
         schema:

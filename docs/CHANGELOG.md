@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make `ps_module` read-only in the affect serializer (OSIDB-4554)
 
 ### Added
+- Add `in` filter for API views (OSIDB-4588)
 - Add `alias` label type for incidents (OSIDB-4665)
 - Add settings for enabling/disabling EPSS collector (OSIDB-4677)
 - Add visibility annotated field for ACLMixin models (OSIDB-4709)
@@ -35,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [5.2.2] - 2025-12-04
 ### Added
 - support for multiple endings 
-- new ending type "no shutdown" [christmas + new year + from jan 2 to jan 7] 
+- new ending type "no shutdown" [christmas + new year + from jan 2 to jan 7]
 
 ## [5.2.1] - 2025-11-13
 ### Fixed
