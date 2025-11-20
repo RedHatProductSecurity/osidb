@@ -1698,62 +1698,57 @@ class TestEndpointsFlaws:
             assert response.status_code == 200
             assert Flaw.objects.first().unembargo_dt == new_date
 
+    @freeze_time(datetime(2025, 1, 1, tzinfo=timezone.utc))
     def test_embargoed_deadlock(self, auth_client, test_api_v2_uri):
         flaw = FlawFactory(
             embargoed=True,
             workflow_state=WorkflowModel.WorkflowState.TRIAGE,
+            reported_dt=datetime(2025, 1, 1, tzinfo=timezone.utc),
         )
 
         flaw.unembargo_dt = datetime(2024, 1, 1, tzinfo=timezone.utc)
         flaw.save(raise_validation_error=False)
 
-        with freeze_time(datetime(2025, 1, 1, tzinfo=timezone.utc)):
-            ps_module = PsModuleFactory()
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
-            affects_data = [
-                {
-                    "flaw": str(flaw.uuid),
-                    "affectedness": "NEW",
-                    "resolution": "",
-                    "ps_update_stream": ps_update_stream.name,
-                    "ps_component": "kernel",
-                    "impact": "MODERATE",
-                    "embargoed": True,
-                }
-            ]
-
-            res1 = auth_client().post(
-                f"{test_api_v2_uri}/affects/bulk",
-                affects_data,
-                format="json",
-                HTTP_BUGZILLA_API_KEY="SECRET",
-                HTTP_JIRA_API_KEY="SECRET",
-            )
-
-            assert res1.status_code == 200
-            assert flaw.affects.count() == 1
-
-            flaw.refresh_from_db()
-            res2 = auth_client().put(
-                f"{test_api_v2_uri}/flaws/{flaw.uuid}",
-                {
-                    "title": flaw.title,
-                    "comment_zero": flaw.comment_zero,
-                    "embargoed": True,
-                    "unembargo_dt": datetime(
-                        2026, 1, 1, tzinfo=timezone.utc
-                    ).isoformat(),
-                    "updated_dt": flaw.updated_dt.isoformat(),
-                },
-                format="json",
-                HTTP_BUGZILLA_API_KEY="SECRET",
-                HTTP_JIRA_API_KEY="SECRET",
-            )
-
-            flaw.refresh_from_db()
-            assert res2.status_code == 200
-            assert flaw.embargoed
-            assert flaw.unembargo_dt == datetime(2026, 1, 1, tzinfo=timezone.utc)
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affects_data = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": "NEW",
+                "resolution": "",
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "kernel",
+                "impact": "MODERATE",
+                "embargoed": True,
+            }
+        ]
+        res1 = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            affects_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert res1.status_code == 200
+        assert flaw.affects.count() == 1
+        flaw.refresh_from_db()
+        res2 = auth_client().put(
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
+            {
+                "title": flaw.title,
+                "comment_zero": flaw.comment_zero,
+                "embargoed": True,
+                "unembargo_dt": datetime(2026, 1, 1, tzinfo=timezone.utc).isoformat(),
+                "updated_dt": flaw.updated_dt.isoformat(),
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        flaw.refresh_from_db()
+        assert res2.status_code == 200
+        assert flaw.embargoed
+        assert flaw.unembargo_dt == datetime(2026, 1, 1, tzinfo=timezone.utc)
 
     def test_flaw_update_collision(self, auth_client, test_api_uri):
         """
