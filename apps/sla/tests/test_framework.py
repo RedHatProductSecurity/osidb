@@ -226,7 +226,183 @@ slo:
             policy = SLOPolicy.objects.first()
             assert policy.slo
             assert policy.slo.duration_type == expected_type
-            assert policy.slo.ending == expected_ending
+            assert policy.slo.ending_types == [expected_ending]
+
+        @pytest.mark.parametrize(
+            "type_desc,ending,expected_ending,expected_type",
+            [
+                (
+                    "calendar days",
+                    "any day",
+                    "any day",
+                    "calendar days",
+                ),
+                (
+                    "business days",
+                    "any day",
+                    "any day",
+                    "business days",
+                ),
+                (
+                    "business days",
+                    "no week ending",
+                    "no week ending",
+                    "business days",
+                ),
+            ],
+        )
+        def test_ending_dict(self, type_desc, ending, expected_ending, expected_type):
+            """
+            test that a policy ending is correctly loaded from the definition as a dictionary
+            """
+            slo_file = f"""
+# some comment
+---
+name: Low
+description: SLO policy applied to low impact
+conditions:
+  affect:
+    - aggregated impact is low
+  flaw:
+    - is not embargoed
+slo:
+  duration: 180
+  start:
+    latest:
+      flaw:
+        - reported date
+        - unembargo date
+      tracker:
+        - created date
+  type:
+    days: {type_desc}
+    ending:
+      - {ending}
+"""
+
+            load_policies(SLOPolicy, slo_file)
+
+            assert SLOPolicy.objects.count() == 1
+            policy = SLOPolicy.objects.first()
+            assert policy.slo
+            assert policy.slo.duration_type == expected_type
+            assert policy.slo.ending_types == [expected_ending]
+
+        @pytest.mark.parametrize(
+            "type_desc,ending1,ending2,expected_ending,expected_type",
+            [
+                (
+                    "calendar days",
+                    "any day",
+                    "no shutdown",
+                    "any day",
+                    "calendar days",
+                ),
+                (
+                    "business days",
+                    "any day",
+                    "no shutdown",
+                    "any day",
+                    "business days",
+                ),
+                (
+                    "business days",
+                    "no week ending",
+                    "no shutdown",
+                    "no week ending",
+                    "business days",
+                ),
+            ],
+        )
+        def test_multiple_endings_dict(
+            self, type_desc, ending1, ending2, expected_ending, expected_type
+        ):
+            """
+            test that a policy ending is correctly loaded from the definition as a dictionary
+            """
+            slo_file = f"""
+# some comment
+---
+name: Low
+description: SLO policy applied to low impact
+conditions:
+  affect:
+    - aggregated impact is low
+  flaw:
+    - is not embargoed
+slo:
+  duration: 180
+  start:
+    latest:
+      flaw:
+        - reported date
+        - unembargo date
+      tracker:
+        - created date
+  type:
+    days: {type_desc}
+    ending:
+      - {ending1}
+      - {ending2}
+"""
+
+            load_policies(SLOPolicy, slo_file)
+
+            assert SLOPolicy.objects.count() == 1
+            policy = SLOPolicy.objects.first()
+            assert policy.slo
+            assert policy.slo.duration_type == expected_type
+            assert policy.slo.ending_types == [ending1, ending2]
+
+        @pytest.mark.parametrize(
+            "type_desc,expected_ending,expected_type",
+            [
+                (
+                    "calendar days",
+                    "any day",
+                    "calendar days",
+                ),
+                (
+                    "business days",
+                    "any day",
+                    "business days",
+                ),
+            ],
+        )
+        def test_no_endings_dict(self, type_desc, expected_ending, expected_type):
+            """
+            test that a policy ending is correctly loaded from the definition as a dictionary
+            """
+            slo_file = f"""
+# some comment
+---
+name: Low
+description: SLO policy applied to low impact
+conditions:
+  affect:
+    - aggregated impact is low
+  flaw:
+    - is not embargoed
+slo:
+  duration: 180
+  start:
+    latest:
+      flaw:
+        - reported date
+        - unembargo date
+      tracker:
+        - created date
+  type:
+    days: {type_desc}
+"""
+
+            load_policies(SLOPolicy, slo_file)
+
+            assert SLOPolicy.objects.count() == 1
+            policy = SLOPolicy.objects.first()
+            assert policy.slo
+            assert policy.slo.duration_type == expected_type
+            assert policy.slo.ending_types == ["any day"]
 
         def test_null_slo(self):
             """
