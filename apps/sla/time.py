@@ -41,36 +41,20 @@ def make_sure_date_is_date_object(day):
 def go_to_next_holiday_deadline(day):
     """
     Go to the very deadline (January 8th) after the given day.
-    Preserves the original time and timezone of the input datetime.
+    The deadline is always January 8th at midnight in US Eastern timezone.
+    If January 8th falls on a non-business day, it moves to the next business day.
     """
-    # Preserve original time and timezone if it's a datetime
-    if isinstance(day, datetime):
-        orig_tz = day.tzinfo
-        orig_time = (day.hour, day.minute, day.second, day.microsecond)
-    else:
-        orig_tz = None
-        orig_time = (0, 0, 0, 0)
-
     day = make_sure_date_is_date_object(day)
     # If month is December, go to the next year, otherwise stay in the same year
     if day.month == 12:
         year = day.year + 1
     else:
         year = day.year
-    holiday_deadline = datetime(
-        year,
-        HOLIDAY_DEADLINE_MONTH,
-        HOLIDAY_DEADLINE_DAY,
-        orig_time[0],
-        orig_time[1],
-        orig_time[2],
-        orig_time[3],
+    # Create January 8th at midnight in US Eastern timezone
+    holiday_deadline = EASTERN.localize(
+        datetime(year, HOLIDAY_DEADLINE_MONTH, HOLIDAY_DEADLINE_DAY)
     )
-    # Use original timezone if available, otherwise UTC
-    if orig_tz:
-        holiday_deadline = holiday_deadline.replace(tzinfo=orig_tz)
-    else:
-        holiday_deadline = holiday_deadline.replace(tzinfo=UTC)
+    # Skip to next business day if January 8th is not a business day
     while not is_business_day(holiday_deadline):
         holiday_deadline = add_days(holiday_deadline, 1)
     return holiday_deadline
@@ -262,4 +246,20 @@ def skip_week_ending(dt):
     while is_week_ending(dt):
         dt = add_days(dt, 1)
 
+    return dt
+
+
+def adjust_for_holiday_deadline(dt):
+    """
+    If the given date falls within the shutdown period (Dec 24 - Jan 2),
+    move it to January 8th (or the next business day if Jan 8 is not a business day).
+    Otherwise, return the date unchanged.
+    """
+    day = make_sure_date_is_date_object(dt)
+    
+    # Check if date falls within shutdown period (Dec 24 - Jan 2)
+    if is_in_idle_period(day):
+        # Move to the next January 8th (or next business day if Jan 8 is weekend/holiday)
+        return go_to_next_holiday_deadline(dt)
+    
     return dt
