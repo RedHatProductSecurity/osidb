@@ -24,6 +24,48 @@ EASTERN = timezone("US/Eastern")
 UTC = timezone("UTC")
 WEEKEND = (6, 7)  # Sat, Sun
 
+# as both weekend and also Friday are not considered suitable for
+# risky operations we need to extend the definition beyond weekend
+WEEK_ENDING = (5,) + WEEKEND  # Fri, Sat, Sun
+
+
+SHUTDOWN_IDLE_DAYS = [
+    (1, 2),
+    (1, 3),
+    (1, 4),
+    (1, 5),
+    (1, 6),
+    (1, 7),
+]
+
+CHRISTMAS_HOLIDAYS = [
+    (1, 1),
+    (12, 24),
+    (12, 25),
+    (12, 26),
+    (12, 27),
+    (12, 28),
+    (12, 29),
+    (12, 30),
+    (12, 31),
+]
+
+SHUTDOWN_DAYS = CHRISTMAS_HOLIDAYS + [(1, 2)]
+
+
+def is_weekend(day):
+    """
+    Returns True if the day is a weekend.
+    """
+    return day.isoweekday() in WEEKEND
+
+
+def is_christmas_holiday(day):
+    """
+    Returns True if the day is a holiday.
+    """
+    return (day.month, day.day) in CHRISTMAS_HOLIDAYS
+
 
 def is_business_day(day):
     """
@@ -41,9 +83,7 @@ def is_business_day(day):
     except AttributeError:
         pass  # is already a date
 
-    return day.isoweekday() not in WEEKEND and not (
-        (day.month == 1 and day.day == 1) or (day.month == 12 and day.day > 23)
-    )
+    return day.isoweekday() not in WEEKEND and not is_christmas_holiday(day)
 
 
 def business_timedelta(start, end=None):
@@ -169,11 +209,6 @@ def add_business_days(dt, days):
     return new_dt
 
 
-# as both weekend and also Friday are not considered suitable for
-# risky operations we need to extend the definition beyond weekend
-WEEK_ENDING = (5, 6, 7)  # Fri, Sat, Sun
-
-
 def is_week_ending(day):
     """
     Returns True if the day is Friday, Saturday, Sunday.
@@ -198,6 +233,24 @@ def skip_week_ending(dt):
     if the given date falls on Friday or weekend move it to the next Monday
     """
     while is_week_ending(dt):
+        dt = add_days(dt, 1)
+
+    return dt
+
+
+def is_shutdown_idle_day(dt):
+    """
+    Returns True if the day is a shutdown idle day.
+    """
+    return (dt.month, dt.day) in SHUTDOWN_DAYS + SHUTDOWN_IDLE_DAYS
+
+
+def skip_shutdown_idle_days(dt):
+    """
+    if the given date falls on a shutdown day move it to the next business day after idle days
+    """
+    # move to the next business day after shutdown days
+    while is_shutdown_idle_day(dt) or is_weekend(dt):
         dt = add_days(dt, 1)
 
     return dt

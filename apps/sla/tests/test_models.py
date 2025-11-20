@@ -430,6 +430,72 @@ class TestSLO:
 
             assert slo.end(slo_context) == make_aware(expected)
 
+        @pytest.mark.parametrize(
+            "reported_dt,expected",
+            [
+                (
+                    datetime(2024, 11, 13, 5, 5, 5),
+                    datetime(2024, 11, 14, 5, 5, 5),
+                ),  # Normal day dont skip anything
+                (
+                    datetime(2024, 12, 24, 5, 5, 5),
+                    datetime(2025, 1, 8, 5, 5, 5),
+                ),  # christmas day skip shutdown idle days
+                (
+                    datetime(2024, 12, 25, 5, 5, 5),
+                    datetime(2025, 1, 8, 5, 5, 5),
+                ),  # skipping
+                (
+                    datetime(2024, 12, 31, 5, 5, 5),
+                    datetime(2025, 1, 8, 5, 5, 5),
+                ),  # skipping
+                (
+                    datetime(2025, 1, 2, 5, 5, 5),
+                    datetime(2025, 1, 8, 5, 5, 5),
+                ),  # skipping shutdown idle days
+                (
+                    datetime(2025, 1, 6, 5, 5, 5),
+                    datetime(2025, 1, 8, 5, 5, 5),
+                ),  # skipping shutdown idle days
+                (
+                    datetime(2025, 1, 7, 5, 5, 5),
+                    datetime(2025, 1, 8, 5, 5, 5),
+                ),  # skipping shutdown idle days
+                (
+                    datetime(2025, 1, 8, 5, 5, 5),
+                    datetime(2025, 1, 9, 5, 5, 5),
+                ),  # do not skip
+                (
+                    datetime(2000, 1, 8, 5, 5, 5),
+                    datetime(2000, 1, 10, 5, 5, 5),
+                ),  # skip because its a saturday
+                (datetime(2025, 1, 10, 5, 5, 5), datetime(2025, 1, 13, 5, 5, 5)),
+                # skipping because it falls on a non-business day
+            ],
+        )
+        def test_no_shutdown_ending(self, reported_dt, expected):
+            """
+            test computation of SLO end when no-shutdown-ending is specified
+            """
+
+            slo_desc = {
+                "duration": 1,
+                "start": "reported date",
+                "type": {
+                    "days": "calendar days",
+                    "ending": [
+                        "no shutdown",
+                    ],
+                },
+            }
+            slo = TemporalPolicy.create_from_description(slo_desc)
+            # Wednesday
+            flaw = FlawFactory(reported_dt=make_aware(reported_dt))
+            slo_context = TemporalContext(flaw=flaw)
+
+            end_date = slo.end(slo_context)
+            assert end_date.date() == expected.date()
+
 
 class TestTemporalContext:
     """
