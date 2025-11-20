@@ -12,10 +12,6 @@ from typing import Optional
 from django.utils.timezone import make_aware
 
 from apps.sla.models import SLAPolicy, SLOPolicy
-from apps.sla.time import (
-    go_to_next_holiday_deadline,
-    is_in_idle_period,
-)
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
     ComponentUnavailableError,
@@ -354,35 +350,6 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         }:
             self._query["fields"]["labels"].append("validation-requested")
 
-    def adjust_sla_date_for_shutdown(self, sla_end_date):
-        """
-        Adjust SLA end date for company shutdown period.
-
-        For IMPORTANT and MODERATE CVEs (excluding CRITICAL), if the SLA end date
-        falls within the shutdown period (Dec 24 - Jan 2), adjust it to Jan 8th.
-
-        Args:
-            sla_end_date: The calculated SLA end date (datetime)
-
-        Returns:
-            datetime: The adjusted date if conditions are met, otherwise the original date
-        """
-        if sla_end_date is None:
-            return None
-
-        # Check if impact is CRITICAL (no adjustment needed)
-        if self.tracker.aggregated_impact in [Impact.CRITICAL]:
-            return sla_end_date
-
-        # Check if date falls within shutdown period (Dec 24 - Jan 2)
-        date_in_idle_period = is_in_idle_period(sla_end_date.date())
-
-        if date_in_idle_period:
-            # move to the next january 8th if it's not a business day
-            adjusted_date = go_to_next_holiday_deadline(sla_end_date)
-            return adjusted_date
-        return sla_end_date
-
     def generate_sla(self):
         """
         generate query for Jira SLO timestamps
@@ -407,8 +374,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         sla_context = SLAPolicy.classify(self.tracker)
         # the tracker may or may not be under SLA
         if sla_context.policy is not None:
-            # Adjust SLA date for shutdown period if applicable
-            sla_end_date = self.adjust_sla_date_for_shutdown(sla_context.end)
+            sla_end_date = sla_context.end
 
             if sla_date_field:
                 self._query["fields"][sla_date_field.field_id] = (
