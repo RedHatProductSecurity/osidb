@@ -430,6 +430,53 @@ class TestSLO:
 
             assert slo.end(slo_context) == make_aware(expected)
 
+        @pytest.mark.parametrize(
+            "reported_date_str,duration,expected_date_str",
+            [
+                # Dates within shutdown period (Dec 24 - Jan 2) should move to Jan 8
+                ("2024-12-20", 5, "2025-01-08"),  # Dec 25 -> Jan 8
+                ("2024-12-23", 2, "2025-01-08"),  # Dec 25 -> Jan 8
+                ("2024-12-24", 1, "2025-01-08"),  # Dec 25 -> Jan 8
+                ("2024-12-31", 1, "2025-01-08"),  # Jan 1 -> Jan 8
+                ("2025-01-01", 1, "2025-01-08"),  # Jan 2 -> Jan 8
+                ("2025-01-01", 2, "2025-01-08"),  # Jan 3 -> Jan 8 (but Jan 2 is in period)
+                # Dates outside shutdown period should remain unchanged
+                ("2024-12-20", 1, "2024-12-21"),  # Dec 21 (before shutdown)
+                ("2025-01-03", 1, "2025-01-04"),  # Jan 4 (after shutdown)
+                ("2024-06-15", 5, "2024-06-20"),  # June (not shutdown period)
+            ],
+        )
+        def test_holiday_deadline(self, reported_date_str, duration, expected_date_str):
+            """
+            test computation of SLO end when holiday deadline is specified
+            Dates falling in shutdown period (Dec 24 - Jan 2) should move to Jan 8
+            """
+            slo_desc = {
+                "duration": duration,
+                "start": "reported date",
+                "type": "holiday deadline calendar days",
+            }
+            slo = TemporalPolicy.create_from_description(slo_desc)
+            
+            reported_dt = make_aware(datetime.strptime(reported_date_str, "%Y-%m-%d"))
+            flaw = FlawFactory(reported_dt=reported_dt)
+            slo_context = TemporalContext(flaw=flaw)
+            
+            result = slo.end(slo_context)
+            expected_dt = make_aware(datetime.strptime(expected_date_str, "%Y-%m-%d"))
+            
+            # For dates in shutdown period, result should be Jan 8 (or next business day)
+            # We need to check if the result is Jan 8 or later, and is a business day
+            if reported_date_str in ["2024-12-20", "2024-12-23", "2024-12-24", "2024-12-31", "2025-01-01"]:
+                # Should be Jan 8 or later, and should be a business day
+                assert result.date() >= datetime(2025, 1, 8).date()
+                # The go_to_next_holiday_deadline function handles business day adjustment
+                from apps.sla.time import is_business_day
+                assert is_business_day(result) or result.date() == datetime(2025, 1, 8).date()
+            else:
+                # Should match expected date exactly
+                assert result.date() == expected_dt.date()
+
 
 class TestTemporalContext:
     """

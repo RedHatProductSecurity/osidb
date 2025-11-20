@@ -11,7 +11,7 @@ from apps.workflows.models import Check
 from osidb.models import Affect, Flaw, PsUpdateStream, Tracker
 
 from .exceptions import TemporalPolicyExecutionError
-from .time import add_business_days, add_days, skip_week_ending
+from .time import add_business_days, add_days, adjust_for_holiday_deadline, skip_week_ending
 
 
 class TemporalPolicy(models.Model):
@@ -28,6 +28,9 @@ class TemporalPolicy(models.Model):
         # this currently means Moday-Thursday as the purpose is to exclude Friday and weekend
         # releases and this is the best naming I was able to come up with for this range
         NO_WEEK_ENDING = "no week ending"
+        # if the date falls within shutdown period (Dec 24 - Jan 2), move it to Jan 8
+        # (or next business day if Jan 8 is weekend/holiday)
+        HOLIDAY_DEADLINE = "holiday deadline"
 
     class StartCriteria(models.TextChoices):
         EARLIEST = "Earliest"
@@ -46,6 +49,7 @@ class TemporalPolicy(models.Model):
     SET_ENDING = {
         "any day": lambda x: x,  # noop
         "no week ending": skip_week_ending,
+        "holiday deadline": adjust_for_holiday_deadline,
     }
 
     VALID_DATE_SOURCES = ("flaw", "affect", "tracker")

@@ -192,6 +192,16 @@ slo:
                     "no week ending",
                     "calendar days",
                 ),
+                (
+                    "holiday deadline calendar days",
+                    "holiday deadline",
+                    "calendar days",
+                ),
+                (
+                    "holiday deadline business days",
+                    "holiday deadline",
+                    "business days",
+                ),
             ],
         )
         def test_ending(self, type_desc, expected_ending, expected_type):
