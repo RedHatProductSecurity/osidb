@@ -17,7 +17,7 @@ class TestFlawCollaborator:
     def test_unique_constraint(self):
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
-        flaw.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
         flaw.save()
 
         label = FlawLabel.objects.create(
@@ -73,7 +73,7 @@ class TestFlawCollaborator:
         )
 
         assert flaw.labels.count() == 0
-        flaw.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
         flaw.save()
         assert flaw.labels.count() == 2
 
@@ -99,7 +99,7 @@ class TestFlawCollaborator:
             ps_component="test_component",
             ps_update_stream=ps_update_stream1.name,
         )
-        flaw.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
         flaw.save()
 
         assert flaw.labels.count() == 2
@@ -122,7 +122,7 @@ class TestFlawCollaborator:
 
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
-        flaw.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
         flaw.save()
 
         assert flaw.labels.count() == 1
@@ -139,7 +139,7 @@ class TestFlawCollaborator:
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory(
             embargoed=False,
-            workflow_state=WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
+            workflow_state=WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT,
         )
         FlawLabel.objects.create(
             name="test_module_label",

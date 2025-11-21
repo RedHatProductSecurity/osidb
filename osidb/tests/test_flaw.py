@@ -543,7 +543,7 @@ class TestFlaw:
         with freeze_time(tzdatetime(1998, 2, 25, 13, 27, 0)):
             f = FlawFactory(embargoed=False)
             _ = AffectFactory(flaw=f)
-            f.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+            f.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
             f.save()
         og_local_updated_dt = f.local_updated_dt
         FlawCollaborator.objects.create(

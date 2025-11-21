@@ -154,7 +154,10 @@ def updated_local_updated_dt_affectcvss(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Affect)
 def create_flaw_labels(sender, instance, **kwargs):
-    if instance.flaw.workflow_state == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT:
+    if (
+        instance.flaw.workflow_state
+        == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+    ):
         if instance._state.adding:
             FlawCollaborator.objects.create_from_affect(instance)
         else:
@@ -163,7 +166,10 @@ def create_flaw_labels(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Affect)
 def delete_flaw_labels(sender, instance, **kwargs):
-    if instance.flaw.workflow_state == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT:
+    if (
+        instance.flaw.workflow_state
+        == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+    ):
         FlawCollaborator.objects.mark_irrelevant(instance.flaw)
 
 
@@ -171,9 +177,10 @@ def delete_flaw_labels(sender, instance, **kwargs):
 def create_labels_on_promote(sender, instance, **kwargs):
     if (
         not instance._state.adding
-        and instance.workflow_state == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        and instance.workflow_state
+        == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
         and Flaw.objects.get(pk=instance.pk).workflow_state
-        != WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        != WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
     ):
         FlawCollaborator.objects.create_from_flaw(instance)
 
