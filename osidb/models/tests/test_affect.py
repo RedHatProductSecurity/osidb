@@ -201,3 +201,105 @@ class TestAffect:
             ps_component="test-component",
         )
         affect.delete()
+
+    @pytest.mark.parametrize(
+        "business_unit,purl,should_raise,expected_error",
+        [
+            # Middleware products require PURL for new affects
+            ("Core Middleware", None, True, "must specify a PURL"),
+            ("Core Middleware", "", True, "must specify a PURL"),
+            ("Core Middleware", "pkg:rpm/example@1.0", False, None),
+            # Non-middleware products don't require PURL
+            ("RHEL", None, False, None),
+            ("RHEL", "", False, None),
+            ("RHEL", "pkg:rpm/example@1.0", False, None),
+        ],
+    )
+    def test_validate_purl_middleware_new_affects(
+        self, business_unit, purl, should_raise, expected_error
+    ):
+        """Test PURL validation for new affects on middleware products"""
+        from osidb.tests.factories import PsProductFactory
+
+        ps_product = PsProductFactory(business_unit=business_unit)
+        ps_module = PsModuleFactory(ps_product=ps_product)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory()
+
+        affect = Affect(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="test-component",
+            purl=purl,
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
+        )
+
+        if should_raise:
+            with pytest.raises(ValidationError) as exc_info:
+                affect.save()
+            assert expected_error in str(exc_info.value)
+        else:
+            affect.save()
+
+    @pytest.mark.parametrize(
+        "business_unit,initial_purl,updated_purl,should_raise,expected_error",
+        [
+            # Middleware product: removing PURL should raise error
+            (
+                "Core Middleware",
+                "pkg:rpm/example@1.0",
+                None,
+                True,
+                "cannot have its PURL removed",
+            ),
+            (
+                "Core Middleware",
+                "pkg:rpm/example@1.0",
+                "",
+                True,
+                "cannot have its PURL removed",
+            ),
+            # Middleware product: keeping PURL should be fine
+            (
+                "Core Middleware",
+                "pkg:rpm/example@1.0",
+                "pkg:rpm/example@2.0",
+                False,
+                None,
+            ),
+            # Middleware product: adding PURL to existing affect should be fine
+            ("Core Middleware", "", "pkg:rpm/example@1.0", False, None),
+            # Non-middleware product: removing PURL should be fine
+            ("RHEL", "pkg:rpm/example@1.0", None, False, None),
+            ("RHEL", "pkg:rpm/example@1.0", "", False, None),
+        ],
+    )
+    def test_validate_purl_middleware_existing_affects(
+        self, business_unit, initial_purl, updated_purl, should_raise, expected_error
+    ):
+        """Test PURL validation for existing affects on middleware products"""
+        from osidb.tests.factories import PsProductFactory
+
+        ps_product = PsProductFactory(business_unit=business_unit)
+        ps_module = PsModuleFactory(ps_product=ps_product)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory()
+
+        affect = AffectFactory.build(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="test-component",
+            purl=initial_purl,
+        )
+        # Simulate existing affect by saving without the validation
+        affect.save(raise_validation_error=False)
+
+        affect.purl = updated_purl or ""
+
+        if should_raise:
+            with pytest.raises(ValidationError) as exc_info:
+                affect.save()
+            assert expected_error in str(exc_info.value)
+        else:
+            affect.save()

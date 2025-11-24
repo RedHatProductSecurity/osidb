@@ -1334,19 +1334,7 @@ class TestTrackerJiraQueryBuilder:
         validate_minimum_key_value(minimum=expected1, evaluated=query_builder._query)
 
     @pytest.mark.parametrize("feature_enabled", (True, False))
-    @pytest.mark.parametrize(
-        "purl,downstream_component",
-        (
-            (
-                "pkg:rpm/redhat/jetty@9.0.3-8.el7?arch=src",
-                "pkg:rpm/redhat/jetty@9.0.3-8.el7?arch=src",
-            ),
-            (None, "jetty"),
-        ),
-    )
-    def test_generate_query_middleware(
-        self, purl, downstream_component, feature_enabled
-    ):
+    def test_generate_query_middleware(self, feature_enabled):
         """
         test that query has all fields correctly generated
         """
@@ -1369,6 +1357,7 @@ class TestTrackerJiraQueryBuilder:
         stream = PsUpdateStreamFactory(
             ps_module=ps_module, name="bar-1.2.3", version="1.2.3"
         )
+        purl = "pkg:rpm/redhat/jetty@9.0.3-8.el7?arch=src"
         affect = AffectFactory(
             flaw=flaw,
             ps_update_stream=stream.name,
@@ -1413,9 +1402,7 @@ class TestTrackerJiraQueryBuilder:
                 # CVE ID
                 "customfield_12324749": "CVE-2999-1000",
                 # Downstream Component Name
-                "customfield_12324752": downstream_component
-                if feature_enabled
-                else "jetty",
+                "customfield_12324752": purl if feature_enabled else "jetty",
                 # Upstream Affected Component
                 "customfield_12324751": "; ".join(sorted(set(flaw.components))),
             }
