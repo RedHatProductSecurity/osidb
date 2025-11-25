@@ -112,6 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Deprecate `team` field from PsProduct (OSIDB-4319)
+- Make PURLs mandatory for middleware products (OSIDB-4646)
 
 ### Fixed
 - Fix regex used to match new modular component name convention (OSIDB-4369)

@@ -686,6 +686,35 @@ class Affect(
                     f"does not match user-provided ps_component ({self.ps_component}).",
                 )
 
+    def _validate_purl_middleware(self, **kwargs):
+        """
+        Validate that new affects related to middleware products have a PURL.
+        Also disallows removing PURL from existing middleware affects.
+        """
+        ps_module = PsModule.objects.filter(name=self.ps_module).first()
+        if not ps_module:
+            return
+
+        if not ps_module.is_middleware:
+            return
+
+        # New affect without PURL
+        if self._state.adding and not self.purl:
+            raise ValidationError(
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} "
+                "belongs to a middleware product and must specify a PURL."
+            )
+
+        # Removing PURL from existing affect
+        old_affect = (
+            Affect.objects.get(uuid=self.uuid) if not self._state.adding else None
+        )
+        if old_affect and old_affect.purl and not self.purl:
+            raise ValidationError(
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} "
+                "belongs to a middleware product and cannot have its PURL removed."
+            )
+
     def _validate_not_affected_justification(self, **kwargs):
         """
         The not affected justification field becomes mandatory if the affectedness is NOTAFFECTED

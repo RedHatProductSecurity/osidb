@@ -90,6 +90,10 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
         return True
 
     @property
+    def is_middleware(self) -> bool:
+        return self.ps_product.is_middleware
+
+    @property
     def y_streams(self):
         """Current Y-stream(s) - it can be more of them"""
 
