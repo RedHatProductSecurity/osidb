@@ -46,3 +46,7 @@ DATABASES = {
 
 STATIC_ROOT = "/opt/app-root/static/"
 STATIC_URL = "/static/"
+
+# Email configuration
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

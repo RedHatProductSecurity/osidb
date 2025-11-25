@@ -1,0 +1,3 @@
+The flaw's incident state {% if previous_incident_state %} has been changed from {{ previous_incident_state }} to {{ new_incident_state }}. {% else %} has been set to {{ new_incident_state }}. {% endif %}
+
+For more details: {{ osim_url }}/flaws/{{ flaw_id }}

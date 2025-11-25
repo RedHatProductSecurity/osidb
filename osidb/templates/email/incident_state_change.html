@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Incident State Change Notification</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <p>
+        The flaw's incident state 
+        {% if previous_incident_state %}
+            has been changed from <strong>{{ previous_incident_state }}</strong> to <strong>{{ new_incident_state }}</strong>.
+        {% else %}
+            has been set to <strong>{{ new_incident_state }}</strong>.
+        {% endif %}
+    </p>
+
+    <p>
+        For more details click <a href="{{ osim_url }}/flaws/{{ flaw_id }}">here</a>.
+    </p>
+</body>
+</html>
