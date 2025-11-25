@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Rework alert serializer (OSIDB-4313)
 - Support unmbargoing for closed trackers (OSIDB-3729)
+- Prioritize affects with subpath in PURL in v1 (OSIDB-4645)
 
 ## [5.2.1] - 2025-11-13
 ### Fixed
