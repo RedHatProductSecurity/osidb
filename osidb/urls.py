@@ -37,6 +37,7 @@ from .api_views import (
     LabelView,
     ManifestView,
     StatusView,
+    SyncManagerView,
     TrackerV1View,
     TrackerView,
     flaw_available,
@@ -161,4 +162,8 @@ if get_execution_env() != "prod":
             f"api/{OSIDB_API_VERSION}/jira_stage_forwarder",
             JiraStageForwarderView.as_view(),
         )
+    )
+
+    urlpatterns.append(
+        path("sync-managers", SyncManagerView.as_view()),
     )

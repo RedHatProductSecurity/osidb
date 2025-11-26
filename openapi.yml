@@ -11126,6 +11126,314 @@ paths:
                   version:
                     type: string
           description: ''
+  /osidb/sync-managers:
+    get:
+      operationId: osidb_sync_managers_list
+      description: List all sync managers across all SyncManager subclasses.
+      parameters:
+      - in: query
+        name: last_failed_dt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by exact last_failed_dt (ISO 8601 format).
+      - in: query
+        name: last_failed_dt__date
+        schema:
+          type: string
+          format: date
+        description: Filter by last_failed_dt date only (YYYY-MM-DD format).
+      - in: query
+        name: last_failed_dt__date__gte
+        schema:
+          type: string
+          format: date
+        description: Filter by last_failed_dt date greater than or equal (YYYY-MM-DD
+          format).
+      - in: query
+        name: last_failed_dt__date__lte
+        schema:
+          type: string
+          format: date
+        description: Filter by last_failed_dt date less than or equal (YYYY-MM-DD
+          format).
+      - in: query
+        name: last_failed_dt__gt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_failed_dt greater than (ISO 8601 format).
+      - in: query
+        name: last_failed_dt__gte
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_failed_dt greater than or equal (ISO 8601 format).
+      - in: query
+        name: last_failed_dt__lt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_failed_dt less than (ISO 8601 format).
+      - in: query
+        name: last_failed_dt__lte
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_failed_dt less than or equal (ISO 8601 format).
+      - in: query
+        name: last_finished_dt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by exact last_finished_dt (ISO 8601 format).
+      - in: query
+        name: last_finished_dt__date
+        schema:
+          type: string
+          format: date
+        description: Filter by last_finished_dt date only (YYYY-MM-DD format).
+      - in: query
+        name: last_finished_dt__date__gte
+        schema:
+          type: string
+          format: date
+        description: Filter by last_finished_dt date greater than or equal (YYYY-MM-DD
+          format).
+      - in: query
+        name: last_finished_dt__date__lte
+        schema:
+          type: string
+          format: date
+        description: Filter by last_finished_dt date less than or equal (YYYY-MM-DD
+          format).
+      - in: query
+        name: last_finished_dt__gt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_finished_dt greater than (ISO 8601 format).
+      - in: query
+        name: last_finished_dt__gte
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_finished_dt greater than or equal (ISO 8601 format).
+      - in: query
+        name: last_finished_dt__lt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_finished_dt less than (ISO 8601 format).
+      - in: query
+        name: last_finished_dt__lte
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_finished_dt less than or equal (ISO 8601 format).
+      - in: query
+        name: last_rescheduled_dt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by exact last_rescheduled_dt (ISO 8601 format).
+      - in: query
+        name: last_rescheduled_dt__date
+        schema:
+          type: string
+          format: date
+        description: Filter by last_rescheduled_dt date only (YYYY-MM-DD format).
+      - in: query
+        name: last_rescheduled_dt__date__gte
+        schema:
+          type: string
+          format: date
+        description: Filter by last_rescheduled_dt date greater than or equal (YYYY-MM-DD
+          format).
+      - in: query
+        name: last_rescheduled_dt__date__lte
+        schema:
+          type: string
+          format: date
+        description: Filter by last_rescheduled_dt date less than or equal (YYYY-MM-DD
+          format).
+      - in: query
+        name: last_rescheduled_dt__gt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_rescheduled_dt greater than (ISO 8601 format).
+      - in: query
+        name: last_rescheduled_dt__gte
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_rescheduled_dt greater than or equal (ISO 8601
+          format).
+      - in: query
+        name: last_rescheduled_dt__lt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_rescheduled_dt less than (ISO 8601 format).
+      - in: query
+        name: last_rescheduled_dt__lte
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_rescheduled_dt less than or equal (ISO 8601 format).
+      - in: query
+        name: last_scheduled_dt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by exact last_scheduled_dt (ISO 8601 format).
+      - in: query
+        name: last_scheduled_dt__date
+        schema:
+          type: string
+          format: date
+        description: Filter by last_scheduled_dt date only (YYYY-MM-DD format).
+      - in: query
+        name: last_scheduled_dt__date__gte
+        schema:
+          type: string
+          format: date
+        description: Filter by last_scheduled_dt date greater than or equal (YYYY-MM-DD
+          format).
+      - in: query
+        name: last_scheduled_dt__date__lte
+        schema:
+          type: string
+          format: date
+        description: Filter by last_scheduled_dt date less than or equal (YYYY-MM-DD
+          format).
+      - in: query
+        name: last_scheduled_dt__gt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_scheduled_dt greater than (ISO 8601 format).
+      - in: query
+        name: last_scheduled_dt__gte
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_scheduled_dt greater than or equal (ISO 8601 format).
+      - in: query
+        name: last_scheduled_dt__lt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_scheduled_dt less than (ISO 8601 format).
+      - in: query
+        name: last_scheduled_dt__lte
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_scheduled_dt less than or equal (ISO 8601 format).
+      - in: query
+        name: last_started_dt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by exact last_started_dt (ISO 8601 format).
+      - in: query
+        name: last_started_dt__date
+        schema:
+          type: string
+          format: date
+        description: Filter by last_started_dt date only (YYYY-MM-DD format).
+      - in: query
+        name: last_started_dt__date__gte
+        schema:
+          type: string
+          format: date
+        description: Filter by last_started_dt date greater than or equal (YYYY-MM-DD
+          format).
+      - in: query
+        name: last_started_dt__date__lte
+        schema:
+          type: string
+          format: date
+        description: Filter by last_started_dt date less than or equal (YYYY-MM-DD
+          format).
+      - in: query
+        name: last_started_dt__gt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_started_dt greater than (ISO 8601 format).
+      - in: query
+        name: last_started_dt__gte
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_started_dt greater than or equal (ISO 8601 format).
+      - in: query
+        name: last_started_dt__lt
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_started_dt less than (ISO 8601 format).
+      - in: query
+        name: last_started_dt__lte
+        schema:
+          type: string
+          format: date-time
+        description: Filter by last_started_dt less than or equal (ISO 8601 format).
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: manager_type
+        schema:
+          type: string
+        description: Filter by manager type (e.g., 'BZSyncManager', 'JiraTaskSyncManager').
+          Multiple types can be specified separated by commas.
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: permanently_failed
+        schema:
+          type: boolean
+        description: Filter by permanently_failed status.
+      - in: query
+        name: sync_id
+        schema:
+          type: string
+        description: Filter by sync_id. Multiple IDs can be specified separated by
+          commas.
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedSyncManagerList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /osidb/whoami:
     get:
       operationId: osidb_whoami_retrieve
@@ -14533,6 +14841,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SupportedProducts'
+    PaginatedSyncManagerList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncManager'
     PaginatedTrackerList:
       type: object
       required:
@@ -14686,6 +15017,71 @@ components:
           maxLength: 100
       required:
       - name
+    SyncManager:
+      type: object
+      description: Serializer for SyncManager instances across all subclasses
+      properties:
+        manager_type:
+          type: string
+          readOnly: true
+        sync_id:
+          type: string
+          readOnly: true
+        last_scheduled_dt:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        last_started_dt:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        last_finished_dt:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        last_failed_dt:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        last_failed_reason:
+          type: string
+          readOnly: true
+          nullable: true
+        last_consecutive_failures:
+          type: integer
+          readOnly: true
+        permanently_failed:
+          type: boolean
+          readOnly: true
+        last_rescheduled_dt:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        last_rescheduled_reason:
+          type: string
+          readOnly: true
+          nullable: true
+        last_consecutive_reschedules:
+          type: integer
+          readOnly: true
+      required:
+      - last_consecutive_failures
+      - last_consecutive_reschedules
+      - last_failed_dt
+      - last_failed_reason
+      - last_finished_dt
+      - last_rescheduled_dt
+      - last_rescheduled_reason
+      - last_scheduled_dt
+      - last_started_dt
+      - manager_type
+      - permanently_failed
+      - sync_id
     TokenObtainPair:
       type: object
       properties:
