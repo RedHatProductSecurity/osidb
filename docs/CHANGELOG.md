@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support unmbargoing for closed trackers (OSIDB-3729)
 - Prioritize affects with subpath in PURL in v1 (OSIDB-4645)
 
+### Added
+- Add `alias` label type for incidents (OSIDB-4665)
+
 ## [5.2.1] - 2025-11-13
 ### Fixed
 - Fix tracker grouping in affect v1 materialized view (OSIDB-4642)
