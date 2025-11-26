@@ -182,7 +182,7 @@ class FlawCollaborator(TrackingMixin):
 
     def save(self, *args, **kwargs):
         try:
-            self._validate_workflow_sate()
+            self._validate_workflow_state()
             super().save(*args, **kwargs)
         except IntegrityError as e:
             ex_msg = str(e)
@@ -191,11 +191,14 @@ class FlawCollaborator(TrackingMixin):
                     {"label": f"Label '{self.label}' already exists."}
                 )
 
-    def _validate_workflow_sate(self):
-        """Flaw labels can only be added/updated in the secondary assessment state"""
-        if self.flaw.workflow_state != WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT:
+    def _validate_workflow_state(self):
+        """Flaw labels can only be added/updated in the pre-secondary assessment state"""
+        if (
+            self.flaw.workflow_state
+            != WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        ):
             raise ValidationError(
-                {"flaw": "Flaw must be in secondary assessment state."}
+                {"flaw": "Flaw must be in pre-secondary assessment state."}
             )
 
     def _validate_label(self):

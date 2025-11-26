@@ -648,7 +648,7 @@ class TestEndpointsFlaws:
 
         flaw1 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw1)
-        flaw1.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw1.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
         flaw1.save()
         FlawCollaborator.objects.create(
             flaw=flaw1,
@@ -659,7 +659,7 @@ class TestEndpointsFlaws:
 
         flaw2 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw2)
-        flaw2.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw2.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
         flaw2.save()
         FlawCollaborator.objects.create(
             flaw=flaw2,
@@ -676,7 +676,7 @@ class TestEndpointsFlaws:
 
         flaw3 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw3)
-        flaw3.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw3.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
         flaw3.save()
         FlawCollaborator.objects.create(
             flaw=flaw3,

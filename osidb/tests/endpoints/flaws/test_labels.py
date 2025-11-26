@@ -25,7 +25,7 @@ class TestEndpointsFlawsLabels:
 
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
-        flaw.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
         flaw.save()
 
     def test_get_labels(self, auth_client, test_api_uri):
