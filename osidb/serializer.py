@@ -1208,7 +1208,9 @@ class AffectSerializer(
     ps_component = serializers.CharField(
         max_length=255, allow_blank=True, allow_null=True, required=False
     )
-    purl = serializers.CharField(allow_blank=True, allow_null=True, required=False)
+    purl = serializers.CharField(
+        allow_blank=True, allow_null=True, required=False, default=""
+    )
     resolved_dt = serializers.DateTimeField(read_only=True, allow_null=True)
     cve_id = serializers.CharField(allow_blank=True, read_only=True)
     delegated_not_affected_justification = serializers.ChoiceField(
