@@ -90,7 +90,7 @@ class TestEndpointsFlawsLabels:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert (
             response.json()["label"]
-            == "Only context-based labels can be manually added to flaws. 'test_product' is a product-based label."
+            == "Only context-based and alias labels can be manually added to flaws. 'test_product' is a product-based label."
         )
 
     def test_update_label(self, auth_client, test_api_uri):
@@ -152,3 +152,112 @@ class TestEndpointsFlawsLabels:
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json()["label"] == "Product family labels cannot be deleted."
         assert FlawCollaborator.objects.count() == 1
+
+    def test_create_alias_label(self, auth_client, test_api_uri):
+        """Test creating an alias label with free-form text (no pre-definition needed)"""
+        flaw = Flaw.objects.first()
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels",
+            {
+                "label": "my-custom-alias-name",
+                "type": "alias",
+                "state": "NEW",
+                "contributor": "test-user",
+            },
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        flaw_collaborator = FlawCollaborator.objects.first()
+        assert flaw_collaborator.label == "my-custom-alias-name"
+        assert flaw_collaborator.type == FlawLabel.FlawLabelType.ALIAS
+        assert flaw_collaborator.state == FlawCollaborator.FlawCollaboratorState.NEW
+        assert flaw_collaborator.contributor == "test-user"
+
+        # Verify the label doesn't exist in FlawLabel master list
+        assert not FlawLabel.objects.filter(name="my-custom-alias-name").exists()
+
+    def test_create_alias_label_any_text(self, auth_client, test_api_uri):
+        """Test that alias labels can be any free-form text"""
+        flaw = Flaw.objects.first()
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels",
+            {"label": "incident-12345", "type": "alias", "state": "NEW"},
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert FlawCollaborator.objects.filter(label="incident-12345").exists()
+
+    def test_delete_alias_label(self, auth_client, test_api_uri):
+        """Test that alias labels can be deleted like context-based labels"""
+        flaw = Flaw.objects.first()
+        flaw_collaborator = FlawCollaborator.objects.create(
+            label="my-alias",
+            flaw=flaw,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.ALIAS,
+        )
+
+        response = auth_client().delete(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{flaw_collaborator.uuid}"
+        )
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not FlawCollaborator.objects.filter(uuid=flaw_collaborator.uuid).exists()
+
+    def test_update_alias_label_state(self, auth_client, test_api_uri):
+        """Test updating an alias label's state"""
+        flaw = Flaw.objects.first()
+        flaw_collaborator = FlawCollaborator.objects.create(
+            label="my-alias",
+            flaw=flaw,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.ALIAS,
+        )
+
+        response = auth_client().put(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{flaw_collaborator.uuid}",
+            {"state": "DONE", "label": "my-alias", "contributor": "test"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        flaw_collaborator.refresh_from_db()
+        assert flaw_collaborator.state == FlawCollaborator.FlawCollaboratorState.DONE
+
+    def test_create_duplicate_alias_label(self, auth_client, test_api_uri):
+        """Test creating a duplicate alias label"""
+        flaw = Flaw.objects.first()
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels",
+            {"label": "my-alias", "type": "alias", "state": "NEW"},
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert FlawCollaborator.objects.filter(label="my-alias").exists()
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels",
+            {"label": "my-alias", "type": "alias", "state": "NEW"},
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json()["label"][0] == "Label 'my-alias' already exists."
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels",
+            {"label": "test_context", "type": "context_based", "state": "NEW"},
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels",
+            {"label": "test_context", "type": "alias", "state": "NEW"},
+        )
+
+        print(response.json())
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json()["label"][0] == "Label 'test_context' already exists."
