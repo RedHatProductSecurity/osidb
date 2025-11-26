@@ -8,6 +8,7 @@ from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
     PsModuleFactory,
+    PsProductFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
 )
@@ -552,3 +553,274 @@ slo:
                 assert slo_context.policy
                 assert slo_context.start == flaw.reported_dt
                 assert slo_context.end == flaw.created_dt + timedelta(days=5)
+
+        @pytest.mark.parametrize(
+            "embargoed",
+            [True, False],
+        )
+        @pytest.mark.parametrize(
+            "is_community",
+            [True, False],
+        )
+        @pytest.mark.parametrize(
+            "flaw_kargs,affect_kargs,expected_slo",
+            [
+                (
+                    {
+                        "major_incident_state": Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                        "major_incident_start_dt": make_aware(datetime(2000, 1, 1)),
+                    },
+                    {
+                        "impact": Impact.NOVALUE,
+                    },
+                    1,
+                ),
+                (
+                    {
+                        "major_incident_state": Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+                        "major_incident_start_dt": make_aware(datetime(2000, 1, 1)),
+                    },
+                    {
+                        "impact": Impact.NOVALUE,
+                    },
+                    2,
+                ),
+                (
+                    {
+                        "major_incident_state": Flaw.FlawMajorIncident.NOVALUE,
+                        "impact": Impact.CRITICAL,
+                    },
+                    {
+                        "impact": Impact.NOVALUE,
+                    },
+                    3,
+                ),
+                (
+                    {
+                        "major_incident_state": Flaw.FlawMajorIncident.NOVALUE,
+                    },
+                    {
+                        "impact": Impact.CRITICAL,
+                    },
+                    3,
+                ),
+                (
+                    {
+                        "major_incident_state": Flaw.FlawMajorIncident.NOVALUE,
+                        "impact": Impact.IMPORTANT,
+                    },
+                    {
+                        "impact": Impact.NOVALUE,
+                    },
+                    4,
+                ),
+                (
+                    {
+                        "major_incident_state": Flaw.FlawMajorIncident.NOVALUE,
+                    },
+                    {
+                        "impact": Impact.IMPORTANT,
+                    },
+                    4,
+                ),
+                (
+                    {
+                        "major_incident_state": Flaw.FlawMajorIncident.NOVALUE,
+                        "impact": Impact.MODERATE,
+                    },
+                    {
+                        "impact": Impact.NOVALUE,
+                    },
+                    5,
+                ),
+                (
+                    {
+                        "major_incident_state": Flaw.FlawMajorIncident.NOVALUE,
+                    },
+                    {
+                        "impact": Impact.MODERATE,
+                    },
+                    5,
+                ),
+                (
+                    {
+                        "major_incident_state": Flaw.FlawMajorIncident.NOVALUE,
+                        "impact": Impact.LOW,
+                    },
+                    {
+                        "impact": Impact.NOVALUE,
+                    },
+                    6,
+                ),
+                (
+                    {
+                        "major_incident_state": Flaw.FlawMajorIncident.NOVALUE,
+                    },
+                    {
+                        "impact": Impact.LOW,
+                    },
+                    6,
+                ),
+            ],
+        )
+        def test_latest_policy(
+            self, embargoed, is_community, flaw_kargs, affect_kargs, expected_slo
+        ):
+            slo_file = """
+---
+name: Major Incident
+description: SLO policy applied to approved Major Incident
+conditions:
+  affect:
+    - is not community
+  flaw:
+    - major incident state is major incident approved
+    - is not embargoed
+slo:
+  duration: 1
+  start:
+    latest:
+      flaw:
+        - major incident start date
+        - unembargo date
+      tracker:
+        - created date
+  type: business days
+
+---
+name: Exploit (KEV)
+description: SLO policy applied to approved Exploit (KEV)
+conditions:
+  affect:
+    - is not community
+  flaw:
+    - major incident state is exploits kev approved
+    - is not embargoed
+slo:
+  duration: 2
+  start:
+    latest:
+      flaw:
+        - major incident start date
+        - unembargo date
+      tracker:
+        - created date
+  type: business days
+
+---
+name: Critical
+description: SLO policy applied to critical impact
+conditions:
+  affect:
+    - aggregated impact is critical
+    - is not community
+  flaw:
+    - is not embargoed
+slo:
+  duration: 3
+  start:
+    latest:
+      flaw:
+        - unembargo date
+      tracker:
+        - created date
+  type: business days
+
+---
+name: Important
+description: SLO policy applied to important impact
+conditions:
+  affect:
+    - aggregated impact is important
+    - is not community
+  flaw:
+    - is not embargoed
+slo:
+  duration: 4
+  start:
+    latest:
+      flaw:
+        - unembargo date
+      tracker:
+        - created date
+  # when the deadline falls on Friday or weekend
+  # it is skipped and set to the following Monday
+  type: no week ending calendar days
+
+---
+name: Moderate
+description: SLO policy applied to moderate impact
+conditions:
+  affect:
+    - aggregated impact is moderate
+    - is not community
+  flaw:
+    - is not embargoed
+slo:
+  duration: 5
+  start:
+    latest:
+      flaw:
+        - unembargo date
+      tracker:
+        - created date
+  type: calendar days
+
+---
+name: Low
+description: SLO policy applied to low impact
+conditions:
+  affect:
+    - aggregated impact is low
+    - is not community
+  flaw:
+    - is not embargoed
+slo:
+  duration: 6
+  start:
+    latest:
+      flaw:
+        - unembargo date
+      tracker:
+        - created date
+  type: calendar days
+"""
+            flaw = FlawFactory(embargoed=embargoed, **flaw_kargs)
+
+            if is_community:
+                ps_product = PsProductFactory(
+                    name="Fedora",
+                    short_name="fedora",
+                    business_unit="Community",
+                )
+                ps_module = PsModuleFactory(name="redhat-mod", ps_product=ps_product)
+                ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+            else:
+                ps_product = PsProductFactory(
+                    name="Red Hat Enterprise Linux",
+                    short_name="rhel",
+                    business_unit="RHEL",
+                )
+                ps_module = PsModuleFactory(name="community-mod", ps_product=ps_product)
+                ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+            affect = AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_update_stream=ps_update_stream.name,
+                **affect_kargs,
+            )
+            tracker = TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.embargoed,
+                ps_update_stream=ps_update_stream.name,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+            )
+
+            load_policies(SLOPolicy, slo_file)
+            slo_context = SLOPolicy.classify(tracker)
+            if is_community or embargoed:
+                assert not slo_context.policy
+            else:
+                assert slo_context.policy.duration == expected_slo
