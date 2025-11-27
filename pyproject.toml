@@ -36,6 +36,7 @@ dependencies = [
     "markdown>=3.3.6",
     "nvdlib>=0.7.6",
     "packageurl-python>=0.16.0",
+    "particular-purl-parse @ git+https://github.com/RedHatProductSecurity/particular-purl-parse.git#subdirectory=py",
     "psycogreen>=1.0.2",
     "psycopg2>=2.9.2",
     "pydantic-settings>=2.9.1",

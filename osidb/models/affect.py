@@ -2,6 +2,7 @@ import logging
 import re
 import uuid
 
+import particular_purl_parse as purl_parser
 import pghistory
 from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
@@ -9,7 +10,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from packageurl import PackageURL
 from psqlextra.fields import HStoreField
 
 from apps.bbsync.constants import RHSCL_BTS_KEY
@@ -262,17 +262,8 @@ class Affect(
         try:
             # try to parse the PS component from the PURL but do not raise any
             # error on failure as that will be done as part of the validations
-            purl = PackageURL.from_string(self.purl)
-            if purl.type == "oci":
-                try:
-                    prefix = purl.qualifiers["repository_url"].split("/")[1]
-                    return f"{prefix}/{purl.name}"
-                except (KeyError, IndexError):
-                    raise ValueError("Invalid repository_url in OCI PURL")
-            elif "rpmmod" in purl.qualifiers:
-                return f"{purl.qualifiers['rpmmod']}/{purl.name}"
-            else:
-                return purl.name
+            purl = purl_parser.ps_component_from_purl(self.purl)
+            return purl
         except ValueError:
             if should_raise:
                 raise
