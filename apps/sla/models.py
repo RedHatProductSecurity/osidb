@@ -5,13 +5,14 @@ SLA policy model definitions
 import abc
 from functools import cached_property
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from apps.workflows.models import Check
 from osidb.models import Affect, Flaw, PsUpdateStream, Tracker
 
 from .exceptions import TemporalPolicyExecutionError
-from .time import add_business_days, add_days, skip_week_ending
+from .time import add_business_days, add_days, skip_shutdown_idle_days, skip_week_ending
 
 
 class TemporalPolicy(models.Model):
@@ -25,6 +26,8 @@ class TemporalPolicy(models.Model):
 
     class EndingTypes(models.TextChoices):
         ANY_DAY = "any day"
+        # this means skip shutdown idle days from December 24th to January 2th
+        NO_SHUTDOWN = "no shutdown"
         # this currently means Moday-Thursday as the purpose is to exclude Friday and weekend
         # releases and this is the best naming I was able to come up with for this range
         NO_WEEK_ENDING = "no week ending"
@@ -45,6 +48,7 @@ class TemporalPolicy(models.Model):
 
     SET_ENDING = {
         "any day": lambda x: x,  # noop
+        "no shutdown": skip_shutdown_idle_days,
         "no week ending": skip_week_ending,
     }
 
@@ -52,8 +56,10 @@ class TemporalPolicy(models.Model):
 
     duration = models.IntegerField()
     duration_type = models.CharField(max_length=20, choices=DurationTypes.choices)
-    ending = models.CharField(
-        max_length=20, choices=EndingTypes.choices, default=EndingTypes.ANY_DAY
+    ending_types = ArrayField(
+        models.CharField(max_length=20, choices=EndingTypes.choices),
+        default=list,
+        blank=True,
     )
     start_criteria = models.CharField(max_length=20, choices=StartCriteria.choices)
     start_dates = models.JSONField(default=dict)
@@ -66,9 +72,9 @@ class TemporalPolicy(models.Model):
             """
             return date_desc.lower().strip().replace(" ", "_").replace("_date", "_dt")
 
-        def parse_type(type_desc):
+        def parse_type_as_str(type_desc: str):
             """
-            translate human-readable description into the actual
+            translate human-readable description string into the actual
             TemporalPolicy type and its optional ending
             """
             ending = cls.EndingTypes.ANY_DAY
@@ -80,11 +86,36 @@ class TemporalPolicy(models.Model):
 
             return type_desc, ending
 
+        def parse_type_as_dict(dict_desc):
+            """
+            translate human-readable dictionary description into the actual
+            TemporalPolicy duration type and its optional ending types
+            """
+            duration_type = dict_desc.get("days", "")
+            endings = dict_desc.get("ending", [cls.EndingTypes.ANY_DAY])
+            return duration_type, endings
+
+        def parse_type(type_desc):
+            """
+            translate human-readable description into the actual
+            TemporalPolicy type and its optional ending types
+            """
+            if isinstance(type_desc, str):
+                type_desc, ending = parse_type_as_str(type_desc)
+                # this is to maintain backwards compatibility with the old yml format
+                return type_desc, [ending]
+            elif isinstance(type_desc, dict):
+                return parse_type_as_dict(type_desc)
+            else:
+                raise TemporalPolicyExecutionError(
+                    "Policy contains an invalid Invalid type format. Expected string or dictionary for type."
+                )
+
         if desc is None:
             return None
 
         duration = int(desc["duration"])
-        duration_type, ending = parse_type(desc["type"])
+        duration_type, ending_types = parse_type(desc["type"])
 
         start_desc = desc["start"]
         if isinstance(start_desc, str):
@@ -110,7 +141,7 @@ class TemporalPolicy(models.Model):
         return TemporalPolicy(
             duration=duration,
             duration_type=duration_type,
-            ending=ending,
+            ending_types=ending_types,
             start_criteria=start_criteria,
             start_dates=start_dates,
         )
@@ -135,9 +166,11 @@ class TemporalPolicy(models.Model):
         """
         compute end moment for the given instance
         """
-        return self.SET_ENDING[self.ending](
-            self.add_days(self.start(context), self.duration)
-        )
+        result = self.add_days(self.start(context), self.duration)
+        # Apply each ending type sequentially
+        for ending_type in self.ending_types:
+            result = self.SET_ENDING[ending_type](result)
+        return result
 
     @property
     def get_start(self):
