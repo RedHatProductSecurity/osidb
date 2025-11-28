@@ -56,9 +56,6 @@ class TemporalPolicy(models.Model):
 
     duration = models.IntegerField()
     duration_type = models.CharField(max_length=20, choices=DurationTypes.choices)
-    ending = models.CharField(
-        max_length=20, choices=EndingTypes.choices, default=EndingTypes.ANY_DAY
-    )
     ending_types = ArrayField(
         models.CharField(max_length=20, choices=EndingTypes.choices),
         default=list,
@@ -145,8 +142,6 @@ class TemporalPolicy(models.Model):
             duration=duration,
             duration_type=duration_type,
             ending_types=ending_types,
-            # kept for backwards compatibility, but not used in the codebase
-            ending=ending_types[0],
             start_criteria=start_criteria,
             start_dates=start_dates,
         )

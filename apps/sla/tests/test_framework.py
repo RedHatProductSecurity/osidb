@@ -227,8 +227,6 @@ slo:
             policy = SLOPolicy.objects.first()
             assert policy.slo
             assert policy.slo.duration_type == expected_type
-            assert policy.slo.ending == expected_ending
-            # Also verify the new ending_types field is correctly populated
             assert policy.slo.ending_types == [expected_ending]
 
         @pytest.mark.parametrize(
@@ -289,8 +287,6 @@ slo:
             policy = SLOPolicy.objects.first()
             assert policy.slo
             assert policy.slo.duration_type == expected_type
-            assert policy.slo.ending == expected_ending
-            # Also verify the new ending_types field is correctly populated
             assert policy.slo.ending_types == [expected_ending]
 
         @pytest.mark.parametrize(
@@ -357,8 +353,6 @@ slo:
             policy = SLOPolicy.objects.first()
             assert policy.slo
             assert policy.slo.duration_type == expected_type
-            assert policy.slo.ending == expected_ending
-            # Also verify the new ending_types field is correctly populated
             assert policy.slo.ending_types == [ending1, ending2]
 
         @pytest.mark.parametrize(
@@ -409,8 +403,6 @@ slo:
             policy = SLOPolicy.objects.first()
             assert policy.slo
             assert policy.slo.duration_type == expected_type
-            assert policy.slo.ending == expected_ending
-            # Also verify the new ending_types field is correctly populated
             assert policy.slo.ending_types == ["any day"]
 
         def test_null_slo(self):
