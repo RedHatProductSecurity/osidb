@@ -52,7 +52,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.workflows.workflow import WorkflowModel
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 from osidb.core import set_user_acls
-from osidb.helpers import get_bugzilla_api_key, get_flaw_or_404, strtobool
+from osidb.helpers import get_bugzilla_api_key, get_flaw_or_404
 from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import Affect, AffectCVSS, AffectV1, Flaw, FlawLabel, Tracker
 from osidb.models.flaw.comment import FlawComment
@@ -1750,6 +1750,7 @@ class SyncManagerView(RudimentaryUserPathLoggingMixin, APIView):
     # Add filterset_class for drf-spectacular to auto-infer filter parameters
     filterset_class = SyncManagerFilter
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get(self, request: Request) -> Response:
         """List all sync managers with optional filtering"""
 
