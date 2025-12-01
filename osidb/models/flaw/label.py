@@ -33,6 +33,7 @@ class FlawLabelManager(models.Manager):
 
 class FlawLabel(models.Model):
     class FlawLabelType(models.TextChoices):
+        ALIAS = "alias"
         CONTEXT_BASED = "context_based"
         PRODUCT_FAMILY = "product_family"
 
@@ -203,5 +204,9 @@ class FlawCollaborator(TrackingMixin):
 
     def _validate_label(self):
         """Validate the label"""
+        # Alias labels don't have to be an existing FlawLabel
+        if self.type == FlawLabel.FlawLabelType.ALIAS:
+            return
+
         if not FlawLabel.objects.filter(name=self.label).exists():
             raise ValidationError({"label": f"Label '{self.label}' does not exist."})

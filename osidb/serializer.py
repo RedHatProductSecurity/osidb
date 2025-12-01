@@ -2000,6 +2000,11 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
     """FlawCollaborator serializer"""
 
     flaw = serializers.UUIDField(write_only=True, source="flaw_id")
+    type = serializers.ChoiceField(
+        choices=FlawLabel.FlawLabelType.choices,
+        required=False,
+        default=FlawLabel.FlawLabelType.CONTEXT_BASED,
+    )
 
     class Meta:
         """filter fields"""
@@ -2008,11 +2013,16 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
         fields = ["uuid", "flaw", "label", "state", "contributor", "relevant", "type"]
 
     def create(self, validated_data):
+        if validated_data.get("type") == FlawLabel.FlawLabelType.ALIAS:
+            validated_data["relevant"] = True
+            return super().create(validated_data)
+
         label = FlawLabel.objects.get(name=validated_data.get("label"))
+
         if label.type != FlawLabel.FlawLabelType.CONTEXT_BASED:
             raise serializers.ValidationError(
                 {
-                    "label": f"Only context-based labels can be manually added to flaws. '{label.name}' is a product-based label."
+                    "label": f"Only context-based and alias labels can be manually added to flaws. '{label.name}' is a product-based label."
                 }
             )
 
@@ -2030,11 +2040,23 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
         return super().update(instance, validated_data)
 
 
-@extend_schema_serializer(exclude_fields=["flaw", "relevant", "type"])
+@extend_schema_serializer(exclude_fields=["flaw", "relevant"])
 class FlawCollaboratorPostSerializer(FlawCollaboratorSerializer):
     # Extra serializer for POST request as there is no last update
     # timestamp but we need to make the field mandatory otherwise.
-    pass
+
+    # Override type field to exclude PRODUCT_FAMILY since users cannot manually set it
+    type = serializers.ChoiceField(
+        choices=[
+            (FlawLabel.FlawLabelType.ALIAS, FlawLabel.FlawLabelType.ALIAS.label),
+            (
+                FlawLabel.FlawLabelType.CONTEXT_BASED,
+                FlawLabel.FlawLabelType.CONTEXT_BASED.label,
+            ),
+        ],
+        required=False,
+        default=FlawLabel.FlawLabelType.CONTEXT_BASED,
+    )
 
 
 class FlawSerializer(

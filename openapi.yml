@@ -12821,11 +12821,11 @@ components:
         relevant:
           type: boolean
         type:
-          type: string
-          readOnly: true
+          allOf:
+          - $ref: '#/components/schemas/FlawLabelType'
+          default: context_based
       required:
       - label
-      - type
       - uuid
     FlawCollaboratorPostRequest:
       type: object
@@ -12840,8 +12840,17 @@ components:
         contributor:
           type: string
           maxLength: 255
+        type:
+          allOf:
+          - $ref: '#/components/schemas/FlawCollaboratorPostTypeEnum'
+          default: context_based
       required:
       - label
+    FlawCollaboratorPostTypeEnum:
+      enum:
+      - alias
+      - context_based
+      type: string
     FlawCollaboratorRequest:
       type: object
       description: FlawCollaborator serializer
@@ -12861,6 +12870,10 @@ components:
           maxLength: 255
         relevant:
           type: boolean
+        type:
+          allOf:
+          - $ref: '#/components/schemas/FlawLabelType'
+          default: context_based
       required:
       - flaw
       - label
@@ -12946,6 +12959,12 @@ components:
       required:
       - name
       - type
+    FlawLabelType:
+      enum:
+      - alias
+      - context_based
+      - product_family
+      type: string
     FlawPackageVersion:
       type: object
       description: Package model serializer
