@@ -73,11 +73,11 @@ from .filters import (
     FlawQLSchema,
     FlawReferenceFilter,
     FlawV1Filter,
+    SyncManagerFilter,
     TrackerFilter,
     TrackerV1Filter,
 )
 from .mixins import Alert
-from .pagination import HardLimitOffsetPagination
 from .serializer import (
     AffectBulkPostPutResponseSerializer,
     AffectBulkPutSerializer,
@@ -1736,263 +1736,7 @@ class IncidentRequestView(
                     "Multiple types can be specified separated by commas."
                 ),
             ),
-            OpenApiParameter(
-                "sync_id",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.QUERY,
-                description="Filter by sync_id. Multiple IDs can be specified separated by commas.",
-            ),
-            OpenApiParameter(
-                "permanently_failed",
-                type=OpenApiTypes.BOOL,
-                location=OpenApiParameter.QUERY,
-                description="Filter by permanently_failed status.",
-            ),
-            # DateTime filters for last_scheduled_dt
-            OpenApiParameter(
-                "last_scheduled_dt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by exact last_scheduled_dt (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_scheduled_dt__gt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_scheduled_dt greater than (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_scheduled_dt__gte",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_scheduled_dt greater than or equal (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_scheduled_dt__lt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_scheduled_dt less than (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_scheduled_dt__lte",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_scheduled_dt less than or equal (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_scheduled_dt__date",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_scheduled_dt date only (YYYY-MM-DD format).",
-            ),
-            OpenApiParameter(
-                "last_scheduled_dt__date__gte",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_scheduled_dt date greater than or equal (YYYY-MM-DD format).",
-            ),
-            OpenApiParameter(
-                "last_scheduled_dt__date__lte",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_scheduled_dt date less than or equal (YYYY-MM-DD format).",
-            ),
-            # DateTime filters for last_started_dt
-            OpenApiParameter(
-                "last_started_dt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by exact last_started_dt (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_started_dt__gt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_started_dt greater than (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_started_dt__gte",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_started_dt greater than or equal (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_started_dt__lt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_started_dt less than (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_started_dt__lte",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_started_dt less than or equal (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_started_dt__date",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_started_dt date only (YYYY-MM-DD format).",
-            ),
-            OpenApiParameter(
-                "last_started_dt__date__gte",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_started_dt date greater than or equal (YYYY-MM-DD format).",
-            ),
-            OpenApiParameter(
-                "last_started_dt__date__lte",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_started_dt date less than or equal (YYYY-MM-DD format).",
-            ),
-            # DateTime filters for last_finished_dt
-            OpenApiParameter(
-                "last_finished_dt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by exact last_finished_dt (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_finished_dt__gt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_finished_dt greater than (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_finished_dt__gte",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_finished_dt greater than or equal (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_finished_dt__lt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_finished_dt less than (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_finished_dt__lte",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_finished_dt less than or equal (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_finished_dt__date",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_finished_dt date only (YYYY-MM-DD format).",
-            ),
-            OpenApiParameter(
-                "last_finished_dt__date__gte",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_finished_dt date greater than or equal (YYYY-MM-DD format).",
-            ),
-            OpenApiParameter(
-                "last_finished_dt__date__lte",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_finished_dt date less than or equal (YYYY-MM-DD format).",
-            ),
-            # DateTime filters for last_failed_dt
-            OpenApiParameter(
-                "last_failed_dt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by exact last_failed_dt (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_failed_dt__gt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_failed_dt greater than (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_failed_dt__gte",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_failed_dt greater than or equal (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_failed_dt__lt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_failed_dt less than (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_failed_dt__lte",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_failed_dt less than or equal (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_failed_dt__date",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_failed_dt date only (YYYY-MM-DD format).",
-            ),
-            OpenApiParameter(
-                "last_failed_dt__date__gte",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_failed_dt date greater than or equal (YYYY-MM-DD format).",
-            ),
-            OpenApiParameter(
-                "last_failed_dt__date__lte",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_failed_dt date less than or equal (YYYY-MM-DD format).",
-            ),
-            # DateTime filters for last_rescheduled_dt
-            OpenApiParameter(
-                "last_rescheduled_dt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by exact last_rescheduled_dt (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_rescheduled_dt__gt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_rescheduled_dt greater than (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_rescheduled_dt__gte",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_rescheduled_dt greater than or equal (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_rescheduled_dt__lt",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_rescheduled_dt less than (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_rescheduled_dt__lte",
-                type=OpenApiTypes.DATETIME,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_rescheduled_dt less than or equal (ISO 8601 format).",
-            ),
-            OpenApiParameter(
-                "last_rescheduled_dt__date",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_rescheduled_dt date only (YYYY-MM-DD format).",
-            ),
-            OpenApiParameter(
-                "last_rescheduled_dt__date__gte",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_rescheduled_dt date greater than or equal (YYYY-MM-DD format).",
-            ),
-            OpenApiParameter(
-                "last_rescheduled_dt__date__lte",
-                type=OpenApiTypes.DATE,
-                location=OpenApiParameter.QUERY,
-                description="Filter by last_rescheduled_dt date less than or equal (YYYY-MM-DD format).",
-            ),
+            # All other filter parameters are auto-inferred from SyncManagerFilter by drf-spectacular
         ],
         responses={200: SyncManagerSerializer(many=True)},
     )
@@ -2003,138 +1747,36 @@ class SyncManagerView(RudimentaryUserPathLoggingMixin, APIView):
     Provides a single GET endpoint to query sync managers across all types.
     """
 
-    pagination_class = HardLimitOffsetPagination
-
-    def _apply_datetime_filters(self, queryset, request: Request, field_name: str):
-        """
-        Apply datetime filters for a given field name.
-        Supports: exact, gt, gte, lt, lte, date, date__gte, date__lte
-        """
-        from django.utils.dateparse import parse_date, parse_datetime
-
-        # Exact datetime match
-        exact_value = request.query_params.get(field_name)
-        if exact_value:
-            try:
-                dt_value = parse_datetime(exact_value)
-                if dt_value:
-                    queryset = queryset.filter(**{field_name: dt_value})
-            except (ValueError, TypeError):
-                pass  # Invalid datetime format, skip this filter
-
-        # Greater than
-        gt_value = request.query_params.get(f"{field_name}__gt")
-        if gt_value:
-            try:
-                dt_value = parse_datetime(gt_value)
-                if dt_value:
-                    queryset = queryset.filter(**{f"{field_name}__gt": dt_value})
-            except (ValueError, TypeError):
-                pass
-
-        # Greater than or equal
-        gte_value = request.query_params.get(f"{field_name}__gte")
-        if gte_value:
-            try:
-                dt_value = parse_datetime(gte_value)
-                if dt_value:
-                    queryset = queryset.filter(**{f"{field_name}__gte": dt_value})
-            except (ValueError, TypeError):
-                pass
-
-        # Less than
-        lt_value = request.query_params.get(f"{field_name}__lt")
-        if lt_value:
-            try:
-                dt_value = parse_datetime(lt_value)
-                if dt_value:
-                    queryset = queryset.filter(**{f"{field_name}__lt": dt_value})
-            except (ValueError, TypeError):
-                pass
-
-        # Less than or equal
-        lte_value = request.query_params.get(f"{field_name}__lte")
-        if lte_value:
-            try:
-                dt_value = parse_datetime(lte_value)
-                if dt_value:
-                    queryset = queryset.filter(**{f"{field_name}__lte": dt_value})
-            except (ValueError, TypeError):
-                pass
-
-        # Date only (exact)
-        date_value = request.query_params.get(f"{field_name}__date")
-        if date_value:
-            try:
-                d_value = parse_date(date_value)
-                if d_value:
-                    queryset = queryset.filter(**{f"{field_name}__date": d_value})
-            except (ValueError, TypeError):
-                pass
-
-        # Date greater than or equal
-        date_gte_value = request.query_params.get(f"{field_name}__date__gte")
-        if date_gte_value:
-            try:
-                d_value = parse_date(date_gte_value)
-                if d_value:
-                    queryset = queryset.filter(**{f"{field_name}__date__gte": d_value})
-            except (ValueError, TypeError):
-                pass
-
-        # Date less than or equal
-        date_lte_value = request.query_params.get(f"{field_name}__date__lte")
-        if date_lte_value:
-            try:
-                d_value = parse_date(date_lte_value)
-                if d_value:
-                    queryset = queryset.filter(**{f"{field_name}__date__lte": d_value})
-            except (ValueError, TypeError):
-                pass
-
-        return queryset
-
+    # Add filterset_class for drf-spectacular to auto-infer filter parameters
+    filterset_class = SyncManagerFilter
+    permission_classes = [IsAuthenticatedOrReadOnly]
     def get(self, request: Request) -> Response:
         """List all sync managers with optional filtering"""
 
         # Get all SyncManager subclasses
         manager_classes = SyncManager.__subclasses__()
 
+        # Filter manager classes by manager_type if specified
+        manager_type_filter = request.query_params.get("manager_type")
+        if manager_type_filter:
+            manager_types = [t.strip() for t in manager_type_filter.split(",")]
+            manager_classes = [
+                cls for cls in manager_classes if cls.__name__ in manager_types
+            ]
+
         # Collect filtered querysets from all subclasses
         querysets = []
         for manager_class in manager_classes:
             queryset = manager_class.objects.all()
 
-            # Apply filters
-            manager_type_filter = request.query_params.get("manager_type")
-            if manager_type_filter:
-                manager_types = [t.strip() for t in manager_type_filter.split(",")]
-                if manager_class.__name__ not in manager_types:
-                    continue
-
-            sync_id_filter = request.query_params.get("sync_id")
-            if sync_id_filter:
-                sync_ids = [s.strip() for s in sync_id_filter.split(",")]
-                queryset = queryset.filter(sync_id__in=sync_ids)
-
-            permanently_failed_filter = request.query_params.get("permanently_failed")
-            if (
-                permanently_failed_filter is not None
-                and permanently_failed_filter != ""
-            ):
-                permanently_failed_value = strtobool(permanently_failed_filter)
-                queryset = queryset.filter(permanently_failed=permanently_failed_value)
-
-            # Apply DateTime filters for all DateTime fields
-            datetime_fields = [
-                "last_scheduled_dt",
-                "last_started_dt",
-                "last_finished_dt",
-                "last_failed_dt",
-                "last_rescheduled_dt",
-            ]
-            for field_name in datetime_fields:
-                queryset = self._apply_datetime_filters(queryset, request, field_name)
+            # Apply django-filter filterset
+            # Create a copy of query_params without manager_type since it's handled above
+            filter_params = request.query_params.copy()
+            filter_params.pop("manager_type", None)
+            filterset = SyncManagerFilter(
+                data=filter_params, queryset=queryset, request=request
+            )
+            queryset = filterset.qs
 
             # Annotate queryset with manager_type to identify the subclass
             queryset = queryset.annotate(manager_type=Value(manager_class.__name__))
@@ -2144,15 +1786,25 @@ class SyncManagerView(RudimentaryUserPathLoggingMixin, APIView):
         # Combine all querysets using union
         if not querysets:
             # No manager classes found, return empty paginated response
-            paginator = self.pagination_class()
+            from django.utils.module_loading import import_string
+
+            paginator_class = import_string(
+                settings.REST_FRAMEWORK["DEFAULT_PAGINATION_CLASS"]
+            )
+            paginator = paginator_class()
             return paginator.get_paginated_response([])
 
         # Union all querysets SyncManager subclasses querysets
         # all=True to allow duplicates.
         combined_queryset = querysets[0].union(*querysets[1:], all=True)
 
-        # Apply pagination
-        paginator = self.pagination_class()
+        # Apply pagination using default pagination class
+        from django.utils.module_loading import import_string
+
+        paginator_class = import_string(
+            settings.REST_FRAMEWORK["DEFAULT_PAGINATION_CLASS"]
+        )
+        paginator = paginator_class()
         page = paginator.paginate_queryset(combined_queryset, request)
 
         if page is not None:
