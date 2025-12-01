@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prioritize affects with subpath in PURL in v1 (OSIDB-4645)
 - Move label creation from SECONDARY_ASSESSMENT to PRE_SECONDARY_ASSESSMENT (OSIDB-4448)
 
+### Added
+- support for multiple endings 
+- new ending type "no shutdown" [christmas + new year + from jan 2 to jan 7] 
+
 ## [5.2.1] - 2025-11-13
 ### Fixed
 - Fix tracker grouping in affect v1 materialized view (OSIDB-4642)
