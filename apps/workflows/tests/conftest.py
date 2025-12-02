@@ -1,10 +1,13 @@
 import os
+import uuid
 from unittest.mock import MagicMock
 
 import pytest
+from django.conf import settings
 
 from apps.workflows.constants import WORKFLOWS_API_VERSION
 from apps.workflows.workflow import WorkflowFramework
+from osidb.core import generate_acls
 from osidb.helpers import get_env
 
 
@@ -34,6 +37,36 @@ def ldap_test_username():
 @pytest.fixture
 def ldap_test_password():
     return "password"
+
+
+@pytest.fixture
+def public_read_groups():
+    return [uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_READ_GROUPS)]
+
+
+@pytest.fixture
+def public_write_groups():
+    return [uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_WRITE_GROUP])]
+
+
+@pytest.fixture
+def internal_read_groups():
+    return [uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])]
+
+
+@pytest.fixture
+def internal_write_groups():
+    return [uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])]
+
+
+@pytest.fixture
+def embargo_read_groups():
+    return [uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])]
+
+
+@pytest.fixture
+def embargo_write_groups():
+    return [uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])]
 
 
 @pytest.fixture

@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add `alias` label type for incidents (OSIDB-4665)
 
+### Fixed
+- Fix audit history ACL for moving a flaw from internal to public (OSIDB-4215)
+
 ## [5.2.2] - 2025-12-04
 ### Added
 - support for multiple endings 
