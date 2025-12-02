@@ -527,14 +527,13 @@ class ACLMixin(models.Model):
         """
         set the history to public
         """
-        refs = pghistory.models.Events.objects.references(self).all()
+        refs = pghistory.models.Events.objects.tracks(self).all()
         for ref in refs:
-            db, model_name = ref.pgh_model.split(".")
-            model_audit = apps.get_model(db, model_name).objects.filter(
+            model_audit = apps.get_model(ref.pgh_model).objects.filter(
                 pgh_id=ref.pgh_id
             )
 
-            with pgtrigger.ignore(f"{db}.{model_name}:append_only"):
+            with pgtrigger.ignore(f"{ref.pgh_model}:append_only"):
                 model_audit.update(
                     acl_read=list(self.acls_public_read),
                     acl_write=list(self.acls_public_write),
@@ -614,6 +613,7 @@ class ACLMixin(models.Model):
                 # followup update would fail on a mid-air collision
                 kwargs["auto_timestamps"] = False
             self.set_public()
+            self.set_history_public()
             self.save(**kwargs)
 
         # chain all the related instances in reverse relationships (o2m, m2m)

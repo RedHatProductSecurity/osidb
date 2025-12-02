@@ -8,7 +8,17 @@ from apps.workflows.urls import urlpatterns
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.osv.collectors import OSVCollector
 from osidb.core import set_user_acls
-from osidb.models import Affect, Flaw, Tracker
+from osidb.models import (
+    Affect,
+    AffectCVSS,
+    Flaw,
+    FlawAcknowledgment,
+    FlawComment,
+    FlawCVSS,
+    FlawReference,
+    Snippet,
+    Tracker,
+)
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -664,8 +674,27 @@ class TestEndpoints(object):
 
 
 class TestFlawDraft:
+    # models to check audit ACLs for
+    models_list = [
+        Flaw,
+        FlawAcknowledgment,
+        FlawComment,
+        FlawCVSS,
+        FlawReference,
+        Affect,
+        AffectCVSS,
+        Tracker,
+    ]
+
     def mock_create_task(self, flaw):
         return "OSIM-123"
+
+    def assert_audit_acls(self, model, expected_read, expected_write):
+        """helper to assert audit ACLs for all instances of a model"""
+        for instance in model.objects.all():
+            for audit_event in instance.events.all():
+                assert audit_event.acl_read == expected_read
+                assert audit_event.acl_write == expected_write
 
     @pytest.mark.vcr
     def test_promote(
@@ -676,6 +705,10 @@ class TestFlawDraft:
         test_api_uri_osidb,
         jira_token,
         set_hvac_test_env_vars,
+        public_read_groups,
+        public_write_groups,
+        internal_read_groups,
+        internal_write_groups,
     ):
         """
         test that ACLs are set to public when promoting a flaw draft
@@ -756,6 +789,10 @@ class TestFlawDraft:
         assert flaw.snippets.count() == 1
         assert flaw.snippets.first().is_internal
 
+        # also check that the audit history has internal ACLs
+        for model in [*self.models_list, Snippet]:
+            self.assert_audit_acls(model, internal_read_groups, internal_write_groups)
+
         # one more promote to complete the triage
         headers = {"HTTP_JIRA_API_KEY": jira_token}
         response = auth_client().post(
@@ -794,6 +831,13 @@ class TestFlawDraft:
         assert flaw.snippets.count() == 1
         assert flaw.snippets.first().is_internal
 
+        # also check that the audit history has public ACLs
+        for model in self.models_list:
+            self.assert_audit_acls(model, public_read_groups, public_write_groups)
+
+        # except for snippets which should remain internal
+        self.assert_audit_acls(Snippet, internal_read_groups, internal_write_groups)
+
     @pytest.mark.vcr
     def test_reject(
         self,
@@ -803,6 +847,8 @@ class TestFlawDraft:
         test_api_uri_osidb,
         jira_token,
         set_hvac_test_env_vars,
+        internal_read_groups,
+        internal_write_groups,
     ):
         """
         test that ACLs are still set to internal when rejecting a flaw draft
@@ -846,3 +892,6 @@ class TestFlawDraft:
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.REJECTED
         # check that a flaw still has internal ACLs
         assert flaw.is_internal is True
+
+        for model in self.models_list:
+            self.assert_audit_acls(model, internal_read_groups, internal_write_groups)
