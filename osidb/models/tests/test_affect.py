@@ -113,6 +113,14 @@ class TestAffect:
                 "pkg:oci/example-component?repository_url=registry.example.io/namespace/example-component",
                 "namespace/example-component",
             ),
+            (
+                "pkg:generic/redhat/rhsm-api-proxy/rhsm-auto-registration-listener",
+                "rhsm-auto-registration-listener",
+            ),
+            (
+                "pkg:generic/redhat/rhsm-api-proxy/subscription-central-ui",
+                "subscription-central-ui",
+            ),
         ],
     )
     def test_ps_component_from_purl(self, purl, ps_component):
