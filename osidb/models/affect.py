@@ -239,7 +239,6 @@ class Affect(
     class Meta:
         """define meta"""
 
-        unique_together = ("flaw", "ps_update_stream", "ps_component")
         ordering = (
             "created_dt",
             "uuid",
@@ -250,6 +249,20 @@ class Affect(
             models.Index(fields=["flaw", "ps_update_stream"]),
             models.Index(fields=["flaw", "ps_component"]),
             GinIndex(fields=["acl_read"]),
+        ]
+        constraints = [
+            # If purl is empty, unique on (flaw, ps_update_stream, ps_component)
+            models.UniqueConstraint(
+                fields=["flaw", "ps_update_stream", "ps_component"],
+                condition=models.Q(purl=""),
+                name="affect_unique_flaw_stream_component_when_purl_empty",
+            ),
+            # If purl is not empty, unique on (flaw, ps_update_stream, purl)
+            models.UniqueConstraint(
+                fields=["flaw", "ps_update_stream", "purl"],
+                condition=models.Q(purl__gt=""),
+                name="affect_unique_flaw_stream_purl",
+            ),
         ]
 
     # objects = AffectManager()
@@ -302,6 +315,14 @@ class Affect(
                 if maybe_ps_component:
                     self.ps_component = maybe_ps_component
             except ValueError:
+                pass
+
+        if self.purl:
+            try:
+                # Order qualifiers by converting to dict and back to string to avoid duplicates
+                self.purl = PackageURL.from_string(self.purl).to_string()
+            except ValueError:
+                # PURL validation is handled in separate validator
                 pass
 
         if self.is_resolved:
@@ -714,6 +735,28 @@ class Affect(
                 f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} "
                 "belongs to a middleware product and cannot have its PURL removed."
             )
+
+    def _validate_version_in_purl(self, **kwargs):
+        """
+        Validate that new PURLs provide the version, matching the level of detail that
+        affects v2 provide.
+        """
+        old_affect = (
+            Affect.objects.get(uuid=self.uuid) if not self._state.adding else None
+        )
+        if self.purl and (self._state.adding or self.purl != old_affect.purl):
+            try:
+                purl = PackageURL.from_string(self.purl)
+            except ValueError as exc:
+                raise ValidationError(
+                    f"Affect ({self.uuid}) for {self.ps_update_stream} has "
+                    f"an invalid purl '{self.purl}': {exc}."
+                )
+            if not purl.version:
+                raise ValidationError(
+                    f"Affect ({self.uuid}) for {self.ps_update_stream} has a purl '{self.purl}' "
+                    "that does not specify a version."
+                )
 
     def _validate_not_affected_justification(self, **kwargs):
         """

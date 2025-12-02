@@ -110,7 +110,7 @@ class TestAffect:
                 "mainstream/nginx",
             ),
             (
-                "pkg:oci/example-component?repository_url=registry.example.io/namespace/example-component",
+                "pkg:oci/example-component@1.0.0?repository_url=registry.example.io/namespace/example-component",
                 "namespace/example-component",
             ),
         ],
@@ -303,3 +303,178 @@ class TestAffect:
             assert expected_error in str(exc_info.value)
         else:
             affect.save()
+
+    @pytest.mark.parametrize(
+        "initial_purl,updated_purl,should_fail",
+        [
+            # PURL addition - should validate
+            ("", "pkg:rpm/redhat/curl@7.76.1?arch=src", False),
+            ("", "pkg:rpm/redhat/curl?arch=src", True),
+            # PURL modification - should validate
+            (
+                "pkg:rpm/redhat/old-package@1.0.0?arch=src",
+                "pkg:rpm/redhat/curl@7.76.1?arch=src",
+                False,
+            ),
+            (
+                "pkg:rpm/redhat/curl?arch=src",
+                "pkg:rpm/redhat/curl@7.76.1?arch=src",
+                False,
+            ),
+            (
+                "pkg:rpm/redhat/old-package@1.0.0?arch=src",
+                "pkg:rpm/redhat/curl?arch=src",
+                True,
+            ),
+            (
+                "pkg:rpm/redhat/old-package?arch=src",
+                "pkg:rpm/redhat/curl?arch=src",
+                True,
+            ),
+            # PURL not changed - should not validate
+            (
+                "pkg:rpm/redhat/curl@7.76.1?arch=src",
+                "pkg:rpm/redhat/curl@7.76.1?arch=src",
+                False,
+            ),
+            ("pkg:rpm/redhat/curl?arch=src", "pkg:rpm/redhat/curl?arch=src", False),
+            # PURL deletion - should not validate
+            ("pkg:rpm/redhat/curl?arch=src", "", False),
+            ("pkg:rpm/redhat/curl@7.76.1?arch=src", "", False),
+        ],
+    )
+    def test_validate_version_in_purl(self, initial_purl, updated_purl, should_fail):
+        """
+        Test that _validate_version_in_purl validation is only run when PURL is
+        added or modified, and properly validates version presence.
+        """
+        flaw = FlawFactory()
+        ps_update_stream = PsUpdateStreamFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="test-component",
+            impact=Impact.MODERATE,
+        )
+        affect.purl = initial_purl
+        # Initially don't validate to set up test case, emulating old affects with invalid PURLs
+        affect.save(raise_validation_error=False)
+
+        affect.purl = updated_purl
+        if initial_purl == updated_purl:
+            # Test changing other field without PURL change
+            affect.impact = Impact.IMPORTANT
+
+        if should_fail:
+            with pytest.raises(ValidationError) as exc_info:
+                affect.save()
+            assert "does not specify a version" in str(exc_info.value)
+        else:
+            affect.save()
+
+    @pytest.mark.parametrize(
+        "ps_component1,purl1,ps_component2,purl2,should_fail,expected_constraint",
+        [
+            # Empty PURL, same component - fails
+            (
+                "test-component",
+                "",
+                "test-component",
+                "",
+                True,
+                "affect_unique_flaw_stream_component_when_purl_empty",
+            ),
+            # Empty PURL, different component - succeeds
+            (
+                "test-component",
+                "",
+                "different-component",
+                "",
+                False,
+                None,
+            ),
+            # Non-empty PURL duplicate - fails
+            (
+                "component-a",
+                "pkg:rpm/redhat/curl@7.76.1?arch=src",
+                "component-b",
+                "pkg:rpm/redhat/curl@7.76.1?arch=src",
+                True,
+                "affect_unique_flaw_stream_purl",
+            ),
+            # Non-empty PURL, different PURLs - succeeds
+            (
+                "component-a",
+                "pkg:rpm/redhat/curl@7.76.1?arch=src",
+                "component-b",
+                "pkg:rpm/redhat/different@1.0.0?arch=src",
+                False,
+                None,
+            ),
+            # Non-empty PURL and empty PURL - succeeds
+            (
+                "same-component",
+                "",
+                "same-component",
+                "pkg:rpm/redhat/package@1.0.0?arch=src",
+                False,
+                None,
+            ),
+            # PURLs that only differ by qualifiers - succeeds
+            (
+                "component-a",
+                "pkg:rpm/redhat/curl@7.76.1?arch=src&rpmmod=test",
+                "component-b",
+                "pkg:rpm/redhat/curl@7.76.1?arch=x86_64&different=qualifier",
+                False,
+                None,
+            ),
+            # PURLs that only differ by subpath - succeeds
+            (
+                "component-a",
+                "pkg:rpm/redhat/curl@7.76.1?arch=src#bin/curl",
+                "component-b",
+                "pkg:rpm/redhat/curl@7.76.1?arch=src#lib/libcurl.so",
+                False,
+                None,
+            ),
+        ],
+    )
+    def test_uniqueness_constraints(
+        self,
+        ps_component1,
+        purl1,
+        ps_component2,
+        purl2,
+        should_fail,
+        expected_constraint,
+    ):
+        """
+        Test various uniqueness constraint scenarios for affects using conditional constraints.
+        """
+        flaw = FlawFactory()
+        ps_update_stream = PsUpdateStreamFactory()
+
+        AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            ps_component=ps_component1,
+            purl=purl1,
+        )
+
+        if should_fail:
+            with pytest.raises(ValidationError) as exc_info:
+                AffectFactory(
+                    flaw=flaw,
+                    ps_update_stream=ps_update_stream.name,
+                    ps_component=ps_component2,
+                    purl=purl2,
+                )
+            assert expected_constraint in str(exc_info.value)
+        else:
+            AffectFactory(
+                flaw=flaw,
+                ps_update_stream=ps_update_stream.name,
+                ps_component=ps_component2,
+                purl=purl2,
+            )
