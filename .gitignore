@@ -37,3 +37,6 @@ osidb_data_backup_dump*
 .DS_Store
 # pyright local configuration file
 pyrightconfig.json
+
+# performance tests output
+performance_report*
