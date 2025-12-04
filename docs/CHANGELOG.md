@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [5.2.2] - 2025-12-04
 ### Added
 - support for multiple endings 
 - new ending type "no shutdown" [christmas + new year + from jan 2 to jan 7] 
