@@ -1,9 +1,7 @@
 from datetime import datetime, timezone
 from itertools import chain
 
-import pghistory
 import pytest
-from django.conf import settings
 from freezegun import freeze_time
 from rest_framework import status
 
@@ -82,7 +80,15 @@ class TestEndpointsFlawsUnembargo:
             assert not Flaw.objects.first().is_embargoed
 
     @freeze_time(datetime(2020, 10, 10, tzinfo=timezone.utc))
-    def test_complex(self, auth_client, test_api_uri):
+    def test_complex(
+        self,
+        auth_client,
+        test_api_uri,
+        public_read_groups,
+        public_write_groups,
+        internal_read_groups,
+        internal_write_groups,
+    ):
         """
         test that a complex flaw context can be correctly unembargoed
         """
@@ -169,23 +175,19 @@ class TestEndpointsFlawsUnembargo:
                 FlawReference,
                 Affect,
                 AffectCVSS,
-                Package,
                 Tracker,
+                Package,
             ]
             assert not any(
                 instance.is_embargoed
                 for instance in chain(*[model.objects.all() for model in models])
             )
 
-            audit_models = [
-                pghistory.models.Events.objects.references(model).all()
-                for model in models
-            ]
-            assert (
-                audit_model["acls_read"] == settings.PUBLIC_READ_GROUPS
-                and audit_model["acls_write"] == [settings.PUBLIC_WRITE_GROUP]
-                for audit_model in audit_models
-            )
+            for model in models[:-1]:
+                for instance in model.objects.all():
+                    for audit_event in instance.events.all():
+                        assert audit_event.acl_read == public_read_groups
+                        assert audit_event.acl_write == public_write_groups
 
     @freeze_time(datetime(2020, 10, 10, tzinfo=timezone.utc))
     def test_combined(self, auth_client, test_api_uri):

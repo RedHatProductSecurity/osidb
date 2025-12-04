@@ -400,6 +400,7 @@ class WorkflowModel(models.Model):
             self.set_public()
             # updates ACLs of all related objects except for snippets
             self.set_public_nested()
+            self.set_history_public()
 
         if save:
             self.save()
