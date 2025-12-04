@@ -13,11 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Uniqueness on purl or ps_component for affects (OSIDB-4644)
 
 ### Added
+- Add `alias` label type for incidents (OSIDB-4665)
+
+## [5.2.2] - 2025-12-04
+### Added
 - support for multiple endings 
 - new ending type "no shutdown" [christmas + new year + from jan 2 to jan 7] 
-
-### Added
-- Add `alias` label type for incidents (OSIDB-4665)
 
 ## [5.2.1] - 2025-11-13
 ### Fixed
