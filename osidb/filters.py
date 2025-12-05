@@ -1726,3 +1726,51 @@ class AlertFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
             "name": ["exact"],
             "alert_type": ["exact"],
         }
+
+
+class SyncManagerFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
+    """
+    Filter for SyncManager instances.
+    Note: SyncManager is abstract, so this filter is applied to each subclass's queryset.
+    """
+
+    sync_id = CharInFilter(field_name="sync_id")
+    permanently_failed = BooleanFilter(field_name="permanently_failed")
+    manager_type = CharFilter(method="filter_manager_type")
+
+    def filter_manager_type(self, queryset, name, value):
+        """
+        Filter by manager type (subclass name).
+        This is handled in the view since we need to filter before union.
+        """
+        # This method won't be called directly since manager_type is handled in the view
+        # But we define it here for the filter interface
+        return queryset
+
+    class Meta:
+        # SyncManager is abstract, so we don't specify a model
+        # All fields are explicitly defined below
+        fields = {
+            "sync_id": ["exact"],
+            "permanently_failed": ["exact"],
+            "last_scheduled_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "last_started_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "last_finished_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "last_failed_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "last_rescheduled_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+        }
