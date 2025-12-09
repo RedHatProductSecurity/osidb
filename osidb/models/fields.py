@@ -2,7 +2,11 @@
 Custom model fields for OSIDB
 """
 
+from typing import Optional
+
+from django.core.exceptions import ValidationError
 from django.db import models
+from packageurl import PackageURL
 
 from osidb.validators import validate_cve_id
 
@@ -57,3 +61,55 @@ class CVEIDField(models.CharField):
                 del kwargs["validators"]
 
         return name, path, args, kwargs
+
+
+class PURLField(models.CharField):
+    """
+    Custom field for Package URLs (PURLs) that automatically handles
+    conversion between string representation and PackageURL objects.
+
+    This field:
+    - Stores PURLs as strings in the database (using to_string())
+    - Returns PackageURL objects when accessed through the ORM
+    - Validates PURLs using PackageURL.from_string()
+    - Handles None/empty values appropriately
+    """
+
+    description = "A field for storing Package URLs (PURLs)"
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("max_length", None)
+        kwargs.setdefault("blank", True)
+        super().__init__(*args, **kwargs)
+
+    def to_python(self, value: None | str | PackageURL) -> Optional[PackageURL]:
+        if value is None or value == "":
+            # in case of PURL being blank we return None as well in order
+            # to avoid type confusion, as blank is not a valid PURL
+            return None
+
+        if isinstance(value, PackageURL):
+            return value
+
+        try:
+            return PackageURL.from_string(value)
+        except ValueError as e:
+            raise ValidationError(f"Invalid PURL: {e}")
+
+    def get_prep_value(self, value):
+        if value is None or value == "":
+            return value
+
+        if isinstance(value, PackageURL):
+            return value.to_string()
+
+        try:
+            # here we ensure that before querying / saving to the database
+            # we normalize the string so that the order of e.g. qualifiers
+            # is consistent
+            return PackageURL.from_string(value).to_string()
+        except ValueError as e:
+            raise ValidationError(f"Invalid PURL: {e}")
+
+    def from_db_value(self, value, expression, connection):
+        return self.to_python(value)
