@@ -895,3 +895,279 @@ class TestFlawDraft:
 
         for model in self.models_list:
             self.assert_audit_acls(model, internal_read_groups, internal_write_groups)
+
+    @pytest.mark.vcr
+    def test_promote_flaw_with_multiple_affects(
+        self,
+        enable_jira_task_sync,
+        monkeypatch,
+        auth_client,
+        test_api_uri_osidb,
+        jira_token,
+        set_hvac_test_env_vars,
+    ):
+        """
+        test that ACLs are set to public when promoting a flaw draft with multiple affects
+        """
+        monkeypatch.setattr(
+            JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task
+        )
+
+        osv_id = "GHSA-3hwm-922r-47hw"
+        affects_count = 10
+        osvc = OSVCollector()
+        osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = None
+        osvc.collect(osv_id=osv_id)
+
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        assert flaw.task_key == "OSIM-123"
+        assert flaw.is_internal
+
+        # set owner to comply with TRIAGE requirements
+        flaw.owner = "Alice"
+        flaw.save(raise_validation_error=False)
+
+        # let us expect that somebody created Affect and Tracker for an un-promoted flaw by mistake
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        for i in range(affects_count):
+            affect = AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_update_stream=ps_update_stream.name,
+                ps_component=f"component-{i}",
+            )
+        # create a tracker for the last affect
+        last_affect = affect
+        TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+            acl_read=affect.acl_read,
+            acl_write=affect.acl_write,
+        )
+        # and thus they have incorrect internal ACLs
+        for affect_flaw in flaw.affects.all():
+            assert affect_flaw.is_internal
+            if affect_flaw.uuid == last_affect.uuid:
+                assert affect_flaw.tracker is not None
+                assert affect_flaw.tracker.is_internal
+            else:
+                assert affect_flaw.tracker is None
+
+        headers = {"HTTP_JIRA_API_KEY": jira_token}
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "DEFAULT"
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.TRIAGE
+
+        flaw = Flaw.objects.get(pk=flaw.pk)
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.task_key == "OSIM-123"
+
+        # check that a flaw and related objects (except for snippets)
+        # still have internal ACLs as we publish only after the triage
+        assert flaw.is_internal
+        for affect_flaw in flaw.affects.all():
+            assert affect_flaw.is_internal
+            if affect_flaw.uuid == last_affect.uuid:
+                assert affect_flaw.tracker is not None
+                assert affect_flaw.tracker.is_internal
+            else:
+                assert affect_flaw.tracker is None
+
+        assert flaw.affects.count() == affects_count
+        assert flaw.cvss_scores.count() == 1
+        assert flaw.cvss_scores.first().is_internal
+        assert flaw.references.count() == 5
+        for r in flaw.references.all():
+            assert r.is_internal
+        assert flaw.snippets.count() == 1
+        assert flaw.snippets.first().is_internal
+
+        # one more promote to complete the triage
+        headers = {"HTTP_JIRA_API_KEY": jira_token}
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "DEFAULT"
+        assert (
+            body["classification"]["state"]
+            == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        )
+
+        flaw = Flaw.objects.get(pk=flaw.pk)
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert (
+            flaw.classification["state"]
+            == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        )
+        assert flaw.task_key == "OSIM-123"
+
+        # check that a flaw and related objects (except for snippets) have public ACLs
+        assert flaw.is_public
+        for affect_flaw in flaw.affects.all():
+            assert affect_flaw.is_public
+            if affect_flaw.uuid == last_affect.uuid:
+                assert affect_flaw.tracker is not None
+                assert affect_flaw.tracker.is_public
+            else:
+                assert affect_flaw.tracker is None
+
+        assert flaw.affects.count() == affects_count
+        assert flaw.cvss_scores.count() == 1
+        assert flaw.cvss_scores.first().is_public
+        assert flaw.references.count() == 5
+        for r in flaw.references.all():
+            assert r.is_public
+        assert flaw.snippets.count() == 1
+        assert flaw.snippets.first().is_internal
+
+    @pytest.mark.vcr
+    def test_promote_flaw_with_multiple_trackers(
+        self,
+        enable_jira_task_sync,
+        monkeypatch,
+        auth_client,
+        test_api_uri_osidb,
+        jira_token,
+        set_hvac_test_env_vars,
+    ):
+        """
+        test that ACLs are set to public when promoting a flaw draft with multiple affects
+        """
+        monkeypatch.setattr(
+            JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task
+        )
+
+        osv_id = "GHSA-3hwm-922r-47hw"
+        affects_count = 10
+        osvc = OSVCollector()
+        osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = None
+        osvc.collect(osv_id=osv_id)
+
+        assert Flaw.objects.count() == 1
+        flaw = Flaw.objects.first()
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        assert flaw.task_key == "OSIM-123"
+        assert flaw.is_internal
+
+        # set owner to comply with TRIAGE requirements
+        flaw.owner = "Alice"
+        flaw.save(raise_validation_error=False)
+
+        # let us expect that somebody created Affect and Tracker for an un-promoted flaw by mistake
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        for i in range(affects_count):
+            affect = AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_update_stream=ps_update_stream.name,
+                ps_component=f"component-{i}",
+            )
+            TrackerFactory(
+                affects=[affect],
+                embargoed=affect.flaw.embargoed,
+                ps_update_stream=ps_update_stream.name,
+                type=Tracker.TrackerType.JIRA,
+                acl_read=affect.acl_read,
+                acl_write=affect.acl_write,
+            )
+        # and thus they have incorrect internal ACLs
+        assert flaw.affects.first().is_internal
+        assert flaw.affects.first().tracker is not None
+        assert flaw.affects.first().tracker.is_internal
+
+        headers = {"HTTP_JIRA_API_KEY": jira_token}
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "DEFAULT"
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.TRIAGE
+
+        flaw = Flaw.objects.get(pk=flaw.pk)
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.task_key == "OSIM-123"
+
+        # check that a flaw and related objects (except for snippets)
+        # still have internal ACLs as we publish only after the triage
+        assert flaw.is_internal
+        assert flaw.affects.count() == affects_count
+        assert flaw.affects.first().is_internal
+        assert flaw.affects.first().tracker is not None
+        assert flaw.affects.first().tracker.is_internal
+        assert flaw.cvss_scores.count() == 1
+        assert flaw.cvss_scores.first().is_internal
+        assert flaw.references.count() == 5
+        for r in flaw.references.all():
+            assert r.is_internal
+        assert flaw.snippets.count() == 1
+        assert flaw.snippets.first().is_internal
+
+        # one more promote to complete the triage
+        headers = {"HTTP_JIRA_API_KEY": jira_token}
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "DEFAULT"
+        assert (
+            body["classification"]["state"]
+            == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        )
+
+        flaw = Flaw.objects.get(pk=flaw.pk)
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert (
+            flaw.classification["state"]
+            == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        )
+        assert flaw.task_key == "OSIM-123"
+
+        # check that a flaw and related objects (except for snippets) have public ACLs
+        assert flaw.is_public
+        assert flaw.affects.count() == affects_count
+        assert flaw.affects.first().is_public
+        assert flaw.affects.first().tracker is not None
+        assert flaw.affects.first().tracker.is_public
+        assert flaw.cvss_scores.count() == 1
+        assert flaw.cvss_scores.first().is_public
+        assert flaw.references.count() == 5
+        for r in flaw.references.all():
+            assert r.is_public
+        assert flaw.snippets.count() == 1
+        assert flaw.snippets.first().is_internal
