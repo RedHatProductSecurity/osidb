@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - support for multiple endings 
 - new ending type "no shutdown" [christmas + new year + from jan 2 to jan 7] 
 
+### Added
+- Add `in` filter for API views (OSIDB-4588)
+
 ## [5.2.1] - 2025-11-13
 ### Fixed
 - Fix tracker grouping in affect v1 materialized view (OSIDB-4642)
