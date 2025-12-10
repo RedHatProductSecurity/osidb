@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from packageurl import PackageURL
 from psqlextra.fields import HStoreField
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from apps.bbsync.constants import RHSCL_BTS_KEY
 from apps.bbsync.mixins import BugzillaSyncMixin
@@ -35,6 +36,12 @@ from .ps_module import PsModule
 from .ps_update_stream import PsUpdateStream
 
 logger = logging.getLogger(__name__)
+
+
+class AffectSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="OSIDB_AFFECTS_")
+
+    require_purl_for_middleware: bool = False
 
 
 class NotAffectedJustification(models.TextChoices):
@@ -712,6 +719,9 @@ class Affect(
         Validate that new affects related to middleware products have a PURL.
         Also disallows removing PURL from existing middleware affects.
         """
+        if not AffectSettings().require_purl_for_middleware:
+            return
+
         ps_module = PsModule.objects.filter(name=self.ps_module).first()
         if not ps_module:
             return
