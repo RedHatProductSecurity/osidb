@@ -18,6 +18,8 @@ from apps.exploits.models import EPSS
 from collectors.framework.models import collector
 from osidb.helpers import get_env
 
+from .constants import epss_collector_settings
+
 logger = get_task_logger(__name__)
 
 # CSV fields:
@@ -78,6 +80,7 @@ def epss_collector_main():
 @collector(
     # Execute once a day
     crontab=crontab(minute=20, hour=1),
+    enabled=epss_collector_settings.enabled,
 )
 def epss_collector(collector_obj):
     logger.info(f"Collector {collector_obj.name} is running")
