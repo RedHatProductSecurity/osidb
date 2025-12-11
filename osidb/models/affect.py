@@ -247,6 +247,7 @@ class Affect(
     class Meta:
         """define meta"""
 
+        unique_together = ("flaw", "ps_update_stream", "ps_component")
         ordering = (
             "created_dt",
             "uuid",
@@ -257,20 +258,6 @@ class Affect(
             models.Index(fields=["flaw", "ps_update_stream"]),
             models.Index(fields=["flaw", "ps_component"]),
             GinIndex(fields=["acl_read"]),
-        ]
-        constraints = [
-            # If purl is empty, unique on (flaw, ps_update_stream, ps_component)
-            models.UniqueConstraint(
-                fields=["flaw", "ps_update_stream", "ps_component"],
-                condition=models.Q(purl=""),
-                name="affect_unique_flaw_stream_component_when_purl_empty",
-            ),
-            # If purl is not empty, unique on (flaw, ps_update_stream, purl)
-            models.UniqueConstraint(
-                fields=["flaw", "ps_update_stream", "purl"],
-                condition=models.Q(purl__gt=""),
-                name="affect_unique_flaw_stream_purl",
-            ),
         ]
 
     # objects = AffectManager()
