@@ -11432,6 +11432,7 @@ components:
           type: string
         ps_module:
           type: string
+          readOnly: true
         cve_id:
           type: string
           readOnly: true
@@ -11511,6 +11512,7 @@ components:
       - embargoed
       - flaw
       - labels
+      - ps_module
       - ps_product
       - ps_update_stream
       - resolved_dt
@@ -11547,8 +11549,6 @@ components:
         ps_update_stream:
           type: string
           minLength: 1
-        ps_module:
-          type: string
         ps_component:
           type: string
           nullable: true
@@ -11795,8 +11795,6 @@ components:
         ps_update_stream:
           type: string
           minLength: 1
-        ps_module:
-          type: string
         ps_component:
           type: string
           nullable: true
@@ -11861,8 +11859,6 @@ components:
         ps_update_stream:
           type: string
           minLength: 1
-        ps_module:
-          type: string
         ps_component:
           type: string
           nullable: true
