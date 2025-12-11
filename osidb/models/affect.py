@@ -25,7 +25,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
-from osidb.models.fields import CVEIDField
+from osidb.models.fields import CVEIDField, PURLField
 from osidb.query_sets import CustomQuerySetUpdatedDt
 
 from .abstract import CVSS, Impact
@@ -217,6 +217,7 @@ class Affect(
     ps_component = models.CharField(max_length=255)
 
     purl = models.TextField(blank=True)
+    subpackage_purls = fields.ArrayField(PURLField(), default=list, blank=True)
 
     impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 

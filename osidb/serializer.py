@@ -1262,6 +1262,7 @@ class AffectSerializer(
                 "delegated_resolution",
                 "cvss_scores",
                 "purl",
+                "subpackage_purls",
                 "not_affected_justification",
                 "delegated_not_affected_justification",
                 "resolved_dt",
