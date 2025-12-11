@@ -863,7 +863,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             and self.ps_module.ps_product.is_middleware
             and (purl := self.most_important_affect.purl)
         ):
-            component = purl
+            component = purl.to_string()
         self._query["fields"][field_id] = component
 
     def generate_upstream_component(self):
