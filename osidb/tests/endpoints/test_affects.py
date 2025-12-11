@@ -293,7 +293,7 @@ class TestEndpointsAffects:
         also with respect to the flaw and affect visibility (which should be equal in Buzilla world)
         """
         flaw = FlawFactory(embargoed=flaw_embargo)
-        PsUpdateStreamFactory(name="rhacm-2.11.z")
+        ps_update_stream = PsUpdateStreamFactory(name="rhacm-2.11.z")
         affect_data = {
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
@@ -321,6 +321,7 @@ class TestEndpointsAffects:
             assert response.status_code == 200
             body = response.json()
             assert body["ps_update_stream"] == "rhacm-2.11.z"
+            assert body["ps_module"] == ps_update_stream.ps_module.name
 
     @pytest.mark.parametrize("embargoed", [False, True])
     def test_affect_update(self, auth_client, test_api_v2_uri, embargoed):
@@ -348,6 +349,7 @@ class TestEndpointsAffects:
         assert response.status_code == 200
         body = response.json()
         assert original_body["ps_update_stream"] != body["ps_update_stream"]
+        assert original_body["ps_module"] != body["ps_module"]
 
     def test_affect_delete(self, auth_client, test_api_v2_uri):
         """

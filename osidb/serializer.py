@@ -1208,6 +1208,7 @@ class AffectSerializer(
     ps_component = serializers.CharField(
         max_length=255, allow_blank=True, allow_null=True, required=False
     )
+    ps_module = serializers.CharField(read_only=True)
     purl = serializers.CharField(
         allow_blank=True, allow_null=True, required=False, default=""
     )
