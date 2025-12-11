@@ -216,10 +216,12 @@ class TestAffect:
         ],
     )
     def test_validate_purl_middleware_new_affects(
-        self, business_unit, purl, should_raise, expected_error
+        self, business_unit, purl, should_raise, expected_error, monkeypatch
     ):
         """Test PURL validation for new affects on middleware products"""
         from osidb.tests.factories import PsProductFactory
+
+        monkeypatch.setenv("OSIDB_AFFECTS_REQUIRE_PURL_FOR_MIDDLEWARE", "true")
 
         ps_product = PsProductFactory(business_unit=business_unit)
         ps_module = PsModuleFactory(ps_product=ps_product)
@@ -276,10 +278,18 @@ class TestAffect:
         ],
     )
     def test_validate_purl_middleware_existing_affects(
-        self, business_unit, initial_purl, updated_purl, should_raise, expected_error
+        self,
+        business_unit,
+        initial_purl,
+        updated_purl,
+        should_raise,
+        expected_error,
+        monkeypatch,
     ):
         """Test PURL validation for existing affects on middleware products"""
         from osidb.tests.factories import PsProductFactory
+
+        monkeypatch.setenv("OSIDB_AFFECTS_REQUIRE_PURL_FOR_MIDDLEWARE", "true")
 
         ps_product = PsProductFactory(business_unit=business_unit)
         ps_module = PsModuleFactory(ps_product=ps_product)
