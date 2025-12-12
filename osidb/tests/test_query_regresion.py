@@ -1,9 +1,13 @@
+from decimal import Decimal
+
 import pytest
 from django.db import connection
 from django.db.models.query import QuerySet
 from django.test.utils import CaptureQueriesContext
 from pytest_django.asserts import assertNumQueries
 
+from apps.workflows.workflow import WorkflowModel
+from osidb.models import Affect, Flaw, FlawSource, Impact, Tracker
 from osidb.api_views import FlawView
 from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.tests.factories import (
@@ -17,7 +21,7 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.queryset
 
 
-def assertNumQueriesLessThan(max_queries, using="default"):
+def assertNumQueriesLessThan(max_queries, max_time=0, using="default"):
     """
     Context manager that asserts the number of queries is less than or equal to max_queries.
     This is useful for query regression tests where the exact count may vary slightly
@@ -33,6 +37,13 @@ def assertNumQueriesLessThan(max_queries, using="default"):
             assert num_queries <= max_queries, (
                 f"{num_queries} queries executed, expected <= {max_queries}"
             )
+            if max_time > 0:
+                queries_total_time = sum(
+                    [Decimal(q["time"]) for q in self.captured_queries]
+                )
+                assert queries_total_time <= max_time, (
+                    f"{queries_total_time} total time executed, expected <= {max_time}"
+                )
 
     return _AssertNumQueriesLessThan(connection)
 
@@ -321,6 +332,117 @@ class TestQuerySetRegression:
                 f"&affects__ps_component={ps_component}&order=-created_dt&limit=10"
             )
             assert response.status_code == 200
+
+    @pytest.mark.enable_signals
+    @pytest.mark.parametrize(
+        "embargoed,affect_quantity,expected_queries,max_time",
+        [
+            (True, 1, 76, 1),
+            (True, 10, 76, 1),
+            (True, 50, 76, 1),
+            (True, 100, 76, 1),
+            (False, 1, 113, 1),  # down from 119
+            (False, 10, 311, 1),  # down from 389
+            (False, 50, 1191, 1.5),  # down from 1589
+            (False, 100, 2291, 2),  # down from 3089
+        ],
+    )
+    def test_flaw_promote(
+        self,
+        auth_client,
+        enable_jira_task_async_sync,
+        test_api_uri,
+        jira_token,
+        bugzilla_token,
+        embargoed,
+        affect_quantity,
+        expected_queries,
+        max_time,
+    ):
+        """
+        Test query performance for flaws promote endpoint as number of affects increases.
+        """
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        flaw = FlawFactory(
+            embargoed=embargoed,
+            impact=Impact.MODERATE,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        if not embargoed:
+            flaw.set_internal()
+            flaw.save()
+
+        for _ in range(affect_quantity):
+            affect = AffectFactory(
+                flaw=flaw,
+                ps_update_stream=ps_update_stream.name,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                impact=Impact.MODERATE,
+            )
+
+            TrackerFactory(
+                affects=[affect],
+                embargoed=embargoed,
+                ps_update_stream=ps_update_stream.name,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+            )
+            # Make children internal in the non-embargoed scenario so set_public_nested has work to do
+            if not embargoed:
+                # Ensure related objects start as internal, then promotion will flip them public
+                affect.set_internal()
+                affect.save(raise_validation_error=False)
+                if affect.tracker:
+                    affect.tracker.set_internal()
+                    affect.tracker.save(raise_validation_error=False)
+
+        # Force initial classification to start the promote chain from NEW.
+        # Even with signals enabled, setting task_key later can trigger workflow
+        # auto-adjust and skip ahead because required fields are already filled.
+        flaw.classification = {
+            "workflow": "DEFAULT",
+            "state": WorkflowModel.WorkflowState.NEW,
+        }
+
+        # NEW -> TRIAGE requires owner
+        flaw.owner = "Alice"
+
+        # TRIAGE -> PRE_SECONDARY_ASSESSMENT requires source and title
+        flaw.source = FlawSource.CUSTOMER
+        flaw.title = flaw.title or "Sample title"
+        flaw.save(raise_validation_error=False)
+
+        # Ensure a Jira task exists so workflow transitions trigger adjust_acls/set_public_nested
+        flaw.task_key = "OSIM-1"
+        flaw.save(raise_validation_error=False)
+
+        headers = {
+            "HTTP_JIRA_API_KEY": jira_token,
+            "HTTP_BUGZILLA_API_KEY": bugzilla_token,
+        }
+
+        # Promote to TRIAGE
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
+
+        assert response.status_code == 200
+
+        # Promote to PRE_SECONDARY_ASSESSMENT using async task sync
+        # this one runs the nested set_public_nested call and set_history_public
+
+        with assertNumQueriesLessThan(expected_queries, max_time=max_time):
+            response = auth_client().post(
+                f"{test_api_uri}/flaws/{flaw.uuid}/promote",
+                data={},
+                format="json",
+                **headers,
+            )
 
     def test_flaw_update_does_not_prefetch_affects(
         self, auth_client, test_api_v2_uri, monkeypatch, bugzilla_token, jira_token

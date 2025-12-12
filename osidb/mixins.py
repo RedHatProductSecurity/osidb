@@ -367,6 +367,7 @@ class ACLMixin(models.Model):
             >>> my_flaw.acl_read
             ... [UUID(...), UUID(...)]
         """
+
         self.set_acl_read(*settings.PUBLIC_READ_GROUPS)
         self.set_acl_write(settings.PUBLIC_WRITE_GROUP)
         # Update the embargoed annotation to reflect the new ACL state
