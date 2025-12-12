@@ -279,7 +279,7 @@ class ACLMixin(models.Model):
         self.acl_write = acls
         return acls
 
-    def set_public(self):
+    def set_public(self, allow_embargoed=False):
         """
         Shortcut method for making an ACL-enabled entity public.
 
@@ -295,6 +295,9 @@ class ACLMixin(models.Model):
             >>> my_flaw.acl_read
             ... [UUID(...), UUID(...)]
         """
+        if not allow_embargoed and self.is_embargoed:
+            raise ValidationError("Cannot set public ACLs for embargoed entities.")
+
         self.set_acl_read(*settings.PUBLIC_READ_GROUPS)
         self.set_acl_write(settings.PUBLIC_WRITE_GROUP)
         # Update the embargoed annotation to reflect the new ACL state
@@ -560,7 +563,7 @@ class ACLMixin(models.Model):
             return
 
         # unembargo
-        self.set_public()
+        self.set_public(allow_embargoed=True)
         self.set_history_public()
 
         kwargs = {}
