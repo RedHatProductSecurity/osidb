@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Uniqueness on purl or ps_component for affects (OSIDB-4644)
 - Make `ps_module` read-only in the affect serializer (OSIDB-4554)
 - Improve promote performance with prefetch (OSIDB-4678)
+- Improve promote performance with ACL bulk update (OSIDB-4678)
 
 ### Added
 - Add `alias` label type for incidents (OSIDB-4665)
