@@ -85,6 +85,33 @@ def get_flaw_or_404(pk, queryset=None):
         raise Http404 from e
 
 
+def get_flaw_with_related_objects():
+    """
+    Returns a Flaw queryset with prefetch_related and select_related
+    to minimize database queries during workflow promotion operations.
+    """
+    from osidb.models import Flaw
+
+    return Flaw.objects.prefetch_related(
+        # Flaw's direct reverse relationships
+        "acknowledgments",
+        "affects",
+        "comments",
+        "cvss_scores",
+        "package_versions",
+        "references",
+        "labels",
+        "alerts",
+        # Affects and their related objects
+        "affects__cvss_scores",
+        "affects__tracker",
+        "affects__tracker__errata",
+        "affects__tracker__affects",
+        "affects__alerts",
+        "affects__tracker__alerts",
+    )
+
+
 # Replaces strtobool from the deprecated distutils library
 def strtobool(val: str):
     val = val.lower()
