@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make `ps_module` read-only in the affect serializer (OSIDB-4554)
 - Allow filtering by PURL fields (OSIDB-4728)
 - Improve promote performance with prefetch (OSIDB-4678)
+- Improve promote performance with ACL bulk update (OSIDB-4678)
 
 ### Added
 - Add `in` filter for API views (OSIDB-4588)
