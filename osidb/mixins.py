@@ -367,6 +367,7 @@ class ACLMixin(models.Model):
             >>> my_flaw.acl_read
             ... [UUID(...), UUID(...)]
         """
+
         self.set_acl_read(*settings.PUBLIC_READ_GROUPS)
         self.set_acl_write(settings.PUBLIC_WRITE_GROUP)
         # Update the embargoed annotation to reflect the new ACL state
@@ -680,14 +681,8 @@ class ACLMixin(models.Model):
         chunked queryset updates to minimize database queries and avoid storing
         model instances in memory.
         """
-        # Collect object IDs to update, grouped by model type to avoid holding instances.
         objects_to_update = defaultdict(set)  # {ModelClass: {pk, ...}}
 
-        # Keep batching sane; historically <=0 behaved like "chunk by 1".
-        max_chunk_size = max(1, max_chunk_size)
-
-        # Track visited objects to prevent infinite recursion in circular relationships.
-        # Key: (model_class, pk)
         visited = set()
         self._collect_objects_for_public_update(objects_to_update, visited)
 
@@ -697,7 +692,6 @@ class ACLMixin(models.Model):
         # Cut off microseconds to match TrackingMixin.save() behavior
         now = timezone.now().replace(microsecond=0)
 
-        # Public ACL values are the same for all updated rows
         public_acl_read = [
             uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_READ_GROUPS)
         ]
@@ -705,14 +699,10 @@ class ACLMixin(models.Model):
             uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_WRITE_GROUP])
         ]
 
-        # Update each model type using queryset update, chunked to keep pk__in safe.
-        # Fields to update: acl_read, acl_write, and updated_dt (if present).
         for model_class, object_ids in objects_to_update.items():
             if not object_ids:
                 continue
 
-            # objects_to_update should only contain ACLMixin subclasses,
-            # but keep this guard to avoid future accidental misuse.
             if not issubclass(model_class, ACLMixin):
                 continue
 
@@ -720,12 +710,9 @@ class ACLMixin(models.Model):
             if issubclass(model_class, TrackingMixin):
                 update_kwargs["updated_dt"] = now
 
-            # Keep updates bounded; avoids huge IN (...) lists.
             for pk_chunk in batched(object_ids, max_chunk_size):
                 model_class.objects.filter(pk__in=pk_chunk).update(**update_kwargs)
 
-            # Update audit history for all updated objects.
-            # Avoid fetching full instances; set_history_public relies on pk + model.
             for pk in object_ids:
                 model_class(pk=pk).set_history_public()
 
@@ -744,19 +731,16 @@ class ACLMixin(models.Model):
 
         visit_key = (type(self), self.pk)
 
-        # If we've already visited this object, skip it to prevent infinite recursion
         if visit_key in visited:
             return
 
-        # Mark this object as visited
         visited.add(visit_key)
 
-        # Non-Flaw public objects don't need nested ACL promotion; avoid traversing.
-        if not isinstance(self, Flaw) and not self.is_internal:
-            return
+        if not isinstance(self, Flaw):
+            if not self.is_internal:
+                return
+            objects_to_update[type(self)].add(self.pk)
 
-        # Collect all related instances in reverse relationships (o2m, m2m)
-        # as we only care for the ACLs which are unified
         for related_instance in chain.from_iterable(
             getattr(self, name).all()
             for name in [
@@ -769,12 +753,9 @@ class ACLMixin(models.Model):
                 )
             ]
         ):
-            # continue deeper into the related context
             related_instance._collect_objects_for_public_update(
                 objects_to_update, visited
             )
-
-        # Collect related instances in forward relationships (m2o, o2o)
         for field in self._meta.concrete_fields:
             if isinstance(
                 field, (models.ForeignKey, models.OneToOneField)

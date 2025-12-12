@@ -4,8 +4,9 @@ from django.db.models.query import QuerySet
 from django.test.utils import CaptureQueriesContext
 from pytest_django.asserts import assertNumQueries
 
+from apps.workflows.workflow import WorkflowModel
 from osidb.api_views import FlawView
-from osidb.models import Affect, Flaw, Impact, Tracker
+from osidb.models import Affect, Flaw, FlawSource, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -385,3 +386,111 @@ class TestQuerySetRegression:
         assert not prefetch_calls, (
             f"Unexpected affects prefetches during PUT: {prefetch_calls}"
         )
+
+    @pytest.mark.enable_signals
+    @pytest.mark.parametrize(
+        "embargoed,affect_quantity,expected_queries",
+        [
+            (True, 1, 76),
+            (True, 10, 76),
+            (True, 100, 76),
+            (False, 1, 113),  # down from 119
+            (False, 10, 311),  # down from 389
+            (False, 100, 2291),  # down from 3089
+        ],
+    )
+    def test_flaw_promote(
+        self,
+        auth_client,
+        enable_jira_task_async_sync,
+        test_api_uri,
+        jira_token,
+        bugzilla_token,
+        embargoed,
+        affect_quantity,
+        expected_queries,
+    ):
+        """
+        Test query performance for flaws promote endpoint as number of affects increases.
+        """
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        flaw = FlawFactory(
+            embargoed=embargoed,
+            impact=Impact.MODERATE,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        if not embargoed:
+            flaw.set_internal()
+            flaw.save()
+
+        for _ in range(affect_quantity):
+            affect = AffectFactory(
+                flaw=flaw,
+                ps_update_stream=ps_update_stream.name,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                impact=Impact.MODERATE,
+            )
+
+            TrackerFactory(
+                affects=[affect],
+                embargoed=embargoed,
+                ps_update_stream=ps_update_stream.name,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+            )
+            # Make children internal in the non-embargoed scenario so set_public_nested has work to do
+            if not embargoed:
+                # Ensure related objects start as internal, then promotion will flip them public
+                affect.set_internal()
+                affect.save(raise_validation_error=False)
+                if affect.tracker:
+                    affect.tracker.set_internal()
+                    affect.tracker.save(raise_validation_error=False)
+
+        # Force initial classification to start the promote chain from NEW.
+        # Even with signals enabled, setting task_key later can trigger workflow
+        # auto-adjust and skip ahead because required fields are already filled.
+        flaw.classification = {
+            "workflow": "DEFAULT",
+            "state": WorkflowModel.WorkflowState.NEW,
+        }
+
+        # NEW -> TRIAGE requires owner
+        flaw.owner = "Alice"
+
+        # TRIAGE -> PRE_SECONDARY_ASSESSMENT requires source and title
+        flaw.source = FlawSource.CUSTOMER
+        flaw.title = flaw.title or "Sample title"
+        flaw.save(raise_validation_error=False)
+
+        # Ensure a Jira task exists so workflow transitions trigger adjust_acls/set_public_nested
+        flaw.task_key = "OSIM-1"
+        flaw.save(raise_validation_error=False)
+
+        headers = {
+            "HTTP_JIRA_API_KEY": jira_token,
+            "HTTP_BUGZILLA_API_KEY": bugzilla_token,
+        }
+
+        # Promote to TRIAGE
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
+
+        assert response.status_code == 200
+
+        # Promote to PRE_SECONDARY_ASSESSMENT using async task sync
+        # this one runs the nested set_public_nested call and set_history_public
+
+        with assertNumQueriesLessThan(expected_queries):
+            response = auth_client().post(
+                f"{test_api_uri}/flaws/{flaw.uuid}/promote",
+                data={},
+                format="json",
+                **headers,
+            )
