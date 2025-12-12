@@ -26,7 +26,7 @@ from osidb.mixins import (
     TrackingMixin,
     TrackingMixinManager,
 )
-from osidb.models.fields import CVEIDField
+from osidb.models.fields import CVEIDField, PURLField
 from osidb.query_sets import CustomQuerySetUpdatedDt
 
 from .abstract import CVSS, Impact
@@ -223,7 +223,8 @@ class Affect(
     # to fix https://issues.redhat.com/browse/OSIDB-635
     ps_component = models.CharField(max_length=255)
 
-    purl = models.TextField(blank=True)
+    purl = PURLField()
+    subpackage_purls = fields.ArrayField(PURLField(), default=list, blank=True)
 
     impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 
@@ -246,6 +247,7 @@ class Affect(
     class Meta:
         """define meta"""
 
+        unique_together = ("flaw", "ps_update_stream", "ps_component")
         ordering = (
             "created_dt",
             "uuid",
@@ -257,20 +259,6 @@ class Affect(
             models.Index(fields=["flaw", "ps_component"]),
             GinIndex(fields=["acl_read"]),
         ]
-        constraints = [
-            # If purl is empty, unique on (flaw, ps_update_stream, ps_component)
-            models.UniqueConstraint(
-                fields=["flaw", "ps_update_stream", "ps_component"],
-                condition=models.Q(purl=""),
-                name="affect_unique_flaw_stream_component_when_purl_empty",
-            ),
-            # If purl is not empty, unique on (flaw, ps_update_stream, purl)
-            models.UniqueConstraint(
-                fields=["flaw", "ps_update_stream", "purl"],
-                condition=models.Q(purl__gt=""),
-                name="affect_unique_flaw_stream_purl",
-            ),
-        ]
 
     # objects = AffectManager()
     objects = AffectManager.from_queryset(AffectQuerySetExploitExtension)()
@@ -280,9 +268,12 @@ class Affect(
 
     def ps_component_from_purl(self, should_raise=False):
         try:
+            purl = self.purl
+            if isinstance(purl, str):
+                # handle the case in which it has not been saved to db yet and is still a string
+                purl = PackageURL.from_string(purl)
             # try to parse the PS component from the PURL but do not raise any
             # error on failure as that will be done as part of the validations
-            purl = PackageURL.from_string(self.purl)
             if purl.type == "oci":
                 try:
                     prefix = purl.qualifiers["repository_url"].split("/")[1]
@@ -322,14 +313,6 @@ class Affect(
                 if maybe_ps_component:
                     self.ps_component = maybe_ps_component
             except ValueError:
-                pass
-
-        if self.purl:
-            try:
-                # Order qualifiers by converting to dict and back to string to avoid duplicates
-                self.purl = PackageURL.from_string(self.purl).to_string()
-            except ValueError:
-                # PURL validation is handled in separate validator
                 pass
 
         if self.is_resolved:

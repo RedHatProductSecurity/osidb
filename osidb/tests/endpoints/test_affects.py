@@ -1050,7 +1050,7 @@ class TestEndpointsAffectsPurl:
         assert response.status_code == 200
         original_body = response.json()
         assert original_body["ps_component"] == "podman"
-        assert original_body["purl"] == ""
+        assert original_body["purl"] is None
 
         response = auth_client().put(
             f"{test_api_v2_uri}/affects/{affect.uuid}",
@@ -1075,7 +1075,7 @@ class TestEndpointsAffectsPurl:
             (
                 "",
                 "rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
-                "invalid purl",
+                "Invalid PURL",
                 None,
             ),
             (
@@ -1127,7 +1127,7 @@ class TestEndpointsAffectsPurl:
             (
                 "",
                 "rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
-                "invalid purl",
+                "Invalid PURL",
                 None,
             ),
             (

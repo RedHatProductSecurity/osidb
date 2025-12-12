@@ -11463,6 +11463,10 @@ components:
           type: string
           nullable: true
           default: ''
+        subpackage_purls:
+          type: array
+          items:
+            type: string
         not_affected_justification:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
@@ -11561,6 +11565,10 @@ components:
           type: string
           nullable: true
           default: ''
+        subpackage_purls:
+          type: array
+          items:
+            type: string
         not_affected_justification:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
@@ -11809,6 +11817,10 @@ components:
           type: string
           nullable: true
           default: ''
+        subpackage_purls:
+          type: array
+          items:
+            type: string
         not_affected_justification:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
@@ -11875,6 +11887,10 @@ components:
           type: string
           nullable: true
           default: ''
+        subpackage_purls:
+          type: array
+          items:
+            type: string
         not_affected_justification:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'

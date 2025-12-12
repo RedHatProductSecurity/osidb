@@ -4,6 +4,7 @@ from django.db import models
 
 from osidb.mixins import AlertMixin
 from osidb.models import ComparableTextChoices
+from osidb.models.fields import PURLField
 
 
 class AlertableModelBasic(AlertMixin):
@@ -26,3 +27,13 @@ class ComparableTextChoices_1(ComparableTextChoices):
 
 class ComparableTextChoices_2(ComparableTextChoices):
     TEST = "TEST"
+
+
+class PURLTestModel(models.Model):
+    """Test model for PURLField"""
+
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    purl = PURLField(null=True)
+
+    class Meta:  # type: ignore
+        app_label = "tests"
