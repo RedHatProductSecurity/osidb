@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prioritize affects with subpath in PURL in v1 (OSIDB-4645)
 - Move label creation from SECONDARY_ASSESSMENT to PRE_SECONDARY_ASSESSMENT (OSIDB-4448)
 - Improve promote performance with prefetch (OSIDB-4678)
+- Improve promote performance with ACL bulk update (OSIDB-4678)
 
 ### Added
 - Add `alias` label type for incidents (OSIDB-4665)
