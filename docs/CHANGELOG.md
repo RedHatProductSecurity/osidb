@@ -13,11 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add `alias` label type for incidents (OSIDB-4665)
-- Add subpackage PURLs field (OSIDB-4691)
 - Add settings for enabling/disabling EPSS collector (OSIDB-4677)
 
 ### Fixed
 - Fix audit history ACL for moving a flaw from internal to public (OSIDB-4215)
+
+## [5.3.0] - 2025-12-15
+### Added
+- Add subpackage PURLs field (OSIDB-4691)
 
 ## [5.2.2] - 2025-12-04
 ### Added
