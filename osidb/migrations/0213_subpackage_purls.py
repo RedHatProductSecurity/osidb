@@ -10,7 +10,7 @@ import pgtrigger.migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0215_alter_affect_unique_together_and_more'),
+        ('osidb', '0212_fix_materialized_view_grouped_trackers'),
     ]
 
     operations = [

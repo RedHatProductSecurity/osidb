@@ -187,7 +187,7 @@ CREATE UNIQUE INDEX affect_v1_uuid_idx ON affect_v1 (uuid);
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0212_fix_materialized_view_grouped_trackers'),
+        ('osidb', '0215_revert_purl_component_conditional_uniqueness'),
     ]
 
     operations = [
