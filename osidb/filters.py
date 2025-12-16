@@ -14,7 +14,7 @@ from django.contrib.postgres.search import (
 from django.core.exceptions import FieldDoesNotExist
 from django.core.validators import EMPTY_VALUES
 from django.db import models
-from django.db.models import Q
+from django.db.models import Max, Min, Q
 from django_filters.rest_framework import (
     BaseInFilter,
     BooleanFilter,
@@ -173,6 +173,51 @@ class DistinctFilterSet(FilterSet):
             for filter_ in self.filters.values():
                 if filter_.field_name.startswith(self.DISTINCT_FIELDS_PREFIXES):
                     filter_.distinct = True
+
+
+class DistinctOrderingFilter(OrderingFilter):
+    """
+    Custom OrderingFilter that prevents duplicate results when ordering by related fields.
+
+    The original ordering filter created duplicates. This filter uses
+    annotations with Min/Max aggregations on related fields to remove the duplicates.
+
+    For related fields:
+    - Ascending order: annotates with Min (earliest/smallest value)
+    - Descending order: annotates with Max (latest/largest value)
+
+    """
+
+    def filter(self, queryset, value):
+        if value in EMPTY_VALUES:
+            return queryset
+
+        annotations = {}
+        new_ordering = []
+
+        for param in value:
+            field_name = self.get_ordering_value(param)
+
+            is_descending = field_name.startswith("-")
+            base_field_name = field_name[1:] if is_descending else field_name
+
+            if "__" in base_field_name:
+                aggregation_func = Max if is_descending else Min
+
+                annotation_name = f"_order_{'desc' if is_descending else 'asc'}_{base_field_name.replace('__', '_')}"
+                annotations[annotation_name] = aggregation_func(base_field_name)
+
+                new_ordering.append(f"{'-' if is_descending else ''}{annotation_name}")
+            else:
+                new_ordering.append(field_name)
+
+        if annotations:
+            queryset = queryset.annotate(**annotations)
+
+        if new_ordering:
+            queryset = queryset.order_by(*new_ordering)
+
+        return queryset
 
 
 class SparseFieldsFilterSet(FilterSet):
@@ -618,7 +663,7 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
         "cve_description",
         "title",
     ] + list(Meta.fields.keys())
-    order = OrderingFilter(fields=order_fields)
+    order = DistinctOrderingFilter(fields=order_fields)
 
     search_helper = staticmethod(search_helper)
     # Set the class method to be the same as the imported method (and make it static, to avoid breaking on a self param)
@@ -954,7 +999,7 @@ class FlawV1Filter(FlawFilter):
         "cve_description",
         "title",
     ] + list(Meta.fields.keys())
-    order = OrderingFilter(fields=order_fields)
+    order = DistinctOrderingFilter(fields=order_fields)
 
 
 class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
@@ -1255,7 +1300,7 @@ class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFil
         "cvss_scores__updated_dt",
     ] + list(Meta.fields.keys())
 
-    order = OrderingFilter(fields=order_fields)
+    order = DistinctOrderingFilter(fields=order_fields)
 
 
 class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
@@ -1349,7 +1394,7 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
         "flaw__embargoed",
         "tracker__embargoed",
     ] + list(Meta.fields.keys())
-    order = OrderingFilter(fields=order_fields)
+    order = DistinctOrderingFilter(fields=order_fields)
 
 
 class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
@@ -1423,7 +1468,7 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
         "affects__embargoed",
         "affects__flaw__embargoed",
     ] + list(Meta.fields.keys())
-    order = OrderingFilter(fields=order_fields)
+    order = DistinctOrderingFilter(fields=order_fields)
 
 
 class TrackerV1Filter(TrackerFilter):
@@ -1601,7 +1646,7 @@ class TrackerV1Filter(TrackerFilter):
         "affects__embargoed",
         "affects__flaw__embargoed",
     ] + list(Meta.fields.keys())
-    order = OrderingFilter(fields=order_fields)
+    order = DistinctOrderingFilter(fields=order_fields)
 
 
 class FlawAcknowledgmentFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
