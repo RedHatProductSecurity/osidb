@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support unmbargoing for closed trackers (OSIDB-3729)
 - Prioritize affects with subpath in PURL in v1 (OSIDB-4645)
 - Move label creation from SECONDARY_ASSESSMENT to PRE_SECONDARY_ASSESSMENT (OSIDB-4448)
+- Uniqueness on purl or ps_component for affects (OSIDB-4644)
+- Make `ps_module` read-only in the affect serializer (OSIDB-4554)
 
 ### Added
 - Add `alias` label type for incidents (OSIDB-4665)
