@@ -198,8 +198,9 @@ class TrackerQueryBuilder:
         if self.ps_component in KERNEL_PACKAGES:
             description_parts.extend(TrackerQueryBuilder._description_kernel())
 
-        # 5) Link to vulnerability management information
-        description_parts.extend(self._description_vuln_mgmt_info())
+        # 5) Link to vulnerability management information (internal trackers only)
+        if not self.ps_module.ps_product.is_community:
+            description_parts.extend(self._description_vuln_mgmt_info())
 
         # 6) Tracker feedback form for Jira
         if self.tracker.type == Tracker.TrackerType.JIRA:

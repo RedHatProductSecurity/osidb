@@ -710,6 +710,39 @@ class TestTrackerQueryBuilderDescription:
                     not in tqb.description
                 )
 
+        # Test that community trackers do not show the link
+        ps_product_community = PsProductFactory(business_unit="Community")
+        ps_module_community = PsModuleFactory(
+            bts_name="jboss", ps_product=ps_product_community
+        )
+        ps_update_stream_community = PsUpdateStreamFactory(
+            ps_module=ps_module_community
+        )
+        flaw_community = FlawFactory()
+        affect_community = AffectFactory(
+            flaw=flaw_community,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream_community.name,
+        )
+        tracker_community = TrackerFactory(
+            affects=[affect_community],
+            embargoed=affect_community.flaw.embargoed,
+            ps_update_stream=ps_update_stream_community.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        with patch("apps.trackers.common.VULN_MGMT_INFO_URL", info_url):
+            tqb_community = TrackerQueryBuilder()
+            tqb_community.instance = tracker_community
+
+            assert (
+                "essential vulnerability management information"
+                not in tqb_community.description
+            )
+            if info_url is not None:
+                assert info_url not in tqb_community.description
+
     def test_triage(self):
         """
         test triage tracker description generation

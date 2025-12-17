@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix audit history ACL for moving a flaw from internal to public (OSIDB-4215)
 - Fix duplicates in response query ordering by related fields (OSIDB-4221)
 
+### Removed
+- Remove vuln mgmt documentation link from description in community trackers (OSIDB-4450)
+
 ## [5.2.2] - 2025-12-04
 ### Added
 - support for multiple endings 
