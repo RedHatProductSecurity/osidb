@@ -194,6 +194,9 @@ class FlawCollaborator(TrackingMixin):
 
     def _validate_workflow_state(self):
         """Flaw labels can only be added/updated in the pre-secondary assessment state"""
+        if self.type == FlawLabel.FlawLabelType.ALIAS:
+            return
+
         if (
             self.flaw.workflow_state
             != WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT

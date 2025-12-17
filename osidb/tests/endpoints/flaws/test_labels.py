@@ -190,6 +190,29 @@ class TestEndpointsFlawsLabels:
         assert response.status_code == status.HTTP_201_CREATED
         assert FlawCollaborator.objects.filter(label="incident-12345").exists()
 
+        # Test that alias labels can be set in other workflow state
+        flaw_workflow = FlawFactory(embargoed=False)
+        flaw_workflow.workflow_state = WorkflowModel.WorkflowState.TRIAGE
+        flaw_workflow.save()
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{flaw_workflow.uuid}/labels",
+            {"label": "incident-12346", "type": "alias", "state": "NEW"},
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert FlawCollaborator.objects.filter(label="incident-12346").exists()
+
+        flaw_workflow = FlawFactory(embargoed=False)
+        flaw_workflow.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw_workflow.save()
+
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{flaw_workflow.uuid}/labels",
+            {"label": "incident-12347", "type": "alias", "state": "NEW"},
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert FlawCollaborator.objects.filter(label="incident-12347").exists()
+
     def test_delete_alias_label(self, auth_client, test_api_uri):
         """Test that alias labels can be deleted like context-based labels"""
         flaw = Flaw.objects.first()
