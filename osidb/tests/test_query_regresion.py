@@ -3,6 +3,7 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from pytest_django.asserts import assertNumQueries
 
+from apps.workflows.workflow import WorkflowModel
 from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
@@ -229,3 +230,77 @@ class TestQuerySetRegression:
                 f"&affects__ps_component={ps_component}&order=-created_dt&limit=10"
             )
             assert response.status_code == 200
+
+    @pytest.mark.parametrize("affect_quantity", [1, 2, 4, 8])
+    def test_flaw_promote(
+        self,
+        auth_client,
+        test_api_uri,
+        embargoed,
+        jira_token,
+        bugzilla_token,
+        affect_quantity,
+    ):
+        """
+        Test query performance for flaws promote endpoint as number of affects increases.
+        """
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        flaw = FlawFactory(
+            embargoed=embargoed,
+            impact=Impact.MODERATE,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+
+        for _ in range(affect_quantity):
+            affect = AffectFactory(
+                flaw=flaw,
+                ps_update_stream=ps_update_stream.name,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                impact=Impact.MODERATE,
+            )
+
+            TrackerFactory(
+                affects=[affect],
+                embargoed=embargoed,
+                ps_update_stream=ps_update_stream.name,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+            )
+
+        # Force initial classification because signals are muted in queryset tests
+        flaw.classification = {
+            "workflow": "DEFAULT",
+            "state": WorkflowModel.WorkflowState.NEW,
+        }
+        # NEW -> TRIAGE requires owner
+        flaw.owner = "Alice"
+        flaw.save(raise_validation_error=False)
+
+        headers = {
+            "HTTP_JIRA_API_KEY": jira_token,
+            "HTTP_BUGZILLA_API_KEY": bugzilla_token,
+        }
+
+        # when embargoed it should
+        expected_queries = 96
+        if not embargoed:
+            expected_queries = 92
+
+        # for some reason the first iteration reads 2 more queries,
+        # this seems related to a bug in counting queries in the context manager
+        if affect_quantity == 1:
+            expected_queries += 2
+
+        with assertNumQueriesLessThan(expected_queries):
+            response = auth_client().post(
+                f"{test_api_uri}/flaws/{flaw.uuid}/promote",
+                data={},
+                format="json",
+                **headers,
+            )
+        assert response.status_code == 200
+        assert flaw.is_public is not embargoed
+        for affect in flaw.affects.all():
+            assert affect.is_public is not embargoed

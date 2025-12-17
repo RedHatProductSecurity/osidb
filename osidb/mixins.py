@@ -279,7 +279,7 @@ class ACLMixin(models.Model):
         self.acl_write = acls
         return acls
 
-    def set_public(self):
+    def set_public(self, allow_embargoed=False):
         """
         Shortcut method for making an ACL-enabled entity public.
 
@@ -295,6 +295,9 @@ class ACLMixin(models.Model):
             >>> my_flaw.acl_read
             ... [UUID(...), UUID(...)]
         """
+        if not allow_embargoed and self.is_embargoed:
+            raise ValidationError("Cannot set public ACLs for embargoed entities.")
+
         self.set_acl_read(*settings.PUBLIC_READ_GROUPS)
         self.set_acl_write(settings.PUBLIC_WRITE_GROUP)
         # Update the embargoed annotation to reflect the new ACL state
@@ -526,14 +529,20 @@ class ACLMixin(models.Model):
     def set_history_public(self):
         """
         set the history to public
+        The only exception is "snippets", which should always have internal ACLs.
         """
-        refs = pghistory.models.Events.objects.tracks(self).all()
+        refs = pghistory.models.Events.objects.references(self).all()
         for ref in refs:
-            model_audit = apps.get_model(ref.pgh_model).objects.filter(
+            db, model_name = ref.pgh_model.split(".")
+            # Skip snippet audit events - snippets should always remain internal
+            if model_name == "SnippetAudit":
+                continue
+
+            model_audit = apps.get_model(db, model_name).objects.filter(
                 pgh_id=ref.pgh_id
             )
 
-            with pgtrigger.ignore(f"{ref.pgh_model}:append_only"):
+            with pgtrigger.ignore(f"{db}.{model_name}:append_only"):
                 model_audit.update(
                     acl_read=list(self.acls_public_read),
                     acl_write=list(self.acls_public_write),
@@ -554,7 +563,7 @@ class ACLMixin(models.Model):
             return
 
         # unembargo
-        self.set_public()
+        self.set_public(allow_embargoed=True)
         self.set_history_public()
 
         kwargs = {}
@@ -597,26 +606,91 @@ class ACLMixin(models.Model):
         Change internal ACLs to public ACLs for all related Flaw objects and save them.
         The only exception is "snippets", which should always have internal ACLs.
         The Flaw itself will be saved later to avoid duplicate operations.
+
+        This method collects all objects that need to be updated and uses bulk_update
+        to minimize database queries.
+        """
+
+        # Collect all objects that need to be updated (using dict to avoid duplicates)
+        # Key: (model_class, pk), Value: object instance
+        objects_to_update = {}
+        # Track visited objects to prevent infinite recursion in circular relationships
+        visited = set()
+        self._collect_objects_for_public_update(objects_to_update, visited)
+
+        # Get list of unique objects
+        valid_objects = list(objects_to_update.values())
+
+        if not valid_objects:
+            return
+
+        # Set updated_dt on all objects before bulk update
+        # Cut off microseconds to match TrackingMixin.save() behavior
+        now = timezone.now().replace(microsecond=0)
+        for obj in valid_objects:
+            if hasattr(obj, "updated_dt"):
+                obj.updated_dt = now
+
+        # Group objects by model type for bulk_update
+        from collections import defaultdict
+
+        objects_by_model = defaultdict(list)
+        for obj in valid_objects:
+            objects_by_model[type(obj)].append(obj)
+
+        # Bulk update each model type
+        # Fields to update: acl_read, acl_write, and updated_dt
+        for model_class, objects in objects_by_model.items():
+            if objects:
+                # Determine fields for this model type
+                model_update_fields = ["acl_read", "acl_write"]
+                if hasattr(model_class, "updated_dt"):
+                    model_update_fields.append("updated_dt")
+
+                model_class.objects.bulk_update(
+                    objects,
+                    model_update_fields,
+                    batch_size=100,  # Process in batches to avoid memory issues
+                )
+
+                # Update audit history for all updated objects
+                # Each object needs its history set to public after ACL update
+                for obj in objects:
+                    if hasattr(obj, "set_history_public"):
+                        obj.set_history_public()
+
+    def _collect_objects_for_public_update(self, objects_to_update, visited):
+        """
+        Recursively collect all related objects that need to have their ACLs
+        updated to public. The Flaw itself is not collected as it's saved separately.
+
+        Uses a dictionary keyed by (type, pk) to track seen objects and avoid duplicates.
+        Uses a set to track visited objects to prevent infinite recursion.
         """
         from osidb.models import Flaw
 
-        if not isinstance(self, Flaw):
-            if not self.is_internal:
-                return
-            kwargs = {}
-            if issubclass(type(self), AlertMixin):
-                # suppress the validation errors as we expect that during
-                # the update the parent and child ACLs will not equal
-                kwargs["raise_validation_error"] = False
-            if issubclass(type(self), TrackingMixin):
-                # do not auto-update the updated_dt timestamp as the
-                # followup update would fail on a mid-air collision
-                kwargs["auto_timestamps"] = False
-            self.set_public()
-            self.set_history_public()
-            self.save(**kwargs)
+        # Create a unique key for this object to track if we've visited it
+        if self.pk is None:
+            return
 
-        # chain all the related instances in reverse relationships (o2m, m2m)
+        visit_key = (type(self), self.pk)
+
+        # If we've already visited this object, skip it to prevent infinite recursion
+        if visit_key in visited:
+            return
+
+        # Mark this object as visited
+        visited.add(visit_key)
+
+        # If this is not a Flaw and it's internal, collect it for update
+        if not isinstance(self, Flaw):
+            if self.is_internal:
+                # Set public ACLs on the object (but don't save yet)
+                self.set_public()
+                # Use (type, pk) as key to avoid duplicates
+                objects_to_update[visit_key] = self
+
+        # Collect all related instances in reverse relationships (o2m, m2m)
         # as we only care for the ACLs which are unified
         for related_instance in chain.from_iterable(
             getattr(self, name).all()
@@ -631,16 +705,20 @@ class ACLMixin(models.Model):
             ]
         ):
             # continue deeper into the related context
-            related_instance.set_public_nested()
+            related_instance._collect_objects_for_public_update(
+                objects_to_update, visited
+            )
 
-        # chain related instances in forward relationships (m2o, o2o)
+        # Collect related instances in forward relationships (m2o, o2o)
         for field in self._meta.concrete_fields:
             if isinstance(
                 field, (models.ForeignKey, models.OneToOneField)
             ) and issubclass(field.related_model, ACLMixin):
                 related_instance = getattr(self, field.name)
                 if related_instance:
-                    related_instance.set_public_nested()
+                    related_instance._collect_objects_for_public_update(
+                        objects_to_update, visited
+                    )
 
 
 class AlertManager(ACLMixinManager):
