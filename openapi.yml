@@ -2729,6 +2729,14 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: affects__visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
+      - in: query
         name: bz_id
         schema:
           type: number
@@ -3538,6 +3546,14 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
       - in: query
         name: workflow_state
         schema:
@@ -6498,6 +6514,14 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: affects__flaw__visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
+      - in: query
         name: affects__impact
         schema:
           type: string
@@ -6572,6 +6596,14 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: affects__visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
       - in: query
         name: created_dt
         schema:
@@ -6766,6 +6798,14 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
       tags:
       - osidb
       security:
@@ -7295,6 +7335,14 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: flaw__visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
+      - in: query
         name: flaw__workflow_state
         schema:
           type: array
@@ -7593,6 +7641,14 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: tracker__visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
+      - in: query
         name: updated_dt
         schema:
           type: string
@@ -7637,6 +7693,14 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
       tags:
       - osidb
       security:
@@ -8723,6 +8787,14 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: affects__tracker__visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
+      - in: query
         name: affects__updated_dt
         schema:
           type: string
@@ -8767,6 +8839,14 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: affects__visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
       - in: query
         name: bz_id
         schema:
@@ -9617,6 +9697,14 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
       - in: query
         name: workflow_state
         schema:
@@ -10536,6 +10624,14 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: affects__flaw__visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
+      - in: query
         name: affects__impact
         schema:
           type: string
@@ -10614,6 +10710,14 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: affects__visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
       - in: query
         name: created_dt
         schema:
@@ -10846,6 +10950,14 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: visibility
+        schema:
+          type: string
+          enum:
+          - EMBARGOED
+          - INTERNAL
+          - PUBLIC
       tags:
       - osidb
       security:
@@ -11491,6 +11603,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         alerts:
           type: array
           items:
@@ -11521,6 +11638,7 @@ components:
       - tracker
       - updated_dt
       - uuid
+      - visibility
     AffectBulkPostPutResponse:
       type: object
       properties:
@@ -11621,6 +11739,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         alerts:
           type: array
           items:
@@ -11644,6 +11767,7 @@ components:
       - updated_dt
       - uuid
       - vector
+      - visibility
     AffectCVSSRequest:
       type: object
       description: AffectCVSS serializer
@@ -11711,6 +11835,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         alerts:
           type: array
           items:
@@ -11735,6 +11864,7 @@ components:
       - updated_dt
       - uuid
       - vector
+      - visibility
     AffectCVSSV2PostRequest:
       type: object
       description: Abstract serializer for FlawCVSS and AffectCVSS serializer
@@ -11976,6 +12106,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         alerts:
           type: array
           items:
@@ -12008,6 +12143,7 @@ components:
       - trackers
       - updated_dt
       - uuid
+      - visibility
     AffectV1ReportData:
       type: object
       properties:
@@ -12374,6 +12510,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -12435,6 +12576,7 @@ components:
       - trackers
       - updated_dt
       - uuid
+      - visibility
     FlawAcknowledgment:
       type: object
       description: FlawAcknowledgment serializer
@@ -12459,6 +12601,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         alerts:
           type: array
           items:
@@ -12483,6 +12630,7 @@ components:
       - name
       - updated_dt
       - uuid
+      - visibility
     FlawAcknowledgmentPostRequest:
       type: object
       description: FlawAcknowledgment serializer
@@ -12600,6 +12748,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         alerts:
           type: array
           items:
@@ -12623,6 +12776,7 @@ components:
       - updated_dt
       - uuid
       - vector
+      - visibility
     FlawCVSSPostRequest:
       type: object
       description: FlawCVSS serializer
@@ -12748,6 +12902,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         alerts:
           type: array
           items:
@@ -12772,6 +12931,7 @@ components:
       - updated_dt
       - uuid
       - vector
+      - visibility
     FlawCVSSV2PostRequest:
       type: object
       description: Abstract serializer for FlawCVSS and AffectCVSS serializer
@@ -12937,6 +13097,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
       required:
       - alerts
       - created_dt
@@ -12946,6 +13111,7 @@ components:
       - text
       - updated_dt
       - uuid
+      - visibility
     FlawCommentPostRequest:
       type: object
       description: FlawComment serializer for use by flaw_comments endpoint
@@ -13008,6 +13174,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -13025,6 +13196,7 @@ components:
       - updated_dt
       - uuid
       - versions
+      - visibility
     FlawPackageVersionPostRequest:
       type: object
       description: Package model serializer
@@ -13260,6 +13432,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -13321,6 +13498,7 @@ components:
       - trackers
       - updated_dt
       - uuid
+      - visibility
     FlawReference:
       type: object
       description: FlawReference serializer
@@ -13345,6 +13523,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         alerts:
           type: array
           items:
@@ -13367,6 +13550,7 @@ components:
       - updated_dt
       - url
       - uuid
+      - visibility
     FlawReferencePostRequest:
       type: object
       description: FlawReference serializer
@@ -13756,6 +13940,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         created_dt:
           type: string
           format: date-time
@@ -13817,6 +14006,7 @@ components:
       - trackers
       - updated_dt
       - uuid
+      - visibility
     FlawV1ReportData:
       type: object
       properties:
@@ -14834,6 +15024,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         alerts:
           type: array
           items:
@@ -14864,6 +15059,7 @@ components:
       - type
       - updated_dt
       - uuid
+      - visibility
     TrackerPost:
       type: object
       description: Tracker serializer
@@ -14918,6 +15114,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         alerts:
           type: array
           items:
@@ -14948,6 +15149,7 @@ components:
       - type
       - updated_dt
       - uuid
+      - visibility
     TrackerPostRequest:
       type: object
       description: Tracker serializer
@@ -15122,6 +15324,11 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
         alerts:
           type: array
           items:
@@ -15152,6 +15359,7 @@ components:
       - type
       - updated_dt
       - uuid
+      - visibility
     User:
       type: object
       properties:
@@ -15178,6 +15386,12 @@ components:
       - groups
       - profile
       - username
+    VisibilityEnum:
+      enum:
+      - EMBARGOED
+      - INTERNAL
+      - PUBLIC
+      type: string
   securitySchemes:
     KerberosAuthentication:
       type: http

@@ -14,7 +14,7 @@ from apps.workflows.models import Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
-from osidb.mixins import Alert, AlertMixin
+from osidb.mixins import ACLMixinVisibility, Alert, AlertMixin
 from osidb.models import (
     Affect,
     Flaw,
@@ -271,6 +271,73 @@ class TestACLMixin:
         assert my_flaw.acl_write != original_acl_write
         assert my_flaw.acl_read == [self.group2acl(g) for g in acl_read]
         assert my_flaw.acl_write == [self.group2acl(g) for g in acl_write]
+
+    @pytest.mark.parametrize(
+        "acl_read,acl_write,expected_visibility",
+        [
+            (
+                settings.PUBLIC_READ_GROUPS,
+                [settings.PUBLIC_WRITE_GROUP],
+                ACLMixinVisibility.PUBLIC,
+            ),
+            (
+                [settings.EMBARGO_READ_GROUP],
+                [settings.EMBARGO_WRITE_GROUP],
+                ACLMixinVisibility.EMBARGOED,
+            ),
+            (
+                [settings.INTERNAL_READ_GROUP],
+                [settings.INTERNAL_WRITE_GROUP],
+                ACLMixinVisibility.INTERNAL,
+            ),
+        ],
+    )
+    def test_visibility_annotation(self, acl_read, acl_write, expected_visibility):
+        """
+        Test that the visibility annotation is correctly set based on ACL read groups
+        """
+        flaw = self.create_flaw(acl_read=acl_read, acl_write=acl_write, save=False)
+        flaw.save(raise_validation_error=False)
+
+        # Retrieve from queryset to get annotation
+        flaw_from_db = Flaw.objects.get(uuid=flaw.uuid)
+
+        assert hasattr(flaw_from_db, "visibility")
+        assert flaw_from_db.visibility == expected_visibility
+
+    def test_visibility_fallback_properties(self):
+        """
+        Test that visibility fallback works when annotation is not available
+        """
+        # Create flaws with different visibility levels
+        embargoed_flaw = self.create_flaw(
+            acl_read=[settings.EMBARGO_READ_GROUP],
+            acl_write=[settings.EMBARGO_WRITE_GROUP],
+            save=False,
+        )
+        internal_flaw = self.create_flaw(
+            acl_read=[settings.INTERNAL_READ_GROUP],
+            acl_write=[settings.INTERNAL_WRITE_GROUP],
+            save=False,
+        )
+        public_flaw = self.create_flaw(
+            acl_read=settings.PUBLIC_READ_GROUPS,
+            acl_write=[settings.PUBLIC_WRITE_GROUP],
+            save=False,
+        )
+
+        # Test fallback to properties
+        assert not embargoed_flaw.is_public
+        assert embargoed_flaw.is_embargoed
+        assert not embargoed_flaw.is_internal
+
+        assert not internal_flaw.is_public
+        assert not internal_flaw.is_embargoed
+        assert internal_flaw.is_internal
+
+        assert public_flaw.is_public
+        assert not public_flaw.is_embargoed
+        assert not public_flaw.is_internal
 
 
 class TestTrackingMixin:

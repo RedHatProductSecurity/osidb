@@ -47,7 +47,7 @@ from osidb.models import (
 )
 
 from .djangoql import FlawQLSchema
-from .mixins import Alert
+from .mixins import ACLMixinVisibility, Alert
 
 LT_GT_LOOKUP_EXPRS = ["lt", "gt"]
 LTE_GTE_LOOKUP_EXPRS = ["lte", "gte"]
@@ -393,12 +393,21 @@ class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
     cve_description = CharFilter(field_name="cve_description", method="search_helper")
     statement = CharFilter(field_name="statement", method="search_helper")
     embargoed = BooleanFilter(field_name="embargoed")
+    visibility = ChoiceFilter(
+        field_name="visibility", choices=ACLMixinVisibility.choices
+    )
     workflow_state = ChoiceInFilter(
         field_name="workflow_state", choices=WorkflowModel.WorkflowState.choices
     )
     affects__embargoed = BooleanFilter(field_name="affects__embargoed")
+    affects__visibility = ChoiceFilter(
+        field_name="affects__visibility", choices=ACLMixinVisibility.choices
+    )
     affects__tracker__embargoed = BooleanFilter(
         field_name="affects__tracker__embargoed"
+    )
+    affects__tracker__visibility = ChoiceFilter(
+        field_name="affects__tracker__visibility", choices=ACLMixinVisibility.choices
     )
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
     flaw_has_no_non_community_affects_trackers = BooleanFilter(
@@ -632,8 +641,9 @@ class FlawV1Filter(FlawFilter):
     Filter for flaws adapted to affects v1
     """
 
-    # Explicitly exclude this filter from the parent
+    # Explicitly exclude these filters from the parent
     affects__tracker__embargoed = None
+    affects__tracker__visibility = None
 
     # Override filters that depended on the v1 affect
     tracker_ids = CharInFilter(method="tracker_ids_filter", distinct=True)
@@ -1263,8 +1273,17 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
 
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
     embargoed = BooleanFilter(field_name="embargoed")
+    visibility = ChoiceFilter(
+        field_name="visibility", choices=ACLMixinVisibility.choices
+    )
     tracker__embargoed = BooleanFilter(field_name="tracker__embargoed")
+    tracker__visibility = ChoiceFilter(
+        field_name="tracker__visibility", choices=ACLMixinVisibility.choices
+    )
     flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
+    flaw__visibility = ChoiceFilter(
+        field_name="flaw__visibility", choices=ACLMixinVisibility.choices
+    )
     flaw__workflow_state = ChoiceInFilter(
         field_name="flaw__workflow_state", choices=WorkflowModel.WorkflowState.choices
     )
@@ -1356,8 +1375,17 @@ class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
     DISTINCT_FIELDS_PREFIXES = ("affects__",)
 
     embargoed = BooleanFilter(field_name="embargoed")
+    visibility = ChoiceFilter(
+        field_name="visibility", choices=ACLMixinVisibility.choices
+    )
     affects__embargoed = BooleanFilter(field_name="affects__embargoed")
+    affects__visibility = ChoiceFilter(
+        field_name="affects__visibility", choices=ACLMixinVisibility.choices
+    )
     affects__flaw__embargoed = BooleanFilter(field_name="flaw__embargoed")
+    affects__flaw__visibility = ChoiceFilter(
+        field_name="affects__flaw__visibility", choices=ACLMixinVisibility.choices
+    )
     affects__flaw__components = CharInFilter(
         field_name="affects__flaw__components", lookup_expr="contains"
     )
