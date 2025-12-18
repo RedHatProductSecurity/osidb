@@ -6,6 +6,7 @@ from typing import Optional
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.query_utils import DeferredAttribute
 from packageurl import PackageURL
 
 from osidb.validators import validate_cve_id
@@ -63,6 +64,34 @@ class CVEIDField(models.CharField):
         return name, path, args, kwargs
 
 
+def to_purl(value: Optional[str | PackageURL]) -> Optional[PackageURL]:
+    if value is None or value == "":
+        # in case of PURL being blank we return None as well in order
+        # to avoid type confusion, as blank is not a valid PURL
+        return None
+
+    if isinstance(value, PackageURL):
+        return value
+
+    try:
+        return PackageURL.from_string(value)
+    except ValueError as e:
+        raise ValidationError(f"Invalid PURL: {e}")
+
+
+class PURLDescriptor(DeferredAttribute):
+    def __get__(
+        self, instance: Optional[models.Model], cls: Optional[type[models.Model]] = None
+    ) -> Optional[PackageURL]:
+        return super().__get__(instance, cls)
+
+    def __set__(
+        self, instance: Optional[models.Model], value: Optional[str | PackageURL]
+    ) -> None:
+        if instance:
+            instance.__dict__[self.field.name] = to_purl(value)
+
+
 class PURLField(models.CharField):
     """
     Custom field for Package URLs (PURLs) that automatically handles
@@ -76,27 +105,18 @@ class PURLField(models.CharField):
     """
 
     description = "A field for storing Package URLs (PURLs)"
+    descriptor_class = PURLDescriptor
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("max_length", None)
-        kwargs.setdefault("blank", True)
+        kwargs["blank"] = True
+        kwargs["null"] = False
         super().__init__(*args, **kwargs)
 
-    def to_python(self, value: None | str | PackageURL) -> Optional[PackageURL]:
-        if value is None or value == "":
-            # in case of PURL being blank we return None as well in order
-            # to avoid type confusion, as blank is not a valid PURL
-            return None
+    def to_python(self, value: Optional[str | PackageURL]) -> Optional[PackageURL]:
+        return to_purl(value)
 
-        if isinstance(value, PackageURL):
-            return value
-
-        try:
-            return PackageURL.from_string(value)
-        except ValueError as e:
-            raise ValidationError(f"Invalid PURL: {e}")
-
-    def get_prep_value(self, value):
+    def get_prep_value(self, value: Optional[str | PackageURL]) -> str:
         if value is None or value == "":
             return ""
 
@@ -111,5 +131,7 @@ class PURLField(models.CharField):
         except ValueError as e:
             raise ValidationError(f"Invalid PURL: {e}")
 
-    def from_db_value(self, value, expression, connection):
-        return self.to_python(value)
+    def from_db_value(
+        self, value: Optional[str], expression, connection
+    ) -> Optional[PackageURL]:
+        return to_purl(value)

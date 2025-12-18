@@ -170,6 +170,67 @@ class TestPURLField:
         assert model.purl.version == "4.2.0"
 
     @isolate_apps("tests")
+    def test_purl_string_assignment_unsaved_model(self, db):
+        """Test that assigning a string to purl on unsaved model returns PackageURL when accessed"""
+        # Create model instance without saving
+        model = PURLTestModel()
+
+        # Assign a string to the purl field
+        model.purl = "pkg:npm/lodash@4.17.21"
+
+        # Accessing the field should return a PackageURL object (via to_python)
+        assert isinstance(model.purl, PackageURL)
+        assert model.purl.type == "npm"
+        assert model.purl.name == "lodash"
+        assert model.purl.version == "4.17.21"
+
+        # Accessing again should still return PackageURL (not re-convert)
+        assert isinstance(model.purl, PackageURL)
+        assert model.purl.type == "npm"
+
+    @isolate_apps("tests")
+    @pytest.mark.parametrize(
+        "initial_value,expected_value",
+        [
+            (
+                "pkg:pypi/django@4.2.0",
+                PackageURL(type="pypi", name="django", version="4.2.0"),
+            ),
+            (
+                PackageURL(type="npm", name="lodash", version="4.17.21"),
+                PackageURL(type="npm", name="lodash", version="4.17.21"),
+            ),
+            (None, None),
+            ("", None),  # Empty string should be converted to None
+            (
+                "pkg:oci/nginx@sha256:abc123",
+                PackageURL(type="oci", name="nginx", version="sha256:abc123"),
+            ),
+        ],
+    )
+    def test_purl_self_assignment_unsaved_model(
+        self, db, initial_value, expected_value
+    ):
+        model = PURLTestModel()
+        model.purl = initial_value
+        initial_result = model.purl
+
+        # Perform self-assignment
+        model.purl = model.purl
+        final_result = model.purl
+
+        if expected_value is None:
+            assert final_result is None
+        else:
+            assert isinstance(final_result, PackageURL)
+            assert final_result.type == expected_value.type
+            assert final_result.name == expected_value.name
+            assert final_result.version == expected_value.version
+
+        # The value should be the same before and after self-assignment
+        assert final_result == initial_result
+
+    @isolate_apps("tests")
     def test_purl_packageurl_to_string_conversion(self, db):
         """Test that saving PackageURL object stores normalized string"""
         purl_obj = PackageURL(type="pypi", name="django", version="4.2.0")
@@ -194,10 +255,9 @@ class TestPURLField:
     @isolate_apps("tests")
     def test_purl_validation_invalid_string(self, db):
         """Test that invalid PURL strings raise ValidationError"""
-        model = PURLTestModel(purl="not-a-valid-purl")
 
         with pytest.raises(ValidationError) as exc_info:
-            model.full_clean()
+            PURLTestModel(purl="not-a-valid-purl")
 
         assert "Invalid PURL" in str(exc_info.value)
 
@@ -227,17 +287,39 @@ class TestPURLField:
     @isolate_apps("tests")
     def test_purl_empty_value(self, db):
         """Test that empty/None PURL values are handled correctly"""
+        from django.db import connection
+
         # Test with None
         model1 = PURLTestModel(purl=None)
         model1.save()
         model1.refresh_from_db()
         assert model1.purl is None
 
+        # Verify that None is stored as empty string in database
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT purl FROM tests_purltestmodel WHERE uuid = %s",
+                [str(model1.uuid)],
+            )
+            row = cursor.fetchone()
+            stored_value = row[0] if row else None
+        assert stored_value == ""
+
         # Test with empty string
         model2 = PURLTestModel(purl="")
         model2.save()
         model2.refresh_from_db()
         assert model2.purl is None
+
+        # Verify that empty string is stored as empty string in database
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT purl FROM tests_purltestmodel WHERE uuid = %s",
+                [str(model2.uuid)],
+            )
+            row = cursor.fetchone()
+            stored_value = row[0] if row else None
+        assert stored_value == ""
 
     @isolate_apps("tests")
     def test_purl_round_trip(self, db):
