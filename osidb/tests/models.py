@@ -33,7 +33,7 @@ class PURLTestModel(models.Model):
     """Test model for PURLField"""
 
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    purl = PURLField(null=True)
+    purl = PURLField()
 
     class Meta:  # type: ignore
         app_label = "tests"

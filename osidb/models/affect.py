@@ -9,7 +9,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from packageurl import PackageURL
 from psqlextra.fields import HStoreField
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -268,22 +267,18 @@ class Affect(
 
     def ps_component_from_purl(self, should_raise=False):
         try:
-            purl = self.purl
-            if isinstance(purl, str):
-                # handle the case in which it has not been saved to db yet and is still a string
-                purl = PackageURL.from_string(purl)
             # try to parse the PS component from the PURL but do not raise any
             # error on failure as that will be done as part of the validations
-            if purl.type == "oci":
+            if self.purl.type == "oci":
                 try:
-                    prefix = purl.qualifiers["repository_url"].split("/")[1]
-                    return f"{prefix}/{purl.name}"
+                    prefix = self.purl.qualifiers["repository_url"].split("/")[1]
+                    return f"{prefix}/{self.purl.name}"
                 except (KeyError, IndexError):
                     raise ValueError("Invalid repository_url in OCI PURL")
-            elif "rpmmod" in purl.qualifiers:
-                return f"{purl.qualifiers['rpmmod']}/{purl.name}"
+            elif "rpmmod" in self.purl.qualifiers:
+                return f"{self.purl.qualifiers['rpmmod']}/{self.purl.name}"
             else:
-                return purl.name
+                return self.purl.name
         except ValueError:
             if should_raise:
                 raise
