@@ -301,6 +301,44 @@ class TestEndpointsACLs:
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         assert flaw.is_internal
 
+    @pytest.mark.parametrize(
+        "acl_read,acl_write,expected_visibility",
+        [
+            (
+                settings.EMBARGO_READ_GROUP,
+                settings.EMBARGO_WRITE_GROUP,
+                "EMBARGOED",
+            ),
+            (
+                settings.INTERNAL_READ_GROUP,
+                settings.INTERNAL_WRITE_GROUP,
+                "INTERNAL",
+            ),
+            (
+                settings.PUBLIC_READ_GROUPS,
+                settings.PUBLIC_WRITE_GROUP,
+                "PUBLIC",
+            ),
+        ],
+    )
+    def test_flaw_visibility_field(
+        self, auth_client, test_api_uri, acl_read, acl_write, expected_visibility
+    ):
+        """
+        Test that the visibility field is correctly returned in API responses
+        """
+        flaw = FlawFactory(
+            embargoed=(expected_visibility == "EMBARGOED"),
+            acl_read=self.hash_acl(acl_read),
+            acl_write=self.hash_acl(acl_write),
+        )
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+        body = response.json()
+        assert "visibility" in body
+        assert body["visibility"] == expected_visibility
+
     @freeze_time(datetime(2021, 11, 23, tzinfo=timezone.get_current_timezone()))
     def test_flaw_unembargo(self, auth_client, test_api_uri):
         """

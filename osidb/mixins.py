@@ -157,6 +157,14 @@ class ValidateMixin(models.Model):
         self.full_clean(exclude=["meta_attr"])
 
 
+class ACLMixinVisibility(models.TextChoices):
+    """Visibility levels based on ACL read groups"""
+
+    EMBARGOED = "EMBARGOED", "Embargoed"
+    INTERNAL = "INTERNAL", "Internal"
+    PUBLIC = "PUBLIC", "Public"
+
+
 class ACLMixinManager(models.Manager):
     def get_queryset(self):
         """define base queryset for retrieving models that uses ACLs"""
@@ -175,7 +183,33 @@ class ACLMixinManager(models.Manager):
                     ),
                     default=False,
                     output_field=models.BooleanField(),
-                )
+                ),
+                # annotate queryset with visibility pseudo-attribute based on ACL read groups
+                visibility=models.Case(
+                    models.When(
+                        acl_read=[
+                            uuid.UUID(acl)
+                            for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+                        ],
+                        then=models.Value(ACLMixinVisibility.EMBARGOED),
+                    ),
+                    models.When(
+                        acl_read=[
+                            uuid.UUID(acl)
+                            for acl in generate_acls([settings.INTERNAL_READ_GROUP])
+                        ],
+                        then=models.Value(ACLMixinVisibility.INTERNAL),
+                    ),
+                    models.When(
+                        acl_read=[
+                            uuid.UUID(acl)
+                            for acl in generate_acls(settings.PUBLIC_READ_GROUPS)
+                        ],
+                        then=models.Value(ACLMixinVisibility.PUBLIC),
+                    ),
+                    default=models.Value(ACLMixinVisibility.PUBLIC),
+                    output_field=models.CharField(),
+                ),
             )
         )
 
