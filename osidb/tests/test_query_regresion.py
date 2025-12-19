@@ -109,7 +109,7 @@ class TestQuerySetRegression:
             impact=Impact.MODERATE,
         )
 
-        with assertNumQueries(60):  # initial value -> 78
+        with assertNumQueries(61):  # initial value -> 78
             response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
@@ -127,7 +127,7 @@ class TestQuerySetRegression:
             impact=Impact.MODERATE,
         )
 
-        with assertNumQueries(61):  # initial value -> 82
+        with assertNumQueries(62):  # initial value -> 82
             response = auth_client().get(
                 f"{test_api_v2_uri}/flaws/{flaw.uuid}?include_history=true"
             )
@@ -191,7 +191,7 @@ class TestQuerySetRegression:
                 resolution=Affect.AffectResolution.DELEGATED,
             )
 
-        with assertNumQueries(54):  # initial value -> 69
+        with assertNumQueries(55):  # initial value -> 69
             response = auth_client().get(
                 f"{test_api_v2_uri}/affects?include_history=true"
             )
@@ -222,7 +222,7 @@ class TestQuerySetRegression:
                 impact=Impact.MODERATE,
             )
 
-        with assertNumQueries(58):
+        with assertNumQueries(59):
             response = auth_client().get(
                 f"{test_api_v2_uri}/flaws?include_fields=cve_id,uuid,affects,"
                 f"created_dt,updated_dt&affects__ps_module={ps_module.name}"

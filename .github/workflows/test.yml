@@ -17,7 +17,7 @@ jobs:
       image: registry.access.redhat.com/ubi9/ubi:9.6
     services:
       postgres:
-        image: mirror.gcr.io/library/postgres:13
+        image: mirror.gcr.io/library/postgres:15
         env:
           POSTGRES_PASSWORD: test
         options: >-
@@ -61,7 +61,7 @@ jobs:
           python3-wheel
           redhat-rpm-config
       - name: Setup PostgreSQL service
-        run: psql -f etc/pg/local-dev-app-user.sql postgres://postgres:test@postgres:5432/
+        run: psql -f etc/pg/local-dev-app-user.sql -f etc/pg/template-permissions.sql postgres://postgres:test@postgres:5432/
       - name: Setup LDAP service
         run: ldapadd -c -H "ldap://testldap:1389" -x -D "cn=admin,dc=redhat,dc=com" -w "adminpassword" -f etc/openldap/local-export.ldif || true
       - name: Install uv
