@@ -119,7 +119,7 @@ services:
       #   retries: 3
 
     osidb-data:
-      image: mirror.gcr.io/library/postgres:13
+      image: mirror.gcr.io/library/postgres:15
       shm_size: 1gb  # Needed for more consecutive connections
       hostname: osidb-data
       container_name: osidb-data
@@ -136,6 +136,7 @@ services:
         - ${PWD}/etc/pg/postgresql.conf:/etc/postgresql/postgresql.conf:z
         - ${PWD}/etc/pg/local-dev-app-user.sql:/docker-entrypoint-initdb.d/local-dev-app-user.sql:z
         - ${PWD}/etc/pg/local-dev-manage-user.sql:/docker-entrypoint-initdb.d/local-dev-manage-user.sql:z
+        - ${PWD}/etc/pg/template-permissions.sql:/docker-entrypoint-initdb.d/template-permissions.sql:z
         - ${PWD}/etc/pg/local-server.crt:/var/lib/postgresql/local-server.crt:z
         - ${PWD}/etc/pg/local-server.key:/var/lib/postgresql/local-server.key:z
       ports:

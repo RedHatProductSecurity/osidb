@@ -88,6 +88,9 @@ DATABASES = {
             "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000",
         },
         "CONN_MAX_AGE": 120,
+        "TEST": {
+            "TEMPLATE": "template1",
+        },
     }
 }
 

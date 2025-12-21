@@ -845,10 +845,16 @@ class TestMultiMixinIntegration:
         validation_counter = {}
         original_validate = AlertMixin.validate
 
+        # TODO: figure out a way to extract this and make it generic instead of
+        # copy-pasting it in N tests
         def counter_validate(self, raise_validation_error=True, dry_run=False):
             nonlocal validation_counter
             if not dry_run:
-                model = str(ContentType.objects.get_for_model(self))
+                # in Django 5.2 the implementation of ContentType.__str__()
+                # changes in order to make this heuristic more future-proof
+                # we use ContentType.natural_key which returns a tuple with
+                # (app_label, model_name) which should be more stable
+                model = ContentType.objects.get_for_model(self).natural_key()
                 if model not in validation_counter:
                     validation_counter[model] = 0
                 validation_counter[model] += 1
@@ -934,8 +940,8 @@ class TestMultiMixinIntegration:
         )
         assert response.status_code == 201
         assert len(validation_counter) == 1
-        assert "osidb | Flaw" not in validation_counter
-        assert validation_counter["osidb | Tracker"] == 1
+        assert ("osidb", "flaw") not in validation_counter
+        assert validation_counter[("osidb", "tracker")] == 1
 
     @pytest.mark.vcr
     def test_tracker_validation_jira(
@@ -956,7 +962,11 @@ class TestMultiMixinIntegration:
         def counter_validate(self, raise_validation_error=True, dry_run=False):
             nonlocal validation_counter
             if not dry_run:
-                model = str(ContentType.objects.get_for_model(self))
+                # in Django 5.2 the implementation of ContentType.__str__()
+                # changes in order to make this heuristic more future-proof
+                # we use ContentType.natural_key which returns a tuple with
+                # (app_label, model_name) which should be more stable
+                model = ContentType.objects.get_for_model(self).natural_key()
                 if model not in validation_counter:
                     validation_counter[model] = 0
                 validation_counter[model] += 1
@@ -1070,8 +1080,8 @@ class TestMultiMixinIntegration:
         assert response.status_code == 201
 
         assert len(validation_counter) == 1
-        assert "osidb | Flaw" not in validation_counter
-        assert validation_counter["osidb | Tracker"] == 1
+        assert ("osidb", "flaw") not in validation_counter
+        assert validation_counter[("osidb", "tracker")] == 1
 
     @pytest.mark.vcr
     def test_affect_validation(
@@ -1092,7 +1102,11 @@ class TestMultiMixinIntegration:
         def counter_validate(self, raise_validation_error=True, dry_run=False):
             nonlocal validation_counter
             if not dry_run:
-                model = str(ContentType.objects.get_for_model(self))
+                # in Django 5.2 the implementation of ContentType.__str__()
+                # changes in order to make this heuristic more future-proof
+                # we use ContentType.natural_key which returns a tuple with
+                # (app_label, model_name) which should be more stable
+                model = ContentType.objects.get_for_model(self).natural_key()
                 if model not in validation_counter:
                     validation_counter[model] = 0
                 validation_counter[model] += 1
@@ -1144,8 +1158,8 @@ class TestMultiMixinIntegration:
         )
         # osidb/api_views.py::AffectView:bulk_post triggers flaw save
         assert len(validation_counter) == 2
-        assert validation_counter["osidb | Flaw"] == 1
-        assert validation_counter["osidb | Affect"] == 1
+        assert validation_counter[("osidb", "flaw")] == 1
+        assert validation_counter[("osidb", "affect")] == 1
         assert response.status_code == 200
         affect = flaw.affects.first()
 
@@ -1166,8 +1180,8 @@ class TestMultiMixinIntegration:
         assert response.status_code == 200
         # osidb/api_views.py::AffectView:bulk_put triggers flaw save
         assert len(validation_counter) == 2
-        assert validation_counter["osidb | Flaw"] == 1
-        assert validation_counter["osidb | Affect"] == 1
+        assert validation_counter[("osidb", "flaw")] == 1
+        assert validation_counter[("osidb", "affect")] == 1
 
     @pytest.mark.vcr
     def test_flaw_validation(
@@ -1188,7 +1202,11 @@ class TestMultiMixinIntegration:
         def counter_validate(self, raise_validation_error=True, dry_run=False):
             nonlocal validation_counter
             if not dry_run:
-                model = str(ContentType.objects.get_for_model(self))
+                # in Django 5.2 the implementation of ContentType.__str__()
+                # changes in order to make this heuristic more future-proof
+                # we use ContentType.natural_key which returns a tuple with
+                # (app_label, model_name) which should be more stable
+                model = ContentType.objects.get_for_model(self).natural_key()
                 if model not in validation_counter:
                     validation_counter[model] = 0
                 validation_counter[model] += 1
@@ -1216,7 +1234,7 @@ class TestMultiMixinIntegration:
         )
         assert response.status_code == 201
         assert len(validation_counter) == 1
-        assert validation_counter["osidb | Flaw"] == 1
+        assert validation_counter[("osidb", "flaw")] == 1
         body = response.json()
         flaw = Flaw.objects.get(uuid=body["uuid"])
 
@@ -1237,7 +1255,7 @@ class TestMultiMixinIntegration:
         )
         assert response.status_code == 200
         assert len(validation_counter) == 1
-        assert validation_counter["osidb | Flaw"] == 1
+        assert validation_counter[("osidb", "flaw")] == 1
 
     @pytest.mark.vcr
     def test_alert_serialization(self, auth_client, test_api_uri):

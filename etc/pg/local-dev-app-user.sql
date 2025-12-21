@@ -6,3 +6,4 @@ CREATE ROLE osidb_app_user WITH
 	NOBYPASSRLS
 	LOGIN ENCRYPTED PASSWORD 'passw0rd';
 GRANT CREATE ON DATABASE osidb TO osidb_app_user;
+GRANT ALL ON SCHEMA public TO osidb_app_user;
