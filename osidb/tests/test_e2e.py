@@ -141,8 +141,12 @@ class TestE2E:
         # 1.1) validade flaw was created and bz sync is scheduled
         assert response.status_code == 201
         body = response.json()
-        assert BZSyncManager.objects.get(sync_id=body["uuid"])
-        assert JiraTaskSyncManager.objects.get(sync_id=body["uuid"])
+        assert BZSyncManager.objects.get(
+            name=BZSyncManager.__name__, sync_id=body["uuid"]
+        )
+        assert JiraTaskSyncManager.objects.get(
+            name=JiraTaskSyncManager.__name__, sync_id=body["uuid"]
+        )
 
         # 1.2) synchronously bzsync instead of waiting on Celery
         flaw = Flaw.objects.get(uuid=body["uuid"])

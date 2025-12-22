@@ -21,12 +21,12 @@ class Command(BaseCommand):
         for object_class in SyncManager.__subclasses__():
             print(
                 f"{object_class.__name__[:-7]:20}"
-                f"{object_class.objects.filter(last_scheduled_dt__isnull=False).count():10}"
-                f"{object_class.objects.filter(last_started_dt__isnull=False).count():10}"
-                f"{object_class.objects.filter(last_finished_dt__isnull=False).count():10}"
-                f"{object_class.objects.filter(last_failed_dt__isnull=False).count():10}"
-                f"{object_class.objects.filter(last_consecutive_failures__gt=0).count():10}"
-                f"{object_class.objects.filter(permanently_failed=True).count():10}"
-                f"{object_class.objects.filter(last_rescheduled_dt__isnull=False).count():10}"
-                f"{object_class.objects.filter(last_consecutive_reschedules__gt=0).count():10}"
+                f"{SyncManager.objects.filter(name=object_class.__name__, last_scheduled_dt__isnull=False).count():10}"
+                f"{SyncManager.objects.filter(name=object_class.__name__, last_started_dt__isnull=False).count():10}"
+                f"{SyncManager.objects.filter(name=object_class.__name__, last_finished_dt__isnull=False).count():10}"
+                f"{SyncManager.objects.filter(name=object_class.__name__, last_failed_dt__isnull=False).count():10}"
+                f"{SyncManager.objects.filter(name=object_class.__name__, last_consecutive_failures__gt=0).count():10}"
+                f"{SyncManager.objects.filter(name=object_class.__name__, permanently_failed=True).count():10}"
+                f"{SyncManager.objects.filter(name=object_class.__name__, last_rescheduled_dt__isnull=False).count():10}"
+                f"{SyncManager.objects.filter(name=object_class.__name__, last_consecutive_reschedules__gt=0).count():10}"
             )
