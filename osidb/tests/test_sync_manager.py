@@ -17,15 +17,6 @@ from osidb.tests.factories import FlawFactory
 pytestmark = pytest.mark.unit
 
 
-class SyncManagerBase(SyncManager):
-    """
-    A concrete subclass of SyncManager for testing purposes.
-    This is necessary because SyncManager is an abstract model.
-    """
-
-    pass
-
-
 class TestSyncManager(TestCase):
     """
     Test cases for SyncManager and its subclasses.
@@ -36,7 +27,9 @@ class TestSyncManager(TestCase):
     def test_is_in_progress(self):
         flaw = FlawFactory(embargoed=False)
 
-        sync_manager = SyncManagerBase.objects.create(sync_id=flaw.uuid)
+        sync_manager = SyncManager.objects.create(
+            name=SyncManager.__name__, sync_id=flaw.uuid
+        )
         sync_manager.last_scheduled_dt = datetime.now(timezone.utc)
         sync_manager.last_started_dt = datetime.now(timezone.utc)
         sync_manager.save()
@@ -54,7 +47,9 @@ class TestSyncManager(TestCase):
     def test_is_scheduled(self):
         flaw = FlawFactory(embargoed=False)
 
-        sync_manager = SyncManagerBase.objects.create(sync_id=flaw.uuid)
+        sync_manager = SyncManager.objects.create(
+            name=SyncManager.__name__, sync_id=flaw.uuid
+        )
         sync_manager.last_scheduled_dt = datetime.now(timezone.utc)
         sync_manager.save()
 
@@ -101,7 +96,9 @@ class TestSyncManager(TestCase):
     def test_jira_task_transition_manager_reschedule(self):
         flaw = FlawFactory(embargoed=False)
 
-        transition_manager = JiraTaskTransitionManager.objects.create(sync_id=flaw.uuid)
+        transition_manager = JiraTaskTransitionManager.objects.create(
+            name=JiraTaskTransitionManager.__name__, sync_id=flaw.uuid
+        )
 
         # simulate schedule call
         transition_manager.last_scheduled_dt = datetime.now(timezone.utc)
@@ -115,7 +112,9 @@ class TestSyncManager(TestCase):
             with freeze_time(datetime(2025, 6, 24) + timedelta(seconds=5)):
                 JiraTaskTransitionManager.schedule(flaw.uuid)
 
-        transition_manager2 = JiraTaskTransitionManager.objects.get(sync_id=flaw.uuid)
+        transition_manager2 = JiraTaskTransitionManager.objects.get(
+            name=JiraTaskTransitionManager.__name__, sync_id=flaw.uuid
+        )
 
         assert transition_manager2.last_consecutive_reschedules == 1
         assert transition_manager2.last_rescheduled_reason == "Task already in progress"
@@ -127,7 +126,9 @@ class TestSyncManager(TestCase):
     def test_jira_task_download_manager_conflicting_idle(self):
         flaw = FlawFactory(embargoed=False)
 
-        download_manager = JiraTaskDownloadManager.objects.create(sync_id=flaw.task_key)
+        download_manager = JiraTaskDownloadManager.objects.create(
+            name=JiraTaskDownloadManager.__name__, sync_id=flaw.task_key
+        )
 
         # Raises an exception if conflicting sync managers are found
         download_manager.check_conflicting_sync_managers(
@@ -138,8 +139,12 @@ class TestSyncManager(TestCase):
     def test_jira_task_download_manager_conflicting_running(self):
         flaw = FlawFactory(embargoed=False)
 
-        download_manager = JiraTaskDownloadManager.objects.create(sync_id=flaw.task_key)
-        transition_manager = JiraTaskTransitionManager.objects.create(sync_id=flaw.uuid)
+        download_manager = JiraTaskDownloadManager.objects.create(
+            name=JiraTaskDownloadManager.__name__, sync_id=flaw.task_key
+        )
+        transition_manager = JiraTaskTransitionManager.objects.create(
+            name=JiraTaskTransitionManager.__name__, sync_id=flaw.uuid
+        )
 
         transition_manager.last_scheduled_dt = datetime.now(timezone.utc)
         transition_manager.last_started_dt = datetime.now(timezone.utc)
@@ -154,8 +159,12 @@ class TestSyncManager(TestCase):
     def test_jira_task_download_manager_conflicting_scheduled(self):
         flaw = FlawFactory(embargoed=False)
 
-        download_manager = JiraTaskDownloadManager.objects.create(sync_id=flaw.task_key)
-        transition_manager = JiraTaskTransitionManager.objects.create(sync_id=flaw.uuid)
+        download_manager = JiraTaskDownloadManager.objects.create(
+            name=JiraTaskDownloadManager.__name__, sync_id=flaw.task_key
+        )
+        transition_manager = JiraTaskTransitionManager.objects.create(
+            name=JiraTaskTransitionManager.__name__, sync_id=flaw.uuid
+        )
 
         transition_manager.last_scheduled_dt = datetime.now(timezone.utc) + timedelta(
             seconds=1
