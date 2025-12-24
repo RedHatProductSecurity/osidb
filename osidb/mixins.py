@@ -19,6 +19,22 @@ from osidb.exceptions import DataInconsistencyException
 from .core import generate_acls
 
 
+def validator(func):
+    """
+    Decorator to register a method as a validator that will be automatically
+    called during save() / full_clean() operations.
+
+    Usage:
+        @validator
+        def _validate_something(self, **kwargs):
+            # validation logic here
+            pass
+    """
+    # Mark the function as a validator
+    func._is_validator = True
+    return func
+
+
 class TrackingMixin(models.Model):
     """
     Mixin for tracking create/update datetimes and other changes to records.
@@ -140,6 +156,24 @@ class ValidateMixin(models.Model):
 
     class Meta:
         abstract = True
+
+    def __init_subclass__(cls, **kwargs):
+        """
+        Initialize the validators list for each subclass.
+        This collects all methods decorated with @validator once
+        during subclass initialization.
+        """
+        super().__init_subclass__(**kwargs)
+        validators_list = []
+        for name in dir(cls):
+            try:
+                method = getattr(cls, name)
+                if getattr(method, "_is_validator", False):
+                    validators_list.append(name)
+            except AttributeError:
+                # Skip attributes that can't be accessed
+                continue
+        cls._validators = validators_list
 
     def save(self, *args, **kwargs):
         """
@@ -462,6 +496,7 @@ class ACLMixin(models.Model):
         """
         return self.acls_read | self.acls_write
 
+    @validator
     def _validate_acls_known(self, **kwargs):
         """
         check that all the ACLs are known
@@ -475,6 +510,7 @@ class ACLMixin(models.Model):
                     f"Unknown ACL group given - known are: {groups}"
                 )
 
+    @validator
     def _validate_acl_read_meaningful(self, **kwargs):
         """
         validate that the read ACL is set meaninfully in a way that it contains read groups only
@@ -485,6 +521,7 @@ class ACLMixin(models.Model):
                     f"Read ACL contains non-read ACL group: {self.acl2group(acl)}"
                 )
 
+    @validator
     def _validate_acl_write_meaningful(self, **kwargs):
         """
         validate that the write ACL is set meaninfully in a way that it contains write groups only
@@ -495,6 +532,7 @@ class ACLMixin(models.Model):
                     f"Write ACL contains non-write ACL group: {self.acl2group(acl)}"
                 )
 
+    @validator
     def _validate_acl_expected(self, **kwargs):
         """
         validate that the ACLs corresponds to Bugzilla groups as there
@@ -533,6 +571,7 @@ class ACLMixin(models.Model):
     # a conclusion of being non-empty with only known meaningful
     # groups and both ACLs either public or embargoed
 
+    @validator
     def _validate_acl_duplicite(self, **kwargs):
         """
         validate that the ACLs do not contain duplicite groups
@@ -546,6 +585,7 @@ class ACLMixin(models.Model):
     # stored as part of the flaw metadata so for the time being it does
     # not make any sense to have a different visibility of them
 
+    @validator
     def _validate_acl_identical_to_parent_flaw(self, **kwargs):
         """
         validate that the eventual parent flaw has the identical ACLs
@@ -753,6 +793,7 @@ class Alert(ACLMixin):
         """String representaion of an alert."""
         return self.name
 
+    @validator
     def _validate_acl_identical_to_parent(self, **kwargs):
         if (
             self.acl_read != self.content_object.acl_read
@@ -936,11 +977,9 @@ class AlertMixin(ValidateMixin):
         )
 
         # custom validations
-        for validation_name in [
-            item for item in dir(self) if item.startswith("_validate_")
-        ]:
+        for validator_name in self._validators:
             try:
-                getattr(self, validation_name)(dry_run=dry_run)
+                getattr(self, validator_name)(dry_run=dry_run)
             except ValidationError as e:
                 if raise_validation_error:
                     raise
@@ -949,7 +988,7 @@ class AlertMixin(ValidateMixin):
                     # do not raise but
                     # store alert as error
                     self.alert(
-                        name=validation_name,
+                        name=validator_name,
                         description=e.message,
                         alert_type=Alert.AlertType.ERROR,
                         **(e.params or {}),
