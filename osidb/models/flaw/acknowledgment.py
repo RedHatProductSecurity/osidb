@@ -12,6 +12,7 @@ from osidb.mixins import (
     AlertMixin,
     TrackingMixin,
     TrackingMixinManager,
+    validator,
 )
 from osidb.query_sets import CustomQuerySetUpdatedDt
 
@@ -85,6 +86,7 @@ class FlawAcknowledgment(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin)
             GinIndex(fields=["acl_read"]),
         ]
 
+    @validator
     def _validate_public_source_no_ack(self, **kwargs):
         """
         Checks that acknowledgments cannot be linked to flaws with public sources.

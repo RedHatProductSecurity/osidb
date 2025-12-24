@@ -11,6 +11,7 @@ from osidb.mixins import (
     AlertMixin,
     TrackingMixin,
     TrackingMixinManager,
+    validator,
 )
 from osidb.query_sets import CustomQuerySetUpdatedDt
 
@@ -120,6 +121,7 @@ class FlawReference(AlertMixin, ACLMixin, TrackingMixin):
             ):
                 tracker.sync_reference(jira_token=jira_token, reference=self)
 
+    @validator
     def _validate_article_link(self, **kwargs):
         """
         Checks that an article link begins with https://access.redhat.com/.
@@ -132,6 +134,7 @@ class FlawReference(AlertMixin, ACLMixin, TrackingMixin):
                 r"https://access.redhat.com/."
             )
 
+    @validator
     def _validate_article_links_count_via_flawreferences(self, **kwargs):
         """
         Checks that a flaw has maximally one article link.
