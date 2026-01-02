@@ -352,37 +352,11 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
 
     def generate_sla(self):
         """
-        generate query for Jira SLO timestamps
+        Bug type issues don't have the SLA Date field so we skip it here.
+        This method is overridden in TrackerJiraQueryBuilder for Vulnerability issues.
         """
-        # Tracker has a manually defined due date
-        if "nonstandard-sla" in self._query["fields"]["labels"]:
-            return
 
-        if not self.tracker.external_system_id:
-            # Workaround for when a new tracker is filed. At this point in the code it
-            # has not been fully saved so created_dt is not a valid date, but the SLOs
-            # use the tracker's created date. Since we only care about the date and not the
-            # time for the SLO computation, we temporarily set a created_dt of now, which
-            # will be replaced later by the TrackingMixin, and this way we do not have to change
-            # the entire logic of the code for this to work.
-            self.tracker.created_dt = make_aware(datetime.now())
-
-        sla_date_field = JiraProjectFields.objects.filter(
-            project_key=self.ps_module.bts_key, field_name="SLA Date"
-        ).first()
-
-        sla_context = SLAPolicy.classify(self.tracker)
-        # the tracker may or may not be under SLA
-        if sla_context.policy is not None:
-            if sla_date_field:
-                self._query["fields"][sla_date_field.field_id] = (
-                    sla_context.end.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+0000"
-                )
-        else:
-            # explicitly set the empty dates so they are cleared
-            # out in case of falling out of SLA later on update
-            if sla_date_field:
-                self._query["fields"][sla_date_field.field_id] = None
+        pass
 
     def generate_slo(self):
         """
@@ -984,3 +958,39 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         }
         if self.tracker.external_system_id:
             self._query["key"] = self.tracker.external_system_id
+
+    def generate_sla(self):
+        """
+        Generate query for Jira SLA Date field (Vulnerability issuetype only)
+        """
+        # Tracker has a manually defined due date
+        if "nonstandard-sla" in self._query["fields"]["labels"]:
+            return
+
+        sla_date_field = JiraProjectFields.objects.filter(
+            project_key=self.ps_module.bts_key, field_name="SLA Date"
+        ).first()
+
+        if not sla_date_field:
+            # SLA Date field doesn't exist for this project
+            return
+
+        if not self.tracker.external_system_id:
+            # Workaround for when a new tracker is filed. At this point in the code it
+            # has not been fully saved so created_dt is not a valid date, but the SLOs
+            # use the tracker's created date. Since we only care about the date and not the
+            # time for the SLO computation, we temporarily set a created_dt of now, which
+            # will be replaced later by the TrackingMixin, and this way we do not have to change
+            # the entire logic of the code for this to work.
+            self.tracker.created_dt = make_aware(datetime.now())
+
+        sla_context = SLAPolicy.classify(self.tracker)
+        # the tracker may or may not be under SLA
+        if sla_context.policy is not None:
+            self._query["fields"][sla_date_field.field_id] = (
+                sla_context.end.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+0000"
+            )
+        else:
+            # explicitly set the empty dates so they are cleared
+            # out in case of falling out of SLA later on update
+            self._query["fields"][sla_date_field.field_id] = None

@@ -745,6 +745,7 @@ slo:
                     {
                         "major_incident_state": Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
                         "major_incident_start_dt": make_aware(datetime(2000, 1, 1)),
+                        "impact": Impact.NOVALUE,
                     },
                     {
                         "impact": Impact.NOVALUE,
@@ -755,6 +756,7 @@ slo:
                     {
                         "major_incident_state": Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
                         "major_incident_start_dt": make_aware(datetime(2000, 1, 1)),
+                        "impact": Impact.NOVALUE,
                     },
                     {
                         "impact": Impact.NOVALUE,
