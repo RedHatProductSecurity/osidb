@@ -2648,6 +2648,12 @@ sla:
         assert "customfield_12326740" in query["fields"]
         assert query["fields"]["customfield_12326740"] == "2000-01-11T00:00:00.000+0000"
 
+        # Bug type does not have the SLA Date field
+        query = OldTrackerJiraQueryBuilder(tracker).query
+        assert "customfield_12326740" not in query["fields"]
+
         # SLA was manually marked to not be calculated
         tracker.meta_attr["labels"] = json.dumps(["nonstandard-sla"])
         query = TrackerJiraQueryBuilder(tracker).query
+
+        assert "customfield_12326740" not in query["fields"]
