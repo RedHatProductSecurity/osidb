@@ -37,7 +37,7 @@ def generate_vers(apps):
         )
         .only("uuid", "version")
         .all()
-        .iterator()
+        .iterator(chunk_size=BATCH_SIZE)
     ):
         for old_pkg in old_ver.packageversions_set.only("uuid").all().iterator():
             new_pkg = Package.objects.get(uuid=old_pkg.uuid)

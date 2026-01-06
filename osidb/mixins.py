@@ -1,3 +1,4 @@
+import logging
 import uuid
 from functools import cached_property
 from itertools import chain
@@ -17,6 +18,8 @@ from django.utils import timezone
 from osidb.exceptions import DataInconsistencyException
 
 from .core import generate_acls
+
+logger = logging.getLogger(__name__)
 
 
 class TrackingMixin(models.Model):
@@ -954,6 +957,22 @@ class AlertMixin(ValidateMixin):
                         alert_type=Alert.AlertType.ERROR,
                         **(e.params or {}),
                     )
+            except TypeError:
+                # Django 5.2 introduces a _validate_force_insert class method on
+                # Model this method is not intended to be run by developers
+                # directly and it's not intended as a buisness logic validation
+                # method like the way we use it, it just so happens to be named
+                # similarly to ours and gets caught in the heuristic.
+                # In order to avoid errors when trying to execute it and other
+                # similarly named methods that are not intended as business logic
+                # validators, this except clause was made as a _temporary_
+                # solution, a more robust solution would be to explicitly register
+                # business logic validation methods.
+                logging.warning(
+                    f"Validation {validation_name} failed to run, most likely due to not supporting the dry_run argument",
+                    exc_info=True,
+                )
+                continue
 
         # standard validations
         # exclude meta attributes
