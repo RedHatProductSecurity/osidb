@@ -9,7 +9,9 @@ from osidb.models import FlawReference, Impact, PsUpdateStream
 
 TRACKER_COMPONENT_UPDATE_STREAM_RE = re.compile(
     r"^(?:\s*EMBARGOED\s+)?"  # Embargoed keyword
-    r"(?:\[(?:(?:(?:CISA\s)?Major|Minor)\sIncident|0-day)\]\s+)?"  # Major Incident
+    # CISA Major Incident and 0-day are no longer used for creating new trackers,
+    # but we keep the regex for backward compatibility
+    r"(?:\[(?:(?:(?:CISA\s)?Major|Minor)\sIncident|Exploits\s\(KEV\)|0-day)\]\s+)?"  # Incident labels
     r"(?:\s*TRIAGE)?(?:-|\s*)?"  # TRIAGE keyword or prefix
     r"(?:CVE-[0-9]+-[0-9]+,?\s*)*"  # list of CVEs
     r"(?:\.+\s+)?"  # dots, when too many CVEs are present

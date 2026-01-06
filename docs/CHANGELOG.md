@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix duplicates in response query ordering by related fields (OSIDB-4221)
 - Allow `alias` label to be set in any workflow state (OSIDB-4700)
 - Remove querier logic that sets SLA Date in Bug type Jira issues (OSIDB-4687)
+- Fix collector regex not matching KEV prefix from Jira trackers (OSIDB-4710)
 
 ### Removed
 - Remove vuln mgmt documentation link from description in community trackers (OSIDB-4450)

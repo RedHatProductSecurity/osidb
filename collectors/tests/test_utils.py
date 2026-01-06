@@ -77,6 +77,11 @@ class TestParseUpdateStreamComponent:
                 "stream",
                 "component",
             ),
+            (
+                "[Exploits (KEV)] CVE-2222-1111 component: text [stream]",
+                "stream",
+                "component",
+            ),
         ],
     )
     def test_correct(self, title, stream, component):
