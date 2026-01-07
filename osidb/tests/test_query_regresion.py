@@ -1,10 +1,13 @@
+import json
+import os
+
 import pytest
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from pytest_django.asserts import assertNumQueries
 
 from apps.workflows.workflow import WorkflowModel
-from osidb.models import Affect, Flaw, Impact, Tracker, FlawSource
+from osidb.models import Affect, Flaw, FlawSource, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -16,7 +19,19 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.queryset
 
 
-def assertNumQueriesLessThan(max_queries, using="default"):
+def add_query_data(kwargs):
+    """
+    Add query data to the kwargs dictionary.
+    """
+    if not os.path.exists("queries.json"):
+        return [kwargs]
+    with open("queries.json", "r") as f:
+        query_data = json.load(f)
+    query_data.append(kwargs)
+    return query_data
+
+
+def assertNumQueriesLessThan(max_queries, kwargs=None, using="default"):
     """
     Context manager that asserts the number of queries is less than or equal to max_queries.
     This is useful for query regression tests where the exact count may vary slightly
@@ -25,13 +40,34 @@ def assertNumQueriesLessThan(max_queries, using="default"):
 
     class _AssertNumQueriesLessThan(CaptureQueriesContext):
         def __exit__(self, exc_type, exc_value, traceback):
+            import json
+
             super().__exit__(exc_type, exc_value, traceback)
             if exc_type is not None:
                 return
             num_queries = len(self.captured_queries)
-            assert num_queries <= max_queries, (
-                f"{num_queries} queries executed, expected <= {max_queries}"
-            )
+
+            test_data = {
+                "num_queries": num_queries,
+                **kwargs,
+                "queries_data": self.captured_queries,
+            }
+
+            with open("queries.txt", "a") as f:
+                f.write(
+                    f"{kwargs['affects_quantity']}/{kwargs['embargoed']} {num_queries}\n,"
+                )
+
+            if not kwargs.get("embargoed"):
+                test_data = add_query_data(test_data)
+
+                with open("queries.json", "w") as f:
+                    if not kwargs or not kwargs.get("embargoed"):
+                        f.write(json.dumps(test_data))
+
+                assert num_queries <= max_queries, (
+                    f"{num_queries} queries executed, expected <= {max_queries}"
+                )
 
     return _AssertNumQueriesLessThan(connection)
 
@@ -231,7 +267,6 @@ class TestQuerySetRegression:
             )
             assert response.status_code == 200
 
-
     @pytest.mark.parametrize("affect_quantity", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     def test_flaw_promote(
         self,
@@ -301,8 +336,6 @@ class TestQuerySetRegression:
             "HTTP_JIRA_API_KEY": jira_token,
             "HTTP_BUGZILLA_API_KEY": bugzilla_token,
         }
-
-
 
         # when not it increases becuase of the nested set_public_nested call
         if not embargoed:
