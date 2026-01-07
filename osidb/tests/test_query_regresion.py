@@ -306,28 +306,31 @@ class TestQuerySetRegression:
 
         # when not it increases becuase of the nested set_public_nested call
         if not embargoed:
-            expected_queries =  (2*affect_quantity**3 + 147*affect_quantity**2 + 133*affect_quantity + 480) // 6
+            expected_queries = (
+                2 * affect_quantity**3
+                + 147 * affect_quantity**2
+                + 133 * affect_quantity
+                + 480
+            ) // 6
         else:
             expected_queries = 58
 
-
         # Promote to TRIAGE
         response = auth_client().post(
-                f"{test_api_uri}/flaws/{flaw.uuid}/promote",
-                data={},
-                format="json",
-                **headers,
-            )
+            f"{test_api_uri}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
 
         assert response.status_code == 200
 
         flaw.refresh_from_db()
 
-        # Promote to PRE_SECONDARY_ASSESSMENT using async task sync 
+        # Promote to PRE_SECONDARY_ASSESSMENT using async task sync
         # this one runs the nested set_public_nested call and set_history_public
-        test_data = {'affects_quantity': affect_quantity, 'embargoed': embargoed}
-        
-        
+        test_data = {"affects_quantity": affect_quantity, "embargoed": embargoed}
+
         with assertNumQueries(expected_queries, kwargs=test_data):
             response = auth_client().post(
                 f"{test_api_uri}/flaws/{flaw.uuid}/promote",
