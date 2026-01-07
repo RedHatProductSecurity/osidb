@@ -1015,7 +1015,6 @@ class TestFlaw:
         with pytest.raises(LastStateException):
             flaw.promote()
 
-
     @pytest.mark.enable_signals
     def test_reject(self):
         """test successful flaw rejection"""

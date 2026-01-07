@@ -25,7 +25,6 @@ def assertNumQueriesLessThan(max_queries, using="default"):
 
     class _AssertNumQueriesLessThan(CaptureQueriesContext):
         def __exit__(self, exc_type, exc_value, traceback):
-
             super().__exit__(exc_type, exc_value, traceback)
             if exc_type is not None:
                 return
