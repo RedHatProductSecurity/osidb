@@ -3,7 +3,8 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from pytest_django.asserts import assertNumQueries
 
-from osidb.models import Affect, Flaw, Impact, Tracker
+from apps.workflows.workflow import WorkflowModel
+from osidb.models import Affect, Flaw, Impact, Tracker, FlawSource
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -229,3 +230,108 @@ class TestQuerySetRegression:
                 f"&affects__ps_component={ps_component}&order=-created_dt&limit=10"
             )
             assert response.status_code == 200
+
+
+    @pytest.mark.parametrize("affect_quantity", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    def test_flaw_promote(
+        self,
+        auth_client,
+        enable_jira_task_async_sync,
+        test_api_uri,
+        embargoed,
+        jira_token,
+        bugzilla_token,
+        affect_quantity,
+    ):
+        """
+        Test query performance for flaws promote endpoint as number of affects increases.
+        """
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        flaw = FlawFactory(
+            embargoed=embargoed,
+            impact=Impact.MODERATE,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        if not embargoed:
+            flaw.set_internal()
+            flaw.save()
+
+        for _ in range(affect_quantity):
+            affect = AffectFactory(
+                flaw=flaw,
+                ps_update_stream=ps_update_stream.name,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                impact=Impact.MODERATE,
+            )
+
+            TrackerFactory(
+                affects=[affect],
+                embargoed=embargoed,
+                ps_update_stream=ps_update_stream.name,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+            )
+            # Make children internal in the non-embargoed scenario so set_public_nested has work to do
+            if not embargoed:
+                # Ensure related objects start as internal, then promotion will flip them public
+                affect.set_internal()
+                affect.save(raise_validation_error=False)
+                if affect.tracker:
+                    affect.tracker.set_internal()
+                    affect.tracker.save(raise_validation_error=False)
+
+        # Force initial classification because signals are muted in queryset tests
+        flaw.classification = {
+            "workflow": "DEFAULT",
+            "state": WorkflowModel.WorkflowState.NEW,
+        }
+        # NEW -> TRIAGE requires owner
+        flaw.owner = "Alice"
+        # TRIAGE -> PRE_SECONDARY_ASSESSMENT requires source and title
+        flaw.source = FlawSource.CUSTOMER
+        flaw.title = flaw.title or "Sample title"
+        flaw.save(raise_validation_error=False)
+        # Ensure a Jira task exists so workflow transitions trigger adjust_acls/set_public_nested
+        flaw.task_key = "OSIM-1"
+        flaw.save(raise_validation_error=False)
+
+        headers = {
+            "HTTP_JIRA_API_KEY": jira_token,
+            "HTTP_BUGZILLA_API_KEY": bugzilla_token,
+        }
+
+
+
+        # when not it increases becuase of the nested set_public_nested call
+        if not embargoed:
+            expected_queries =  (2*affect_quantity**3 + 147*affect_quantity**2 + 133*affect_quantity + 480) // 6
+        else:
+            expected_queries = 58
+
+
+        # Promote to TRIAGE
+        response = auth_client().post(
+                f"{test_api_uri}/flaws/{flaw.uuid}/promote",
+                data={},
+                format="json",
+                **headers,
+            )
+
+        assert response.status_code == 200
+
+        flaw.refresh_from_db()
+
+        # Promote to PRE_SECONDARY_ASSESSMENT using async task sync 
+        # this one runs the nested set_public_nested call and set_history_public
+        test_data = {'affects_quantity': affect_quantity, 'embargoed': embargoed}
+        
+        
+        with assertNumQueries(expected_queries, kwargs=test_data):
+            response = auth_client().post(
+                f"{test_api_uri}/flaws/{flaw.uuid}/promote",
+                data={},
+                format="json",
+                **headers,
+            )
