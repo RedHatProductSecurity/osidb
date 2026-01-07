@@ -15,7 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add `alias` label type for incidents (OSIDB-4665)
-- Add subpackage PURLs field (OSIDB-4691)
 - Add settings for enabling/disabling EPSS collector (OSIDB-4677)
 - Add visibility annotated field for ACLMixin models (OSIDB-4709)
 
@@ -28,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Remove vuln mgmt documentation link from description in community trackers (OSIDB-4450)
+
+## [5.3.0] - 2026-01-07
+### Added
+- Add subpackage PURLs field (OSIDB-4691)
 
 ## [5.2.2] - 2025-12-04
 ### Added
