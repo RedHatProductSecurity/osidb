@@ -84,6 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix creation of related objects for public flaws having internal visibility (OSIDB-4552)
 - Fix CVE_id parsing for OSV in linux DB (OSIDB-4548) 
 - Prevent unintended publicizing flaws when workflow state has unexpected value during sync tasks (OSIDB-4446)
+- Fix changing flaw's severity making trackers to temporarily disappear (OSIDB-4069)
 
 ### Added
 - Add query for finding flaw whose non-community affects are missing trackers (OSIDB-4104)

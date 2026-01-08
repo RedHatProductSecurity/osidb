@@ -9,7 +9,6 @@ from collectors.jiraffe.convertors import (
 )
 from collectors.jiraffe.core import JiraQuerier
 from osidb.models import Affect, Flaw, Tracker
-from osidb.sync_manager import JiraTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -76,6 +75,8 @@ class TestJiraTrackerConvertor:
         test that the convertor linking works
         when the link is actually not there
         """
+        from collectors.jiraffe.collectors import JiraTrackerDownloadManager
+
         flaw = FlawFactory(embargoed=False)
         ps_module = PsModuleFactory(name="amq-7")
         ps_update_stream = PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
@@ -90,7 +91,7 @@ class TestJiraTrackerConvertor:
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
-        JiraTrackerLinkManager.link_tracker_with_affects(self.tracker_id)
+        JiraTrackerDownloadManager.link_tracker_with_affects(self.tracker_id)
 
         tracker = Tracker.objects.get(external_system_id=self.tracker_id)
         assert not flaw.meta_attr.get("jira_trackers")
@@ -108,6 +109,8 @@ class TestJiraTrackerConvertor:
         test that the convertor linking works
         when the link is in flaw SRT notes
         """
+        from collectors.jiraffe.collectors import JiraTrackerDownloadManager
+
         flaw = FlawFactory(
             embargoed=False,
             meta_attr={"jira_trackers": json.dumps([{"key": self.tracker_id}])},
@@ -125,7 +128,7 @@ class TestJiraTrackerConvertor:
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
-        JiraTrackerLinkManager.link_tracker_with_affects(self.tracker_id)
+        JiraTrackerDownloadManager.link_tracker_with_affects(self.tracker_id)
 
         tracker = Tracker.objects.get(external_system_id=self.tracker_id)
         assert tracker.external_system_id in [
@@ -153,10 +156,12 @@ class TestJiraTrackerConvertor:
         ps_module = PsModuleFactory(name="amq-7")
         ps_update_stream = PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
 
+        from collectors.jiraffe.collectors import JiraTrackerDownloadManager
+
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
-        _, _, failed_affects = JiraTrackerLinkManager.link_tracker_with_affects(
+        _, _, failed_affects = JiraTrackerDownloadManager.link_tracker_with_affects(
             self.tracker_id
         )
 
@@ -194,10 +199,12 @@ class TestJiraTrackerConvertor:
             ps_component="elasticsearch",
         )
 
+        from collectors.jiraffe.collectors import JiraTrackerDownloadManager
+
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
-        JiraTrackerLinkManager.link_tracker_with_affects(self.tracker_id)
+        JiraTrackerDownloadManager.link_tracker_with_affects(self.tracker_id)
 
         tracker = Tracker.objects.get(external_system_id=self.tracker_id)
         assert not flaw.meta_attr.get("jira_trackers")
@@ -216,10 +223,12 @@ class TestJiraTrackerConvertor:
         """
         PsUpdateStreamFactory(name="amq-7.1")
 
+        from collectors.jiraffe.collectors import JiraTrackerDownloadManager
+
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
-        _, failed_flaws, _ = JiraTrackerLinkManager.link_tracker_with_affects(
+        _, failed_flaws, _ = JiraTrackerDownloadManager.link_tracker_with_affects(
             self.tracker_id
         )
 
@@ -247,10 +256,12 @@ class TestJiraTrackerConvertor:
             ps_component="elasticsearch",
         )
 
+        from collectors.jiraffe.collectors import JiraTrackerDownloadManager
+
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
-        JiraTrackerLinkManager.link_tracker_with_affects(self.tracker_id)
+        JiraTrackerDownloadManager.link_tracker_with_affects(self.tracker_id)
 
         tracker = Tracker.objects.get(external_system_id=self.tracker_id)
         assert not flaw.meta_attr.get("jira_trackers")
@@ -282,10 +293,12 @@ class TestJiraTrackerConvertor:
             ps_update_stream=ps_update_stream.name,
             ps_component="elasticsearch",
         )
+        from collectors.jiraffe.collectors import JiraTrackerDownloadManager
+
         tracker_data = JiraQuerier().get_issue(self.tracker_id)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker_convertor.tracker.save()
-        JiraTrackerLinkManager.link_tracker_with_affects(self.tracker_id)
+        JiraTrackerDownloadManager.link_tracker_with_affects(self.tracker_id)
         tracker = Tracker.objects.get(external_system_id=self.tracker_id)
 
         assert not flaw.meta_attr.get("jira_trackers")

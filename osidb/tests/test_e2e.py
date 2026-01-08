@@ -12,12 +12,14 @@ from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.cveorg import tests as cveorg_tests
 from collectors.cveorg.collectors import CVEorgCollector
 from collectors.cveorg.models import Keyword
-from collectors.jiraffe.collectors import JiraTrackerCollector
+from collectors.jiraffe.collectors import (
+    JiraTrackerCollector,
+    JiraTrackerDownloadManager,
+)
 from osidb.models import Affect, Flaw, PsUpdateStream, Snippet, Tracker
 from osidb.sync_manager import (
     BZSyncManager,
     JiraTaskSyncManager,
-    JiraTrackerLinkManager,
 )
 
 pytestmark = pytest.mark.unit
@@ -245,7 +247,7 @@ class TestE2E:
             assert body["ps_update_stream"] == stream.name
             jc = JiraTrackerCollector()
             jc.collect(tracker_id)
-            JiraTrackerLinkManager.link_tracker_with_affects(tracker_id)
+            JiraTrackerDownloadManager.link_tracker_with_affects(tracker_id)
 
         # 5.1) validate access control for trackers
         response = access_method.get(
