@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Move label creation from SECONDARY_ASSESSMENT to PRE_SECONDARY_ASSESSMENT (OSIDB-4448)
 - Uniqueness on purl or ps_component for affects (OSIDB-4644)
 - Make `ps_module` read-only in the affect serializer (OSIDB-4554)
+- Improve promote performance with prefetch (OSIDB-4678)
+- Improve promote performance with ACL bulk update (OSIDB-4678)
 
 ### Added
 - Add `in` filter for API views (OSIDB-4588)
