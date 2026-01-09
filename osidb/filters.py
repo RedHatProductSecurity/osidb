@@ -11,7 +11,7 @@ from django.contrib.postgres.search import (
     SearchVector,
     TrigramSimilarity,
 )
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.db.models import Max, Min, Q
@@ -28,6 +28,7 @@ from django_filters.rest_framework import (
     UUIDFilter,
 )
 from djangoql.queryset import apply_search
+from packageurl import PackageURL
 
 from apps.workflows.workflow import WorkflowModel
 from osidb.models import (
@@ -77,6 +78,60 @@ class UUIDInFilter(BaseInFilter, UUIDFilter):
     """
 
     pass
+
+
+class PURLFilter(CharFilter):
+    """
+    Filter for both PURLFields and arrays of PURLFields.
+    """
+
+    def filter(self, qs, value):
+        if not value:
+            return qs
+
+        try:
+            normalized_value = PackageURL.from_string(value).to_string()
+        except ValueError as e:
+            raise ValidationError(f"Invalid PURL: {e}")
+
+        # Check if it's an ArrayField
+        try:
+            model_field = qs.model._meta.get_field(self.field_name)
+            from django.contrib.postgres.fields import ArrayField
+
+            is_array = isinstance(model_field, ArrayField)
+        except Exception:
+            is_array = False
+
+        if is_array:
+            return qs.filter(**{f"{self.field_name}__contains": [normalized_value]})
+        else:
+            return qs.filter(**{self.field_name: normalized_value})
+
+
+class PURLInFilter(BaseInFilter, PURLFilter):
+    """
+    Filter for PURL array field inclusion.
+    """
+
+    def filter(self, qs, value):
+        if not value:
+            return qs
+
+        try:
+            normalized_values = [
+                PackageURL.from_string(purl_str).to_string()
+                for purl_str in value
+                if purl_str
+            ]
+        except ValueError as e:
+            raise ValidationError(f"Invalid PURL: {e}")
+
+        if not normalized_values:
+            return qs
+
+        lookup = f"{self.field_name}__overlap"
+        return qs.filter(**{lookup: normalized_values})
 
 
 class EmptyOrNullStringFilter(BooleanFilter):
@@ -1388,6 +1443,10 @@ class AffectFilter(
         field_name="flaw__components", lookup_expr="contains"
     )
     tracker__isnull = NullForeignKeyFilter(field_name="tracker")
+    purl = PURLFilter(field_name="purl")
+    subpackage_purls = PURLFilter(field_name="subpackage_purls")
+    subpackage_purls__in = PURLInFilter(field_name="subpackage_purls")
+    subpackage_purls__isempty = IsEmptyArrayFilter(field_name="subpackage_purls")
 
     class Meta:
         model = Affect
@@ -1457,6 +1516,8 @@ class AffectFilter(
             + DATE_LOOKUP_EXPRS,
             "cvss_scores__uuid": ["exact"],
             "cvss_scores__vector": ["exact"],
+            "purl": ["exact"],
+            "subpackage_purls": ["exact"],
         }
 
     order_fields = [
