@@ -24,6 +24,7 @@ from osidb.mixins import (
     NullStrFieldsMixin,
     TrackingMixin,
     TrackingMixinManager,
+    validator,
 )
 from osidb.models.fields import CVEIDField, PURLField
 from osidb.query_sets import CustomQuerySetUpdatedDt
@@ -345,6 +346,7 @@ class Affect(
             )
         return super().delete(*args, **kwargs)
 
+    @validator
     def _validate_ps_module_old_flaw(self, **kwargs):
         """
         Checks that an affect from an older flaw contains a valid ps_module.
@@ -367,6 +369,7 @@ class Affect(
                     **kwargs,
                 )
 
+    @validator
     def _validate_ps_module_new_flaw(self, **kwargs):
         """
         Checks that an affect from a newer flaw contains a valid ps_module.
@@ -386,6 +389,7 @@ class Affect(
                     f"for flaw with bz_id {bz_id}."
                 )
 
+    @validator
     def _validate_sofware_collection(self, **kwargs):
         """
         Check that all RHSCL components in flaw's affects start with a valid collection.
@@ -425,6 +429,7 @@ class Affect(
                 **kwargs,
             )
 
+    @validator
     def _validate_historical_affectedness_resolution(self, **kwargs):
         """
         Alerts that an old flaw has an affectedness/resolution combination that is now invalid,
@@ -460,6 +465,7 @@ class Affect(
                 **kwargs,
             )
 
+    @validator
     def _validate_affect_status_resolution(self, **kwargs):
         """
         Validates that affected products have a valid combination (currently or historically)
@@ -476,6 +482,7 @@ class Affect(
                 f"for {self.affectedness}."
             )
 
+    @validator
     def _validate_notaffected_open_tracker(self, **kwargs):
         """
         Check whether notaffected products have open trackers.
@@ -490,6 +497,7 @@ class Affect(
                 "NOTAFFECTED but has open tracker(s).",
             )
 
+    @validator
     def _validate_ooss_open_tracker(self, **kwargs):
         """
         Check whether out of support scope products have open trackers.
@@ -504,6 +512,7 @@ class Affect(
                 "OOSS but has open tracker(s).",
             )
 
+    @validator
     def _validate_wontfix_open_tracker(self, **kwargs):
         """
         Check whether wontfix affects have open trackers.
@@ -518,6 +527,7 @@ class Affect(
                 "WONTFIX but has open tracker(s).",
             )
 
+    @validator
     def _validate_defer_open_trackers(self, **kwargs):
         """
         Prevent an affect with open trackers from having a resolution of DEFER
@@ -532,12 +542,14 @@ class Affect(
                 "resolution DEFER with open tracker(s).",
             )
 
+    @validator
     def _validate_ps_update_stream(self, **kwargs):
         if not PsUpdateStream.objects.filter(name=self.ps_update_stream).exists():
             raise ValidationError(
                 f"{self.ps_update_stream} is not a valid ps_update_stream."
             )
 
+    @validator
     def _validate_unknown_component(self, **kwargs):
         """
         Alerts that a flaw affects a component not tracked in Bugzilla.
@@ -597,6 +609,7 @@ class Affect(
                 **kwargs,
             )
 
+    @validator
     def _validate_wontreport_products(self, **kwargs):
         """
         Validate that wontreport resolution only can be used for
@@ -615,6 +628,7 @@ class Affect(
                     f"which can only be used for service products."
                 )
 
+    @validator
     def _validate_wontreport_severity(self, **kwargs):
         """
         Validate that wontreport only can be used for
@@ -629,6 +643,7 @@ class Affect(
                 f"and is marked as WONTREPORT, which can only be used with low or moderate impact."
             )
 
+    @validator
     def _validate_special_consideration_flaw(self, **kwargs):
         """
         Checks that a flaw affecting special consideration package(s) has both
@@ -654,6 +669,7 @@ class Affect(
                     f"{affected_special_consideration_package} is missing statement.",
                 )
 
+    @validator
     def _validate_either_purl_or_ps_component_provided(self, **kwargs) -> None:
         """
         Check that either a PURL or PsComponent has been provided.
@@ -665,6 +681,7 @@ class Affect(
                 f"Affect ({self.uuid}) for {self.ps_update_stream} must have either purl or ps_component."
             )
 
+    @validator
     def _validate_purl_and_ps_component(self, **kwargs):
         """
         Validate the provided PURL and warn in case of ps_component mismatch.
@@ -692,6 +709,7 @@ class Affect(
                     f"does not match user-provided ps_component ({self.ps_component}).",
                 )
 
+    @validator
     def _validate_purl_middleware(self, **kwargs):
         """
         Validate that new affects related to middleware products have a PURL.
@@ -724,6 +742,7 @@ class Affect(
                 "belongs to a middleware product and cannot have its PURL removed."
             )
 
+    @validator
     def _validate_not_affected_justification(self, **kwargs):
         """
         The not affected justification field becomes mandatory if the affectedness is NOTAFFECTED
