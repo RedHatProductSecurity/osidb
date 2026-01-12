@@ -8372,7 +8372,9 @@ paths:
             - -ps_component
             - -ps_module
             - -ps_update_stream
+            - -purl
             - -resolution
+            - -subpackage_purls
             - -tracker__created_dt
             - -tracker__embargoed
             - -tracker__external_system_id
@@ -8411,7 +8413,9 @@ paths:
             - ps_component
             - ps_module
             - ps_update_stream
+            - purl
             - resolution
+            - subpackage_purls
             - tracker__created_dt
             - tracker__embargoed
             - tracker__external_system_id
@@ -8468,6 +8472,19 @@ paths:
         explode: false
         style: form
       - in: query
+        name: purl
+        schema:
+          type: string
+      - in: query
+        name: purl__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: resolution
         schema:
           type: string
@@ -8498,6 +8515,23 @@ paths:
 
         explode: false
         style: form
+      - in: query
+        name: subpackage_purls
+        schema:
+          type: string
+      - in: query
+        name: subpackage_purls__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: subpackage_purls__isempty
+        schema:
+          type: boolean
       - in: query
         name: tracker__created_dt
         schema:

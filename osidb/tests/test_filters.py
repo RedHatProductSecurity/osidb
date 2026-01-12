@@ -529,3 +529,223 @@ class TestInFilterSet:
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["count"] == 4
+
+
+class TestPURLFilter:
+    """
+    Tests for PURLFilter and PURLInFilter.
+    """
+
+    @pytest.fixture
+    def purl_test_data(self):
+        flaw = FlawFactory(embargoed=False)
+        return {
+            "flaw": flaw,
+            "affects": {
+                "rhel_kernel": AffectFactory(
+                    flaw=flaw,
+                    purl="pkg:rhel/kernel",
+                    subpackage_purls=["pkg:rhel/kernel"],
+                ),
+                "rhel_glibc": AffectFactory(
+                    flaw=flaw,
+                    purl="pkg:rhel/glibc",
+                    subpackage_purls=["pkg:rhel/glibc"],
+                ),
+                "kernel_multiple": AffectFactory(
+                    flaw=flaw,
+                    purl="pkg:rhel/kernel",
+                    subpackage_purls=["pkg:rhel/kernel", "pkg:openssl/rhel"],
+                ),
+                "empty": AffectFactory(flaw=flaw, purl=None, subpackage_purls=[]),
+                "openssl": AffectFactory(
+                    flaw=flaw,
+                    purl="pkg:openssl/rhel",
+                    subpackage_purls=["pkg:openssl/rhel"],
+                ),
+            },
+        }
+
+    @pytest.mark.parametrize(
+        "filter_type,query_value,expected_count,expected_affect_keys",
+        [
+            # Exact matching tests
+            (
+                "subpackage_purls",
+                "pkg:rhel/kernel",
+                2,
+                ["rhel_kernel", "kernel_multiple"],
+            ),
+            ("subpackage_purls", "pkg:rhel/glibc", 1, ["rhel_glibc"]),
+            ("subpackage_purls", "pkg:nonexistent/test", 0, []),
+            # __in matching tests
+            (
+                "subpackage_purls__in",
+                "pkg:rhel/kernel",
+                2,
+                ["rhel_kernel", "kernel_multiple"],
+            ),
+            (
+                "subpackage_purls__in",
+                "pkg:rhel/kernel,pkg:rhel/glibc",
+                3,
+                ["rhel_kernel", "kernel_multiple", "rhel_glibc"],
+            ),
+            (
+                "subpackage_purls__in",
+                "pkg:openssl/rhel",
+                2,
+                ["kernel_multiple", "openssl"],
+            ),
+            ("subpackage_purls__in", "pkg:nonexistent/test,pkg:fake/package", 0, []),
+        ],
+    )
+    def test_purl_filter_matching(
+        self,
+        auth_client,
+        test_api_v2_uri,
+        purl_test_data,
+        filter_type,
+        query_value,
+        expected_count,
+        expected_affect_keys,
+    ):
+        """Test PURL filtering with exact and __in lookups"""
+        affects = purl_test_data["affects"]
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/affects?{filter_type}={query_value}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        results = response.json()["results"]
+        assert len(results) == expected_count
+
+        if expected_affect_keys:
+            expected_uuids = {str(affects[key].uuid) for key in expected_affect_keys}
+            found_uuids = {r["uuid"] for r in results}
+            assert found_uuids == expected_uuids
+
+    @pytest.mark.parametrize(
+        "filter_type",
+        ["subpackage_purls", "subpackage_purls__in"],
+    )
+    def test_purl_filter_normalization(self, auth_client, test_api_v2_uri, filter_type):
+        """Test that PURL normalization works correctly during filtering"""
+        from packageurl import PackageURL
+
+        flaw = FlawFactory(embargoed=False)
+        normalized_purl = PackageURL.from_string("pkg:rpm/rhel/kernel").to_string()
+        affect = AffectFactory(flaw=flaw, subpackage_purls=[normalized_purl])
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/affects?{filter_type}=pkg:rpm/rhel/kernel"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        results = response.json()["results"]
+        assert len(results) == 1
+        assert results[0]["uuid"] == str(affect.uuid)
+
+    @pytest.mark.parametrize(
+        "is_empty,expected_count",
+        [
+            (True, 1),  # Only empty affect
+            (False, 4),  # All non-empty affects
+        ],
+    )
+    def test_purl_filter_empty_array(
+        self, auth_client, test_api_v2_uri, purl_test_data, is_empty, expected_count
+    ):
+        """Test filtering for empty/non-empty subpackage_purls arrays"""
+        response = auth_client().get(
+            f"{test_api_v2_uri}/affects?subpackage_purls__isempty={str(is_empty).lower()}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == expected_count
+
+        if is_empty:
+            results = response.json()["results"]
+            assert results[0]["uuid"] == str(purl_test_data["affects"]["empty"].uuid)
+
+    @pytest.mark.parametrize(
+        "filter_type,invalid_value",
+        [
+            ("subpackage_purls", "invalid-purl-format"),
+            ("subpackage_purls__in", "pkg:rhel/kernel,invalid-format"),
+        ],
+    )
+    def test_purl_filter_invalid_format(
+        self, auth_client, test_api_v2_uri, filter_type, invalid_value
+    ):
+        """Test that invalid PURL formats return appropriate errors"""
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw, subpackage_purls=["pkg:rhel/kernel"])
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/affects?{filter_type}={invalid_value}"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        error_data = response.json()
+        assert "Invalid PURL" in str(error_data)
+
+    @pytest.mark.parametrize(
+        "query_value,expected_count,expected_affect_keys",
+        [
+            ("pkg:rhel/kernel", 2, ["rhel_kernel", "kernel_multiple"]),
+            ("pkg:rhel/glibc", 1, ["rhel_glibc"]),
+            ("pkg:openssl/rhel", 1, ["openssl"]),
+            ("pkg:nonexistent/test", 0, []),
+        ],
+    )
+    def test_single_purl_filter_matching(
+        self,
+        auth_client,
+        test_api_v2_uri,
+        purl_test_data,
+        query_value,
+        expected_count,
+        expected_affect_keys,
+    ):
+        """Test single PURL field filtering with exact lookups"""
+        affects = purl_test_data["affects"]
+
+        response = auth_client().get(f"{test_api_v2_uri}/affects?purl={query_value}")
+        assert response.status_code == status.HTTP_200_OK
+
+        results = response.json()["results"]
+        assert len(results) == expected_count
+
+        if expected_affect_keys:
+            expected_uuids = {str(affects[key].uuid) for key in expected_affect_keys}
+            found_uuids = {r["uuid"] for r in results}
+            assert found_uuids == expected_uuids
+
+    def test_single_purl_filter_null_values(
+        self, auth_client, test_api_v2_uri, purl_test_data
+    ):
+        """Test filtering for null/empty single PURL values"""
+        affects = purl_test_data["affects"]
+
+        # Test that empty PURL returns no results when filtering for a specific value
+        response = auth_client().get(f"{test_api_v2_uri}/affects?purl=pkg:rhel/kernel")
+        assert response.status_code == status.HTTP_200_OK
+
+        results = response.json()["results"]
+        # Should not include the "empty" affect which has purl=None
+        found_uuids = {r["uuid"] for r in results}
+        assert str(affects["empty"].uuid) not in found_uuids
+
+    def test_single_purl_filter_invalid_format(self, auth_client, test_api_v2_uri):
+        """Test that invalid PURL formats return appropriate errors for single PURL field"""
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw, purl="pkg:rhel/kernel")
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/affects?purl=invalid-purl-format"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        error_data = response.json()
+        assert "Invalid PURL" in str(error_data)
