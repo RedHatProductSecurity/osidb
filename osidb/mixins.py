@@ -564,20 +564,14 @@ class ACLMixin(models.Model):
     def set_history_public(self):
         """
         set the history to public
-        The only exception is "snippets", which should always have internal ACLs.
         """
-        refs = pghistory.models.Events.objects.references(self).all()
+        refs = pghistory.models.Events.objects.tracks(self).all()
         for ref in refs:
-            db, model_name = ref.pgh_model.split(".")
-            # Skip snippet audit events - snippets should always remain internal
-            if model_name == "SnippetAudit":
-                continue
-
-            model_audit = apps.get_model(db, model_name).objects.filter(
+            model_audit = apps.get_model(ref.pgh_model).objects.filter(
                 pgh_id=ref.pgh_id
             )
 
-            with pgtrigger.ignore(f"{db}.{model_name}:append_only"):
+            with pgtrigger.ignore(f"{ref.pgh_model}:append_only"):
                 model_audit.update(
                     acl_read=list(self.acls_public_read),
                     acl_write=list(self.acls_public_write),
