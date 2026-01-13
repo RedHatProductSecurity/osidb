@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## [5.4.0] - 2026-01-09
+## [5.4.0] - 2026-01-13
 ### Changed
 - Rework alert serializer (OSIDB-4314)
 - Support unmbargoing for closed trackers (OSIDB-3729)
