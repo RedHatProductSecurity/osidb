@@ -13,6 +13,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db.models import Value
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djangoql.serializers import SuggestionsAPISerializer
@@ -56,6 +57,7 @@ from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import Affect, AffectCVSS, AffectV1, Flaw, FlawLabel, Tracker
 from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.cvss import FlawCVSS
+from osidb.sync_manager import SyncManager
 
 from .constants import OSIDB_API_VERSION, PYPI_URL
 from .filters import (
@@ -71,6 +73,7 @@ from .filters import (
     FlawQLSchema,
     FlawReferenceFilter,
     FlawV1Filter,
+    SyncManagerFilter,
     TrackerFilter,
     TrackerV1Filter,
 )
@@ -116,6 +119,7 @@ from .serializer import (
     IncidentRequestSerializer,
     IntegrationTokenGetSerializer,
     IntegrationTokenPatchSerializer,
+    SyncManagerSerializer,
     TrackerPostSerializer,
     TrackerSerializer,
     TrackerV1Serializer,
@@ -1717,3 +1721,98 @@ class IncidentRequestView(
         flaw.major_incident_state = serializer.validated_data["kind"]
         flaw.save()
         return Response()
+
+
+@extend_schema_view(
+    get=extend_schema(
+        description="List all sync managers across all SyncManager subclasses.",
+        parameters=[
+            OpenApiParameter(
+                "manager_type",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "Filter by manager type (e.g., 'BZSyncManager', 'JiraTaskSyncManager'). "
+                    "Multiple types can be specified separated by commas."
+                ),
+            ),
+            # All other filter parameters are auto-inferred from SyncManagerFilter by drf-spectacular
+        ],
+        responses={200: SyncManagerSerializer(many=True)},
+    )
+)
+class SyncManagerView(RudimentaryUserPathLoggingMixin, APIView):
+    """
+    Unified API endpoint for all SyncManager.
+    Provides a single GET endpoint to query sync managers across all types.
+    """
+
+    # Add filterset_class for drf-spectacular to auto-infer filter parameters
+    filterset_class = SyncManagerFilter
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request: Request) -> Response:
+        """List all sync managers with optional filtering"""
+
+        # Get all SyncManager subclasses
+        manager_classes = SyncManager.__subclasses__()
+
+        # Filter manager classes by manager_type if specified
+        manager_type_filter = request.query_params.get("manager_type")
+        if manager_type_filter:
+            manager_types = [t.strip() for t in manager_type_filter.split(",")]
+            manager_classes = [
+                cls for cls in manager_classes if cls.__name__ in manager_types
+            ]
+
+        # Collect filtered querysets from all subclasses
+        querysets = []
+        for manager_class in manager_classes:
+            queryset = manager_class.objects.all()
+
+            # Apply django-filter filterset
+            # Create a copy of query_params without manager_type since it's handled above
+            filter_params = request.query_params.copy()
+            filter_params.pop("manager_type", None)
+            filterset = SyncManagerFilter(
+                data=filter_params, queryset=queryset, request=request
+            )
+            queryset = filterset.qs
+
+            # Annotate queryset with manager_type to identify the subclass
+            queryset = queryset.annotate(manager_type=Value(manager_class.__name__))
+
+            querysets.append(queryset)
+
+        # Combine all querysets using union
+        if not querysets:
+            # No manager classes found, return empty paginated response
+            from django.utils.module_loading import import_string
+
+            paginator_class = import_string(
+                settings.REST_FRAMEWORK["DEFAULT_PAGINATION_CLASS"]
+            )
+            paginator = paginator_class()
+            return paginator.get_paginated_response([])
+
+        # Union all querysets SyncManager subclasses querysets
+        # all=True to allow duplicates.
+        combined_queryset = querysets[0].union(*querysets[1:], all=True)
+
+        # Apply pagination using default pagination class
+        from django.utils.module_loading import import_string
+
+        paginator_class = import_string(
+            settings.REST_FRAMEWORK["DEFAULT_PAGINATION_CLASS"]
+        )
+        paginator = paginator_class()
+        page = paginator.paginate_queryset(combined_queryset, request)
+
+        if page is not None:
+            # Serialize paginated results
+            serializer = SyncManagerSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        # Fallback if pagination is not applied (shouldn't happen with pagination_class set)
+        serializer = SyncManagerSerializer(combined_queryset, many=True)
+        return Response(serializer.data)

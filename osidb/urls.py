@@ -37,6 +37,7 @@ from .api_views import (
     LabelView,
     ManifestView,
     StatusView,
+    SyncManagerView,
     TrackerV1View,
     TrackerView,
     flaw_available,
@@ -129,6 +130,10 @@ urlpatterns = [
     ),
     path(f"api/{OSIDB_API_VERSION}/status", StatusView.as_view()),
     path(f"api/{OSIDB_API_VERSION}/manifest", ManifestView.as_view()),
+    path(
+        f"api/{OSIDB_API_VERSION}/sync-managers",
+        SyncManagerView.as_view(),
+    ),
     path(f"api/{OSIDB_API_VERSION}/", include(router.urls)),
     path(
         f"api/{OSIDB_API_VERSION}/schema/", SpectacularAPIView.as_view(), name="schema"
