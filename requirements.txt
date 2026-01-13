@@ -139,9 +139,9 @@ distlib==0.3.9 \
     --hash=sha256:47f8c22fd27c27e25a65601af709b38e4f0a45ea4fc2e710f65755fa8caaaf87 \
     --hash=sha256:a60f20dea646b8a33f3e7772f74dc0b2d0772d2837ee1342a00645c81edf9403
     # via virtualenv
-django==5.2 \
-    --hash=sha256:1a47f7a7a3d43ce64570d350e008d2949abe8c7e21737b351b6a1611277c6d89 \
-    --hash=sha256:91ceed4e3a6db5aedced65e3c8f963118ea9ba753fc620831c77074e620e7d83
+django==5.2.8 \
+    --hash=sha256:23254866a5bb9a2cfa6004e8b809ec6246eba4b58a7589bc2772f1bcc8456c7f \
+    --hash=sha256:37e687f7bd73ddf043e2b6b97cfe02fcbb11f2dbb3adccc6a2b18c6daa054d7f
     # via
     #   django-auth-ldap
     #   django-cors-headers
@@ -179,13 +179,13 @@ django-deprecate-fields==0.1.1 \
     --hash=sha256:81904dbc28cf4575535517f69b88dcbc1a64fe73b6c35a4e4f71d193e419ac10 \
     --hash=sha256:ea512e3f0f70b4f511bba8ced1f10c22c68278d8557eb40d6df24e71187df44d
     # via osidb
-django-extensions==3.1.5 \
-    --hash=sha256:28e1e1bf49f0e00307ba574d645b0af3564c981a6dfc87209d48cb98f77d0b1a \
-    --hash=sha256:9238b9e016bb0009d621e05cf56ea8ce5cce9b32e91ad2026996a7377ca28069
+django-extensions==4.1 \
+    --hash=sha256:0699a7af28f2523bf8db309a80278519362cd4b6e1fd0a8cd4bf063e1e023336 \
+    --hash=sha256:7b70a4d28e9b840f44694e3f7feb54f55d495f8b3fa6c5c0e5e12bcb2aa3cdeb
     # via osidb
-django-filter==23.4 \
-    --hash=sha256:526954f18bd7d6423f232a9a7974f58fbc6863908b9fc160de075e01adcc2a5f \
-    --hash=sha256:bed070b38359dce7d2dbe057b165d59773057986356cb809ded983b36c77a976
+django-filter==25.2 \
+    --hash=sha256:760e984a931f4468d096f5541787efb8998c61217b73006163bf2f9523fe8f23 \
+    --hash=sha256:9c0f8609057309bba611062fe1b720b4a873652541192d232dd28970383633e3
     # via osidb
 django-kaminarimon==0.2.1 \
     --hash=sha256:9a10f1bb61af6b6a89427b881950e68beb78e607ecc2ff94f48b796b47034912 \
