@@ -5,8 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [5.4.0] - 2026-01-13
 ### Changed
-- Rework alert serializer (OSIDB-4313)
+- Rework alert serializer (OSIDB-4314)
 - Support unmbargoing for closed trackers (OSIDB-3729)
 - Prioritize affects with subpath in PURL in v1 (OSIDB-4645)
 - Move label creation from SECONDARY_ASSESSMENT to PRE_SECONDARY_ASSESSMENT (OSIDB-4448)
@@ -19,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `alias` label type for incidents (OSIDB-4665)
 - Add settings for enabling/disabling EPSS collector (OSIDB-4677)
 - Add visibility annotated field for ACLMixin models (OSIDB-4709)
+- Add a notification sent to incident commanders on incident state change (OSIDB-3855)
 
 ### Fixed
 - Fix audit history ACL for moving a flaw from internal to public (OSIDB-4215)
@@ -42,9 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [5.2.1] - 2025-11-13
 ### Fixed
 - Fix tracker grouping in affect v1 materialized view (OSIDB-4642)
-
-### Added
-- Add a notification sent to incident commanders on incident state change (OSIDB-3855)
 
 ## [5.2.0] - 2025-11-12
 ### Changed
