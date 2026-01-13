@@ -17,7 +17,6 @@ from osidb.tests.factories import (
     FlawReferenceFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
-    SnippetFactory,
     TrackerFactory,
 )
 
@@ -190,10 +189,6 @@ class TestAuditFlaw:
         assert affect_cvss.acl_read == embargoed_read_groups
         assert affect_cvss.acl_write == embargoed_write_groups
 
-        snippet = SnippetFactory()
-        assert snippet.acl_read == internal_read_groups
-        assert snippet.acl_write == internal_write_groups
-
         assert pghistory.models.Events.objects.tracks(flaw).count() == 1
         # Affect has 2 operations: one when creating the affect and an update when the tracker is linked to it,
         # since the relationship is stored on the Affect side
@@ -204,7 +199,6 @@ class TestAuditFlaw:
         assert pghistory.models.Events.objects.tracks(flaw_com).count() == 1
         assert pghistory.models.Events.objects.tracks(flaw_cvss).count() == 1
         assert pghistory.models.Events.objects.tracks(affect_cvss).count() == 1
-        assert pghistory.models.Events.objects.tracks(snippet).count() == 1
 
         # Check that public user cannot 'see' the events
         set_user_acls(public_read_groups + public_write_groups)
@@ -224,8 +218,6 @@ class TestAuditFlaw:
             assert pghistory.models.Events.objects.tracks(flaw_cvss).count() == 0
         with transaction.atomic():
             assert pghistory.models.Events.objects.tracks(affect_cvss).count() == 0
-        with transaction.atomic():
-            assert pghistory.models.Events.objects.tracks(snippet).count() == 0
 
     def test_audit_api_cleansing(self, auth_client, test_api_uri):
         """
