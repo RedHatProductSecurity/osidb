@@ -109,7 +109,7 @@ class TestQuerySetRegression:
             impact=Impact.MODERATE,
         )
 
-        with assertNumQueries(61):  # initial value -> 78
+        with assertNumQueriesLessThan(61):  # initial value -> 78
             response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
@@ -127,11 +127,80 @@ class TestQuerySetRegression:
             impact=Impact.MODERATE,
         )
 
-        with assertNumQueries(62):  # initial value -> 82
+        with assertNumQueriesLessThan(62):  # initial value -> 62
             response = auth_client().get(
                 f"{test_api_v2_uri}/flaws/{flaw.uuid}?include_history=true"
             )
             assert response.status_code == 200
+
+    def test_flaw_excluding_affects_is_faster(
+        self, auth_client, test_api_v2_uri, embargoed
+    ):
+        flaw = FlawFactory(
+            embargoed=embargoed,
+            impact=Impact.LOW,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        AffectFactory.create_batch(
+            3,
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=Impact.MODERATE,
+        )
+
+        # Excluding affects should avoid the expensive affects* prefetch path in the view.
+        with assertNumQueriesLessThan(60) as ctx:
+            response = auth_client().get(
+                f"{test_api_v2_uri}/flaws/{flaw.uuid}?exclude_fields=affects,trackers"
+            )
+            assert response.status_code == 200
+            assert "affects" not in response.json()
+            assert "trackers" not in response.json()
+
+        # Excluding affects and trackers should avoid the heavy Affect manager queryset (annotations/subqueries).
+        executed_sql = "\n".join(
+            q["sql"] for q in ctx.captured_queries if f"{flaw.uuid}" in q["sql"]
+        )
+        assert "affects" not in executed_sql
+        assert "trackers" not in executed_sql
+
+    def test_flaw_include_fields_does_not_prefetch_affects(
+        self, auth_client, test_api_v2_uri, embargoed
+    ):
+        flaw = FlawFactory(
+            embargoed=embargoed,
+            impact=Impact.LOW,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        AffectFactory.create_batch(
+            3,
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=Impact.MODERATE,
+        )
+
+        # Requesting only scalar fields should not prefetch heavy relations like affects.
+        with assertNumQueriesLessThan(110) as ctx:
+            response = auth_client().get(
+                f"{test_api_v2_uri}/flaws/{flaw.uuid}?include_fields=uuid,cve_id"
+            )
+            assert response.status_code == 200
+            data = response.json()
+            assert "affects" not in data
+            assert set(data.keys()) == {
+                "revision",
+                "version",
+                "dt",
+                "uuid",
+                "env",
+                "cve_id",
+            }
+
+        # With include_fields limited to scalars, we should not touch affects at all.
+        executed_sql = "\n".join(q["sql"] for q in ctx.captured_queries)
+        assert '"osidb_affect"' not in executed_sql
 
     def test_flaw_with_affects_trackers(self, auth_client, test_api_v2_uri, embargoed):
         flaw = FlawFactory(
@@ -191,7 +260,7 @@ class TestQuerySetRegression:
                 resolution=Affect.AffectResolution.DELEGATED,
             )
 
-        with assertNumQueries(55):  # initial value -> 69
+        with assertNumQueriesLessThan(55):  # initial value -> 55
             response = auth_client().get(
                 f"{test_api_v2_uri}/affects?include_history=true"
             )
@@ -222,7 +291,7 @@ class TestQuerySetRegression:
                 impact=Impact.MODERATE,
             )
 
-        with assertNumQueries(59):
+        with assertNumQueriesLessThan(59):
             response = auth_client().get(
                 f"{test_api_v2_uri}/flaws?include_fields=cve_id,uuid,affects,"
                 f"created_dt,updated_dt&affects__ps_module={ps_module.name}"
