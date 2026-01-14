@@ -713,9 +713,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
 
         exclude_fields_param = request.query_params.get("exclude_fields") or ""
         exclude_fields = {
-            f.strip()
-            for f in exclude_fields_param.split(",")
-            if f and f.strip()
+            f.strip() for f in exclude_fields_param.split(",") if f and f.strip()
         }
         return field_name in exclude_fields
 
@@ -736,9 +734,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
             return None
 
         include_fields = {
-            f.strip()
-            for f in include_fields_param.split(",")
-            if f and f.strip()
+            f.strip() for f in include_fields_param.split(",") if f and f.strip()
         }
 
         top_level = set()
