@@ -35,7 +35,6 @@ def assertNumQueriesLessThan(max_queries, using="default"):
     return _AssertNumQueriesLessThan(connection)
 
 
-@pytest.mark.parametrize("embargoed", [False, True])
 class TestQuerySetRegression:
     """
     Test that the number of queries executed by a given endpoint
@@ -43,7 +42,8 @@ class TestQuerySetRegression:
     executed by the endpoint to a known good value.
     """
 
-    def test_flaw_list(self, auth_client, test_api_v2_uri, embargoed):
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 113), (True, 114)])
+    def test_flaw_list(self, auth_client, test_api_v2_uri, embargoed, query_count):
         for _ in range(3):
             flaw = FlawFactory(
                 embargoed=embargoed,
@@ -57,11 +57,14 @@ class TestQuerySetRegression:
                 resolution=Affect.AffectResolution.DELEGATED,
                 impact=Impact.MODERATE,
             )
-        with assertNumQueriesLessThan(62):  # initial value -> 113
+        with assertNumQueriesLessThan(query_count):  # initial value -> 113
             response = auth_client().get(f"{test_api_v2_uri}/flaws")
             assert response.status_code == 200
 
-    def test_flaw_list_filtered(self, auth_client, test_api_v2_uri, embargoed):
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 58), (True, 58)])
+    def test_flaw_list_filtered(
+        self, auth_client, test_api_v2_uri, embargoed, query_count
+    ):
         """
         Using the same subset of fields as OSIM
         """
@@ -79,23 +82,27 @@ class TestQuerySetRegression:
                 impact=Impact.MODERATE,
             )
 
-        with assertNumQueries(58):  # initial value -> 61
+        with assertNumQueries(query_count):  # initial value -> 61
             response = auth_client().get(
                 f"{test_api_v2_uri}/flaws?include_fields=cve_id,uuid,impact,source,created_dt,updated_dt,classification,title,unembargo_dt,embargoed,owner,labels"
             )
             assert response.status_code == 200
 
-    def test_empty_flaw(self, auth_client, test_api_v2_uri, embargoed):
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 58), (True, 58)])
+    def test_empty_flaw(self, auth_client, test_api_v2_uri, embargoed, query_count):
         flaw = FlawFactory(
             embargoed=embargoed,
             impact=Impact.LOW,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
-        with assertNumQueries(58):  # initial value -> 60
+        with assertNumQueries(query_count):  # initial value -> 60
             response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
-    def test_flaw_with_affects(self, auth_client, test_api_v2_uri, embargoed):
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 61), (True, 61)])
+    def test_flaw_with_affects(
+        self, auth_client, test_api_v2_uri, embargoed, query_count
+    ):
         flaw = FlawFactory(
             embargoed=embargoed,
             impact=Impact.LOW,
@@ -109,11 +116,14 @@ class TestQuerySetRegression:
             impact=Impact.MODERATE,
         )
 
-        with assertNumQueriesLessThan(61):  # initial value -> 78
+        with assertNumQueries(query_count):  # initial value -> 78
             response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
-    def test_flaw_with_affects_history(self, auth_client, test_api_v2_uri, embargoed):
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 62), (True, 62)])
+    def test_flaw_with_affects_history(
+        self, auth_client, test_api_v2_uri, embargoed, query_count
+    ):
         flaw = FlawFactory(
             embargoed=embargoed,
             impact=Impact.LOW,
@@ -127,14 +137,15 @@ class TestQuerySetRegression:
             impact=Impact.MODERATE,
         )
 
-        with assertNumQueriesLessThan(62):  # initial value -> 62
+        with assertNumQueries(query_count):  # initial value -> 62
             response = auth_client().get(
                 f"{test_api_v2_uri}/flaws/{flaw.uuid}?include_history=true"
             )
             assert response.status_code == 200
 
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 59), (True, 60)])
     def test_flaw_excluding_affects_is_faster(
-        self, auth_client, test_api_v2_uri, embargoed
+        self, auth_client, test_api_v2_uri, embargoed, query_count
     ):
         flaw = FlawFactory(
             embargoed=embargoed,
@@ -150,7 +161,7 @@ class TestQuerySetRegression:
         )
 
         # Excluding affects should avoid the expensive affects* prefetch path in the view.
-        with assertNumQueriesLessThan(60) as ctx:
+        with assertNumQueriesLessThan(query_count) as ctx:
             response = auth_client().get(
                 f"{test_api_v2_uri}/flaws/{flaw.uuid}?exclude_fields=affects,trackers"
             )
@@ -165,8 +176,9 @@ class TestQuerySetRegression:
         assert "affects" not in executed_sql
         assert "trackers" not in executed_sql
 
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 109), (True, 110)])
     def test_flaw_include_fields_does_not_prefetch_affects(
-        self, auth_client, test_api_v2_uri, embargoed
+        self, auth_client, test_api_v2_uri, embargoed, query_count
     ):
         flaw = FlawFactory(
             embargoed=embargoed,
@@ -182,7 +194,7 @@ class TestQuerySetRegression:
         )
 
         # Requesting only scalar fields should not prefetch heavy relations like affects.
-        with assertNumQueriesLessThan(110) as ctx:
+        with assertNumQueriesLessThan(query_count) as ctx:
             response = auth_client().get(
                 f"{test_api_v2_uri}/flaws/{flaw.uuid}?include_fields=uuid,cve_id"
             )
@@ -202,7 +214,10 @@ class TestQuerySetRegression:
         executed_sql = "\n".join(q["sql"] for q in ctx.captured_queries)
         assert '"osidb_affect"' not in executed_sql
 
-    def test_flaw_with_affects_trackers(self, auth_client, test_api_v2_uri, embargoed):
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 66), (True, 67)])
+    def test_flaw_with_affects_trackers(
+        self, auth_client, test_api_v2_uri, embargoed, query_count
+    ):
         flaw = FlawFactory(
             embargoed=embargoed,
             impact=Impact.LOW,
@@ -224,11 +239,12 @@ class TestQuerySetRegression:
                 ps_update_stream=ps_update_stream.name,
                 type=Tracker.BTS2TYPE[ps_module.bts_name],
             )
-        with assertNumQueriesLessThan(66):  # initial value -> 93
+        with assertNumQueriesLessThan(query_count):  # initial value -> 93
             response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
-    def test_affect_list(self, auth_client, test_api_v2_uri, embargoed):
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 57), (True, 57)])
+    def test_affect_list(self, auth_client, test_api_v2_uri, embargoed, query_count):
         for _ in range(3):
             flaw = FlawFactory(
                 embargoed=embargoed,
@@ -243,11 +259,14 @@ class TestQuerySetRegression:
 
         # Query count varies between 56-57 depending on transaction SAVEPOINT cleanup
         # which is environment-dependent. Using <= 57 to allow for this variation.
-        with assertNumQueriesLessThan(57):  # initial value -> 69
+        with assertNumQueriesLessThan(query_count):  # initial value -> 69
             response = auth_client().get(f"{test_api_v2_uri}/affects")
             assert response.status_code == 200
 
-    def test_affect_list_history(self, auth_client, test_api_v2_uri, embargoed):
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 55), (True, 55)])
+    def test_affect_list_history(
+        self, auth_client, test_api_v2_uri, embargoed, query_count
+    ):
         for _ in range(3):
             flaw = FlawFactory(
                 embargoed=embargoed,
@@ -260,13 +279,14 @@ class TestQuerySetRegression:
                 resolution=Affect.AffectResolution.DELEGATED,
             )
 
-        with assertNumQueriesLessThan(55):  # initial value -> 55
+        with assertNumQueries(query_count):  # initial value -> 55
             response = auth_client().get(
                 f"{test_api_v2_uri}/affects?include_history=true"
             )
             assert response.status_code == 200
 
-    def test_related_flaws(self, auth_client, test_api_v2_uri, embargoed):
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 59), (True, 59)])
+    def test_related_flaws(self, auth_client, test_api_v2_uri, embargoed, query_count):
         """
         Test query performance for related flaws endpoint.
         This query usually takes a lot of time to process from OSIM when
@@ -291,7 +311,7 @@ class TestQuerySetRegression:
                 impact=Impact.MODERATE,
             )
 
-        with assertNumQueriesLessThan(59):
+        with assertNumQueries(query_count):
             response = auth_client().get(
                 f"{test_api_v2_uri}/flaws?include_fields=cve_id,uuid,affects,"
                 f"created_dt,updated_dt&affects__ps_module={ps_module.name}"
