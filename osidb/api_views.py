@@ -713,7 +713,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
 
         exclude_fields_param = request.query_params.get("exclude_fields") or ""
         exclude_fields = {
-            f.strip() for f in exclude_fields_param.split(",") if f and f.strip()
+            s for f in exclude_fields_param.split(",") if (s := f.strip())
         }
         return field_name in exclude_fields
 
@@ -734,7 +734,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
             return None
 
         include_fields = {
-            f.strip() for f in include_fields_param.split(",") if f and f.strip()
+            s for f in include_fields_param.split(",") if (s := f.strip())
         }
 
         top_level = set()
@@ -760,9 +760,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         # Avoid expensive affects prefetch when affects are excluded from the response.
         # (exclude_fields is handled at serializer-level; this makes DB fetching match it.)
         if not self._exclude_fields_contains("affects"):
-            if include_fields is None:
-                prefetch_related.extend(self._AFFECTS_PREFETCH_RELATED)
-            elif "affects" in include_fields:
+            if include_fields is None or "affects" in include_fields:
                 prefetch_related.extend(self._AFFECTS_PREFETCH_RELATED)
             elif "trackers" in include_fields:
                 # "trackers" is computed from affects; only prefetch what's needed for that.

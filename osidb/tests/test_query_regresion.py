@@ -42,7 +42,7 @@ class TestQuerySetRegression:
     executed by the endpoint to a known good value.
     """
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 113), (True, 114)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 63), (True, 62)])
     def test_flaw_list(self, auth_client, test_api_v2_uri, embargoed, query_count):
         for _ in range(3):
             flaw = FlawFactory(
@@ -166,8 +166,9 @@ class TestQuerySetRegression:
                 f"{test_api_v2_uri}/flaws/{flaw.uuid}?exclude_fields=affects,trackers"
             )
             assert response.status_code == 200
-            assert "affects" not in response.json()
-            assert "trackers" not in response.json()
+            data = response.json()
+            assert "affects" not in data
+            assert "trackers" not in data
 
         # Excluding affects and trackers should avoid the heavy Affect manager queryset (annotations/subqueries).
         executed_sql = "\n".join(
@@ -176,7 +177,7 @@ class TestQuerySetRegression:
         assert "affects" not in executed_sql
         assert "trackers" not in executed_sql
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 109), (True, 110)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 50), (True, 50)])
     def test_flaw_include_fields_does_not_prefetch_affects(
         self, auth_client, test_api_v2_uri, embargoed, query_count
     ):
