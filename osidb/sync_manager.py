@@ -15,6 +15,56 @@ from osidb.core import set_user_acls
 logger = get_task_logger(__name__)
 
 
+def _sync_jira_trackers(flaw):
+    """
+    Sync Jira trackers for a flaw with updated Bugzilla information.
+    Primarily used to add the flaw:bz# label to the Jira trackers.
+
+    Preconditions (validated by caller):
+    - Jira sync is enabled (SYNC_TO_JIRA and JIRA_TOKEN are set)
+    - Flaw has a bz_id
+
+    Returns:
+        tuple: (successful_updates, failed_updates)
+    """
+
+    from collectors.jiraffe.constants import JIRA_TOKEN
+    from osidb.models.tracker import Tracker
+
+    successful = 0
+    failed = 0
+
+    trackers = (
+        Tracker.objects.filter(
+            affects__flaw=flaw,
+            type=Tracker.TrackerType.JIRA,
+        )
+        .exclude(external_system_id="")
+        .distinct()
+    )
+
+    if not trackers.exists():
+        return successful, failed
+
+    for tracker in trackers:
+        try:
+            tracker.save(jira_token=JIRA_TOKEN, raise_validation_error=False)
+            successful += 1
+        except Exception as e:
+            failed += 1
+            logger.error(
+                f"Failed to update Jira tracker {tracker.external_system_id} for flaw {flaw.uuid}: {e}",
+                extra={
+                    "flaw_uuid": str(flaw.uuid),
+                    "bz_id": flaw.bz_id,
+                    "tracker_external_system_id": tracker.external_system_id,
+                },
+                exc_info=True,
+            )
+
+    return successful, failed
+
+
 class SyncManager(models.Model):
     """
     Abstract model to handle synchronization of some OSIDB data with external system like Bugzilla
@@ -688,6 +738,41 @@ class BZSyncManager(SyncManager):
         from osidb.models import Flaw
 
         Flaw.objects.filter(uuid=self.sync_id).update(bzsync_manager=self)
+
+    @classmethod
+    def finished(cls, sync_id):
+        from apps.trackers.constants import SYNC_TO_JIRA
+        from collectors.jiraffe.constants import JIRA_TOKEN
+        from osidb.models import Flaw
+
+        super().finished(sync_id)
+
+        if not SYNC_TO_JIRA or not JIRA_TOKEN:
+            return
+
+        # Post-BZ-sync: Sync Jira trackers to make sure that
+        # they have the the flaw:bz# label.
+        try:
+            flaw = Flaw.objects.get(uuid=sync_id)
+        except Flaw.DoesNotExist:
+            logger.error(f"Post-BZ-sync Jira update for {sync_id}: Flaw not found")
+            return
+
+        if not flaw.bz_id:
+            logger.debug(f"Post-BZ-sync Jira update for {sync_id}: No bz_id, skipping")
+            return
+
+        successful, failed = _sync_jira_trackers(flaw)
+        if successful:
+            logger.info(
+                f"Post-BZ-sync Jira update for {sync_id}: "
+                f"Updated {successful} tracker(s) with bz_id label"
+            )
+        if failed:
+            logger.warning(
+                f"Post-BZ-sync Jira update for {sync_id}: "
+                f"Failed to update {failed} tracker(s)"
+            )
 
 
 class JiraTaskDownloadManager(SyncManager):
