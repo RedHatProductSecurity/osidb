@@ -742,12 +742,8 @@ class Flaw(
         Check if CWE string is well formated
         """
         cwe_data = self.cwe_id
-        # First, remove possible [auto] suffix from the CWE entry
-        # [auto] suffix means value was assigned by a script during mass update
-        if len(cwe_data) > 6 and cwe_data.endswith("[auto]"):
-            cwe_data = cwe_data[:-6]
 
-        # Then split data on arrows ->, later we will parse the elements separately
+        # Split data on arrows ->, later we will parse the elements separately
         arrow_count = len(re.findall("->", cwe_data))
         parsed_elements = list(filter(None, cwe_data.split("->")))
 

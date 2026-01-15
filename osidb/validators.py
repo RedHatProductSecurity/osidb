@@ -14,7 +14,7 @@ from django.utils import timezone
 # regex validation patterns
 CVE_RE_STR = re.compile(r"CVE-(?:1999|2\d{3})-(?!0{4})(?:0\d{3}|[1-9]\d{3,})")
 # TODO CWE syntax is a lot more complicated so this captures only the basic ones
-CWE_RE_STR = re.compile(r"CWE-[1-9]\d*(\[auto\])?", flags=re.IGNORECASE)
+CWE_RE_STR = re.compile(r"CWE-[1-9]\d*", flags=re.IGNORECASE)
 
 
 def restrict_regex(regex):

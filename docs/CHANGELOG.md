@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Removed
+- Remove legacy \[auto\] suffix from CWE IDs and remove related validation bypass (OSIDB-4730)
+
 ## [5.4.0] - 2026-01-13
 ### Changed
 - Rework alert serializer (OSIDB-4314)
