@@ -1572,11 +1572,26 @@ class FlawAffectsTrackersField(serializers.Field):
     """All Tracker keys from all Flaw Affects are serialized into one list"""
 
     def to_representation(self, value):
-        trackers = set()
-        for affect in value.affects.all():
-            if affect.tracker:
-                trackers.update([affect.tracker.external_system_id])
-        return list(trackers)
+        # Important: the default Affect manager adds heavy annotations/subqueries.
+        # For just listing tracker IDs we want a minimal query, unless affects were
+        # already prefetched (in which case reuse the prefetched objects).
+        prefetched = getattr(value, "_prefetched_objects_cache", {})
+        if "affects" in prefetched:
+            return list(
+                {
+                    affect.tracker.external_system_id
+                    for affect in value.affects.all()
+                    if affect.tracker
+                }
+            )
+
+        return list(
+            set(
+                Affect._base_manager.filter(flaw_id=value.pk, tracker__isnull=False)
+                .values_list("tracker__external_system_id", flat=True)
+                .distinct()
+            )
+        )
 
 
 class FlawAcknowledgmentSerializer(

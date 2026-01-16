@@ -662,22 +662,7 @@ class FlawIntrospectionView(RudimentaryUserPathLoggingMixin, APIView):
     ),
 )
 class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
-    queryset = Flaw.objects.prefetch_related(
-        "acknowledgments",
-        "affects",
-        "affects__cvss_scores",
-        "affects__tracker",
-        "affects__tracker__errata",
-        "affects__tracker__affects",
-        "comments",
-        "cvss_scores",
-        "package_versions",
-        "references",
-        "labels",
-        "alerts",
-        "affects__alerts",
-        "affects__tracker__alerts",
-    ).all()
+    queryset = Flaw.objects.all()
     serializer_class = FlawSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = FlawFilter
@@ -686,6 +671,104 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
     # nor a defined procedure to make a flaw being considered deleted
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    _BASE_PREFETCH_RELATED = (
+        "acknowledgments",
+        "comments",
+        "cvss_scores",
+        "package_versions",
+        "references",
+        "labels",
+        "alerts",
+    )
+    _AFFECTS_PREFETCH_RELATED = (
+        "affects",
+        "affects__cvss_scores",
+        "affects__tracker",
+        "affects__tracker__errata",
+        "affects__tracker__affects",
+        "affects__alerts",
+        "affects__tracker__alerts",
+    )
+    _AFFECTS_PREFETCH_RELATED_FOR_TRACKERS = (
+        "affects",
+        "affects__tracker",
+    )
+
+    _PREFETCH_RELATED_BY_FIELD = {
+        "acknowledgments": ("acknowledgments",),
+        "comments": ("comments",),
+        "cvss_scores": ("cvss_scores",),
+        "package_versions": ("package_versions",),
+        "references": ("references",),
+        "labels": ("labels",),
+        "alerts": ("alerts",),
+        # "affects" and "trackers" handled explicitly below because they are more nuanced.
+    }
+
+    def _exclude_fields_contains(self, field_name: str) -> bool:
+        request = getattr(self, "request", None)
+        if request is None:
+            return False
+
+        exclude_fields_param = request.query_params.get("exclude_fields") or ""
+        exclude_fields = {
+            s for f in exclude_fields_param.split(",") if (s := f.strip())
+        }
+        return field_name in exclude_fields
+
+    def _include_fields_top_level(self) -> set[str] | None:
+        """
+        Return top-level fields requested via include_fields.
+
+        Examples:
+          - include_fields=uuid,cve_id -> {"uuid", "cve_id"}
+          - include_fields=affects.uuid,uuid -> {"affects", "uuid"}
+        """
+        request = getattr(self, "request", None)
+        if request is None:
+            return None
+
+        include_fields_param = request.query_params.get("include_fields")
+        if not include_fields_param:
+            return None
+
+        include_fields = {
+            s for f in include_fields_param.split(",") if (s := f.strip())
+        }
+
+        top_level = set()
+        for f in include_fields:
+            top_level.add(f.split(".", maxsplit=1)[0])
+        return top_level
+
+    def get_queryset(self):
+        queryset = Flaw.objects.all()
+        include_fields = self._include_fields_top_level()
+
+        # Prefetch only what we need. If include_fields is not provided, behave like
+        # the default API response and prefetch common relations.
+        prefetch_related: list[str] = []
+        if include_fields is None:
+            prefetch_related.extend(self._BASE_PREFETCH_RELATED)
+        else:
+            for field_name in include_fields:
+                prefetch_related.extend(
+                    self._PREFETCH_RELATED_BY_FIELD.get(field_name, ())
+                )
+
+        # Avoid expensive affects prefetch when affects are excluded from the response.
+        # (exclude_fields is handled at serializer-level; this makes DB fetching match it.)
+        if not self._exclude_fields_contains("affects"):
+            if include_fields is None or "affects" in include_fields:
+                prefetch_related.extend(self._AFFECTS_PREFETCH_RELATED)
+            elif "trackers" in include_fields:
+                # "trackers" is computed from affects; only prefetch what's needed for that.
+                prefetch_related.extend(self._AFFECTS_PREFETCH_RELATED_FOR_TRACKERS)
+
+        if prefetch_related:
+            queryset = queryset.prefetch_related(*prefetch_related)
+        return queryset.all()
 
     def get_object(self):
         # from https://www.django-rest-framework.org/api-guide/generic-views/#methods
