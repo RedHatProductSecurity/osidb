@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Performance issue on v2 Flaw endpoint with include/exclude queryparams.
 - Added lost indexes for AffectsV1 and tests to ensure they are not deleted (OSIDB-4717).
 
+## Removed
+- Remove CWE ID collection from collectors (OSIDB-4742)
+
 ## [5.4.1] - 2026-01-15
 ### Removed
 - Remove legacy \[auto\] suffix from CWE IDs and remove related validation bypass (OSIDB-4730)
