@@ -1152,14 +1152,14 @@ class Flaw(
         jtq.transition_task(self)
 
     task_download_manager = models.ForeignKey(
-        JiraTaskDownloadManager, null=True, blank=True, on_delete=models.CASCADE
+        JiraTaskDownloadManager, null=True, blank=True, on_delete=models.SET_NULL
     )
     task_sync_manager = models.ForeignKey(
-        JiraTaskSyncManager, null=True, blank=True, on_delete=models.CASCADE
+        JiraTaskSyncManager, null=True, blank=True, on_delete=models.SET_NULL
     )
     task_transition_manager = models.ForeignKey(
-        JiraTaskTransitionManager, null=True, blank=True, on_delete=models.CASCADE
+        JiraTaskTransitionManager, null=True, blank=True, on_delete=models.SET_NULL
     )
     bzsync_manager = models.ForeignKey(
-        BZSyncManager, null=True, blank=True, on_delete=models.CASCADE
+        BZSyncManager, null=True, blank=True, on_delete=models.SET_NULL
     )
