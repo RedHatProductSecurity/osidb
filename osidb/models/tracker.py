@@ -537,8 +537,8 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         return FlawReference.objects.filter(flaw__in=flaws)
 
     bz_download_manager = models.ForeignKey(
-        BZTrackerDownloadManager, null=True, blank=True, on_delete=models.CASCADE
+        BZTrackerDownloadManager, null=True, blank=True, on_delete=models.SET_NULL
     )
     jira_download_manager = models.ForeignKey(
-        JiraTrackerDownloadManager, null=True, blank=True, on_delete=models.CASCADE
+        JiraTrackerDownloadManager, null=True, blank=True, on_delete=models.SET_NULL
     )
