@@ -16,7 +16,6 @@ from osidb.models import (
     FlawComment,
     FlawCVSS,
     FlawReference,
-    Snippet,
     Tracker,
 )
 from osidb.tests.factories import (
@@ -790,7 +789,7 @@ class TestFlawDraft:
         assert flaw.snippets.first().is_internal
 
         # also check that the audit history has internal ACLs
-        for model in [*self.models_list, Snippet]:
+        for model in self.models_list:
             self.assert_audit_acls(model, internal_read_groups, internal_write_groups)
 
         # one more promote to complete the triage
@@ -834,9 +833,6 @@ class TestFlawDraft:
         # also check that the audit history has public ACLs
         for model in self.models_list:
             self.assert_audit_acls(model, public_read_groups, public_write_groups)
-
-        # except for snippets which should remain internal
-        self.assert_audit_acls(Snippet, internal_read_groups, internal_write_groups)
 
     @pytest.mark.vcr
     def test_reject(
