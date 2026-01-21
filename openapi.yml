@@ -3399,7 +3399,6 @@ paths:
             - -requires_cve_description
             - -source
             - -statement
-            - -team_id
             - -title
             - -unembargo_dt
             - -updated_dt
@@ -3441,7 +3440,6 @@ paths:
             - requires_cve_description
             - source
             - statement
-            - team_id
             - title
             - unembargo_dt
             - updated_dt
@@ -3895,19 +3893,6 @@ paths:
         name: statement__isempty
         schema:
           type: boolean
-      - in: query
-        name: team_id
-        schema:
-          type: string
-      - in: query
-        name: team_id__in
-        schema:
-          type: array
-          items:
-            type: string
-        description: Multiple values may be separated by commas.
-        explode: false
-        style: form
       - in: query
         name: title
         schema:
@@ -6753,6 +6738,7 @@ paths:
           - tr
           - tt
           - udm
+          - ug
           - ug
           - uk
           - ur
@@ -10745,7 +10731,6 @@ paths:
             - -requires_cve_description
             - -source
             - -statement
-            - -team_id
             - -title
             - -unembargo_dt
             - -updated_dt
@@ -10807,7 +10792,6 @@ paths:
             - requires_cve_description
             - source
             - statement
-            - team_id
             - title
             - unembargo_dt
             - updated_dt
@@ -11261,19 +11245,6 @@ paths:
         name: statement__isempty
         schema:
           type: boolean
-      - in: query
-        name: team_id
-        schema:
-          type: string
-      - in: query
-        name: team_id__in
-        schema:
-          type: array
-          items:
-            type: string
-        description: Multiple values may be separated by commas.
-        explode: false
-        style: form
       - in: query
         name: title
         schema:
@@ -14569,9 +14540,6 @@ components:
               - DONE
               - REJECTED
           readOnly: true
-        group_key:
-          type: string
-          maxLength: 60
         owner:
           type: string
           maxLength: 60
@@ -14579,9 +14547,6 @@ components:
           type: string
           readOnly: true
           nullable: true
-        team_id:
-          type: string
-          maxLength: 8
         alerts:
           type: array
           items:
@@ -15341,15 +15306,9 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        group_key:
-          type: string
-          maxLength: 60
         owner:
           type: string
           maxLength: 60
-        team_id:
-          type: string
-          maxLength: 8
       required:
       - comment_zero
       - embargoed
@@ -15495,9 +15454,6 @@ components:
               - DONE
               - REJECTED
           readOnly: true
-        group_key:
-          type: string
-          maxLength: 60
         owner:
           type: string
           maxLength: 60
@@ -15505,9 +15461,6 @@ components:
           type: string
           readOnly: true
           nullable: true
-        team_id:
-          type: string
-          maxLength: 8
         alerts:
           type: array
           items:
@@ -15751,15 +15704,9 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
-        group_key:
-          type: string
-          maxLength: 60
         owner:
           type: string
           maxLength: 60
-        team_id:
-          type: string
-          maxLength: 8
       required:
       - comment_zero
       - embargoed
@@ -16007,9 +15954,6 @@ components:
               - DONE
               - REJECTED
           readOnly: true
-        group_key:
-          type: string
-          maxLength: 60
         owner:
           type: string
           maxLength: 60
@@ -16017,9 +15961,6 @@ components:
           type: string
           readOnly: true
           nullable: true
-        team_id:
-          type: string
-          maxLength: 8
         alerts:
           type: array
           items:
@@ -16125,15 +16066,9 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
-        group_key:
-          type: string
-          maxLength: 60
         owner:
           type: string
           maxLength: 60
-        team_id:
-          type: string
-          maxLength: 8
       required:
       - comment_zero
       - embargoed

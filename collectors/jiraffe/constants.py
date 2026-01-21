@@ -34,8 +34,6 @@ JIRA_METADATA_COLLECTOR_ENABLED = get_env(
 
 TASK_CHANGELOG_FIELD_MAPPING = {
     "assignee": ["owner"],
-    "customfield_10001": ["team_id"],
-    "customfield_10014": ["group_key"],
     "status": ["workflow_name", "workflow_state"],
     "resolution": ["workflow_name", "workflow_state"],
 }
