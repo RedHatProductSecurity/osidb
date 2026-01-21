@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from osidb.mixins import AlertMixin
+from osidb.mixins import AlertMixin, validator
 from osidb.models import ComparableTextChoices
 from osidb.models.fields import PURLField
 
@@ -14,6 +14,7 @@ class AlertableModelBasic(AlertMixin):
 class AlertableModel(AlertMixin):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
+    @validator
     def _validate_test(self, **kwargs):
         """
         Creates a new alert when validate() method runs.

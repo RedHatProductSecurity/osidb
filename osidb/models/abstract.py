@@ -10,7 +10,13 @@ from cvss import CVSS2, CVSS3, CVSS4, CVSSError
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from osidb.mixins import ACLMixin, AlertMixin, NullStrFieldsMixin, TrackingMixin
+from osidb.mixins import (
+    ACLMixin,
+    AlertMixin,
+    NullStrFieldsMixin,
+    TrackingMixin,
+    validator,
+)
 
 
 class ComparableTextChoices(models.TextChoices):
@@ -126,6 +132,7 @@ class CVSS(AlertMixin, ACLMixin, NullStrFieldsMixin, TrackingMixin):
         cvss_handle = self.CVSS_HANDLES[self.version]
         return cvss_handle(self.vector)
 
+    @validator
     def _validate_cvss_string(self, **kwargs):
         """
         Use the cvss library to validate the CVSS vector string.
@@ -137,6 +144,7 @@ class CVSS(AlertMixin, ACLMixin, NullStrFieldsMixin, TrackingMixin):
                 f"Invalid CVSS: Malformed {self.full_version} string: {e}"
             )
 
+    @validator
     def _validate_cvss_comment(self, **kwargs):
         """
         For non-Red-Hat-issued CVSSs, the comment attribute should be blank.
