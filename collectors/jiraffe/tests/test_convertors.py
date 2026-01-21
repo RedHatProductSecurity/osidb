@@ -380,7 +380,6 @@ class TestJiraTaskConvertor:
 
         assert flaw is not None
         assert flaw.task_key == self.task_id
-        assert flaw.team_id == ""
         assert flaw.task_updated_dt == datetime.datetime(
             2025, 9, 8, 9, 25, 14, 405000, tzinfo=datetime.timezone.utc
         )

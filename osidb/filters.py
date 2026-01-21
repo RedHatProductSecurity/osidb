@@ -592,6 +592,9 @@ class FlawFilter(
         issuer=FlawCVSS.CVSSIssuer.NIST, version=FlawCVSS.CVSSVersion.VERSION4
     )
 
+    team_id = CharFilter(field_name="team_id")
+    team_id__in = CharInFilter(field_name="team_id")
+
     def query_filter(self, queryset, name, value):
         return apply_search(queryset, value, schema=FlawQLSchema).distinct()
 
@@ -689,7 +692,6 @@ class FlawFilter(
             # Workflow fields
             "workflow_state": ["exact"],
             "owner": ["exact"],
-            "team_id": ["exact"],
             # Affect fields
             "affects__uuid": ["exact"],
             "affects__affectedness": ["exact"],
@@ -777,6 +779,7 @@ class FlawFilter(
         "statement",
         "cve_description",
         "title",
+        "team_id",  # TODO: deprecated, remove upon major release
     ] + list(Meta.fields.keys())
     order = DistinctOrderingFilter(fields=order_fields)
 
@@ -1063,7 +1066,6 @@ class FlawV1Filter(FlawFilter):
             # Workflow fields
             "workflow_state": ["exact"],
             "owner": ["exact"],
-            "team_id": ["exact"],
             # Acknowledgment fields
             "acknowledgments__uuid": ["exact"],
             "acknowledgments__name": ["exact"],
@@ -1114,6 +1116,7 @@ class FlawV1Filter(FlawFilter):
         "statement",
         "cve_description",
         "title",
+        "team_id",  # TODO: deprecated, remove upon major release
     ] + list(Meta.fields.keys())
     order = DistinctOrderingFilter(fields=order_fields)
 

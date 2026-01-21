@@ -1066,10 +1066,8 @@ class TestFlawDraftBBSyncIntegration:
         assert flaw.title == f"From {source} collector"
 
         # check values related to taskman
-        assert flaw.group_key == ""
         assert flaw.owner == ""
         assert flaw.task_key
-        assert flaw.team_id == ""
         assert flaw.workflow_name == "DEFAULT"
         assert flaw.workflow_state == "NEW"
 

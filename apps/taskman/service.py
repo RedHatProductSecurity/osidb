@@ -130,16 +130,9 @@ class JiraTaskmanQuerier(JiraQuerier):
                     fields=data["fields"], prefetch=True
                 )
                 flaw.task_key = issue.key
-                if flaw.team_id:  # Jira does not allow setting team during creation
-                    self.create_or_update_task(
-                        flaw,
-                        check_token=False,  # no need to check the token again
-                    )
                 return flaw.task_key
             else:  # task exists; update
                 url = f"{self.jira_conn._get_url('issue')}/{flaw.task_key}"
-                if flaw.team_id:
-                    data["fields"]["customfield_10001"] = flaw.team_id
                 self.jira_conn._session.put(url, json.dumps(data))
         except JIRAError as e:
             creating = not flaw.task_key
@@ -241,9 +234,6 @@ class JiraTaskmanQuerier(JiraQuerier):
                 "assignee": {"name": flaw.owner},
             }
         }
-
-        if flaw.group_key:
-            data["fields"]["customfield_10014"] = flaw.group_key
 
         return data
 
