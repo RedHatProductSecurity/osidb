@@ -73,8 +73,6 @@ class JiraTaskConvertor:
             "jira_resolution": resolution,
             "workflow_state": state,
             "workflow_name": workflow,
-            "team_id": self.get_field_attr(self._raw, "customfield_10001", "id"),
-            "group_key": self.get_field_attr(self._raw, "customfield_10014"),
             "task_updated_dt": datetime.strptime(
                 self.get_field_attr(self._raw, "updated"), JIRA_DT_FULL_FMT
             ),
@@ -176,7 +174,6 @@ class JiraTaskSaver:
         # only update the fields which are supposed
         # to be potentially influenced by the collector
         task_attributes = [
-            "team_id",
             "task_key",
             "task_updated_dt",
             "owner",

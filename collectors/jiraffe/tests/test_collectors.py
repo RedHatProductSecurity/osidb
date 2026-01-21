@@ -104,8 +104,6 @@ class TestJiraTaskCollector:
             "workflow_state": "REJECTED",
             "workflow_name": "REJECTED",
             "owner": "skynet",
-            "group_key": "SKYNET_ROBOTS",
-            "team_id": "ROBOTS",
         }
         for field, value in new_values.items():
             setattr(flaw, field, value)

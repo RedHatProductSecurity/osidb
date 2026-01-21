@@ -189,10 +189,8 @@ class WorkflowModel(models.Model):
         default=WorkflowState.NOVALUE,
     )
     owner = models.CharField(max_length=60, blank=True)
-    group_key = models.CharField(max_length=60, blank=True)
     task_key = models.CharField(max_length=60, blank=True)
     task_updated_dt = models.DateTimeField(null=True, blank=True)
-    team_id = models.CharField(max_length=8, blank=True)
 
     class Meta:
         abstract = True

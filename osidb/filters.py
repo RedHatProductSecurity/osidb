@@ -689,7 +689,6 @@ class FlawFilter(
             # Workflow fields
             "workflow_state": ["exact"],
             "owner": ["exact"],
-            "team_id": ["exact"],
             # Affect fields
             "affects__uuid": ["exact"],
             "affects__affectedness": ["exact"],
@@ -1063,7 +1062,6 @@ class FlawV1Filter(FlawFilter):
             # Workflow fields
             "workflow_state": ["exact"],
             "owner": ["exact"],
-            "team_id": ["exact"],
             # Acknowledgment fields
             "acknowledgments__uuid": ["exact"],
             "acknowledgments__name": ["exact"],

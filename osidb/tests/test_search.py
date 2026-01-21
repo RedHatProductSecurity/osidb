@@ -204,7 +204,6 @@ class TestSearch:
             cve_description="cve_description",
             embargoed=False,
             statement="statement",
-            team_id=1234,
             owner="example@redhat.com",
             workflow_state="TRIAGE",
         )
@@ -215,7 +214,6 @@ class TestSearch:
             cve_description="spooky flaw",
             embargoed=False,
             statement="other",
-            team_id=1235,
             owner="example_two@redhat.com",
             workflow_state="NEW",
         )
@@ -239,11 +237,6 @@ class TestSearch:
         assert body["count"] == 1
 
         response = auth_client().get(f"{test_api_uri}/flaws?statement=statement")
-        assert response.status_code == 200
-        body = response.json()
-        assert body["count"] == 1
-
-        response = auth_client().get(f"{test_api_uri}/flaws?team_id=1234")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1

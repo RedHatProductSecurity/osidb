@@ -45,7 +45,6 @@ class TestTaskmanService(object):
 
         flaw.title = new_title
         flaw.owner = "concosta@redhat.com"
-        flaw.team_id = "2861"
         flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
         flaw.save()
 
