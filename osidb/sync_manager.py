@@ -17,7 +17,7 @@ logger = get_task_logger(__name__)
 
 class SyncManager(models.Model):
     """
-    Abstract model to handle synchronization of some OSIDB data with external system like Bugzilla
+    Model to handle synchronization of some OSIDB data with external system like Bugzilla
     or Jira. Its purpose is to handle scheduling Celery tasks, storing meta-data about when those
     tasks were processed, and re-scheduling tasks when necessary.
 
@@ -30,6 +30,9 @@ class SyncManager(models.Model):
     - The queued tasks should be idempotent or close to idempotent
         (it shouldn't matter if a task fails or if it runs multiple times, the end
          result should be the same in the end).
+
+    Models inheriting from this one should be marked as `proxy = True` in their `Meta`
+    class.
     """
 
     class SyncManagerMode:
@@ -50,7 +53,8 @@ class SyncManager(models.Model):
     MODE = SyncManagerMode.DEFAULT
     COUNTDOWN = 60  # Default countdown for exclusive mode
 
-    sync_id = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=None)
+    sync_id = models.CharField(max_length=None)
     last_scheduled_dt = models.DateTimeField(blank=True, null=True)
     last_started_dt = models.DateTimeField(blank=True, null=True)
     last_finished_dt = models.DateTimeField(blank=True, null=True)
@@ -63,12 +67,18 @@ class SyncManager(models.Model):
     last_consecutive_reschedules = models.IntegerField(default=0)
 
     class Meta:
-        abstract = True
+        constraints = [
+            models.UniqueConstraint(
+                fields=["name", "sync_id"],
+                name="unique_name_sync_id_sync_manager",
+            )
+        ]
 
     def __str__(self):
         self.refresh_from_db()
         result = ""
         result += f"Sync ID: {self.sync_id}\n"
+        result += f"Manager: {self.name}\n"
         result += f"Scheduled: {self.last_scheduled_dt}\n"
         result += f"Started: {self.last_started_dt}\n"
         result += f"Finished: {self.last_finished_dt}\n"
@@ -91,7 +101,15 @@ class SyncManager(models.Model):
         """
         Override this task to update links from updated models to this sync manager.
         """
-        raise NotImplementedError("Update synced links not implemented.")
+        # NOTE: The link already exists but is implicit: given a manager name
+        # and a sync_id one can fetch all succeeded/failed/etc. sync managers
+        # in e.g. the past 24h with a single query:
+        # SyncManager.objects.filter(
+        #     name="BZTrackerDownloadManager",
+        #     sync_id="12345",
+        #     last_finished_dt__gte=timezone.now() - timedelta(hours=24),
+        # )
+        return NotImplemented
 
     @classmethod
     def check_conflicting_sync_managers(
@@ -114,8 +132,11 @@ class SyncManager(models.Model):
         if schedule_options is None:
             schedule_options = {}
 
-        created = cls.objects.get_or_create(sync_id=sync_id)[1]
-        cls.objects.filter(sync_id=sync_id).update(last_scheduled_dt=timezone.now())
+        _, created = SyncManager.objects.update_or_create(
+            name=cls.__name__,
+            sync_id=sync_id,
+            defaults={"last_scheduled_dt": timezone.now()},
+        )
 
         if not created and cls.MODE == cls.SyncManagerMode.EXCLUSIVE:
             # Check if the task needs to be rescheduled
@@ -135,7 +156,7 @@ class SyncManager(models.Model):
 
         # Create model linkage if possible to make checking for conflicting
         # sync managers possible
-        manager = cls.objects.get(sync_id=sync_id)
+        manager = cls.objects.get(name=cls.__name__, sync_id=sync_id)
         manager.update_synced_links()
 
         def schedule_task():
@@ -181,7 +202,7 @@ class SyncManager(models.Model):
                 "Conflicting sync managers check not implemented"
             )
 
-        manager = cls.objects.get(sync_id=sync_id)
+        manager = cls.objects.get(name=cls.__name__, sync_id=sync_id)
 
         # Check if task should really run, maybe it was scheduled more times
         # and already executed? In that case revoke it.
@@ -191,7 +212,9 @@ class SyncManager(models.Model):
         ):
             manager.revoke_sync_task(celery_task)
 
-        cls.objects.filter(sync_id=sync_id).update(last_started_dt=timezone.now())
+        SyncManager.objects.filter(name=cls.__name__, sync_id=sync_id).update(
+            last_started_dt=timezone.now()
+        )
         logger.info(f"{cls.__name__} {sync_id}: Sync started")
 
     @classmethod
@@ -201,10 +224,10 @@ class SyncManager(models.Model):
 
         :param sync_id: Unique ID for synchronized data object.
         """
-        manager = cls.objects.get(sync_id=sync_id)
+        manager = cls.objects.get(name=cls.__name__, sync_id=sync_id)
         manager.update_synced_links()
 
-        cls.objects.filter(sync_id=sync_id).update(
+        SyncManager.objects.filter(name=cls.__name__, sync_id=sync_id).update(
             last_finished_dt=timezone.now(),
             last_consecutive_failures=0,
             last_consecutive_reschedules=0,
@@ -221,7 +244,7 @@ class SyncManager(models.Model):
         :param exception: Exception which caused the failure.
         :param permanent: Set to True if problem cannot be solved by running sync_task later.
         """
-        manager = cls.objects.get(sync_id=sync_id)
+        manager = cls.objects.get(name=cls.__name__, sync_id=sync_id)
         manager.update_synced_links()
 
         updated_last_consecutive_failures = manager.last_consecutive_failures + 1
@@ -232,7 +255,7 @@ class SyncManager(models.Model):
         ):
             updated_permanently_failed = True
 
-        cls.objects.filter(sync_id=sync_id).update(
+        SyncManager.objects.filter(name=cls.__name__, sync_id=sync_id).update(
             last_failed_dt=timezone.now(),
             last_failed_reason=str(exception).strip(),
             last_consecutive_failures=updated_last_consecutive_failures,
@@ -266,10 +289,10 @@ class SyncManager(models.Model):
         :param schedule_options: Dictionary of options to pass to apply_async
         """
 
-        manager = cls.objects.get(sync_id=sync_id)
+        manager = SyncManager.objects.get(name=cls.__name__, sync_id=sync_id)
         updated_last_consecutive_reschedules = manager.last_consecutive_reschedules + 1
 
-        cls.objects.filter(sync_id=sync_id).update(
+        SyncManager.objects.filter(name=cls.__name__, sync_id=sync_id).update(
             last_rescheduled_dt=timezone.now(),
             last_rescheduled_reason=reason,
             last_consecutive_reschedules=updated_last_consecutive_reschedules,
@@ -283,7 +306,7 @@ class SyncManager(models.Model):
         This method needs to be called occasionally to check if any of the existing sync managers
         need to re-schedule tasks for any reason (like previous failure).
         """
-        for sync_manager in cls.objects.all():
+        for sync_manager in SyncManager.objects.filter(name=cls.__name__):
             # TODO: Find a cause and remove this workaround OSIDB-3131
             # TODO: Should be fixed, check from time to time to see if this problem is logged
             if (
@@ -384,7 +407,7 @@ class SyncManager(models.Model):
         3) It hasn’t exceeded MAX_RUN_LENGTH (to catch crashed/hung tasks).
         """
         now = timezone.now()
-        manager = cls.objects.get(sync_id=sync_id)
+        manager = SyncManager.objects.get(name=cls.__name__, sync_id=sync_id)
 
         # 1) Must have started
         if manager.last_started_dt is None:
@@ -416,7 +439,7 @@ class SyncManager(models.Model):
         2) An idle task that has a fresh schedule after its last completion.
         """
 
-        manager = cls.objects.get(sync_id=sync_id)
+        manager = SyncManager.objects.get(name=cls.__name__, sync_id=sync_id)
 
         if cls.is_in_progress(sync_id):
             # During a run, last_rescheduled_dt is set when we defer for retry.
@@ -447,6 +470,9 @@ class BZTrackerDownloadManager(SyncManager):
     """
     Sync manager class for Bugzilla => OSIDB Tracker synchronization.
     """
+
+    class Meta:
+        proxy = True
 
     def __str__(self):
         from osidb.models import Tracker
@@ -582,18 +608,14 @@ class BZTrackerDownloadManager(SyncManager):
         finally:
             collector.free_queriers()
 
-    def update_synced_links(self):
-        from osidb.models import Tracker
-
-        Tracker.objects.filter(external_system_id=self.sync_id).update(
-            bz_download_manager=self
-        )
-
 
 class BZSyncManager(SyncManager):
     """
     Sync manager class for OSIDB => Bugzilla synchronization.
     """
+
+    class Meta:
+        proxy = True
 
     def __str__(self):
         from osidb.models import Flaw
@@ -620,7 +642,9 @@ class BZSyncManager(SyncManager):
         # NOT calling super().schedule() on purpose. If the SyncManager
         # implementation changes, this becomes further technical debt.
 
-        manager, _ = cls.objects.get_or_create(sync_id=sync_id)
+        manager, _ = SyncManager.objects.get_or_create(
+            name=cls.__name__, sync_id=sync_id
+        )
 
         now = timezone.now()
 
@@ -647,7 +671,9 @@ class BZSyncManager(SyncManager):
         if skip:
             logger.info(f"{cls.__name__} {sync_id}: Duplicate schedule skipped")
         else:
-            cls.objects.filter(sync_id=sync_id).update(last_scheduled_dt=now)
+            SyncManager.objects.filter(name=cls.__name__, sync_id=sync_id).update(
+                last_scheduled_dt=now
+            )
 
             def schedule_task():
                 try:
@@ -684,16 +710,14 @@ class BZSyncManager(SyncManager):
         else:
             BZSyncManager.finished(flaw_id)
 
-    def update_synced_links(self):
-        from osidb.models import Flaw
-
-        Flaw.objects.filter(uuid=self.sync_id).update(bzsync_manager=self)
-
 
 class JiraTaskDownloadManager(SyncManager):
     """
     Sync manager class for Jira => OSIDB Task synchronization.
     """
+
+    class Meta:
+        proxy = True
 
     def __str__(self):
         from osidb.models import Flaw
@@ -741,35 +765,33 @@ class JiraTaskDownloadManager(SyncManager):
 
         if existing_flaw:
             for sync_manager_type in related_managers:
-                conflicting_sync_manager = sync_manager_type.objects.filter(
-                    sync_id=existing_flaw.uuid
+                conflicting_sync_manager = SyncManager.objects.filter(
+                    name=sync_manager_type.__name__, sync_id=existing_flaw.uuid
                 ).first()
 
                 if conflicting_sync_manager:
-                    conflicting_pending_sync = conflicting_sync_manager.is_in_progress(
+                    conflicting_pending_sync = sync_manager_type.is_in_progress(
                         existing_flaw.uuid
-                    ) or conflicting_sync_manager.is_scheduled(existing_flaw.uuid)
+                    ) or sync_manager_type.is_scheduled(existing_flaw.uuid)
 
                     if conflicting_pending_sync:
                         logger.info(
                             f"{cls.__name__} {sync_id}: Conflicting sync managers found "
-                            f"({conflicting_sync_manager.__class__.__name__}), postponed for "
+                            f"({sync_manager_type.__name__}), postponed for "
                             f"{countdown} seconds."
                         )
                         cls.schedule(sync_id, schedule_options={"countdown": countdown})
-                        manager = cls.objects.get(sync_id=sync_id)
+                        manager = cls.objects.get(name=cls.__name__, sync_id=sync_id)
                         manager.revoke_sync_task(celery_task)
-
-    def update_synced_links(self):
-        from osidb.models import Flaw
-
-        Flaw.objects.filter(task_key=self.sync_id).update(task_download_manager=self)
 
 
 class JiraTaskSyncManager(SyncManager):
     """
     Sync manager class for OSIDB => Jira Task synchronization.
     """
+
+    class Meta:
+        proxy = True
 
     def __str__(self):
         from osidb.models import Flaw
@@ -805,16 +827,14 @@ class JiraTaskSyncManager(SyncManager):
         else:
             JiraTaskSyncManager.finished(flaw_id)
 
-    def update_synced_links(self):
-        from osidb.models import Flaw
-
-        Flaw.objects.filter(uuid=self.sync_id).update(task_sync_manager=self)
-
 
 class JiraTaskTransitionManager(SyncManager):
     """
     Transition manager class for OSIDB => Jira Task state synchronization.
     """
+
+    class Meta:
+        proxy = True
 
     MODE = SyncManager.SyncManagerMode.EXCLUSIVE
 
@@ -857,16 +877,14 @@ class JiraTaskTransitionManager(SyncManager):
         else:
             JiraTaskTransitionManager.finished(flaw_id)
 
-    def update_synced_links(self):
-        from osidb.models import Flaw
-
-        Flaw.objects.filter(uuid=self.sync_id).update(task_transition_manager=self)
-
 
 class JiraTrackerDownloadManager(SyncManager):
     """
     Sync manager class for Jira => OSIDB Tracker synchronization.
     """
+
+    class Meta:
+        proxy = True
 
     def __str__(self):
         from osidb.models import Tracker
@@ -1001,10 +1019,3 @@ class JiraTrackerDownloadManager(SyncManager):
             JiraTrackerDownloadManager.failed(tracker_id, e)
         else:
             JiraTrackerDownloadManager.finished(tracker_id)
-
-    def update_synced_links(self):
-        from osidb.models import Tracker
-
-        Tracker.objects.filter(external_system_id=self.sync_id).update(
-            jira_download_manager=self
-        )
