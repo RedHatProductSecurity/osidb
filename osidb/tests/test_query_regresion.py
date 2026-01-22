@@ -30,9 +30,7 @@ def assertNumQueriesLessThan(max_queries,data={}, using="default"):
             if exc_type is not None:
                 return
             num_queries = len(self.captured_queries)
-            assert num_queries <= max_queries, (
-                f"{num_queries} queries executed, expected <= {max_queries}"
-            )
+
             embargoed = data.get("embargoed")
             affect_quantity =data.get("affect_quantity")
             expected_queries = data.get("expected_queries")
@@ -40,6 +38,9 @@ def assertNumQueriesLessThan(max_queries,data={}, using="default"):
             if not embargoed:
                 with open("queries.txt", "a") as f:
                     f.write( f'items {affect_quantity} queries {num_queries} time {queries_total_time}\n')
+            assert num_queries <= max_queries, (
+                f"{num_queries} queries executed, expected <= {max_queries}"
+            )
 
     return _AssertNumQueriesLessThan(connection)
 
@@ -332,14 +333,14 @@ class TestQuerySetRegression:
     @pytest.mark.parametrize(
         "embargoed,affect_quantity,expected_queries",
         [
+              (False, 1, 105), # down from 119
+            (False, 10, 249), # down from 389
+            (False, 50, 889), # down from 1589
+            (False, 100, 1689), # down from 3089
             (True, 1, 72),
             (True, 10, 72),
             (True, 50, 72),
             (True, 100, 72),
-            (False, 1, 105), # down from 119
-            (False, 10, 249), # down from 389
-            (False, 50, 889), # down from 1589
-            (False, 100, 1689), # down from 3089
         ],
     )
     def test_flaw_promote(
