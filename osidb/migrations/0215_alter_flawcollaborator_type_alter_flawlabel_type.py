@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0213_purl_subpath_in_affect_v1'),
+        ('osidb', '0214_make_purl_into_purl_field'),
     ]
 
     operations = [

@@ -5,19 +5,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Fixed
+- Fix Performance issue on v2 Flaw endpoint with include/exclude queryparams.
+
+## [5.4.1] - 2026-01-15
+### Removed
+- Remove legacy \[auto\] suffix from CWE IDs and remove related validation bypass (OSIDB-4730)
+
+## [5.4.0] - 2026-01-13
 ### Changed
-- Rework alert serializer (OSIDB-4313)
+- Rework alert serializer (OSIDB-4314)
 - Support unmbargoing for closed trackers (OSIDB-3729)
 - Prioritize affects with subpath in PURL in v1 (OSIDB-4645)
 - Move label creation from SECONDARY_ASSESSMENT to PRE_SECONDARY_ASSESSMENT (OSIDB-4448)
 - Uniqueness on purl or ps_component for affects (OSIDB-4644)
 - Make `ps_module` read-only in the affect serializer (OSIDB-4554)
+- Allow filtering by PURL fields (OSIDB-4728)
 
 ### Added
+- Add `in` filter for API views (OSIDB-4588)
 - Add `alias` label type for incidents (OSIDB-4665)
-- Add subpackage PURLs field (OSIDB-4691)
 - Add settings for enabling/disabling EPSS collector (OSIDB-4677)
 - Add visibility annotated field for ACLMixin models (OSIDB-4709)
+- Add a notification sent to incident commanders on incident state change (OSIDB-3855)
 
 ### Fixed
 - Fix audit history ACL for moving a flaw from internal to public (OSIDB-4215)
@@ -29,17 +39,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Remove vuln mgmt documentation link from description in community trackers (OSIDB-4450)
 
+## [5.3.0] - 2026-01-07
+### Added
+- Add subpackage PURLs field (OSIDB-4691)
+
 ## [5.2.2] - 2025-12-04
 ### Added
 - support for multiple endings 
-- new ending type "no shutdown" [christmas + new year + from jan 2 to jan 7] 
+- new ending type "no shutdown" [christmas + new year + from jan 2 to jan 7]
 
 ## [5.2.1] - 2025-11-13
 ### Fixed
 - Fix tracker grouping in affect v1 materialized view (OSIDB-4642)
-
-### Added
-- Add a notification sent to incident commanders on incident state change (OSIDB-3855)
 
 ## [5.2.0] - 2025-11-12
 ### Changed
@@ -81,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix creation of related objects for public flaws having internal visibility (OSIDB-4552)
 - Fix CVE_id parsing for OSV in linux DB (OSIDB-4548) 
 - Prevent unintended publicizing flaws when workflow state has unexpected value during sync tasks (OSIDB-4446)
+- Fix changing flaw's severity making trackers to temporarily disappear (OSIDB-4069)
 
 ### Added
 - Add query for finding flaw whose non-community affects are missing trackers (OSIDB-4104)

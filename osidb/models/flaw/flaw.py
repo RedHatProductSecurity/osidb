@@ -34,13 +34,13 @@ from osidb.mixins import (
     NullStrFieldsMixin,
     TrackingMixin,
     TrackingMixinManager,
+    validator,
 )
 from osidb.models import FlawSource, Impact, PsModule, SpecialConsiderationPackage
 from osidb.models.fields import CVEIDField
 from osidb.query_sets import CustomQuerySetUpdatedDt
 from osidb.sync_manager import (
     BZSyncManager,
-    JiraTaskDownloadManager,
     JiraTaskSyncManager,
     JiraTaskTransitionManager,
 )
@@ -331,6 +331,7 @@ class Flaw(
 
         super().save(*args, **kwargs)
 
+    @validator
     def _validate_major_incident_state_reset(self, **kwargs) -> None:
         """
         Checks that major_incident_state can't be reset.
@@ -346,6 +347,7 @@ class Flaw(
         ):
             raise ValidationError("Cannot revert major_incident_state back to NOVALUE")
 
+    @validator
     def _validate_rh_nist_cvss_score_diff(self, **kwargs):
         """
         Checks that the difference between the RH and NIST CVSSv3 score is not >= 1.0.
@@ -375,6 +377,7 @@ class Flaw(
                 **kwargs,
             )
 
+    @validator
     def _validate_rh_nist_cvss_severity_diff(self, **kwargs):
         """
         Checks that the NIST and RH CVSSv3 score are not of a different severity.
@@ -415,6 +418,7 @@ class Flaw(
                 **kwargs,
             )
 
+    @validator
     def _validate_rh_products_in_affects(self, **kwargs):
         """
         Returns True if a flaw has RH products in its affects list, False otherwise.
@@ -428,6 +432,7 @@ class Flaw(
         # set() is used because querysets are of different types
         return bool(set(rh_pruducts) & set(flaw_products))
 
+    @validator
     def _validate_nist_rh_cvss_feedback_loop(self, **kwargs):
         """
         Checks whether RH should send a request to NIST on flaw CVSS rescore.
@@ -469,6 +474,7 @@ class Flaw(
                 **kwargs,
             )
 
+    @validator
     def _validate_cvss_scores_and_nist_cvss_validation(self, **kwargs):
         """
         Checks that if nist_cvss_validation is set, then both NIST CVSSv3 and RH CVSSv3
@@ -496,6 +502,7 @@ class Flaw(
                 "NIST CVSSv3 and RH CVSSv3 scores assigned.",
             )
 
+    @validator
     def _validate_impact_and_cve_description(self, **kwargs):
         """
         Checks that if impact has MODERATE, IMPORTANT or CRITICAL value set,
@@ -511,6 +518,7 @@ class Flaw(
                 **kwargs,
             )
 
+    @validator
     def _validate_rh_cvss3_and_impact(self, **kwargs):
         """
         Validate that flaw's RH CVSSv3 score and impact comply with the following:
@@ -537,6 +545,7 @@ class Flaw(
                     **kwargs,
                 )
 
+    @validator
     def _validate_cve_description_and_requires_cve_description(self, **kwargs):
         """
         Checks that if cve_description is missing, then requires_cve_description must not have
@@ -551,6 +560,7 @@ class Flaw(
                 f"missing."
             )
 
+    @validator
     def _validate_requires_cve_description(self, **kwargs):
         """
         Checks that if requires_cve_description was already set to
@@ -570,6 +580,7 @@ class Flaw(
                 "requires_cve_description cannot be unset if it was previously set to something other than NOVALUE"
             )
 
+    @validator
     def _validate_nonempty_source(self, **kwargs):
         """
         checks that the source is not empty
@@ -580,6 +591,7 @@ class Flaw(
         if not self.source:
             raise ValidationError("Source value is required.")
 
+    @validator
     def _validate_embargoed_source(self, **kwargs):
         """
         Checks that the source is private if the Flaw is embargoed.
@@ -604,6 +616,7 @@ class Flaw(
                     f"Flaw is embargoed but contains public source: {self.source}"
                 )
 
+    @validator
     def _validate_reported_date(self, **kwargs):
         """
         Checks that the flaw has non-empty reported_dt
@@ -611,6 +624,7 @@ class Flaw(
         if self.reported_dt is None:
             raise ValidationError("Flaw has an empty reported_dt")
 
+    @validator
     def _validate_public_unembargo_date(self, **kwargs):
         """
         Check that an unembargo date (public date) exists and is in the past if the Flaw is not embargoed
@@ -621,6 +635,7 @@ class Flaw(
             if self.unembargo_dt > timezone.now():
                 raise ValidationError("Non-embargoed flaw has a future unembargo_dt")
 
+    @validator
     def _validate_future_unembargo_date(self, **kwargs):
         """
         Check that an embargoed flaw has an unembargo date in the future.
@@ -643,6 +658,7 @@ class Flaw(
                 "Flaw still embargoed but unembargo date is in the past."
             )
 
+    @validator
     def _validate_cvss3(self, **kwargs):
         """
         Check that a CVSSv3 string is present.
@@ -660,6 +676,7 @@ class Flaw(
                 **kwargs,
             )
 
+    @validator
     def _validate_major_incident_fields(self, **kwargs):
         """
         Validate that a Flaw that is Major Incident complies with the following:
@@ -702,6 +719,7 @@ class Flaw(
                 **kwargs,
             )
 
+    @validator
     def _validate_exploits_kev_fields(self, **kwargs):
         """
         Validate that a Flaw that is a Exploits (KEV) complies with the following:
@@ -725,6 +743,7 @@ class Flaw(
                 **kwargs,
             )
 
+    @validator
     def _validate_embargoing_public_flaw(self, **kwargs):
         """
         Check whether a currently public flaw is being embargoed.
@@ -737,17 +756,14 @@ class Flaw(
         if not old_flaw.embargoed and self.is_embargoed:
             raise ValidationError("Embargoing a public flaw is futile")
 
+    @validator
     def _validate_cwe_format(self, **kwargs):
         """
         Check if CWE string is well formated
         """
         cwe_data = self.cwe_id
-        # First, remove possible [auto] suffix from the CWE entry
-        # [auto] suffix means value was assigned by a script during mass update
-        if len(cwe_data) > 6 and cwe_data.endswith("[auto]"):
-            cwe_data = cwe_data[:-6]
 
-        # Then split data on arrows ->, later we will parse the elements separately
+        # Split data on arrows ->, later we will parse the elements separately
         arrow_count = len(re.findall("->", cwe_data))
         parsed_elements = list(filter(None, cwe_data.split("->")))
 
@@ -766,6 +782,7 @@ class Flaw(
             if not re.match(r"^(CWE-[0-9]+|\(CWE-[0-9]+(\|CWE-[0-9]+)*\))$", element):
                 raise ValidationError("CWE IDs is not well formated.")
 
+    @validator
     def _validate_flaw_without_affect(self, **kwargs):
         """
         Check if flaw have at least one affect
@@ -785,6 +802,7 @@ class Flaw(
                 **kwargs,
             )
 
+    @validator
     def _validate_nonempty_components(self, **kwargs):
         """
         check that the component list is not empty
@@ -795,6 +813,7 @@ class Flaw(
         if not self.components:
             raise ValidationError("Components value is required.")
 
+    @validator
     def _validate_unsupported_impact_change(self, **kwargs):
         """
         Check that an update of a flaw with open trackers does not change between
@@ -838,6 +857,7 @@ class Flaw(
                 **kwargs,
             )
 
+    @validator
     def _validate_no_placeholder(self, **kwargs):
         """
         restrict any write operations on placeholder flaws
@@ -850,6 +870,7 @@ class Flaw(
                 "OSIDB does not support write operations on placeholder flaws"
             )
 
+    @validator
     def _validate_special_consideration_flaw(self, **kwargs):
         """
         Checks that a flaw affecting special consideration package(s) has both
@@ -878,6 +899,7 @@ class Flaw(
                     **kwargs,
                 )
 
+    @validator
     def _validate_private_source_no_ack(self, **kwargs):
         """
         Checks that flaws with private sources have ACK.
@@ -902,6 +924,7 @@ class Flaw(
                 **kwargs,
             )
 
+    @validator
     def _validate_allowed_source(self, **kwargs):
         """
         Checks that the flaw source is allowed (not historical).
@@ -913,6 +936,7 @@ class Flaw(
         ):
             raise ValidationError("The flaw has a disallowed (historical) source.")
 
+    @validator
     def _validate_article_links_count_via_flaw(self, **kwargs):
         """
         Checks that a flaw has maximally one article link.
@@ -1154,16 +1178,3 @@ class Flaw(
         jtq = JiraTaskmanQuerier(token=jira_token)
 
         jtq.transition_task(self)
-
-    task_download_manager = models.ForeignKey(
-        JiraTaskDownloadManager, null=True, blank=True, on_delete=models.CASCADE
-    )
-    task_sync_manager = models.ForeignKey(
-        JiraTaskSyncManager, null=True, blank=True, on_delete=models.CASCADE
-    )
-    task_transition_manager = models.ForeignKey(
-        JiraTaskTransitionManager, null=True, blank=True, on_delete=models.CASCADE
-    )
-    bzsync_manager = models.ForeignKey(
-        BZSyncManager, null=True, blank=True, on_delete=models.CASCADE
-    )

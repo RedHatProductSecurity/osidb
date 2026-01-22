@@ -2,22 +2,15 @@ import json
 import uuid
 from typing import Union
 
-import pghistory
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
 from collectors.bzimport.constants import BZ_API_KEY
-from osidb.mixins import ACLMixin, AlertMixin, TrackingMixin
+from osidb.mixins import ACLMixin, AlertMixin, TrackingMixin, validator
 
 from .flaw.flaw import Flaw
 
 
-@pghistory.track(
-    pghistory.InsertEvent(),
-    pghistory.UpdateEvent(),
-    pghistory.DeleteEvent(),
-    model_name="SnippetAudit",
-)
 class Snippet(ACLMixin, AlertMixin, TrackingMixin):
     """
     Snippet stores data scraped by collectors. One or more snippets can either be linked
@@ -150,6 +143,7 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
 
         return Flaw.objects.get(uuid=flaw.uuid)
 
+    @validator
     def _validate_acl_identical_to_parent_flaw(self, **kwargs) -> None:
         """
         No ACL validations are run for snippet's flaw as its ACLs can be different.

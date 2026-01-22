@@ -1000,3 +1000,29 @@ To disable a trigger:
 ```
 > python3 manage.py pgtrigger enable osidb.Flaw:insert_insert
 ```
+
+### Writing business logic validations
+
+It's common to write logic that prevents or shapes the objects we're working
+with so that they fit the domain we're working with.
+
+In order to write such validations, your model must inherit from the
+`AlertMixin`, once that's done you can add a method to your model with the
+business logic and decorate it with `osidb.models.mixins.validator`, the
+method will then automatically be called whenever the model's `save()` method
+is called.
+
+```python3
+from osidb.models.mixins import AlertMixin, validator
+
+
+class MyModel(AlertMixin):
+    @validator
+    def _print_foo(self, **kwargs):
+        print("foo")
+```
+
+> [!WARNING]
+> It is important that your validation method accepts **kwargs even if it does
+> not use it, as the mechanism that calls all validations _might_ use it.
+

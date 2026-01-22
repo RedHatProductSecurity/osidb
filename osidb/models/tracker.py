@@ -20,14 +20,13 @@ from osidb.mixins import (
     NullStrFieldsMixin,
     TrackingMixin,
     TrackingMixinManager,
+    validator,
 )
 from osidb.models.affect import Affect, NotAffectedJustification
 from osidb.models.fields import CVEIDField
 from osidb.sync_manager import (
     BZTrackerDownloadManager,
-    BZTrackerLinkManager,
     JiraTrackerDownloadManager,
-    JiraTrackerLinkManager,
 )
 
 from .ps_module import PsModule
@@ -282,6 +281,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             self.external_system_id, reference.url, reference.description
         )
 
+    @validator
     def _validate_tracker_affect(self, **kwargs):
         """
         check that the tracker is associated with an affect
@@ -293,6 +293,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         if not self.affects.exists():
             raise ValidationError("Tracker must be associated with an affect")
 
+    @validator
     def _validate_tracker_ps_update_stream(self, **kwargs):
         """
         check that the tracker is associated with a valid PS update stream
@@ -302,6 +303,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 "Tracker must be associated with a valid PS update stream"
             )
 
+    @validator
     def _validate_tracker_affect_ps_update_stream(self, **kwargs):
         """
         check that the tracker is associated with a PS update stream corresponding to the
@@ -317,6 +319,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 f"to the related affect's PS update stream {affect_ps_update_stream}"
             )
 
+    @validator
     def _validate_tracker_flaw_accesses(self, **kwargs):
         """
         Check whether an public tracker is associated with an embargoed flaw.
@@ -331,6 +334,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 "Tracker is public but is associated with an embargoed flaw."
             )
 
+    @validator
     def _validate_notaffected_open_tracker(self, **kwargs):
         """
         Check whether notaffected products have open trackers.
@@ -345,6 +349,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid})"
             )
 
+    @validator
     def _validate_ooss_open_tracker(self, **kwargs):
         """
         Check whether out of support scope products have open trackers.
@@ -356,6 +361,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid})"
             )
 
+    @validator
     def _validate_wontfix_open_tracker(self, **kwargs):
         """
         Check whether wontfix affects have open trackers.
@@ -367,6 +373,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid})"
             )
 
+    @validator
     def _validate_defer_open_tracker(self, **kwargs):
         """
         Check whether DEFER affects have open trackers.
@@ -378,6 +385,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 f"{affect.ps_update_stream}/{affect.ps_component} ({affect.uuid})"
             )
 
+    @validator
     def _validate_multi_flaw_tracker(self, **kwargs):
         """
         validate multi-flaw tracker
@@ -397,6 +405,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                     "Tracker must be associated only with affects with the same PS component"
                 )
 
+    @validator
     def _validate_tracker_bts_match(self, **kwargs):
         """
         validate that the tracker type corresponds to the BTS
@@ -414,6 +423,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 f"Tracker type and BTS mismatch: {self.type} versus {ps_module.bts_name}"
             )
 
+    @validator
     def _validate_not_affected_justification(self, **kwargs):
         """
         The not affected justification field becomes mandatory if the tracker is closed as "Not a Bug".
@@ -537,16 +547,3 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         flaws = Flaw.objects.filter(affects__tracker=self)
         return FlawReference.objects.filter(flaw__in=flaws)
-
-    bz_download_manager = models.ForeignKey(
-        BZTrackerDownloadManager, null=True, blank=True, on_delete=models.CASCADE
-    )
-    bz_link_manager = models.ForeignKey(
-        BZTrackerLinkManager, null=True, blank=True, on_delete=models.CASCADE
-    )
-    jira_download_manager = models.ForeignKey(
-        JiraTrackerDownloadManager, null=True, blank=True, on_delete=models.CASCADE
-    )
-    jira_link_manager = models.ForeignKey(
-        JiraTrackerLinkManager, null=True, blank=True, on_delete=models.CASCADE
-    )

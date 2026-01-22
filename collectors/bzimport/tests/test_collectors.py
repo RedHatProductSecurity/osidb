@@ -3,10 +3,13 @@ from datetime import datetime, timezone
 import pytest
 
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
-from collectors.bzimport.collectors import BugzillaQuerier, MetadataCollector
+from collectors.bzimport.collectors import (
+    BugzillaQuerier,
+    BZTrackerDownloadManager,
+    MetadataCollector,
+)
 from collectors.bzimport.constants import BZ_DT_FMT
 from osidb.models import Affect, Flaw, FlawComment, Package, Tracker
-from osidb.sync_manager import BZTrackerLinkManager
 from osidb.tests.factories import (
     AffectFactory,
     FlawCommentFactory,
@@ -133,7 +136,7 @@ class TestBugzillaTrackerCollector:
         assert affect in list(tracker.affects.all())
 
         bz_tracker_collector.sync_tracker("1629664")
-        BZTrackerLinkManager.link_tracker_with_affects("1629664")
+        BZTrackerDownloadManager.link_tracker_with_affects("1629664")
 
         tracker = Tracker.objects.first()
         # should be updated from the bz values
@@ -175,7 +178,7 @@ class TestBugzillaTrackerCollector:
         )
 
         bz_tracker_collector.sync_tracker("1343542")
-        BZTrackerLinkManager.link_tracker_with_affects("1343542")
+        BZTrackerDownloadManager.link_tracker_with_affects("1343542")
 
         tracker = Tracker.objects.first()
         assert tracker.affects.count() == 2
@@ -226,7 +229,7 @@ class TestBugzillaTrackerCollector:
         assert affect2 in list(tracker.affects.all())
 
         bz_tracker_collector.sync_tracker("1765663")
-        BZTrackerLinkManager.link_tracker_with_affects("1765663")
+        BZTrackerDownloadManager.link_tracker_with_affects("1765663")
 
         # make sure the second link was removed
         tracker = Tracker.objects.first()
@@ -268,7 +271,7 @@ class TestBugzillaTrackerCollector:
         assert all(flaw for flaw in Flaw.objects.all() if not flaw.bz_id)
 
         bz_tracker_collector.sync_tracker("2280681")
-        BZTrackerLinkManager.link_tracker_with_affects("2280681")
+        BZTrackerDownloadManager.link_tracker_with_affects("2280681")
 
         # make sure the links are there
         tracker = Tracker.objects.first()

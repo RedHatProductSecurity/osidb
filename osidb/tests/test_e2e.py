@@ -12,12 +12,14 @@ from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.cveorg import tests as cveorg_tests
 from collectors.cveorg.collectors import CVEorgCollector
 from collectors.cveorg.models import Keyword
-from collectors.jiraffe.collectors import JiraTrackerCollector
+from collectors.jiraffe.collectors import (
+    JiraTrackerCollector,
+    JiraTrackerDownloadManager,
+)
 from osidb.models import Affect, Flaw, PsUpdateStream, Snippet, Tracker
 from osidb.sync_manager import (
     BZSyncManager,
     JiraTaskSyncManager,
-    JiraTrackerLinkManager,
 )
 
 pytestmark = pytest.mark.unit
@@ -139,8 +141,12 @@ class TestE2E:
         # 1.1) validade flaw was created and bz sync is scheduled
         assert response.status_code == 201
         body = response.json()
-        assert BZSyncManager.objects.get(sync_id=body["uuid"])
-        assert JiraTaskSyncManager.objects.get(sync_id=body["uuid"])
+        assert BZSyncManager.objects.get(
+            name=BZSyncManager.__name__, sync_id=body["uuid"]
+        )
+        assert JiraTaskSyncManager.objects.get(
+            name=JiraTaskSyncManager.__name__, sync_id=body["uuid"]
+        )
 
         # 1.2) synchronously bzsync instead of waiting on Celery
         flaw = Flaw.objects.get(uuid=body["uuid"])
@@ -245,7 +251,7 @@ class TestE2E:
             assert body["ps_update_stream"] == stream.name
             jc = JiraTrackerCollector()
             jc.collect(tracker_id)
-            JiraTrackerLinkManager.link_tracker_with_affects(tracker_id)
+            JiraTrackerDownloadManager.link_tracker_with_affects(tracker_id)
 
         # 5.1) validate access control for trackers
         response = access_method.get(

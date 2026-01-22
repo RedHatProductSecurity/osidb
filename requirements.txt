@@ -179,13 +179,13 @@ django-deprecate-fields==0.1.1 \
     --hash=sha256:81904dbc28cf4575535517f69b88dcbc1a64fe73b6c35a4e4f71d193e419ac10 \
     --hash=sha256:ea512e3f0f70b4f511bba8ced1f10c22c68278d8557eb40d6df24e71187df44d
     # via osidb
-django-extensions==3.1.5 \
-    --hash=sha256:28e1e1bf49f0e00307ba574d645b0af3564c981a6dfc87209d48cb98f77d0b1a \
-    --hash=sha256:9238b9e016bb0009d621e05cf56ea8ce5cce9b32e91ad2026996a7377ca28069
+django-extensions==4.1 \
+    --hash=sha256:0699a7af28f2523bf8db309a80278519362cd4b6e1fd0a8cd4bf063e1e023336 \
+    --hash=sha256:7b70a4d28e9b840f44694e3f7feb54f55d495f8b3fa6c5c0e5e12bcb2aa3cdeb
     # via osidb
-django-filter==23.4 \
-    --hash=sha256:526954f18bd7d6423f232a9a7974f58fbc6863908b9fc160de075e01adcc2a5f \
-    --hash=sha256:bed070b38359dce7d2dbe057b165d59773057986356cb809ded983b36c77a976
+django-filter==25.2 \
+    --hash=sha256:760e984a931f4468d096f5541787efb8998c61217b73006163bf2f9523fe8f23 \
+    --hash=sha256:9c0f8609057309bba611062fe1b720b4a873652541192d232dd28970383633e3
     # via osidb
 django-kaminarimon==0.2.1 \
     --hash=sha256:9a10f1bb61af6b6a89427b881950e68beb78e607ecc2ff94f48b796b47034912 \
@@ -195,13 +195,13 @@ django-model-utils==5.0.0 \
     --hash=sha256:041cdd6230d2fbf6cd943e1969318bce762272077f4ecd333ab2263924b4e5eb \
     --hash=sha256:fec78e6c323d565a221f7c4edc703f4567d7bb1caeafe1acd16a80c5ff82056b
     # via osidb
-django-pghistory==3.2.0 \
-    --hash=sha256:74ff23bafd972b0456ce22af03ecf8234d2f7e1bf38da6389eaa227966162014 \
-    --hash=sha256:de1bfc4372c918793ceec82b4eaaafed2c12d49b0b2b3c789893bb0e7232a067
+django-pghistory==3.9.1 \
+    --hash=sha256:1ae71ddf7c30a07f988c6001c96a390c881e4fe1ef1cbc4c86f86a5bf5c6e5ba \
+    --hash=sha256:e0a3750b8df9c81b50991bd4ed84ae73ae3a907f5f46c4f27aff2396437d8b3b
     # via osidb
-django-pgtrigger==4.11.1 \
-    --hash=sha256:39862f229405c6fe49b33451e13910a70578ba569f7e8bea6ea82049058b371f \
-    --hash=sha256:9ef664932b3b7fb06e6dc091e4e292d029c221804469ff42968dad272076915f
+django-pgtrigger==4.17.0 \
+    --hash=sha256:06048cdeb57e20987fd0bf7dd673512a1413a08868eea248d70dbb970e967175 \
+    --hash=sha256:55d297a756b5b6a8e0c533d3323fda1589c699e7d14aa3fff7fa7d774c46363c
     # via django-pghistory
 django-polymorphic==4.1.0 \
     --hash=sha256:0ce3984999e103a0d1a434a5c5617f2c7f990dc3d5fb3585ce0fadadf9ff90ea \

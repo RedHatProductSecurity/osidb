@@ -11,7 +11,7 @@ from django.contrib.postgres.search import (
     SearchVector,
     TrigramSimilarity,
 )
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.db.models import Max, Min, Q
@@ -28,6 +28,7 @@ from django_filters.rest_framework import (
     UUIDFilter,
 )
 from djangoql.queryset import apply_search
+from packageurl import PackageURL
 
 from apps.workflows.workflow import WorkflowModel
 from osidb.models import (
@@ -52,6 +53,7 @@ from .mixins import ACLMixinVisibility, Alert
 LT_GT_LOOKUP_EXPRS = ["lt", "gt"]
 LTE_GTE_LOOKUP_EXPRS = ["lte", "gte"]
 DATE_LOOKUP_EXPRS = ["date__exact", "date__lte", "date__gte"]
+LOOKUP_EXPRS = LT_GT_LOOKUP_EXPRS + LTE_GTE_LOOKUP_EXPRS + DATE_LOOKUP_EXPRS
 
 
 class ChoiceInFilter(BaseInFilter, ChoiceFilter):
@@ -68,6 +70,68 @@ class CharInFilter(BaseInFilter, CharFilter):
     """
 
     pass
+
+
+class UUIDInFilter(BaseInFilter, UUIDFilter):
+    """
+    Filter for uuid csv
+    """
+
+    pass
+
+
+class PURLFilter(CharFilter):
+    """
+    Filter for both PURLFields and arrays of PURLFields.
+    """
+
+    def filter(self, qs, value):
+        if not value:
+            return qs
+
+        try:
+            normalized_value = PackageURL.from_string(value).to_string()
+        except ValueError as e:
+            raise ValidationError(f"Invalid PURL: {e}")
+
+        # Check if it's an ArrayField
+        try:
+            model_field = qs.model._meta.get_field(self.field_name)
+            from django.contrib.postgres.fields import ArrayField
+
+            is_array = isinstance(model_field, ArrayField)
+        except Exception:
+            is_array = False
+
+        if is_array:
+            return qs.filter(**{f"{self.field_name}__contains": [normalized_value]})
+        else:
+            return qs.filter(**{self.field_name: normalized_value})
+
+
+class PURLInFilter(BaseInFilter, PURLFilter):
+    """
+    Filter for PURL array field inclusion.
+    """
+
+    def filter(self, qs, value):
+        if not value:
+            return qs
+
+        try:
+            normalized_values = [
+                PackageURL.from_string(purl_str).to_string()
+                for purl_str in value
+                if purl_str
+            ]
+        except ValueError as e:
+            raise ValidationError(f"Invalid PURL: {e}")
+
+        if not normalized_values:
+            return qs
+
+        lookup = f"{self.field_name}__overlap"
+        return qs.filter(**{lookup: normalized_values})
 
 
 class EmptyOrNullStringFilter(BooleanFilter):
@@ -141,6 +205,45 @@ class NullForeignKeyFilter(BooleanFilter):
         query = Q(**{f"{self.field_name}__isnull": True})
 
         return method(query)
+
+
+class InFilterSet(FilterSet):
+    """
+    Adds 'in' support for ChoiceFilter, CharFilter, and UUIDFilter fields for Meta fields.
+    Does not add 'in' for date and numeric comparisons.
+    """
+
+    @classmethod
+    def get_filters(cls):
+        filters = super().get_filters()
+
+        if not hasattr(cls, "Meta") or not hasattr(cls.Meta, "fields"):
+            return filters
+
+        for field, lookups_exprs in cls.Meta.fields.items():
+            if "in" not in lookups_exprs:
+                if not any(
+                    lookup_expr in lookups_exprs for lookup_expr in LOOKUP_EXPRS
+                ):
+                    in_filter_key = f"{field}__in"
+                    if in_filter_key not in filters and field in filters:
+                        base_filter = filters[field]
+                        if isinstance(base_filter, ChoiceFilter):
+                            filters[in_filter_key] = ChoiceInFilter(
+                                field_name=field,
+                                lookup_expr="in",
+                                choices=base_filter.extra.get("choices", []),
+                            )
+                        elif isinstance(base_filter, CharFilter):
+                            filters[in_filter_key] = CharInFilter(
+                                field_name=field, lookup_expr="in"
+                            )
+                        elif isinstance(base_filter, UUIDFilter):
+                            filters[in_filter_key] = UUIDInFilter(
+                                field_name=field, lookup_expr="in"
+                            )
+
+        return filters
 
 
 class DistinctFilterSet(FilterSet):
@@ -401,7 +504,9 @@ def search_helper(
     # Order remaining results from highest rank to lowest
 
 
-class FlawFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
+class FlawFilter(
+    InFilterSet, DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet
+):
     """
     Class that filters queries to FlawList view / API endpoint based on Flaw fields (currently only supports updated_dt)
     """
@@ -1313,7 +1418,9 @@ class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFil
     order = DistinctOrderingFilter(fields=order_fields)
 
 
-class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
+class AffectFilter(
+    InFilterSet, DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet
+):
     DISTINCT_FIELDS_PREFIXES = ("flaw__", "affects__")
 
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
@@ -1336,6 +1443,10 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
         field_name="flaw__components", lookup_expr="contains"
     )
     tracker__isnull = NullForeignKeyFilter(field_name="tracker")
+    purl = PURLFilter(field_name="purl")
+    subpackage_purls = PURLFilter(field_name="subpackage_purls")
+    subpackage_purls__in = PURLInFilter(field_name="subpackage_purls")
+    subpackage_purls__isempty = IsEmptyArrayFilter(field_name="subpackage_purls")
 
     class Meta:
         model = Affect
@@ -1405,6 +1516,8 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
             + DATE_LOOKUP_EXPRS,
             "cvss_scores__uuid": ["exact"],
             "cvss_scores__vector": ["exact"],
+            "purl": ["exact"],
+            "subpackage_purls": ["exact"],
         }
 
     order_fields = [
@@ -1416,7 +1529,9 @@ class AffectFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilte
     order = DistinctOrderingFilter(fields=order_fields)
 
 
-class TrackerFilter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
+class TrackerFilter(
+    InFilterSet, DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet
+):
     DISTINCT_FIELDS_PREFIXES = ("affects__",)
 
     embargoed = BooleanFilter(field_name="embargoed")
@@ -1677,7 +1792,9 @@ class TrackerV1Filter(TrackerFilter):
     order = DistinctOrderingFilter(fields=order_fields)
 
 
-class FlawAcknowledgmentFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
+class FlawAcknowledgmentFilter(
+    InFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet
+):
     class Meta:
         model = FlawAcknowledgment
         fields = {
@@ -1696,7 +1813,7 @@ class FlawAcknowledgmentFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
         }
 
 
-class FlawCommentFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
+class FlawCommentFilter(InFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
     class Meta:
         model = FlawComment
         fields = {
@@ -1706,7 +1823,7 @@ class FlawCommentFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
         }
 
 
-class FlawCVSSFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
+class FlawCVSSFilter(InFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
     cvss_version = CharFilter(field_name="version")
 
     class Meta:
@@ -1728,7 +1845,7 @@ class FlawCVSSFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
         }
 
 
-class FlawReferenceFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
+class FlawReferenceFilter(InFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
     class Meta:
         model = FlawReference
         fields = {
@@ -1747,7 +1864,7 @@ class FlawReferenceFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
         }
 
 
-class AffectCVSSFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
+class AffectCVSSFilter(InFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
     cvss_version = CharFilter(field_name="version")
 
     class Meta:
@@ -1769,7 +1886,9 @@ class AffectCVSSFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
         }
 
 
-class FlawPackageVersionFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
+class FlawPackageVersionFilter(
+    InFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet
+):
     class Meta:
         model = Package
         fields = {
@@ -1788,7 +1907,7 @@ class FlawPackageVersionFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
         }
 
 
-class AlertFilter(IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
+class AlertFilter(InFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
     parent_uuid = CharFilter(field_name="object_id")
     parent_model = CharFilter(field_name="content_type__model")
 

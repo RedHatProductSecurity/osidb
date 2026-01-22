@@ -434,27 +434,27 @@ wheels = [
 
 [[package]]
 name = "django-pghistory"
-version = "3.2.0"
+version = "3.9.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
     { name = "django-pgtrigger" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/84/31/76d71a8d8ee9bacedea6355764d81bd0e7d6c264b26771dcd2dab88c10a7/django_pghistory-3.2.0.tar.gz", hash = "sha256:de1bfc4372c918793ceec82b4eaaafed2c12d49b0b2b3c789893bb0e7232a067", size = 29119, upload-time = "2024-04-20T19:18:09.637Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/be/8a/90d0fca7b7548c6894a42bcbc456f55f3e07f7f20086c86ea3b4a84014e3/django_pghistory-3.9.1.tar.gz", hash = "sha256:1ae71ddf7c30a07f988c6001c96a390c881e4fe1ef1cbc4c86f86a5bf5c6e5ba", size = 31337, upload-time = "2025-12-12T01:07:48.272Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a5/0f/442a2b8eab0ab56e1b9a05c2b3946b6eebe725a5807518443123d2130473/django_pghistory-3.2.0-py3-none-any.whl", hash = "sha256:74ff23bafd972b0456ce22af03ecf8234d2f7e1bf38da6389eaa227966162014", size = 36316, upload-time = "2024-04-20T19:18:07.921Z" },
+    { url = "https://files.pythonhosted.org/packages/93/2c/1aaebe28c56ee627bbb5423ca4b35466d232895de1b843c5872eaa0071cc/django_pghistory-3.9.1-py3-none-any.whl", hash = "sha256:e0a3750b8df9c81b50991bd4ed84ae73ae3a907f5f46c4f27aff2396437d8b3b", size = 39871, upload-time = "2025-12-12T01:07:47.15Z" },
 ]
 
 [[package]]
 name = "django-pgtrigger"
-version = "4.11.1"
+version = "4.17.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ad/2e/35ec851296e3dbfe58808576099c98d6c22085f56c0ec301ab1e7cfeba72/django_pgtrigger-4.11.1.tar.gz", hash = "sha256:39862f229405c6fe49b33451e13910a70578ba569f7e8bea6ea82049058b371f", size = 29899, upload-time = "2024-04-06T16:58:22.939Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/45/3d/ea55015e2e2a8e2230c6a056768512a9660573f8926f87671f166d455936/django_pgtrigger-4.17.0.tar.gz", hash = "sha256:55d297a756b5b6a8e0c533d3323fda1589c699e7d14aa3fff7fa7d774c46363c", size = 32200, upload-time = "2025-12-04T15:46:06.587Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/35/5c/7e94a12fd1e0580f814d73e0934ad17b24ce5a9c716d43a1d0689f799e9a/django_pgtrigger-4.11.1-py3-none-any.whl", hash = "sha256:9ef664932b3b7fb06e6dc091e4e292d029c221804469ff42968dad272076915f", size = 33242, upload-time = "2024-04-06T16:58:21.649Z" },
+    { url = "https://files.pythonhosted.org/packages/91/47/13c0c23c134cd0f0b0addfbc3ef1477f90d891184d21689f9074b794b00c/django_pgtrigger-4.17.0-py3-none-any.whl", hash = "sha256:06048cdeb57e20987fd0bf7dd673512a1413a08868eea248d70dbb970e967175", size = 36326, upload-time = "2025-12-04T15:46:05.427Z" },
 ]
 
 [[package]]
@@ -1034,7 +1034,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/bf/61/395013f4378b12f47
 
 [[package]]
 name = "osidb"
-version = "5.2.2"
+version = "5.4.1"
 source = { virtual = "." }
 dependencies = [
     { name = "backoff" },
@@ -1127,7 +1127,7 @@ requires-dist = [
     { name = "django-filter", specifier = ">=23.4" },
     { name = "django-kaminarimon", specifier = ">=0.2.1" },
     { name = "django-model-utils", specifier = ">=5.0.0" },
-    { name = "django-pghistory", specifier = ">=3.2.0" },
+    { name = "django-pghistory", specifier = ">=3.9.1,<4.0" },
     { name = "django-polymorphic", specifier = ">=4.1.0" },
     { name = "django-postgres-extra", specifier = ">=2.0.3" },
     { name = "djangoql", specifier = ">=0.18.1" },
