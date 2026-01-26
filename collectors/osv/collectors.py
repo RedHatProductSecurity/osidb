@@ -322,25 +322,11 @@ class OSVCollector(Collector):
 
             return cvss_data, highest_impact
 
-        def get_cwes(data: dict) -> str:
-            #  https://ossf.github.io/osv-schema/#database_specific-field
-            ids = [
-                cwe_id
-                for cwe_id in data.get("database_specific", {}).get("cwe_ids", [])
-            ]
-            if len(ids) > 1:
-                return "(" + "|".join(sorted(ids)) + ")"
-            elif len(ids) == 1:
-                return ids[0]
-            else:
-                return ""
-
         cvss_scores, impact = get_cvss_and_impact(osv_vuln)
         content = {
             "comment_zero": get_comment_zero(osv_vuln),
             "title": get_title(osv_vuln),
             "cvss_scores": cvss_scores,
-            "cwe_id": get_cwes(osv_vuln),
             "impact": impact,
             "references": get_refs(osv_vuln),
             "source": Snippet.Source.OSV,

@@ -401,26 +401,6 @@ class CVEorgCollector(Collector):
 
             return cvss_data, highest_impact
 
-        def get_cwes(data: dict) -> str:
-            # Collect all problem types from CNA and ADP containers
-            all_problem_types = data["containers"]["cna"].get("problemTypes", [])
-            for a in data["containers"].get("adp", []):
-                all_problem_types.extend(a.get("problemTypes", []))
-
-            # Keep only data we are interested in (CWE id)
-            ids = set()
-            for problem in all_problem_types:
-                for d in problem["descriptions"]:
-                    if d.get("type") == "CWE" and d.get("cweId"):
-                        ids.add(d.get("cweId"))
-
-            ids = sorted(ids)
-            if len(ids) == 1:
-                return ids[0]
-            elif len(ids) > 1:
-                return f"({'|'.join(ids)})"
-            return ""
-
         def get_refs(data: dict) -> list:
             references = [
                 {
@@ -453,7 +433,6 @@ class CVEorgCollector(Collector):
             "comment_zero": get_comment_zero(content),
             "cve_id": content["cveMetadata"]["cveId"],
             "cvss_scores": cvss_scores,
-            "cwe_id": get_cwes(content),
             "impact": impact,
             "references": get_refs(content),
             "source": Snippet.Source.CVEORG,
