@@ -158,3 +158,59 @@ class TestFlawCollaborator:
         )
         FlawCollaborator.objects.create_from_flaw(flaw)
         assert FlawCollaborator.objects.count() == 1
+
+    def test_workflow_state_restrictions_for_labels(self):
+        """Test that labels can only be created in PRE_SECONDARY_ASSESSMENT but can be updated in any state"""
+        label = FlawLabel.objects.create(
+            name="test_label", type=FlawLabel.FlawLabelType.CONTEXT_BASED
+        )
+        other_label = FlawLabel.objects.create(
+            name="other_label", type=FlawLabel.FlawLabelType.CONTEXT_BASED
+        )
+
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw)
+        flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw.save()
+
+        collaborator = FlawCollaborator.objects.create(
+            flaw=flaw,
+            label=label.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            contributor="test_contributor",
+        )
+        assert collaborator.pk is not None
+
+        flaw.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw.save()
+
+        with pytest.raises(ValidationError) as e:
+            FlawCollaborator.objects.create(
+                flaw=flaw,
+                label=other_label.name,
+                state=FlawCollaborator.FlawCollaboratorState.NEW,
+                type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            )
+        assert (
+            "Flaw must be in pre-secondary assessment state to add new labels."
+            in str(e)
+        )
+
+        collaborator.state = FlawCollaborator.FlawCollaboratorState.DONE
+        collaborator.contributor = "test-user"
+        collaborator.save()
+        collaborator.refresh_from_db()
+
+        assert collaborator.state == FlawCollaborator.FlawCollaboratorState.DONE
+        assert collaborator.contributor == "test-user"
+
+        flaw.workflow_state = WorkflowModel.WorkflowState.DONE
+        flaw.save()
+
+        collaborator.state = FlawCollaborator.FlawCollaboratorState.SKIP
+        collaborator.contributor = "another-user"
+        collaborator.save()
+
+        collaborator.refresh_from_db()
+        assert collaborator.state == FlawCollaborator.FlawCollaboratorState.SKIP
+        assert collaborator.contributor == "another-user"
