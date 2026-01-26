@@ -1,8 +1,10 @@
 import pytest
 from django.db import connection
+from django.db.models.query import QuerySet
 from django.test.utils import CaptureQueriesContext
 from pytest_django.asserts import assertNumQueries
 
+from osidb.api_views import FlawView
 from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
@@ -319,3 +321,67 @@ class TestQuerySetRegression:
                 f"&affects__ps_component={ps_component}&order=-created_dt&limit=10"
             )
             assert response.status_code == 200
+
+    def test_flaw_update_does_not_prefetch_affects(
+        self, auth_client, test_api_v2_uri, monkeypatch, bugzilla_token, jira_token
+    ):
+        """
+        Regression test: PUT /flaws/{uuid} should not use the heavy
+        "GET with no query params" prefetch path for affects.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            impact=Impact.LOW,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        AffectFactory.create_batch(
+            3,
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=Impact.MODERATE,
+        )
+
+        # Gate: only capture QuerySet.prefetch_related calls made during FlawView.get_queryset().
+        in_get_queryset = {"active": False}
+        orig_get_queryset = FlawView.get_queryset
+
+        def _spy_get_queryset(self):
+            in_get_queryset["active"] = True
+            try:
+                return orig_get_queryset(self)
+            finally:
+                in_get_queryset["active"] = False
+
+        monkeypatch.setattr(FlawView, "get_queryset", _spy_get_queryset, raising=True)
+
+        prefetch_calls: list[tuple[str, ...]] = []
+        orig_prefetch_related = QuerySet.prefetch_related
+
+        def _spy_prefetch_related(self, *lookups):
+            if in_get_queryset["active"]:
+                prefetch_calls.append(tuple(lookups))
+            return orig_prefetch_related(self, *lookups)
+
+        monkeypatch.setattr(
+            QuerySet, "prefetch_related", _spy_prefetch_related, raising=True
+        )
+
+        response = auth_client().put(
+            f"{test_api_v2_uri}/flaws/{flaw.uuid}",
+            {
+                "comment_zero": flaw.comment_zero,
+                "embargoed": flaw.embargoed,
+                "impact": "MODERATE",
+                "title": flaw.title,
+                "updated_dt": flaw.updated_dt,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 200
+
+        assert not prefetch_calls, (
+            f"Unexpected affects prefetches during PUT: {prefetch_calls}"
+        )
