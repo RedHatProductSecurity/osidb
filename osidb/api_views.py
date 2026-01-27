@@ -672,6 +672,8 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    _ACTIONS_THAT_AVOID_AFFECTS_PREFETCH = ["update"]
+
     _BASE_PREFETCH_RELATED = (
         "acknowledgments",
         "comments",
@@ -745,6 +747,10 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
     def get_queryset(self):
         queryset = Flaw.objects.all()
         include_fields = self._include_fields_top_level()
+
+        # Avoid prefetching affects for actions that don't need them.
+        if self.action in self._ACTIONS_THAT_AVOID_AFFECTS_PREFETCH:
+            return queryset.all()
 
         # Prefetch only what we need. If include_fields is not provided, behave like
         # the default API response and prefetch common relations.
