@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added lost indexes for AffectsV1 and tests to ensure they are not deleted (OSIDB-4717).
 - Allow updates for flaw labels in any workflow state (OSIDB-4737)
 
+## Changed
+- Flaw can have only one CWE 
+
 ## Removed
 - Remove CWE ID collection from collectors (OSIDB-4742)
 
