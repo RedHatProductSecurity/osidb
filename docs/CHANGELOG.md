@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Performance issue on v2 Flaw endpoint with include/exclude queryparams.
 - Added lost indexes for AffectsV1 and tests to ensure they are not deleted (OSIDB-4717).
 - Allow updates for flaw labels in any workflow state (OSIDB-4737)
+- Do not do prefetch on Flaw update (OSIDB-4723)
 
 ## Removed
 - Remove CWE ID collection from collectors (OSIDB-4742)
