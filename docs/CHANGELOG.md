@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [5.4.2] - 2026-01-28
 ### Fixed
 - Fix Performance issue on v2 Flaw endpoint with include/exclude queryparams.
 - Added lost indexes for AffectsV1 and tests to ensure they are not deleted (OSIDB-4717).
