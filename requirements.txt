@@ -267,9 +267,9 @@ faker==9.8.2 \
     --hash=sha256:393bd1b5becf3ccbc04a4f0f13da7e437914b24cafd1a4d8b71b5fecff54fb34 \
     --hash=sha256:876ba213aaddd661a539ada2158917c1be17064b72792ee788b81c13528865d0
     # via factory-boy
-filelock==3.18.0 \
-    --hash=sha256:adbc88eabb99d2fec8c9c1b229b171f18afa655400173ddc653d5d01501fb9f2 \
-    --hash=sha256:c401f4f8377c4464e6db25fff06205fd89bdd83b65eb0488ed1b160f780e21de
+filelock==3.20.3 \
+    --hash=sha256:18c57ee915c7ec61cff0ecf7f0f869936c7c30191bb0cf406f1341778d0834e1 \
+    --hash=sha256:4b0dda527ee31078689fc205ec4f1c1bf7d56cf88b6dc9426c4f230e46c2dce1
     # via
     #   tox
     #   virtualenv
@@ -393,7 +393,7 @@ markdown==3.3.6 \
 markupsafe==2.0.1 \
     --hash=sha256:594c67807fb16238b30c44bdf74f36c02cdf22d1c8cda91ef8a0ed8dabf5620a
     # via jinja2
-multidict==5.2.0 \
+multidict==5.2.0 ; platform_python_implementation != 'PyPy' \
     --hash=sha256:0dd1c93edb444b33ba2274b66f63def8a327d607c6c790772f448a53b6ea59ce
     # via yarl
 mypy==0.991 \
@@ -799,17 +799,9 @@ url-normalize==1.4.3 \
     --hash=sha256:d23d3a070ac52a67b83a1c59a0e68f8608d1cd538783b401bc9de2c0fac999b2 \
     --hash=sha256:ec3c301f04e5bb676d333a7fa162fa977ad2ca04b7e652bfc9fac4e405728eed
     # via requests-cache
-urllib3==1.26.20 ; platform_python_implementation == 'PyPy' \
-    --hash=sha256:0ed14ccfbf1c30a9072c7ca157e4319b70d65f623e91e7b32fadb2853431016e \
-    --hash=sha256:40c2dc0c681e47eb8f90e7e27bf6ff7df2e677421fd46756da1161c39ca70d32
-    # via
-    #   kubernetes
-    #   requests
-    #   requests-cache
-    #   vcrpy
-urllib3==2.5.0 ; platform_python_implementation != 'PyPy' \
-    --hash=sha256:3fc47733c7e419d4bc3f6b3dc2b4f890bb743906a30d56ba4a5bfa4bbff92760 \
-    --hash=sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc
+urllib3==2.6.3 \
+    --hash=sha256:1b62b6884944a57dbe321509ab94fd4d3b307075e0c2eae991ac71ee15ad38ed \
+    --hash=sha256:bf272323e553dfb2e87d9bfd225ca7b0f467b919d7bbd355436d3fd37cb0acd4
     # via
     #   kubernetes
     #   requests
@@ -836,9 +828,13 @@ uv==0.9.7 \
     --hash=sha256:d6e5fe28ca05a4b576c0e8da5f69251dc187a67054829cfc4afb2bfa1767114b \
     --hash=sha256:edd768f6730bba06aa10fdbd80ee064569f7236806f636bf65b68136a430aad0
     # via tox-uv
-vcrpy==7.0.0 \
+vcrpy==7.0.0 ; platform_python_implementation != 'PyPy' \
     --hash=sha256:176391ad0425edde1680c5b20738ea3dc7fb942520a48d2993448050986b3a50 \
     --hash=sha256:55791e26c18daa363435054d8b35bd41a4ac441b6676167635d1b37a71dbe124
+    # via pytest-recording
+vcrpy==8.1.1 ; platform_python_implementation == 'PyPy' \
+    --hash=sha256:2d16f31ad56493efb6165182dd99767207031b0da3f68b18f975545ede8ac4b9 \
+    --hash=sha256:58e3053e33b423f3594031cb758c3f4d1df931307f1e67928e30cf352df7709f
     # via pytest-recording
 vine==5.1.0 \
     --hash=sha256:40fdf3c48b2cfe1c38a49e9ae2da6fda88e4794c810050a728bd7413811fb1dc \
@@ -847,9 +843,9 @@ vine==5.1.0 \
     #   amqp
     #   celery
     #   kombu
-virtualenv==20.32.0 \
-    --hash=sha256:2c310aecb62e5aa1b06103ed7c2977b81e042695de2697d01017ff0f1034af56 \
-    --hash=sha256:886bf75cadfdc964674e6e33eb74d787dff31ca314ceace03ca5810620f4ecf0
+virtualenv==20.36.1 \
+    --hash=sha256:575a8d6b124ef88f6f51d56d656132389f961062a9177016a50e4f507bbcc19f \
+    --hash=sha256:8befb5c81842c641f8ee658481e42641c68b5eab3521d8e092d18320902466ba
     # via
     #   pre-commit
     #   tox
@@ -866,7 +862,7 @@ wrapt==1.14.0 \
     # via
     #   enforce
     #   vcrpy
-yarl==1.9.1 \
+yarl==1.9.1 ; platform_python_implementation != 'PyPy' \
     --hash=sha256:5ce0bcab7ec759062c818d73837644cde567ab8aa1e0d6c45db38dfb7c284441
     # via vcrpy
 zope-event==4.5.0 \

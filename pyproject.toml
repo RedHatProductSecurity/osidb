@@ -7,7 +7,7 @@ dependencies = [
     "celery-redbeat>=2.1.1",
     "celery[gevent]>=5.5.2",
     "cvss>=3.0",
-    "django==5.2.10",
+    "django>=5.2.10,<6.0",
     "django-auth-ldap>=3.0.0",
     "django-contrib-postgres>=0.0.1",
     "django-cors-headers>=4.0.0",
