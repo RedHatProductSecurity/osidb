@@ -749,8 +749,8 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         include_fields = self._include_fields_top_level()
 
         # Avoid prefetching affects for actions that don't need them.
-        if self.action in self._ACTIONS_THAT_AVOID_AFFECTS_PREFETCH:
-            return queryset.all()
+        if self.action in ("create", "destroy", "update"):
+            return queryset
 
         # Prefetch only what we need. If include_fields is not provided, behave like
         # the default API response and prefetch common relations.
