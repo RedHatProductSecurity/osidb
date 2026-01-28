@@ -266,29 +266,32 @@ class TestEndpointsFlaws:
                 raise Exception("Unexpected response code - must be 200 or 400")
 
     @pytest.mark.parametrize(
-        "field_name",
+        "field_name,field_content",
         [
-            ("cve_id"),
-            ("cve_description"),
-            ("cwe_id"),
-            ("statement"),
-            ("mitigation"),
-            ("owner"),
+            ("cve_id", "CVE-2024-271828"),
+            ("cve_description", "CVE Description"),
+            ("cwe_id", "CWE-271828"),
+            ("statement", "Statement"),
+            ("mitigation", "Mitigation"),
+            ("owner", "Owner"),
         ],
     )
     @pytest.mark.parametrize(
-        "is_empty,field_content",
+        "is_empty",
         [
-            (True, ""),
-            (False, "CVE-2024-271828"),
+            (True),
+            (False),
         ],
     )
     def test_list_flaws_empty_text(
-        self, field_name, is_empty, field_content, auth_client, test_api_uri
+        self, field_name, field_content, is_empty, auth_client, test_api_uri
     ):
         """
         Test that filtering by null or empty text works for the text fields that have this filter enabled.
         """
+        if is_empty:
+            field_content = ""
+
         response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
