@@ -758,6 +758,19 @@ class Affect(
                 f"Affect ({self.uuid}) is set as NOTAFFECTED but the 'not affected justification' is empty."
             )
 
+    @validator
+    def _validate_cvss_not_affected(self, **kwargs):
+        """
+        Validate that affects marked as NOTAFFECTED do not have any CVSS scores associated.
+        """
+        if (
+            self.affectedness == Affect.AffectAffectedness.NOTAFFECTED
+            and self.cvss_scores.exists()
+        ):
+            raise ValidationError(
+                f"Affect ({self.uuid}) is set as NOTAFFECTED but has CVSS scores associated."
+            )
+
     @property
     def aggregated_impact(self):
         """

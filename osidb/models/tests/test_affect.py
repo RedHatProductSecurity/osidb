@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from osidb.models import Affect, Impact, Tracker
 from osidb.tests.factories import (
+    AffectCVSSFactory,
     AffectFactory,
     FlawFactory,
     PsModuleFactory,
@@ -313,3 +314,14 @@ class TestAffect:
             assert expected_error in str(exc_info.value)
         else:
             affect.save()
+
+    def test_validate_cvss_not_affected_fails_with_cvss(self):
+        """Test that NOTAFFECTED affects with CVSS scores fail validation"""
+        affect = AffectFactory(affectedness=Affect.AffectAffectedness.NOTAFFECTED)
+        AffectCVSSFactory(affect=affect)
+
+        with pytest.raises(ValidationError) as exc_info:
+            affect.save()
+        assert "is set as NOTAFFECTED but has CVSS scores associated" in str(
+            exc_info.value
+        )
