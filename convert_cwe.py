@@ -8,17 +8,32 @@ full_data= {
 } # just an example, orignal has almost 7000 items
 
 
-# I know this is not the most efficient way to do this
-# but I was asked to do this by Juan Perez de Algaba in the vex meeting
-# acording to them there is no problem if it takes longer because they prefer to make sure it triggers
-# the TrackingMixin
-def set_cwe_id(from_item=0, to_item=10):
-  for i, (k,v) in enumerate(full_data.items()):
-    if i >= to_item:
-      break
-    if i < from_item:
-      continue
-    f=Flaw.objects.get(pk=k)
-    f.cwe_id=v
-    f.save()
-    print(f'{i}/{len(full_data)}: {k}: {v}')
+import uuid 
+from django.db.models import Case, CharField, Value, When
+from django.utils import timezone
+CHUNK_SIZE = 500
+
+def _chunks(items: list[tuple[str, str]], size: int) -> list[list[tuple[str, str]]]:
+    return [items[i : i + size] for i in range(0, len(items), size)]
+
+# Improved version of the script
+def apply_cwe_updates() -> None:
+    cwe_updates = full_data
+    if not cwe_updates:
+        return
+    updates = sorted(cwe_updates.items(), key=lambda kv: kv[0])
+    for chunk in _chunks(updates, CHUNK_SIZE):
+        now = timezone.now()
+        print(f'Updating {len(chunk)} flaws at {now}')
+        uuids = [uuid.UUID(flaw_uuid) for flaw_uuid, _ in chunk]
+        cwe_case = Case(
+            *[
+                When(uuid=uuid.UUID(flaw_uuid), then=Value(cwe_id))
+                for flaw_uuid, cwe_id in chunk
+            ],
+            output_field=CharField(),
+        )
+        Flaw.objects.filter(uuid__in=uuids).update(
+            cwe_id=cwe_case,updated_dt=now
+        )
+
