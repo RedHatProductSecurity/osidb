@@ -23,7 +23,7 @@ def apply_cwe_updates() -> None:
         return
     updates = sorted(cwe_updates.items(), key=lambda kv: kv[0])
     for chunk in _chunks(updates, CHUNK_SIZE):
-        now = timezone.now()
+        now = timezone.now().replace(microsecond=0)
         print(f'Updating {len(chunk)} flaws at {now}')
         uuids = [uuid.UUID(flaw_uuid) for flaw_uuid, _ in chunk]
         cwe_case = Case(
@@ -34,6 +34,6 @@ def apply_cwe_updates() -> None:
             output_field=CharField(),
         )
         Flaw.objects.filter(uuid__in=uuids).update(
-            cwe_id=cwe_case,updated_dt=now
+        cwe_id=cwe_case,updated_dt=now, local_updated_dt=now
         )
 
