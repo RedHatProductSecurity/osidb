@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add the ability to query history of a specific object through /audit endpoint (OSIDB-4777)
+- Add `flaw.selected_cve_description` for `csaf-generator` (OSIDB-4774)
 
 ## [5.4.2] - 2026-01-28
 ### Fixed

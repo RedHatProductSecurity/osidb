@@ -985,6 +985,15 @@ class Flaw(
         """return osidb api url"""
         return f"/api/{OSIDB_API_VERSION}/{self.uuid}"
 
+    @property
+    def selected_cve_description(self):
+        """return the selected cve description"""
+
+        if self.cve_description:
+            return self.cve_description
+
+        return self.mitre_cve_description
+
     objects = FlawManager.from_queryset(CustomQuerySetUpdatedDt)()
 
     def get_affect(self, ps_module, ps_component):

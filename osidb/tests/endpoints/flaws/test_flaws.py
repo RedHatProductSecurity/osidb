@@ -2116,3 +2116,22 @@ class TestEndpointsFlaws:
         assert tracker_data["uuid"] == str(tracker.uuid)
         assert tracker_data["type"] == tracker.type
         assert tracker_data["ps_update_stream"] == tracker.ps_update_stream
+
+    def test_flaw_selected_cve_description(self, auth_client, test_api_uri):
+        """
+        Test that the selected_cve_description field is returned correctly
+        """
+
+        flaw1 = FlawFactory(
+            cve_description="Description A", mitre_cve_description="Description B"
+        )
+
+        flaw2 = FlawFactory(cve_description="", mitre_cve_description="Description D")
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
+        assert response.status_code == 200
+        assert response.data["selected_cve_description"] == flaw1.cve_description
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw2.cve_id}")
+        assert response.status_code == 200
+        assert response.data["selected_cve_description"] == flaw2.mitre_cve_description

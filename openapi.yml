@@ -14452,6 +14452,9 @@ components:
           type: string
         cve_description:
           type: string
+        selected_cve_description:
+          type: string
+          readOnly: true
         requires_cve_description:
           oneOf:
           - $ref: '#/components/schemas/RequiresCveDescriptionEnum'
@@ -14589,6 +14592,7 @@ components:
       - labels
       - package_versions
       - references
+      - selected_cve_description
       - task_key
       - title
       - trackers
@@ -15373,6 +15377,9 @@ components:
           type: string
         cve_description:
           type: string
+        selected_cve_description:
+          type: string
+          readOnly: true
         requires_cve_description:
           oneOf:
           - $ref: '#/components/schemas/RequiresCveDescriptionEnum'
@@ -15511,6 +15518,7 @@ components:
       - labels
       - package_versions
       - references
+      - selected_cve_description
       - task_key
       - title
       - trackers
@@ -15882,6 +15890,9 @@ components:
           type: string
         cve_description:
           type: string
+        selected_cve_description:
+          type: string
+          readOnly: true
         requires_cve_description:
           oneOf:
           - $ref: '#/components/schemas/RequiresCveDescriptionEnum'
@@ -16019,6 +16030,7 @@ components:
       - labels
       - package_versions
       - references
+      - selected_cve_description
       - task_key
       - title
       - trackers

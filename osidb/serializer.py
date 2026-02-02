@@ -2168,6 +2168,7 @@ class FlawSerializer(
     references = FlawReferenceSerializer(many=True, read_only=True)
     cvss_scores = FlawCVSSSerializer(many=True, read_only=True)
     package_versions = PackageSerializer(many=True, read_only=True)
+    selected_cve_description = serializers.ReadOnlyField()
 
     labels = FlawCollaboratorSerializer(many=True, required=False, read_only=True)
 
@@ -2228,6 +2229,7 @@ class FlawSerializer(
                 "trackers",
                 "comment_zero",
                 "cve_description",
+                "selected_cve_description",
                 "requires_cve_description",
                 "statement",
                 "cwe_id",
