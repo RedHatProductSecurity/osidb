@@ -245,6 +245,9 @@ class Flaw(
     # from doc_text summary
     cve_description = models.TextField(blank=True)
 
+    # from cveorg collector
+    mitre_cve_description = models.TextField(blank=True)
+
     requires_cve_description = models.CharField(
         choices=FlawRequiresCVEDescription.choices, max_length=20, blank=True
     )

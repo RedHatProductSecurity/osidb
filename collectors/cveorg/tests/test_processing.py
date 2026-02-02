@@ -98,3 +98,43 @@ class TestCVEorgProcessing:
         assert (
             collector.extract_content(no_descriptions_content)["comment_zero"] == "N/A"
         )
+
+    def test_mitre_cve_description_populated(self, cisa_cvss_content):
+        """Test that mitre_cve_description is populated from CVE.org description."""
+        collector = CVEorgCollector()
+        collector.keywords_check_enabled = False
+        content = collector.extract_content(cisa_cvss_content)
+
+        assert "mitre_cve_description" in content
+        assert content["mitre_cve_description"] == content["comment_zero"]
+
+        collector.save_snippet_and_flaw(content)
+        flaw = Flaw.objects.first()
+        assert flaw
+
+        assert flaw.comment_zero
+        assert flaw.mitre_cve_description
+        assert flaw.mitre_cve_description == flaw.comment_zero
+
+    def test_mitre_cve_description_updates_existing_flaw(self, cisa_cvss_content):
+        """Test that mitre_cve_description is updated for existing flaws."""
+        collector = CVEorgCollector()
+        collector.keywords_check_enabled = False
+        content = collector.extract_content(cisa_cvss_content)
+
+        collector.save_snippet_and_flaw(content)
+        flaw = Flaw.objects.first()
+        assert flaw
+        original_description = flaw.mitre_cve_description
+
+        flaw.mitre_cve_description = ""
+        flaw.save(raise_validation_error=False)
+        assert Flaw.objects.get(uuid=flaw.uuid).mitre_cve_description == ""
+
+        collector.update_mitre_cve_description(
+            content["cve_id"], content["mitre_cve_description"]
+        )
+
+        updated_flaw = Flaw.objects.get(uuid=flaw.uuid)
+        assert updated_flaw.mitre_cve_description == original_description
+        assert updated_flaw.mitre_cve_description == content["mitre_cve_description"]
