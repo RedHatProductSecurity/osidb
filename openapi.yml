@@ -1377,8 +1377,10 @@ paths:
         name: include_history
         schema:
           type: boolean
-        description: 'Indicates whether the response should include the model''s change
-          history. Set to ''true'' to include historical changes. Default: false.'
+        description: 'Deprecated. Use the /audit endpoint instead. Indicates whether
+          the response should include the model''s change history. Set to ''true''
+          to include historical changes. Default: false.'
+        deprecated: true
       - in: query
         name: include_meta_attr
         schema:
@@ -1999,8 +2001,10 @@ paths:
         name: include_history
         schema:
           type: boolean
-        description: 'Indicates whether the response should include the model''s change
-          history. Set to ''true'' to include historical changes. Default: false.'
+        description: 'Deprecated. Use the /audit endpoint instead. Indicates whether
+          the response should include the model''s change history. Set to ''true''
+          to include historical changes. Default: false.'
+        deprecated: true
       - in: query
         name: include_meta_attr
         schema:
@@ -2233,7 +2237,6 @@ paths:
   /osidb/api/v1/audit:
     get:
       operationId: osidb_api_v1_audit_list
-      description: basic view of audit history events
       parameters:
       - name: limit
         required: false
@@ -2254,6 +2257,10 @@ paths:
           format: date-time
       - in: query
         name: pgh_label
+        schema:
+          type: string
+      - in: query
+        name: pgh_obj_id
         schema:
           type: string
       - in: query
@@ -2291,13 +2298,12 @@ paths:
   /osidb/api/v1/audit/{pgh_slug}:
     get:
       operationId: osidb_api_v1_audit_retrieve
-      description: basic view of audit history events
       parameters:
       - in: path
         name: pgh_slug
         schema:
           type: string
-          description: The unique identifier across all event tables.
+          pattern: ^[^/]+$
         required: true
       tags:
       - osidb
@@ -3212,8 +3218,10 @@ paths:
         name: include_history
         schema:
           type: boolean
-        description: 'Indicates whether the response should include the model''s change
-          history. Set to ''true'' to include historical changes. Default: false.'
+        description: 'Deprecated. Use the /audit endpoint instead. Indicates whether
+          the response should include the model''s change history. Set to ''true''
+          to include historical changes. Default: false.'
+        deprecated: true
       - in: query
         name: include_meta_attr
         schema:
@@ -6410,8 +6418,10 @@ paths:
         name: include_history
         schema:
           type: boolean
-        description: 'Indicates whether the response should include the model''s change
-          history. Set to ''true'' to include historical changes. Default: false.'
+        description: 'Deprecated. Use the /audit endpoint instead. Indicates whether
+          the response should include the model''s change history. Set to ''true''
+          to include historical changes. Default: false.'
+        deprecated: true
       - in: query
         name: include_meta_attr
         schema:
@@ -8312,8 +8322,10 @@ paths:
         name: include_history
         schema:
           type: boolean
-        description: 'Indicates whether the response should include the model''s change
-          history. Set to ''true'' to include historical changes. Default: false.'
+        description: 'Deprecated. Use the /audit endpoint instead. Indicates whether
+          the response should include the model''s change history. Set to ''true''
+          to include historical changes. Default: false.'
+        deprecated: true
       - in: query
         name: include_meta_attr
         schema:
@@ -9288,8 +9300,10 @@ paths:
         name: include_history
         schema:
           type: boolean
-        description: 'Indicates whether the response should include the model''s change
-          history. Set to ''true'' to include historical changes. Default: false.'
+        description: 'Deprecated. Use the /audit endpoint instead. Indicates whether
+          the response should include the model''s change history. Set to ''true''
+          to include historical changes. Default: false.'
+        deprecated: true
       - in: query
         name: include_meta_attr
         schema:
@@ -10526,8 +10540,10 @@ paths:
         name: include_history
         schema:
           type: boolean
-        description: 'Indicates whether the response should include the model''s change
-          history. Set to ''true'' to include historical changes. Default: false.'
+        description: 'Deprecated. Use the /audit endpoint instead. Indicates whether
+          the response should include the model''s change history. Set to ''true''
+          to include historical changes. Default: false.'
+        deprecated: true
       - in: query
         name: include_meta_attr
         schema:
@@ -11886,8 +11902,10 @@ paths:
         name: include_history
         schema:
           type: boolean
-        description: 'Indicates whether the response should include the model''s change
-          history. Set to ''true'' to include historical changes. Default: false.'
+        description: 'Deprecated. Use the /audit endpoint instead. Indicates whether
+          the response should include the model''s change history. Set to ''true''
+          to include historical changes. Default: false.'
+        deprecated: true
       - in: query
         name: include_meta_attr
         schema:

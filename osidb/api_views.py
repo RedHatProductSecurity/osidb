@@ -356,7 +356,9 @@ include_history_param = OpenApiParameter(
     type=bool,
     required=False,
     location=OpenApiParameter.QUERY,
+    deprecated=True,
     description=(
+        "Deprecated. Use the /audit endpoint instead. "
         "Indicates whether the response should include the "
         "model's change history. Set to 'true' to include "
         "historical changes. Default: false."
@@ -1723,17 +1725,24 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
         return Response(status=200, headers=headers)
 
 
-class AuditView(RudimentaryUserPathLoggingMixin, ModelViewSet):
-    """basic view of audit history events"""
-
+class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
     queryset = pghistory.models.Events.objects.all().order_by("-pgh_created_at")
     serializer_class = AuditSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ["pgh_slug", "pgh_label", "pgh_obj_model", "pgh_created_at"]
-    http_method_names = get_valid_http_methods(
-        ModelViewSet, excluded=["delete", "post", "put"]
-    )
+    # NOTE: we probably could do without pgh_slug, but it's kept for
+    # backwards-compatibility reasons
+    filterset_fields = [
+        "pgh_slug",
+        "pgh_label",
+        "pgh_obj_model",
+        "pgh_created_at",
+        "pgh_obj_id",
+    ]
     permission_classes = [IsAuthenticatedOrReadOnly]
+    lookup_field = "pgh_slug"
+    # allow dots and colons in pgh_slug (e.g. "osidb.FlawAudit:2035413"); default [^/.]+
+    # would only capture up to the first dot.
+    lookup_value_regex = "[^/]+"
 
 
 # NOTE: Purpose of this custom class is for Kerberos authenticated
