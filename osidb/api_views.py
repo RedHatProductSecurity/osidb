@@ -748,6 +748,10 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         queryset = Flaw.objects.all()
         include_fields = self._include_fields_top_level()
 
+        # Avoid prefetching affects for actions that don't need them.
+        if self.action in ("create", "destroy", "update"):
+            return queryset
+
         # Prefetch only what we need. If include_fields is not provided, behave like
         # the default API response and prefetch common relations.
         prefetch_related: list[str] = []
