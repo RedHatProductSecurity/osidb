@@ -1,7 +1,8 @@
 import logging
 import uuid
+from collections import defaultdict
 from functools import cached_property
-from itertools import chain
+from itertools import batched, chain
 
 import pghistory
 import pgtrigger
@@ -366,6 +367,7 @@ class ACLMixin(models.Model):
             >>> my_flaw.acl_read
             ... [UUID(...), UUID(...)]
         """
+
         self.set_acl_read(*settings.PUBLIC_READ_GROUPS)
         self.set_acl_write(settings.PUBLIC_WRITE_GROUP)
         # Update the embargoed annotation to reflect the new ACL state
@@ -669,32 +671,76 @@ class ACLMixin(models.Model):
                 if related_instance:
                     related_instance.unembargo()
 
-    def set_public_nested(self):
+    def set_public_nested(self, max_chunk_size=5000):
         """
         Change internal ACLs to public ACLs for all related Flaw objects and save them.
         The only exception is "snippets", which should always have internal ACLs.
         The Flaw itself will be saved later to avoid duplicate operations.
+
+        This method collects all objects that need to be updated and performs
+        chunked queryset updates to minimize database queries and avoid storing
+        model instances in memory.
+        """
+        objects_to_update = defaultdict(set)  # {ModelClass: {pk, ...}}
+
+        visited = set()
+        self._collect_objects_for_public_update(objects_to_update, visited)
+
+        if not any(objects_to_update.values()):
+            return
+
+        # Cut off microseconds to match TrackingMixin.save() behavior
+        now = timezone.now().replace(microsecond=0)
+
+        public_acl_read = [
+            uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_READ_GROUPS)
+        ]
+        public_acl_write = [
+            uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_WRITE_GROUP])
+        ]
+
+        for model_class, object_ids in objects_to_update.items():
+            if not object_ids:
+                continue
+
+            if not issubclass(model_class, ACLMixin):
+                continue
+
+            update_kwargs = {"acl_read": public_acl_read, "acl_write": public_acl_write}
+            if issubclass(model_class, TrackingMixin):
+                update_kwargs["updated_dt"] = now
+
+            for pk_chunk in batched(object_ids, max_chunk_size):
+                model_class.objects.filter(pk__in=pk_chunk).update(**update_kwargs)
+
+            for pk in object_ids:
+                model_class(pk=pk).set_history_public()
+
+    def _collect_objects_for_public_update(self, objects_to_update, visited):
+        """
+        Recursively collect all related objects that need to have their ACLs
+        updated to public. The Flaw itself is not collected as it's saved separately.
+
+        Uses a defaultdict(set) keyed by model class to collect pks.
+        Uses a set of (type, pk) to prevent infinite recursion.
         """
         from osidb.models import Flaw
+
+        if self.pk is None:
+            return
+
+        visit_key = (type(self), self.pk)
+
+        if visit_key in visited:
+            return
+
+        visited.add(visit_key)
 
         if not isinstance(self, Flaw):
             if not self.is_internal:
                 return
-            kwargs = {}
-            if issubclass(type(self), AlertMixin):
-                # suppress the validation errors as we expect that during
-                # the update the parent and child ACLs will not equal
-                kwargs["raise_validation_error"] = False
-            if issubclass(type(self), TrackingMixin):
-                # do not auto-update the updated_dt timestamp as the
-                # followup update would fail on a mid-air collision
-                kwargs["auto_timestamps"] = False
-            self.set_public()
-            self.set_history_public()
-            self.save(**kwargs)
+            objects_to_update[type(self)].add(self.pk)
 
-        # chain all the related instances in reverse relationships (o2m, m2m)
-        # as we only care for the ACLs which are unified
         for related_instance in chain.from_iterable(
             getattr(self, name).all()
             for name in [
@@ -707,17 +753,18 @@ class ACLMixin(models.Model):
                 )
             ]
         ):
-            # continue deeper into the related context
-            related_instance.set_public_nested()
-
-        # chain related instances in forward relationships (m2o, o2o)
+            related_instance._collect_objects_for_public_update(
+                objects_to_update, visited
+            )
         for field in self._meta.concrete_fields:
             if isinstance(
                 field, (models.ForeignKey, models.OneToOneField)
             ) and issubclass(field.related_model, ACLMixin):
                 related_instance = getattr(self, field.name)
                 if related_instance:
-                    related_instance.set_public_nested()
+                    related_instance._collect_objects_for_public_update(
+                        objects_to_update, visited
+                    )
 
 
 class AlertManager(ACLMixinManager):
