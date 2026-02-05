@@ -266,6 +266,11 @@ class CVEorgCollector(Collector):
                             new_snippets.append(content["cve_id"])
                         if new_flaw:
                             new_flaws.append(content["cve_id"])
+                        else:
+                            # Check for description updates if there is a change on MITRE for existing flaws
+                            self.update_mitre_cve_description(
+                                content["cve_id"], content["cvss_scores"]
+                            )
                         self.upsert_cvss_scores(
                             content["cve_id"], content["cvss_scores"]
                         )
@@ -308,6 +313,26 @@ class CVEorgCollector(Collector):
                     "acl_read": flaw.acl_read,
                     "acl_write": flaw.acl_write,
                 },
+            )
+
+    @staticmethod
+    def update_mitre_cve_description(
+        cve_id: str,
+        mitre_cve_description: str,
+        enable_timestamp: bool = True,
+    ) -> None:
+        if not cve_id:
+            return
+        try:
+            flaw = Flaw.objects.get(cve_id=cve_id)
+        except Flaw.DoesNotExist:
+            return
+
+        if flaw.mitre_cve_description != mitre_cve_description:
+            flaw.mitre_cve_description = mitre_cve_description
+            flaw.save(
+                raise_validation_error=False,
+                auto_timestamps=enable_timestamp,
             )
 
     def save_snippet_and_flaw(self, content: dict) -> tuple[bool, bool]:
@@ -431,6 +456,7 @@ class CVEorgCollector(Collector):
         cvss_scores, impact = get_cvss_and_impact(content)
         return {
             "comment_zero": get_comment_zero(content),
+            "mitre_cve_description": get_comment_zero(content),
             "cve_id": content["cveMetadata"]["cveId"],
             "cvss_scores": cvss_scores,
             "impact": impact,
