@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 import uuid
 from decimal import Decimal
 
@@ -758,32 +757,6 @@ class Flaw(
         old_flaw = Flaw.objects.get(pk=self.pk)
         if not old_flaw.embargoed and self.is_embargoed:
             raise ValidationError("Embargoing a public flaw is futile")
-
-    @validator
-    def _validate_cwe_format(self, **kwargs):
-        """
-        Check if CWE string is well formated
-        """
-        cwe_data = self.cwe_id
-
-        # Split data on arrows ->, later we will parse the elements separately
-        arrow_count = len(re.findall("->", cwe_data))
-        parsed_elements = list(filter(None, cwe_data.split("->")))
-
-        # Ensure number of elements is one bigger then count of arrows, to catch
-        # stuff like: CWE-123->
-        if len(parsed_elements) > 0 and len(parsed_elements) != (arrow_count + 1):
-            raise ValidationError(
-                "CWE IDs is not well formated. Incorrect number of -> in CWE field."
-            )
-
-        # Ensure each element is well formed, i.e. one of:
-        #   * CWE-123
-        #   * (CWE-123)
-        #   * (CWE-123|CWE-456)
-        for element in parsed_elements:
-            if not re.match(r"^(CWE-[0-9]+|\(CWE-[0-9]+(\|CWE-[0-9]+)*\))$", element):
-                raise ValidationError("CWE IDs is not well formated.")
 
     @validator
     def _validate_flaw_without_affect(self, **kwargs):

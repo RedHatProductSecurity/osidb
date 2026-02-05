@@ -1906,9 +1906,9 @@ class TestFlawValidators:
         [
             ("", False),
             ("CWE-123", False),
-            ("(CWE-123)", False),
-            ("CWE-123->CWE-12324", False),
-            ("CWE-123->(CWE-12324)", False),
+            ("(CWE-123)", True),
+            ("CWE-123->CWE-12324", True),
+            ("CWE-123->(CWE-12324)", True),
             ("CWE-1+CWE-2", True),
             ("CWE-1->", True),
             ("cwe-1->CWE-2", True),
