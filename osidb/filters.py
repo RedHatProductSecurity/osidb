@@ -5,6 +5,7 @@ Implement filters for OSIDB REST API results
 from datetime import timedelta
 from typing import Union
 
+from django.apps import apps
 from django.contrib.postgres.search import (
     SearchQuery,
     SearchRank,
@@ -29,6 +30,7 @@ from django_filters.rest_framework import (
 )
 from djangoql.queryset import apply_search
 from packageurl import PackageURL
+from pghistory.models import Events
 
 from apps.workflows.workflow import WorkflowModel
 from osidb.models import (
@@ -54,6 +56,38 @@ LT_GT_LOOKUP_EXPRS = ["lt", "gt"]
 LTE_GTE_LOOKUP_EXPRS = ["lte", "gte"]
 DATE_LOOKUP_EXPRS = ["date__exact", "date__lte", "date__gte"]
 LOOKUP_EXPRS = LT_GT_LOOKUP_EXPRS + LTE_GTE_LOOKUP_EXPRS + DATE_LOOKUP_EXPRS
+
+
+class AuditFilterSet(FilterSet):
+    """
+    When pgh_obj_model is passed, filter by querying the concrete *Audit table
+    directly instead of the Events proxy to avoid heavy union SQL.
+    """
+
+    pgh_obj_model = CharFilter(method="filter_by_obj_model")
+
+    class Meta:
+        model = Events
+        fields = [
+            "pgh_slug",
+            "pgh_label",
+            "pgh_obj_model",
+            "pgh_created_at",
+            "pgh_obj_id",
+        ]
+
+    def filter_by_obj_model(self, queryset, name, value):
+        if value and "." in value:
+            app_label, object_name = value.split(".", 1)
+            audit_model_name = f"{object_name}Audit"
+            try:
+                audit_model = apps.get_model(app_label, audit_model_name)
+            except LookupError:
+                return queryset.filter(pgh_obj_model=value)
+            return audit_model.objects.all().order_by("-pgh_created_at")
+        if value:
+            return queryset.filter(pgh_obj_model=value)
+        return queryset
 
 
 class ChoiceInFilter(BaseInFilter, ChoiceFilter):
