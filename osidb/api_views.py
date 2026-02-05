@@ -51,6 +51,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.workflows.workflow import WorkflowModel
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 from osidb.core import set_user_acls
+from osidb.filters import AuditFilterSet
 from osidb.helpers import get_bugzilla_api_key, get_flaw_or_404
 from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import Affect, AffectCVSS, AffectV1, Flaw, FlawLabel, Tracker
@@ -1733,15 +1734,7 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
     queryset = pghistory.models.Events.objects.all().order_by("-pgh_created_at")
     serializer_class = AuditSerializer
     filter_backends = (DjangoFilterBackend,)
-    # NOTE: we probably could do without pgh_slug, but it's kept for
-    # backwards-compatibility reasons
-    filterset_fields = [
-        "pgh_slug",
-        "pgh_label",
-        "pgh_obj_model",
-        "pgh_created_at",
-        "pgh_obj_id",
-    ]
+    filterset_class = AuditFilterSet
     permission_classes = [IsAuthenticatedOrReadOnly]
     lookup_field = "pgh_slug"
     # allow dots and colons in pgh_slug (e.g. "osidb.FlawAudit:2035413"); default [^/.]+
