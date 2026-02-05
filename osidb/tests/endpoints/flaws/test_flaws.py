@@ -284,14 +284,14 @@ class TestEndpointsFlaws:
         ],
     )
     def test_list_flaws_empty_text(
-        self, field_name,field_content, is_empty, auth_client, test_api_uri
+        self, field_name, field_content, is_empty, auth_client, test_api_uri
     ):
         """
         Test that filtering by null or empty text works for the text fields that have this filter enabled.
         """
         if is_empty:
             field_content = ""
-        
+
         response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
