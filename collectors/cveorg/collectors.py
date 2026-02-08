@@ -375,9 +375,15 @@ class CVEorgCollector(Collector):
         """
 
         def get_comment_zero(data: dict) -> str:
+            value = None
             for description in data["containers"]["cna"].get("descriptions", []):
                 if re.match(self.EN_LANG, description["lang"]):
-                    return description["value"]
+                    value = description["value"]
+                    break
+
+            if isinstance(value, str) and value.strip():
+                return value
+
             return "N/A"
 
         def get_cvss_and_impact(data: dict) -> tuple[list, str]:

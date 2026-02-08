@@ -99,6 +99,18 @@ class TestCVEorgProcessing:
             collector.extract_content(no_descriptions_content)["comment_zero"] == "N/A"
         )
 
+    def test_get_comment_zero_null_value(self, cisa_cvss_content):
+        collector = CVEorgCollector()
+        collector.keywords_check_enabled = False
+
+        cisa_cvss_content["containers"]["cna"]["descriptions"] = [
+            {"lang": "en", "value": None}
+        ]
+
+        extracted = collector.extract_content(cisa_cvss_content)
+        assert extracted["comment_zero"] == "N/A"
+        assert extracted["mitre_cve_description"] == "N/A"
+
     def test_mitre_cve_description_populated(self, cisa_cvss_content):
         """Test that mitre_cve_description is populated from CVE.org description."""
         collector = CVEorgCollector()
