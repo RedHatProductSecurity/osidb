@@ -360,6 +360,36 @@ class TestEndpointsFlaws:
         body = response.json()
         assert body["count"] == 0
 
+    def test_flaws_affects_isnull(self, auth_client, test_api_uri):
+        """Test that filtering by non-existing affects works."""
+        response = auth_client().get(f"{test_api_uri}/flaws")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
+
+        flaw1 = FlawFactory()
+        AffectFactory(flaw=flaw1)
+
+        flaw2 = FlawFactory()
+        AffectFactory(flaw=flaw2)
+
+        FlawFactory()
+
+        response = auth_client().get(f"{test_api_uri}/flaws")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 3
+
+        response = auth_client().get(f"{test_api_uri}/flaws?affects__isnull=True")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+
+        response = auth_client().get(f"{test_api_uri}/flaws?affects__isnull=False")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 2
+
     @freeze_time(datetime(2021, 11, 23))
     @pytest.mark.enable_signals
     def test_changed_after_from_tracker(self, auth_client, test_api_uri):

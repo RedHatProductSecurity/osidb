@@ -549,6 +549,7 @@ class FlawFilter(
     workflow_state = ChoiceInFilter(
         field_name="workflow_state", choices=WorkflowModel.WorkflowState.choices
     )
+    affects__isnull = NullForeignKeyFilter(field_name="affects")
     affects__embargoed = BooleanFilter(field_name="affects__embargoed")
     affects__visibility = ChoiceFilter(
         field_name="affects__visibility", choices=ACLMixinVisibility.choices
