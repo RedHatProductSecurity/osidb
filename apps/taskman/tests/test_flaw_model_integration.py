@@ -62,6 +62,32 @@ class TestFlawModelIntegration(object):
         # flaws without task_key were created by collectors should not sync in jira
         assert sync_count == 1
 
+    def test_create_task_does_not_reset_workflow_state(self, monkeypatch):
+        """
+        Regression test: creating a Jira task for an already-promoted Flaw must not
+        reset the OSIDB workflow_state back to NEW.
+        """
+
+        def mock_create_or_update_task(self, flaw):
+            return "TASK-123"
+
+        monkeypatch.setattr(
+            JiraTaskmanQuerier, "create_or_update_task", mock_create_or_update_task
+        )
+
+        flaw = FlawFactory(task_key=None)
+        # simulate a promoted flaw before the Jira task exists
+        flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
+        flaw.save()
+
+        pre_state = flaw.workflow_state
+
+        flaw._create_or_update_task()
+        flaw.refresh_from_db()
+
+        assert flaw.task_key == "TASK-123"
+        assert flaw.workflow_state == pre_state
+
     def test_syncing(self, monkeypatch, acl_read, acl_write):
         sync_count = 0
 
