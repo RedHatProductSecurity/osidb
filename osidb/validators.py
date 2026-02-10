@@ -29,12 +29,7 @@ def validate_cve_id(value: str):
 
 def validate_cwe_id(value: str):
     """check cwe_id"""
-    # RegexValidator(restrict_regex(CWE_RE_STR), "Invalid CWE.")(value)
-    # TODO complete CWE syntax is a context free language
-    # which obviously cannot be captured by regex
-    # turning off the validation for now
-    # needs to be fixed in the future
-    pass
+    RegexValidator(restrict_regex(CWE_RE_STR), "CWE IDs is not well formated.")(value)
 
 
 def check_cvss(cvss_str, CVSS=CVSS3):

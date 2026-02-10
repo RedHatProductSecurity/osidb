@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow updates for flaw labels in any workflow state (OSIDB-4737)
 - Fix empty CVSS scores existing for not affected affects (OSIDB-4726)
 
+## Changed
+- Flaw can have only one CWE 
+
 ## Removed
 - Remove CWE ID collection from collectors (OSIDB-4742)
 
