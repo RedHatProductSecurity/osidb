@@ -2617,6 +2617,10 @@ paths:
           - LOW
           - MODERATE
       - in: query
+        name: affects__isnull
+        schema:
+          type: boolean
+      - in: query
         name: affects__ps_component
         schema:
           type: string
@@ -9800,6 +9804,10 @@ paths:
 
         explode: false
         style: form
+      - in: query
+        name: affects__isnull
+        schema:
+          type: boolean
       - in: query
         name: affects__ps_component
         schema:
