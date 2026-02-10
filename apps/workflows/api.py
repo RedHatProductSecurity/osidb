@@ -13,7 +13,12 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.taskman.service import JiraTaskmanQuerier
 from osidb.api_views import RudimentaryUserPathLoggingMixin, get_valid_http_methods
-from osidb.helpers import get_bugzilla_api_key, get_flaw_or_404, get_jira_api_key
+from osidb.helpers import (
+    get_bugzilla_api_key,
+    get_flaw_or_404,
+    get_flaw_with_related_objects,
+    get_jira_api_key,
+)
 
 from .exceptions import WorkflowsException
 from .helpers import str2bool
@@ -110,7 +115,9 @@ class PromoteWorkflow(RudimentaryUserPathLoggingMixin, APIView):
         return its workflow:state classification or errors if not possible to promote
         """
         logger.info(f"promoting flaw {flaw_id} workflow classification")
-        flaw = get_flaw_or_404(flaw_id)
+        # Use optimized queryset with prefetch_related to minimize database queries
+        optimized_queryset = get_flaw_with_related_objects()
+        flaw = get_flaw_or_404(flaw_id, queryset=optimized_queryset)
         try:
             jira_token = get_jira_api_key(request)
             bz_token = get_bugzilla_api_key(request)
