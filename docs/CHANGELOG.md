@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Deprecate `requires_cve_description` field (OSIDB-4461)
+- Adjust Jira tracker sync to use `Update Stream` field and `ps_component` label (OSIDB-3830)
 
 ## [5.7.0] - 2026-03-16
 ### Added
