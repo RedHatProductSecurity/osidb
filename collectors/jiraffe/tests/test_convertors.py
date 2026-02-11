@@ -1,5 +1,6 @@
 import datetime
 import json
+from unittest.mock import Mock
 
 import pytest
 
@@ -344,6 +345,57 @@ class TestJiraTrackerConvertor:
             "KEV (active exploit case)",
             "compliance-priority",
         ]
+
+    @pytest.mark.parametrize(
+        "update_stream,labels,summary",
+        [
+            (
+                "test-stream",
+                ["pscomponent:test-component"],
+                "CVE-2026-99999 component: description [stream]",
+            ),
+            (
+                None,
+                ["pscomponent:test-component"],
+                "CVE-2026-99999 component: description [test-stream]",
+            ),
+            (
+                "test-stream",
+                [],
+                "CVE-2026-99999 test-component: description [stream]",
+            ),
+            (
+                None,
+                [],
+                "CVE-2026-99999 test-component: description [test-stream]",
+            ),
+        ],
+    )
+    def test_ps_update_stream_and_component_syncing(
+        self, update_stream, labels, summary
+    ):
+        """
+        Test that ps_update_stream is parsed from the Update Stream field and
+        and ps_component is parsed from the pscomponent label. If either is
+        missing test the fallback to the summary.
+        """
+        ps_module = PsModuleFactory(name="test-module")
+        PsUpdateStreamFactory(name="test-stream", ps_module=ps_module)
+
+        mock_issue = Mock()
+        mock_issue.key = "TEST-0"
+        mock_issue.fields.customfield_12327240 = update_stream
+        mock_issue.fields.labels = labels
+        mock_issue.fields.summary = summary
+        mock_issue.fields.created = "2026-01-01T00:00:00.000+0000"
+        mock_issue.fields.updated = "2026-01-01T00:00:00.000+0000"
+        mock_issue.fields.resolutiondate = None
+
+        convertor = JiraTrackerConvertor(mock_issue)
+
+        assert convertor.ps_update_stream == "test-stream"
+        assert convertor.ps_component == "test-component"
+        assert convertor.ps_module == "test-module"
 
 
 class TestJiraTaskConvertor:

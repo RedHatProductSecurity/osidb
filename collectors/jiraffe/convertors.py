@@ -17,8 +17,8 @@ from osidb.models import Flaw, Tracker
 from osidb.validators import CVE_RE_STR
 
 from ..utils import (
+    get_module_from_update_stream,
     tracker_parse_update_stream_component,
-    tracker_summary2module_component,
 )
 from .constants import JIRA_DT_FULL_FMT, TASK_CHANGELOG_FIELD_MAPPING
 
@@ -360,7 +360,7 @@ class JiraTrackerConvertor(TrackerConvertor):
         """
         return Tracker.TrackerType.JIRA
 
-    def get_field_attr(self, issue, field, attr):
+    def get_field_attr(self, issue, field, attr=""):
         """
         field value getter helper
 
@@ -368,8 +368,10 @@ class JiraTrackerConvertor(TrackerConvertor):
         not always a Field object (can be None)
         """
         if hasattr(issue.fields, field):
-            if hasattr(getattr(issue.fields, field), attr):
+            if attr and hasattr(getattr(issue.fields, field), attr):
                 return getattr(getattr(issue.fields, field), attr)
+            else:
+                return getattr(issue.fields, field)
 
         return None
 
@@ -389,12 +391,19 @@ class JiraTrackerConvertor(TrackerConvertor):
         """
         raw data normalization
         """
-        ps_module, ps_component = tracker_summary2module_component(
+        ps_update_stream, ps_component = tracker_parse_update_stream_component(
             self._raw.fields.summary
         )
-        ps_update_stream = tracker_parse_update_stream_component(
-            self._raw.fields.summary
-        )[0]
+
+        if update_stream := self.get_field_attr(self._raw, "customfield_12327240"):
+            ps_update_stream = update_stream
+
+        for label in self.get_field_attr(self._raw, "labels") or []:
+            if label.startswith("pscomponent:"):
+                ps_component = label.split("pscomponent:", 1)[-1]
+                break
+
+        ps_module = get_module_from_update_stream(ps_update_stream)
 
         self.ps_module = ps_module
         self.ps_component = ps_component

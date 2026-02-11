@@ -646,6 +646,12 @@ def setup_sample_external_resources():
         field_name="SLA Date",
         allowed_values=[],
     ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12325940",
+        field_name="Update Stream",
+        allowed_values=[],
+    ).save()
     JiraBugIssuetype(project=ps_module.bts_key).save()
 
     # 4) list some valid components accepeted for the
