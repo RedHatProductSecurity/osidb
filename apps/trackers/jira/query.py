@@ -637,6 +637,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         self.generate_downstream_component()
         self.generate_upstream_component()
         self.generate_special_handling()
+        self.generate_update_stream()
 
         # we set both embargo status and security level field values since
         # the Jira automation responsible for handling the security level based
@@ -1012,3 +1013,13 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             # explicitly set the empty dates so they are cleared
             # out in case of falling out of SLA later on update
             self._query["fields"][sla_date_field.field_id] = None
+
+    def generate_update_stream(self):
+        """
+        Generate query for Jira Update Stream field
+        """
+
+        field_name = "Update Stream"
+        _, field_id = self.field_check_and_get_values_and_id(field_name)
+
+        self._query["fields"][field_id] = self.ps_update_stream.name

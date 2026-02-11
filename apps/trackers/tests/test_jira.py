@@ -271,7 +271,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         """
 
         if new_issuetype_metadata_present:
-            assert JiraProjectFields.objects.count() == 10
+            assert JiraProjectFields.objects.count() == 11
         else:
             assert JiraProjectFields.objects.count() == 0
 
@@ -1168,6 +1168,12 @@ class TestBothNewOldTrackerJiraQueryBuilder:
             field_name="Upstream Affected Component",
             allowed_values=[],
         ).save()
+        JiraProjectFields(
+            project_key="PROJECT",
+            field_id="customfield_10832",
+            field_name="Update Stream",
+            allowed_values=[],
+        ).save()
         version = "1.2.3"
         JiraProjectFields(
             project_key="PROJECT",
@@ -1349,6 +1355,9 @@ class TestTrackerJiraQueryBuilder:
                 #
                 # Special Handling
                 "customfield_10155": [],
+                #
+                # Update Stream
+                "customfield_10832": "bar-1.2.3",
             }
         }
 

@@ -18,8 +18,8 @@ from osidb.models.jira_user_mapping import JiraUserMapping
 from osidb.validators import CVE_RE_STR
 
 from ..utils import (
+    get_module_from_update_stream,
     tracker_parse_update_stream_component,
-    tracker_summary2module_component,
 )
 from .constants import JIRA_DT_FULL_FMT, TASK_CHANGELOG_FIELD_MAPPING
 
@@ -390,12 +390,21 @@ class JiraTrackerConvertor(TrackerConvertor):
         """
         raw data normalization
         """
-        ps_module, ps_component = tracker_summary2module_component(
+        ps_update_stream, ps_component = tracker_parse_update_stream_component(
             self._raw.fields.summary
         )
-        ps_update_stream = tracker_parse_update_stream_component(
-            self._raw.fields.summary
-        )[0]
+
+        if hasattr(self._raw.fields, "customfield_10832"):
+            if update_stream := getattr(self._raw.fields, "customfield_10832"):
+                ps_update_stream = update_stream
+
+        if hasattr(self._raw.fields, "labels"):
+            for label in getattr(self._raw.fields, "labels"):
+                if label.startswith("pscomponent:"):
+                    ps_component = label.split("pscomponent:", 1)[-1]
+                    break
+
+        ps_module = get_module_from_update_stream(ps_update_stream)
 
         self.ps_module = ps_module
         self.ps_component = ps_component
