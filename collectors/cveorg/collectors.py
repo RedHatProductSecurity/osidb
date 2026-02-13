@@ -269,7 +269,7 @@ class CVEorgCollector(Collector):
                         else:
                             # Check for description updates if there is a change on MITRE for existing flaws
                             self.update_mitre_cve_description(
-                                content["cve_id"], content["cvss_scores"]
+                                content["cve_id"], content["mitre_cve_description"]
                             )
                         self.upsert_cvss_scores(
                             content["cve_id"], content["cvss_scores"]
