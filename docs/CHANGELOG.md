@@ -5,6 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Add `affects__isnull` for flaws endpoint filter (OSIDB-4787)
+
+### Changed
+- Improve promote performance with prefetch (OSIDB-4678)
+- Improve promote performance with ACL bulk update (OSIDB-4678)
+- Flaw can have only one CWE (OSIDB-4744)
+
+### Fixed
+- Fix `mitre_cve_description` filling for existing flaws in CVEorg collector
+
 ## [5.5.0] - 2026-02-06
 ### Fixed
 - Fetching specific events through the /audit endpoint now works (OSIDB-4777)
@@ -12,7 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add the ability to query history of a specific object through /audit endpoint (OSIDB-4777)
 - Add `flaw.selected_cve_description` for `csaf-generator` (OSIDB-4774)
-- Add `affects__isnull` for flaws endpoint filter (OSIDB-4787)
 
 ## [5.4.2] - 2026-01-28
 ### Fixed
@@ -20,9 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added lost indexes for AffectsV1 and tests to ensure they are not deleted (OSIDB-4717).
 - Allow updates for flaw labels in any workflow state (OSIDB-4737)
 - Fix empty CVSS scores existing for not affected affects (OSIDB-4726)
-
-## Changed
-- Flaw can have only one CWE 
 
 ## Removed
 - Remove CWE ID collection from collectors (OSIDB-4742)
@@ -40,8 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Uniqueness on purl or ps_component for affects (OSIDB-4644)
 - Make `ps_module` read-only in the affect serializer (OSIDB-4554)
 - Allow filtering by PURL fields (OSIDB-4728)
-- Improve promote performance with prefetch (OSIDB-4678)
-- Improve promote performance with ACL bulk update (OSIDB-4678)
 
 ### Added
 - Add `in` filter for API views (OSIDB-4588)
