@@ -5,6 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Add `affects__isnull` for flaws endpoint filter (OSIDB-4787)
+
+### Changed
+- Improve promote performance with prefetch (OSIDB-4678)
+- Improve promote performance with ACL bulk update (OSIDB-4678)
+- Flaw can have only one CWE (OSIDB-4744)
+
+## [5.5.1] - 2026-02-13
+### Fixed
+- Fix `mitre_cve_description` filling for existing flaws in CVEorg collector
+
 ## [5.5.0] - 2026-02-06
 ### Fixed
 - Fetching specific events through the /audit endpoint now works (OSIDB-4777)
