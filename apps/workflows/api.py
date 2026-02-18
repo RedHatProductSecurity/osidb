@@ -14,13 +14,11 @@ from rest_framework.viewsets import ModelViewSet
 from apps.taskman.service import JiraTaskmanQuerier
 from osidb.api_views import RudimentaryUserPathLoggingMixin, get_valid_http_methods
 from osidb.helpers import (
-    (
     get_bugzilla_api_key,
     get_flaw_or_404,
     get_flaw_with_related_objects,
     get_jira_api_email,
     get_jira_api_key,
-),
 )
 
 from .exceptions import WorkflowsException
