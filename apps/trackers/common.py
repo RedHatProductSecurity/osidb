@@ -152,7 +152,7 @@ class TrackerQueryBuilder:
 
         # TODO
         # 1) use the template instead if any
-        # tracked in https://uat-2-2-redhat.atlassian.net/browse/OSIDB-1191
+        # tracked in https://uat-3-2-redhat.atlassian.net/browse/OSIDB-1191
 
         # 2) special community comment header
         if self.ps_module.ps_product.is_community:

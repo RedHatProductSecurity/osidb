@@ -426,10 +426,10 @@ class JiraTrackerConvertor(TrackerConvertor):
             "status": self.get_field_attr(self._raw, "status", "name"),
             "resolution": self.get_field_attr(self._raw, "resolution", "name"),
             "not_affected_justification": self.get_field_attr(
-                self._raw, "customfield_10116", "value"
+                self._raw, "customfield_10353", "value"
             ),
             "special_handling": self.get_array_field_attr(
-                self._raw, "customfield_10155", "value"
+                self._raw, "customfield_10421", "value"
             )
             or [],
             "resolved_dt": resolved_dt,

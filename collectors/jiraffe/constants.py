@@ -3,7 +3,7 @@ import re
 from osidb.helpers import get_env
 
 # Auth
-JIRA_SERVER = get_env("JIRA_URL", default="https://uat-2-2-redhat.atlassian.net")
+JIRA_SERVER = get_env("JIRA_URL", default="https://uat-3-2-redhat.atlassian.net")
 JIRA_TOKEN = get_env("JIRA_AUTH_TOKEN")
 JIRA_EMAIL = get_env("JIRA_EMAIL")
 HTTPS_PROXY = get_env("HTTPS_JIRA_PROXY")

@@ -206,29 +206,12 @@ class JiraTaskmanQuerier(JiraQuerier):
             # Trim the maximum summary length by 3 to account for the triple dots
             summary = f"{summary[: JIRA_SUMMARY_MAX_LENGTH - 3]}..."
 
-        # Convert comment_zero to Atlassian Document Format (ADF) for Jira API v3
-        description_adf = {
-            "type": "doc",
-            "version": 1,
-            "content": [
-                {
-                    "type": "paragraph",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": flaw.comment_zero or "",
-                        }
-                    ],
-                }
-            ],
-        }
-
         data = {
             "fields": {
                 "issuetype": {},
                 "project": {},
                 "summary": summary,
-                "description": description_adf,
+                "description": flaw.comment_zero or "",
                 "labels": labels,
                 "priority": {"name": IMPACT_TO_JIRA_PRIORITY[flaw.impact]},
                 "assignee": {"name": flaw.owner},
