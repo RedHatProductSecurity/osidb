@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve promote performance with ACL bulk update (OSIDB-4678)
 - Flaw can have only one CWE (OSIDB-4744)
 
+## Fixed
+- Fix different cveorg collect behavior (OSIDB-4798)
+
 ## [5.5.1] - 2026-02-13
 ### Fixed
 - Fix `mitre_cve_description` filling for existing flaws in CVEorg collector
