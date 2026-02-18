@@ -96,7 +96,7 @@ class TestBugzillaTrackerCollector:
     def test_sync_embargoed_tracker(self, bz_tracker_collector):
         """
         test that an embargoed tracker loaded from Bugzilla is preserved as embargoed
-        reproducer for https://uat-2-2-redhat.atlassian.net/browse/OSIDB-2118
+        reproducer for https://uat-3-2-redhat.atlassian.net/browse/OSIDB-2118
         """
         tracker_id = "1642774"
         assert Tracker.objects.count() == 0
