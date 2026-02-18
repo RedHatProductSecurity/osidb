@@ -37,6 +37,10 @@ class CVEorgCollectorException(Exception):
     pass
 
 
+class CVEorgCollectorValidationError(Exception):
+    pass
+
+
 class CVEorgCollector(Collector):
     # Controls whether the collector is enabled, default to True
     snippet_creation_enabled = SNIPPET_CREATION_ENABLED
@@ -174,6 +178,60 @@ class CVEorgCollector(Collector):
 
         return file_path
 
+    def _upsert_from_file_content(
+        self, file_path: str
+    ) -> tuple[str | None, str | None]:
+        """
+        Process a CVE JSON file and create or update snippet, flaw, and CVSS data.
+
+        Validates the CVE metadata (checks for blocked CNAs and published state),
+        extracts content, saves snippet and flaw data, and upserts CVSS scores.
+        For existing flaws, updates the MITRE CVE description if changed.
+        """
+        with open(file_path) as file:
+            file_content = json.load(file)
+
+        cve = file_content["cveMetadata"]["cveId"]
+        assigner_org_id = file_content["cveMetadata"]["assignerOrgId"]
+
+        if assigner_org_id in get_keywords(Keyword.Type.ASSIGNER_ORG_ID_BLOCKLIST):
+            raise CVEorgCollectorValidationError(
+                f"Skipping '{cve}' because it assigned by a blocked CNA. assignerOrgId: {assigner_org_id}"
+            )
+
+        if file_content["cveMetadata"]["state"] != "PUBLISHED":
+            raise CVEorgCollectorValidationError(
+                f"Cannot create '{cve}' because it was rejected by CVE Program."
+            )
+        try:
+            content = self.extract_content(file_content)
+        except Exception as exc:
+            msg = f"Failed to parse data from the {file_path} file: {exc}"
+            logger.error(msg)
+            raise CVEorgCollectorException(msg) from exc
+        try:
+            with transaction.atomic():
+                new_snippet, new_flaw = self.save_snippet_and_flaw(content)
+                new_snippet_cve_id = content["cve_id"] if new_snippet else None
+
+                if new_flaw:
+                    new_flaw_cve_id = content["cve_id"]
+                else:
+                    new_flaw_cve_id = None
+                    # Check for description updates if there is a change on MITRE for existing flaws
+                    self.update_mitre_cve_description(
+                        content["cve_id"], content["mitre_cve_description"]
+                    )
+                self.upsert_cvss_scores(content["cve_id"], content["cvss_scores"])
+
+                return new_snippet_cve_id, new_flaw_cve_id
+
+        except Exception as exc:
+            message = (
+                f"Failed to save snippet and flaw for {content['cve_id']}. Error: {exc}"
+            )
+            raise CVEorgCollectorException(message) from exc
+
     def collect_cve(self, cve: str) -> str:
         """
         Collect vulnerability data for a given `cve` from the cvelistV5 repository and store it in OSIDB.
@@ -190,37 +248,16 @@ class CVEorgCollector(Collector):
         self.clone_repo()
         self.update_repo()
         file_path = self.get_cve_file_path(cve)
-
-        with open(file_path) as file:
-            file_content = json.load(file)
-
-        assigner_org_id = file_content["cveMetadata"]["assignerOrgId"]
-
-        if assigner_org_id in get_keywords(Keyword.Type.ASSIGNER_ORG_ID_BLOCKLIST):
-            return f"Skipping '{cve}' because it assigned by a blocked CNA. assignerOrgId: {assigner_org_id}"
-
-        if file_content["cveMetadata"]["state"] != "PUBLISHED":
-            return f"Cannot create '{cve}' because it was rejected by CVE Program."
-
         try:
-            content = self.extract_content(file_content)
-        except Exception as exc:
-            msg = f"Failed to parse data from the {file_path} file: {exc}"
-            raise CVEorgCollectorException(msg) from exc
-
-        try:
-            with transaction.atomic():
-                _, new_flaw = self.save_snippet_and_flaw(content)
-        except Exception as exc:
-            message = (
-                f"Failed to save snippet and flaw for {content['cve_id']}. Error: {exc}"
+            _, new_flaw = self._upsert_from_file_content(file_path)
+            return (
+                f"Flaw for {cve} was created successfully."
+                if new_flaw
+                else f"Flaw for {cve} was not created because it already exist."
             )
-            raise CVEorgCollectorException(message) from exc
-
-        if new_flaw:
-            return f"Flaw for {cve} was created successfully."
-        else:
-            return f"Flaw for {cve} was not created because it already exist."
+        except CVEorgCollectorValidationError as exc:
+            logger.error(exc)
+            return str(exc)
 
     def collect(self) -> str:
         """
@@ -249,38 +286,19 @@ class CVEorgCollector(Collector):
             if re.search(self.CVE_PATH, f)
         )
         for file_path in file_paths:
-            with open(file_path) as file:
-                file_content = json.load(file)
-
-            if file_content["cveMetadata"]["state"] == "PUBLISHED":
-                try:
-                    content = self.extract_content(file_content)
-                except Exception as exc:
-                    msg = f"Failed to parse data from the {file_path} file: {exc}"
-                    logger.error(msg)
-                    continue
-                try:
-                    with transaction.atomic():
-                        new_snippet, new_flaw = self.save_snippet_and_flaw(content)
-                        if new_snippet:
-                            new_snippets.append(content["cve_id"])
-                        if new_flaw:
-                            new_flaws.append(content["cve_id"])
-                        else:
-                            # Check for description updates if there is a change on MITRE for existing flaws
-                            self.update_mitre_cve_description(
-                                content["cve_id"], content["mitre_cve_description"]
-                            )
-                        self.upsert_cvss_scores(
-                            content["cve_id"], content["cvss_scores"]
-                        )
-                    # introduce a small delay after each transaction to not hit the Jira rate limit
-                    if new_flaw:
-                        sleep(1)
-                except Exception as exc:
-                    message = f"Failed to save snippet and flaw for {content['cve_id']}. Error: {exc}"
-                    logger.error(message)
-                    raise CVEorgCollectorException(message) from exc
+            try:
+                new_snippet, new_flaw = self._upsert_from_file_content(file_path)
+                if new_snippet:
+                    new_snippets.append(new_snippet)
+                if new_flaw:
+                    new_flaws.append(new_flaw)
+                    sleep(1)
+            except CVEorgCollectorValidationError as exc:
+                logger.error(exc)
+                continue
+            except CVEorgCollectorException as exc:
+                logger.error(exc)
+                raise
 
         updated_until = period_end
         self.store(complete=True, updated_until_dt=updated_until)

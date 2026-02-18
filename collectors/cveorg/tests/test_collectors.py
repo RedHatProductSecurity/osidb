@@ -1,6 +1,8 @@
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
+from django.utils import timezone
 from django.utils.timezone import datetime, make_aware
 from jira.exceptions import JIRAError
 
@@ -114,6 +116,29 @@ class TestCVEorgCollector:
         cc.collect_cve(cve_id)
 
         assert Flaw.objects.count() == 0
+
+    @pytest.mark.vcr
+    @pytest.mark.default_cassette(
+        "TestCVEorgCollector.test_collect_cveorg_records.yaml"
+    )
+    def test_ignored_cve_with_blocked_cna_assignerid_for_collect(
+        self, mock_keywords, mock_repo
+    ):
+        """
+        Test that snippets and flaws are not created when the assigning cna is blocked by ps_constants
+        """
+        cc = CVEorgCollector()
+        cc.get_repo_changes = Mock(
+            return_value=(
+                "CVE-2024-0181.json\nCVE-2018-9208.json\n",
+                timezone.datetime(2024, 7, 1, tzinfo=timezone.get_current_timezone()),
+            )
+        )
+        cc.snippet_creation_enabled = True
+        cc.snippet_creation_start_date = None
+        cc.collect()
+
+        assert Flaw.objects.count() == 1
 
     @pytest.mark.vcr
     @pytest.mark.default_cassette(
