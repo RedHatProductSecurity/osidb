@@ -88,6 +88,52 @@ class TestFlawModelIntegration(object):
         assert flaw.task_key == "TASK-123"
         assert flaw.workflow_state == pre_state
 
+    def test_promote_with_task_collector_disabled_does_not_schedule_async_flaw_save(
+        self,
+        monkeypatch,
+        enable_jira_task_async_sync,
+    ):
+        """
+        Regression test for OSIDB-4798:
+
+        When two-way Jira sync is disabled (JIRA_TASK_COLLECTOR_ENABLED=0), promoting a
+        flaw must not result in an asynchronous background save of the Flaw record.
+        """
+        import collectors.jiraffe.constants as jiraffe_constants
+        from osidb.sync_manager import JiraTaskSyncManager
+
+        monkeypatch.setattr(jiraffe_constants, "JIRA_TASK_COLLECTOR_ENABLED", False)
+
+        schedule_calls = 0
+
+        def mock_schedule(*args, **kwargs):
+            nonlocal schedule_calls
+            schedule_calls += 1
+
+        monkeypatch.setattr(JiraTaskSyncManager, "schedule", mock_schedule)
+
+        create_or_update_calls = 0
+
+        def mock_create_or_update_task(self, jira_token=None):
+            nonlocal create_or_update_calls
+            create_or_update_calls += 1
+            self.task_key = "TASK-123"
+            Flaw.objects.filter(uuid=self.uuid).update(task_key=self.task_key)
+
+        monkeypatch.setattr(Flaw, "_create_or_update_task", mock_create_or_update_task)
+
+        # Force "OSIDB-native" flaw (no Bugzilla ID) so that task creation is triggered.
+        flaw = FlawFactory(task_key="", meta_attr={"test": "1"})
+        AffectFactory(flaw=flaw)
+
+        flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
+        flaw.save(jira_token="SECRET")  # nosec
+        flaw.refresh_from_db()
+
+        assert create_or_update_calls == 1
+        assert schedule_calls == 0
+        assert flaw.task_key == "TASK-123"
+
     def test_syncing(self, monkeypatch, acl_read, acl_write):
         sync_count = 0
 
