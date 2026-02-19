@@ -1132,8 +1132,15 @@ class Flaw(
         # switch of sync/async processing
         if JIRA_TASKMAN_ASYNCHRONOUS_SYNC:
             if update_task:
-                JiraTaskSyncManager.check_for_reschedules()
-                JiraTaskSyncManager.schedule(str(self.uuid))
+                # If two-way Jira sync is disabled, avoid scheduling a background task
+                # that would mutate the Flaw record after the request returns.
+                from collectors.jiraffe.constants import JIRA_TASK_COLLECTOR_ENABLED
+
+                if JIRA_TASK_COLLECTOR_ENABLED:
+                    JiraTaskSyncManager.check_for_reschedules()
+                    JiraTaskSyncManager.schedule(str(self.uuid))
+                else:
+                    self._create_or_update_task(jira_token)
 
             if transition_task:
                 # workflow transition may result in ACL change
@@ -1172,10 +1179,8 @@ class Flaw(
         # creation
         if not self.task_key:
             self.task_key = jtq.create_or_update_task(self)
-            self.workflow_state = WorkflowModel.WorkflowState.NEW
             Flaw.objects.filter(uuid=self.uuid).update(
                 task_key=self.task_key,
-                workflow_state=self.workflow_state,
             )
         else:
             jtq.create_or_update_task(self)
