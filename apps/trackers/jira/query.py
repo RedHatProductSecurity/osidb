@@ -412,7 +412,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             return
 
         versions = JiraProjectFields.objects.filter(
-            project_key=self.ps_module.bts_key, field_name="Affects Versions"
+            project_key=self.ps_module.bts_key, field_name="Affects versions"
         )
         # project may or may not support versions so it is optional
         if versions.exists() and self.ps_update_stream.version:
