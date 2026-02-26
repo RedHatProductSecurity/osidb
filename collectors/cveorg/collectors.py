@@ -12,7 +12,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
-from apps.taskman.constants import JIRA_AUTH_TOKEN
+from apps.taskman.constants import JIRA_AUTH_TOKEN, JIRA_EMAIL
 from collectors.cmd import Cmd
 from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.cveorg.constants import (
@@ -361,7 +361,11 @@ class CVEorgCollector(Collector):
             defaults={"content": content},
         )
         flaw_created = (
-            bool(snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN))
+            bool(
+                snippet.convert_snippet_to_flaw(
+                    jira_token=JIRA_AUTH_TOKEN, jira_email=JIRA_EMAIL
+                )
+            )
             if snippet_created
             else False
         )

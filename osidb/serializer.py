@@ -955,6 +955,7 @@ class TrackerSerializer(
         tracker.save(
             bz_api_key=self.get_bz_api_key(),
             jira_token=self.get_jira_token(),
+            jira_email=self.get_jira_email(),
             auto_timestamps=False,
         )
 
@@ -1167,7 +1168,9 @@ class AffectCVSSSerializer(
             old_cvss, new_cvss, ["score", "vector", "issuer"]
         ):
             return
-        new_cvss.sync_to_trackers(jira_token=self.get_jira_token())
+        new_cvss.sync_to_trackers(
+            jira_token=self.get_jira_token(), jira_email=self.get_jira_email()
+        )
 
 
 @extend_schema_serializer(exclude_fields=["affect", "updated_dt"])
@@ -1402,6 +1405,7 @@ class AffectSerializer(
             # therefore at this point we simply require both secrets
             bz_api_key=self.get_bz_api_key(),
             jira_token=self.get_jira_token(),
+            jira_email=self.get_jira_email(),
             # do not raise validation errors here as the tracker is not what
             # the user touches which would make the errors hard to understand
             raise_validation_error=False,
@@ -1971,7 +1975,9 @@ class FlawReferenceSerializer(
         if old_ref is not None and not differ(old_ref, new_ref, ["url", "description"]):
             return
 
-        new_ref.sync_to_trackers(jira_token=self.get_jira_token())
+        new_ref.sync_to_trackers(
+            jira_token=self.get_jira_token(), jira_email=self.get_jira_email()
+        )
 
 
 @extend_schema_serializer(exclude_fields=["updated_dt", "flaw"])
@@ -2020,7 +2026,9 @@ class FlawCVSSSerializer(
         ):
             return
 
-        new_cvss.sync_to_trackers(jira_token=self.get_jira_token())
+        new_cvss.sync_to_trackers(
+            jira_token=self.get_jira_token(), jira_email=self.get_jira_email()
+        )
 
 
 @extend_schema_serializer(exclude_fields=["updated_dt", "flaw"])
@@ -2443,6 +2451,7 @@ class FlawSerializer(
                 # therefore at this point we simply require both secrets
                 bz_api_key=self.get_bz_api_key(),
                 jira_token=self.get_jira_token(),
+                jira_email=self.get_jira_email(),
                 # do not raise validation errors here as the tracker is not what
                 # the user touches which would make the errors hard to understand
                 raise_validation_error=False,
