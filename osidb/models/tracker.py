@@ -268,7 +268,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                     # Other IntegrityError, reraise the exception
                     raise e
 
-    def sync_reference(self, jira_token, reference):
+    def sync_reference(self, jira_token, jira_email, reference):
         """Syncs the reference as a Jira link if needed"""
         from collectors.jiraffe.core import JiraQuerier
 
@@ -280,7 +280,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         ):
             return
 
-        JiraQuerier(jira_token).sync_link(
+        JiraQuerier(jira_token, jira_email).sync_link(
             self.external_system_id, reference.url, reference.description
         )
 
