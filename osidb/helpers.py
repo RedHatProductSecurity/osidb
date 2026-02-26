@@ -446,18 +446,16 @@ def get_jira_api_email(request: Request) -> str:
 
     from osidb.integrations import IntegrationRepository, IntegrationSettings
 
-    # explicitly passed-through token takes precedence
+    user = cast(User, request.user)
+
+    # explicitly passed-through header takes precedence
     if not (jira_api_email := request.META.get("HTTP_JIRA_API_EMAIL")):
         integration_settings = IntegrationSettings()
         integration_repo = IntegrationRepository(integration_settings)
-        user = cast(User, request.user)
         jira_api_email = integration_repo.read_jira_email(user.username)
 
+    # fall back to deriving email from username
     if not jira_api_email:
-        raise ValidationError(
-            {
-                "Jira-Api-Email": "This HTTP header is required or email must be stored via /osidb/integrations"
-            }
-        )
+        jira_api_email = f"{user.username}@redhat.com"
 
     return jira_api_email
