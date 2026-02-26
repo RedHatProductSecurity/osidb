@@ -68,7 +68,7 @@ class JiraTaskConvertor:
         return {
             "external_system_id": self._raw.key,
             "labels": self._raw.fields.labels,
-            "owner": self.get_field_attr(self._raw, "assignee", "name"),
+            "owner": self.get_field_attr(self._raw, "assignee", "displayName"),
             "jira_status": status,
             "jira_resolution": resolution,
             "workflow_state": state,
