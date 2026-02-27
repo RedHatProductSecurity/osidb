@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 
+from osidb.exceptions import JiraUserMappingException
 from osidb.mixins import NullStrFieldsMixin, ValidateMixin
 
 
@@ -26,6 +27,26 @@ class JiraUserMapping(NullStrFieldsMixin, ValidateMixin):
 
     class Meta:
         ordering = ["associate_kerberos_id"]
+
+    @classmethod
+    def kerberos_to_cloud_id(cls, kerberos_id):
+        """Look up the Atlassian Cloud accountId for a given Kerberos ID."""
+        try:
+            return cls.objects.get(associate_kerberos_id=kerberos_id).atlassian_cloud_id
+        except cls.DoesNotExist:
+            raise JiraUserMappingException(
+                f"No Jira user mapping found for Kerberos ID: {kerberos_id}"
+            )
+
+    @classmethod
+    def cloud_id_to_kerberos(cls, cloud_id):
+        """Look up the Kerberos ID for a given Atlassian Cloud accountId."""
+        try:
+            return cls.objects.get(atlassian_cloud_id=cloud_id).associate_kerberos_id
+        except cls.DoesNotExist:
+            raise JiraUserMappingException(
+                f"No Jira user mapping found for Atlassian Cloud ID: {cloud_id}"
+            )
 
     def __str__(self):
         return f"{self.associate_kerberos_id} -> {self.atlassian_cloud_id}"
