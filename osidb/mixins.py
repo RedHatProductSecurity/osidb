@@ -53,6 +53,14 @@ class TrackingMixin(models.Model):
             models.Index(fields=["-updated_dt"]),
         ]
 
+    def _get_last_event_context_user(self):
+        last_event = pghistory.models.Events.objects.references(self).order_by("-pgh_created_at").first()
+        last_event_context = last_event.pgh_context if last_event else None
+        last_event_user = last_event_context.get("user", 'unknown')
+        return last_event_user
+
+
+
     def save(self, *args, auto_timestamps=True, **kwargs):
         """
         save created_dt as now on creation
@@ -72,10 +80,14 @@ class TrackingMixin(models.Model):
             # updated_dt should never change from the DB version
             # otherwise assume that there was a conflicting parallel change
             if db_self is not None and db_self.updated_dt != self.updated_dt:
+                last_event_user = self._get_last_event_context_user()
+
+
                 raise DataInconsistencyException(
                     "Save operation based on an outdated model instance: "
                     f"Updated datetime in the request {self.updated_dt} "
                     f"differes from the DB {db_self.updated_dt}. "
+                    f"changed by: {last_event_user}. "
                     "You need to refresh."
                 )
 
