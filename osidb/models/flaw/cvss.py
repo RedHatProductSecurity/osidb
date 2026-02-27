@@ -49,7 +49,7 @@ class FlawCVSS(CVSS):
             GinIndex(fields=["acl_read"]),
         ]
 
-    def sync_to_trackers(self, jira_token):
+    def sync_to_trackers(self, jira_token, jira_email):
         """Sync this CVSS in the related Jira trackers."""
         from osidb.models.tracker import Tracker
 
@@ -64,4 +64,4 @@ class FlawCVSS(CVSS):
                 and tracker.type == Tracker.TrackerType.JIRA
             ):
                 # default save already sync with Jira when needed
-                tracker.save(jira_token=jira_token)
+                tracker.save(jira_token=jira_token, jira_email=jira_email)

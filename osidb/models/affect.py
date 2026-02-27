@@ -1169,7 +1169,7 @@ class AffectCVSS(CVSS):
         # AffectCVSS needs to be synced through affect
         self.affect.save(*args, **kwargs)
 
-    def sync_to_trackers(self, jira_token):
+    def sync_to_trackers(self, jira_token, jira_email):
         """Sync this CVSS in the related Jira tracker."""
         from osidb.models.tracker import Tracker
 
@@ -1183,7 +1183,7 @@ class AffectCVSS(CVSS):
             and tracker.type == Tracker.TrackerType.JIRA
         ):
             # default save already sync with Jira when needed
-            tracker.save(jira_token=jira_token)
+            tracker.save(jira_token=jira_token, jira_email=jira_email)
 
 
 # List of all states an Affect is considered open/not resolved

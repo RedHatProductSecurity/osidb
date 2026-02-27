@@ -31,6 +31,7 @@ from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
 from osidb.cc import JiraAffectCCBuilder
 from osidb.models import Affect, AffectCVSS, Flaw, FlawCVSS, FlawSource, Impact
 from osidb.models.abstract import CVSS
+from osidb.models.jira_user_mapping import JiraUserMapping
 from osidb.validators import CVE_RE_STR
 
 from .constants import (
@@ -505,13 +506,25 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             )
             cc_list.update(affect_cc_builder.generate_cc())
 
+        cc_list = {"jfrejlac"}
+
         if cc_list:
+            # CC list may contain emails (user@redhat.com), strip to kerberos IDs
+            cc_list = {
+                u.removesuffix("@redhat.com") if u.endswith("@redhat.com") else u
+                for u in cc_list
+            }
             # Keep the order stable for ease of testing and debugging
             cc_list = sorted(cc_list)
 
             # Note that access control for the comment is not necessary because the whole
             # tracker has access control set in generate_security().
-            notify_users = ", ".join([("[~%s]" % u) for u in cc_list])
+            notify_users = ", ".join(
+                [
+                    ("[~accountId:%s]" % JiraUserMapping.kerberos_to_cloud_id(u))
+                    for u in cc_list
+                ]
+            )
             self._comment = "Added involved users: " + notify_users
 
             # contributors fields will replace the involved field
@@ -520,13 +533,15 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
                 project_key=self.ps_module.bts_key, field_name="Contributors"
             ).first():
                 self._query["fields"][contr_field_obj.field_id] = [
-                    {"name": un} for un in cc_list
+                    {"accountId": JiraUserMapping.kerberos_to_cloud_id(un)}
+                    for un in cc_list
                 ]
             elif inv_field_obj := JiraProjectFields.objects.filter(
                 project_key=self.ps_module.bts_key, field_name="Involved"
             ).first():
                 self._query["fields"][inv_field_obj.field_id] = [
-                    {"name": un} for un in cc_list
+                    {"accountId": JiraUserMapping.kerberos_to_cloud_id(un)}
+                    for un in cc_list
                 ]
             else:
                 # At the time of writing this, all Jira projects have these fields.

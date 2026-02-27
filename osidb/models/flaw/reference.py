@@ -105,7 +105,7 @@ class FlawReference(AlertMixin, ACLMixin, TrackingMixin):
             GinIndex(fields=["acl_read"]),
         ]
 
-    def sync_to_trackers(self, jira_token):
+    def sync_to_trackers(self, jira_token, jira_email):
         """Sync this reference as links in the related Jira trackers."""
         from osidb.models.tracker import Tracker
 
@@ -119,7 +119,9 @@ class FlawReference(AlertMixin, ACLMixin, TrackingMixin):
                 and not tracker.is_closed
                 and tracker.type == Tracker.TrackerType.JIRA
             ):
-                tracker.sync_reference(jira_token=jira_token, reference=self)
+                tracker.sync_reference(
+                    jira_token=jira_token, jira_email=jira_email, reference=self
+                )
 
     @validator
     def _validate_article_link(self, **kwargs):
