@@ -14,6 +14,7 @@ from django.db import transaction
 from apps.workflows.workflow import WorkflowFramework
 from osidb.core import generate_acls, set_user_acls
 from osidb.models import Flaw, Tracker
+from osidb.models.jira_user_mapping import JiraUserMapping
 from osidb.validators import CVE_RE_STR
 
 from ..utils import (
@@ -64,11 +65,14 @@ class JiraTaskConvertor:
         status = self.get_field_attr(self._raw, "status", "name")
         resolution = self.get_field_attr(self._raw, "resolution", "name")
         workflow, state = WorkflowFramework().jira_to_state(status, resolution)
+        assignee_cloud_id = self.get_field_attr(self._raw, "assignee", "accountId")
 
         return {
             "external_system_id": self._raw.key,
             "labels": self._raw.fields.labels,
-            "owner": self.get_field_attr(self._raw, "assignee", "displayName"),
+            "owner": JiraUserMapping.cloud_id_to_kerberos(assignee_cloud_id)
+            if assignee_cloud_id
+            else "",
             "jira_status": status,
             "jira_resolution": resolution,
             "workflow_state": state,
@@ -410,16 +414,23 @@ class JiraTrackerConvertor(TrackerConvertor):
                 self._raw.fields.resolutiondate, JIRA_DT_FULL_FMT
             )
 
+        assignee_cloud_id = self.get_field_attr(self._raw, "assignee", "accountId")
+        qe_cloud_id = self.get_field_attr(
+            self._raw, "customfield_12316243", "accountId"
+        )
+
         return {
             "jira_issuetype": self.get_field_attr(self._raw, "issuetype", "name"),
             "external_system_id": self._raw.key,
             "labels": json.dumps(self._raw.fields.labels),
-            "owner": self.get_field_attr(self._raw, "assignee", "displayName"),
+            "owner": JiraUserMapping.cloud_id_to_kerberos(assignee_cloud_id)
+            if assignee_cloud_id
+            else "",
             # QE Assignee corresponds to customfield_12316243
             # in RH Jira which is a field of schema type user
-            "qe_owner": self.get_field_attr(
-                self._raw, "customfield_12316243", "displayName"
-            ),
+            "qe_owner": JiraUserMapping.cloud_id_to_kerberos(qe_cloud_id)
+            if qe_cloud_id
+            else "",
             "ps_module": ps_module,
             "ps_component": ps_component,
             "ps_update_stream": ps_update_stream,
