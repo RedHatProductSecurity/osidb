@@ -1,5 +1,5 @@
 from celery import Celery, signals
-from django.conf import Settings, settings
+from django.conf import settings
 from kombu import Queue
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
