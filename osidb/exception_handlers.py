@@ -23,6 +23,7 @@ from apps.trackers.exceptions import (
     TrackerCreationError,
 )
 from collectors.bzimport.exceptions import RecoverableBZImportException
+from osidb.exceptions import JiraUserMappingException
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +77,8 @@ def exception_handler(exc, context):
         TrackerCreationError,
         # BZImport
         RecoverableBZImportException,
+        # User mapping
+        JiraUserMappingException,
     )
 
     if isinstance(exc, KNOWN_EXCEPTIONS):

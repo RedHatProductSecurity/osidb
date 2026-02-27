@@ -15,6 +15,7 @@ from apps.trackers.jira.query import JiraPriority
 from collectors.jiraffe.core import JiraQuerier
 from osidb.helpers import safe_get_response_content
 from osidb.models import Flaw, Impact
+from osidb.models.jira_user_mapping import JiraUserMapping
 
 from .constants import (
     JIRA_STORY_ISSUE_TYPE_ID,
@@ -214,7 +215,11 @@ class JiraTaskmanQuerier(JiraQuerier):
                 "description": flaw.comment_zero or "",
                 "labels": labels,
                 "priority": {"name": IMPACT_TO_JIRA_PRIORITY[flaw.impact]},
-                "assignee": {"name": flaw.owner},
+                "assignee": {
+                    "accountId": JiraUserMapping.kerberos_to_cloud_id(flaw.owner)
+                }
+                if flaw.owner
+                else None,
             }
         }
 
