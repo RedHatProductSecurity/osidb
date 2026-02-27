@@ -53,6 +53,25 @@ class TrackingMixin(models.Model):
             models.Index(fields=["-updated_dt"]),
         ]
 
+    def _get_last_event_context_user(self):
+        all_events = pghistory.models.Events.objects.references(self).order_by(
+            "-pgh_created_at"
+        )
+        last_event = all_events.first()
+        last_event_context = last_event.pgh_context if last_event else None
+
+        if last_event_context is None:
+            return "unknown"
+        last_event_user = last_event_context.get("user", "unknown")
+        return last_event_user
+
+    def _get_actual_user(self):
+        ctx = getattr(
+            pghistory.runtime._tracker, "value", None
+        )  # active context for this thread, if any
+        actual_user = (ctx.metadata.get("user") if ctx else None) or "unknown"
+        return actual_user
+
     def save(self, *args, auto_timestamps=True, **kwargs):
         """
         save created_dt as now on creation
@@ -72,11 +91,13 @@ class TrackingMixin(models.Model):
             # updated_dt should never change from the DB version
             # otherwise assume that there was a conflicting parallel change
             if db_self is not None and db_self.updated_dt != self.updated_dt:
-                raise DataInconsistencyException(
-                    "Save operation based on an outdated model instance: "
-                    f"Updated datetime in the request {self.updated_dt} "
-                    f"differes from the DB {db_self.updated_dt}. "
-                    "You need to refresh."
+                last_event_user = self._get_last_event_context_user()
+                actual_event_user = self._get_actual_user()
+
+                logger.info(
+                    f"Save operation based on an outdated model instance by "
+                    f"{actual_event_user} with updated_dt {self.updated_dt} "
+                    f"differes from the DB {db_self.updated_dt} by {last_event_user}."
                 )
 
             # auto-set updated_dt as now on any change
