@@ -785,7 +785,16 @@ class Flaw(
 
         we cannot enforce this by model definition
         as the old flaws may have no components
+
+        flaws in NEW or REJECTED workflow state are exempt as
+        components may not yet be known at the time of creation
+        and flaws can be rejected directly from NEW without them
         """
+        if self.workflow_state in (
+            WorkflowModel.WorkflowState.NEW,
+            WorkflowModel.WorkflowState.REJECTED,
+        ):
+            return
         if not self.components:
             raise ValidationError("Components value is required.")
 

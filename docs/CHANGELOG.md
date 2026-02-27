@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve promote performance with prefetch (OSIDB-4678)
 - Improve promote performance with ACL bulk update (OSIDB-4678)
 - Flaw can have only one CWE (OSIDB-4744)
+- Allow empty Flaw.components in NEW and REJECTED workflow states (OSIDB-4799)
 
 ## Fixed
 - Fix different cveorg collect behavior (OSIDB-4798)
