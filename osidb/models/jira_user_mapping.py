@@ -27,5 +27,15 @@ class JiraUserMapping(NullStrFieldsMixin, ValidateMixin):
     class Meta:
         ordering = ["associate_kerberos_id"]
 
+    @classmethod
+    def kerberos_to_cloud_id(cls, kerberos_id):
+        """Look up the Atlassian Cloud accountId for a given Kerberos ID."""
+        return cls.objects.get(associate_kerberos_id=kerberos_id).atlassian_cloud_id
+
+    @classmethod
+    def cloud_id_to_kerberos(cls, cloud_id):
+        """Look up the Kerberos ID for a given Atlassian Cloud accountId."""
+        return cls.objects.get(atlassian_cloud_id=cloud_id).associate_kerberos_id
+
     def __str__(self):
         return f"{self.associate_kerberos_id} -> {self.atlassian_cloud_id}"
