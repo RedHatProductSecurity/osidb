@@ -2011,10 +2011,25 @@ class TestFlawValidators:
 
     def test_no_component(self):
         """
-        test that flaw cannot have an empty component
+        test that a flaw in NEW or REJECTED state can have empty components
+        but flaws in other states cannot
         """
+        flaw_new = FlawFactory(
+            components=[], workflow_state=WorkflowModel.WorkflowState.NEW
+        )
+        assert flaw_new.save() is None
+        assert flaw_new.components == []
+
+        flaw_rejected = FlawFactory(
+            components=[], workflow_state=WorkflowModel.WorkflowState.REJECTED
+        )
+        assert flaw_rejected.save() is None
+        assert flaw_rejected.components == []
+
         with pytest.raises(ValidationError, match="Components value is required"):
-            FlawFactory(components=None)
+            FlawFactory(
+                components=[], workflow_state=WorkflowModel.WorkflowState.TRIAGE
+            )
 
     @pytest.mark.parametrize(
         "start_impact,new_impact,tracker_statuses,should_raise",

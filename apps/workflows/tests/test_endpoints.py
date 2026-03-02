@@ -729,8 +729,9 @@ class TestFlawDraft:
         assert flaw.task_key == "OSIM-123"
         assert flaw.is_internal
 
-        # set owner to comply with TRIAGE requirements
+        # set owner and components to comply with TRIAGE requirements
         flaw.owner = "Alice"
+        flaw.components.append("component")
         flaw.save(raise_validation_error=False)
 
         # let us expect that somebody created Affect and Tracker for an un-promoted flaw by mistake
