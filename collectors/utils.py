@@ -52,6 +52,17 @@ def tracker_parse_update_stream_component(
     return None, None
 
 
+def get_module_from_update_stream(
+    ps_update_stream: str,
+) -> Optional[str]:
+    ps_update_stream_obj = PsUpdateStream.objects.filter(name=ps_update_stream).first()
+
+    if ps_update_stream_obj and ps_update_stream_obj.ps_module is not None:
+        return ps_update_stream_obj.ps_module.name
+
+    return None
+
+
 def tracker_summary2module_component(
     summary: str,
 ) -> tuple[Optional[str], Optional[str]]:
@@ -60,12 +71,8 @@ def tracker_summary2module_component(
     if not ps_update_stream or not ps_component:
         return None, None
 
-    ps_update_stream_obj = PsUpdateStream.objects.filter(name=ps_update_stream).first()
-
     return (
-        ps_update_stream_obj.ps_module.name
-        if ps_update_stream_obj and ps_update_stream_obj.ps_module is not None
-        else None,
+        get_module_from_update_stream(ps_update_stream),
         ps_component,
     )
 
