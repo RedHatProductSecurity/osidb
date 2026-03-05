@@ -2122,6 +2122,7 @@ class FlawCollaboratorPostSerializer(FlawCollaboratorSerializer):
     )
 
 
+@extend_schema_serializer(deprecate_fields=["requires_cve_description"])
 class FlawSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
@@ -2174,6 +2175,8 @@ class FlawSerializer(
     references = FlawReferenceSerializer(many=True, read_only=True)
     cvss_scores = FlawCVSSSerializer(many=True, read_only=True)
     package_versions = PackageSerializer(many=True, read_only=True)
+
+    requires_cve_description = serializers.SerializerMethodField()
     selected_cve_description = serializers.ReadOnlyField()
 
     labels = FlawCollaboratorSerializer(many=True, required=False, read_only=True)
@@ -2188,6 +2191,9 @@ class FlawSerializer(
     )
     def get_meta_attr(self, obj):
         return super().get_meta_attr(obj)
+
+    def get_requires_cve_description(self, obj):
+        return obj.FlawRequiresCVEDescription.NOVALUE
 
     @extend_schema_field(AffectSerializer(many=True))
     def get_affects(self, obj):
@@ -2279,17 +2285,6 @@ class FlawSerializer(
         perform the flaw instance creation
         with any necessary extra actions
         """
-
-        # Update cve_description if required
-        if validated_data.get("cve_description") and (
-            "requires_cve_description" not in validated_data
-            or validated_data["requires_cve_description"]
-            == Flaw.FlawRequiresCVEDescription.NOVALUE
-        ):
-            validated_data["requires_cve_description"] = (
-                Flaw.FlawRequiresCVEDescription.REQUESTED
-            )
-
         validated_data = self.embargoed2acls(validated_data, internal=True)
         return super().create(validated_data)
 
@@ -2318,16 +2313,6 @@ class FlawSerializer(
         # based on the raw ACLs as it was not yet updated
         if old_flaw.is_embargoed and self._is_public(new_flaw, validated_data):
             new_flaw.unembargo()
-
-        # Update cve_description if required
-        if (
-            new_flaw.cve_description
-            and new_flaw.requires_cve_description
-            == Flaw.FlawRequiresCVEDescription.NOVALUE
-        ):
-            validated_data["requires_cve_description"] = (
-                Flaw.FlawRequiresCVEDescription.REQUESTED
-            )
 
         # Force Jira task creation if requested
         request = self.context.get("request")
@@ -2441,7 +2426,8 @@ class FlawSerializer(
 
 
 @extend_schema_serializer(
-    exclude_fields=["updated_dt"], deprecate_fields=["major_incident_state"]
+    exclude_fields=["updated_dt"],
+    deprecate_fields=["major_incident_state", "requires_cve_description"],
 )
 class FlawPostSerializer(FlawSerializer):
     # extra serializer for POST request as there is no last update
@@ -2449,7 +2435,9 @@ class FlawPostSerializer(FlawSerializer):
     pass
 
 
-@extend_schema_serializer(deprecate_fields=["major_incident_state"])
+@extend_schema_serializer(
+    deprecate_fields=["major_incident_state", "requires_cve_description"]
+)
 class FlawPutSerializer(FlawSerializer):
     pass
 

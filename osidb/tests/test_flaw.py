@@ -84,7 +84,6 @@ class TestFlaw:
             nist_cvss_validation=Flaw.FlawNistCvssValidation.REQUESTED,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
-            requires_cve_description=Flaw.FlawRequiresCVEDescription.APPROVED,
             # META
             meta_attr=meta_attr,
         )
@@ -1366,30 +1365,12 @@ class TestFlawValidators:
         else:
             assert not flaw.valid_alerts.exists()
 
-    @pytest.mark.parametrize(
-        "requires_cve_description,cve_description,should_raise",
-        [
-            (Flaw.FlawRequiresCVEDescription.REQUESTED, "", True),
-            (Flaw.FlawRequiresCVEDescription.APPROVED, "", True),
-            # everything below is correct
-            (Flaw.FlawRequiresCVEDescription.NOVALUE, "cve_description", False),
-            (Flaw.FlawRequiresCVEDescription.NOVALUE, "", False),
-            (Flaw.FlawRequiresCVEDescription.REJECTED, "cve_description", False),
-            (Flaw.FlawRequiresCVEDescription.REJECTED, "", False),
-            (Flaw.FlawRequiresCVEDescription.REQUESTED, "cve_description", False),
-            (Flaw.FlawRequiresCVEDescription.APPROVED, "cve_description", False),
-        ],
-    )
-    def test_validate_cve_description_and_requires_cve_description(
-        self, requires_cve_description, cve_description, should_raise
-    ):
+    def test_deprecated_cve_description_validation_no_longer_enforced(self):
         """
-        Tests that if cve_description is missing, then requires_cve_description must not have
-        REQUESTED or APPROVED value set.
+        Test that deprecated CVE description validation is no longer enforced.
         """
         flaw = FlawFactory.build(
-            cve_description=cve_description,
-            requires_cve_description=requires_cve_description,
+            cve_description="",
             # fields below are set to avoid any alerts
             embargoed=False,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
@@ -1398,68 +1379,12 @@ class TestFlawValidators:
         flaw.save(raise_validation_error=False)
         AffectFactory(flaw=flaw)
 
-        if should_raise:
-            error_msg = f"requires_cve_description cannot be {requires_cve_description} if cve_description is missing."
-            with pytest.raises(ValidationError, match=error_msg):
-                flaw.save()
-        else:
-            assert flaw.save() is None
+        assert flaw.save() is None
+        assert flaw.requires_cve_description == Flaw.FlawRequiresCVEDescription.NOVALUE
 
-    @pytest.mark.parametrize(
-        "old_requires_cve_description,requires_cve_description,should_raise",
-        [
-            (
-                Flaw.FlawRequiresCVEDescription.REQUESTED,
-                Flaw.FlawRequiresCVEDescription.APPROVED,
-                False,
-            ),
-            (
-                Flaw.FlawRequiresCVEDescription.APPROVED,
-                Flaw.FlawRequiresCVEDescription.REQUESTED,
-                False,
-            ),
-            (
-                Flaw.FlawRequiresCVEDescription.NOVALUE,
-                Flaw.FlawRequiresCVEDescription.REQUESTED,
-                False,
-            ),
-            (
-                Flaw.FlawRequiresCVEDescription.REQUESTED,
-                Flaw.FlawRequiresCVEDescription.NOVALUE,
-                True,
-            ),
-            (
-                Flaw.FlawRequiresCVEDescription.APPROVED,
-                Flaw.FlawRequiresCVEDescription.NOVALUE,
-                True,
-            ),
-        ],
-    )
-    def test_validate_requires_cve_description(
-        self, old_requires_cve_description, requires_cve_description, should_raise
-    ):
-        """
-        Tests that if requires_cve_description was already set to something other than NOVALUE
-        it cannot be set to NOVALUE.
-        """
-        flaw = FlawFactory.build(
-            requires_cve_description=old_requires_cve_description,
-            # fields below are set to avoid any alerts
-            cve_description="cve_description",
-            embargoed=False,
-            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
-            impact=Impact.LOW,
-        )
-        flaw.save(raise_validation_error=False)
-
-        flaw.requires_cve_description = requires_cve_description
-
-        if should_raise:
-            error_msg = "requires_cve_description cannot be unset if it was previously set to something other than NOVALUE"
-            with pytest.raises(ValidationError, match=error_msg):
-                flaw.save()
-        else:
-            assert flaw.save() is None
+        flaw.cve_description = "cve_description"
+        flaw.save()
+        assert flaw.requires_cve_description == Flaw.FlawRequiresCVEDescription.NOVALUE
 
     def test_no_source(self):
         """
@@ -1689,7 +1614,6 @@ class TestFlawValidators:
             statement="statement",
             cve_description="cve_description",
             embargoed=False,
-            requires_cve_description=Flaw.FlawRequiresCVEDescription.APPROVED,
         )
         flaw.save(raise_validation_error=False)
 
@@ -1703,14 +1627,13 @@ class TestFlawValidators:
         assert flaw.save() is None
 
     @pytest.mark.parametrize(
-        "mitigation,statement,cve_description,requires_cve_description,article,should_alert,alerts",
+        "mitigation,statement,cve_description,article,should_alert,alerts",
         [
             # all good
             (
                 "mitigation text",
                 "statement text",
                 "cve_description text",
-                Flaw.FlawRequiresCVEDescription.APPROVED,
                 [
                     FlawReference.FlawReferenceType.ARTICLE,
                     "https://access.redhat.com/link123",
@@ -1723,7 +1646,6 @@ class TestFlawValidators:
                 "",
                 "statement text",
                 "cve_description text",
-                Flaw.FlawRequiresCVEDescription.APPROVED,
                 [
                     FlawReference.FlawReferenceType.ARTICLE,
                     "https://access.redhat.com/link123",
@@ -1736,7 +1658,6 @@ class TestFlawValidators:
                 "mitigation text",
                 "",
                 "cve_description text",
-                Flaw.FlawRequiresCVEDescription.APPROVED,
                 [
                     FlawReference.FlawReferenceType.ARTICLE,
                     "https://access.redhat.com/link123",
@@ -1749,7 +1670,6 @@ class TestFlawValidators:
                 "mitigation text",
                 "statement text",
                 "",
-                Flaw.FlawRequiresCVEDescription.NOVALUE,
                 [
                     FlawReference.FlawReferenceType.ARTICLE,
                     "https://access.redhat.com/link123",
@@ -1762,7 +1682,6 @@ class TestFlawValidators:
                 "mitigation text",
                 "statement text",
                 "cve_description text",
-                Flaw.FlawRequiresCVEDescription.APPROVED,
                 [
                     FlawReference.FlawReferenceType.EXTERNAL,
                     "https://httpd.apache.org/link123",
@@ -1777,7 +1696,6 @@ class TestFlawValidators:
         mitigation,
         statement,
         cve_description,
-        requires_cve_description,
         article,
         should_alert,
         alerts,
@@ -1794,7 +1712,6 @@ class TestFlawValidators:
             mitigation=mitigation,
             statement=statement,
             cve_description=cve_description,
-            requires_cve_description=requires_cve_description,
             embargoed=False,  # to simplify fields that a flaw requires
             impact=Impact.LOW,
         )
@@ -1863,7 +1780,6 @@ class TestFlawValidators:
             major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
             statement=statement,
             cve_description=cve_description,
-            requires_cve_description=requires_cve_description,
             embargoed=False,  # to simplify fields that a flaw requires
             impact=Impact.LOW,
         )
@@ -2670,7 +2586,6 @@ class TestFlawValidators:
         flaw1 = FlawFactory(
             statement="statement",
             cve_description="cve_description",
-            requires_cve_description=Flaw.FlawRequiresCVEDescription.NOVALUE,
             impact=Impact.LOW,
         )
         AffectFactory(flaw=flaw1, ps_component=special_consideration_package.name)
