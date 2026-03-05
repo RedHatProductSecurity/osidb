@@ -123,7 +123,6 @@ class TestEndpointsFlaws:
 
         flaw1 = FlawFactory.build(
             major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
-            requires_cve_description=Flaw.FlawRequiresCVEDescription.APPROVED,
             nist_cvss_validation=Flaw.FlawNistCvssValidation.NOVALUE,
         )
         flaw1.save(raise_validation_error=False)
@@ -134,9 +133,6 @@ class TestEndpointsFlaws:
         )
         AffectFactory(flaw=flaw1)
         assert flaw1.save() is None
-        assert (
-            flaw1.requires_cve_description == Flaw.FlawRequiresCVEDescription.APPROVED
-        )
         FlawCommentFactory(flaw=flaw1)
         response = auth_client().get(f"{test_api_uri}/flaws/{flaw1.cve_id}")
         assert response.status_code == 200
@@ -1439,7 +1435,6 @@ class TestEndpointsFlaws:
         set_user_acls(settings.ALL_GROUPS)
         flaw1 = FlawFactory.build(
             major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
-            requires_cve_description=Flaw.FlawRequiresCVEDescription.APPROVED,
         )
         flaw1.save(raise_validation_error=False)
         FlawReferenceFactory(
@@ -1450,9 +1445,6 @@ class TestEndpointsFlaws:
         AffectFactory(flaw=flaw1)
 
         assert flaw1.save() is None
-        assert (
-            flaw1.requires_cve_description == Flaw.FlawRequiresCVEDescription.APPROVED
-        )
         FlawCommentFactory(flaw=flaw1)
 
         # attempt to access with unauthenticated client using good token value

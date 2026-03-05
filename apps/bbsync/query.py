@@ -323,7 +323,6 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         """
         self._query["flags"] = []
         self.generate_hightouch_flags()
-        self.generate_requires_doc_text_flag()
         self.generate_nist_cvss_validation_flag()
 
     def generate_hightouch_flags(self):
@@ -344,22 +343,6 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
             self._query["flags"].append({"name": "hightouch", "status": hightouch})
             self._query["flags"].append(
                 {"name": "hightouch-lite", "status": hightouch_lite}
-            )
-
-    def generate_requires_doc_text_flag(self):
-        """
-        Generate requires_doc_text flag from requires_cve_description
-        """
-        flags_to_write = {
-            Flaw.FlawRequiresCVEDescription.REQUESTED: "?",
-            Flaw.FlawRequiresCVEDescription.APPROVED: "+",
-            Flaw.FlawRequiresCVEDescription.REJECTED: "-",
-            # flag NOVALUE is ignored
-        }
-
-        if bz_value := flags_to_write.get(self.flaw.requires_cve_description):
-            self._query["flags"].append(
-                {"name": "requires_doc_text", "status": bz_value}
             )
 
     def generate_nist_cvss_validation_flag(self):
