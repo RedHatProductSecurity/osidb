@@ -4,6 +4,7 @@ import uuid
 import pytest
 from bugzilla.exceptions import BugzillaError
 from django.conf import settings
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import datetime
@@ -497,7 +498,7 @@ class TestEndpointsACLs:
         )
         assert response.status_code == 400
         assert (
-            "Cannot provide access for the LDAP group without being a member: data-topsecret"
+            "Cannot provide access without being a member of at least one of the following LDAP group(s): data-topsecret"
             in str(response.content)
         )
 
@@ -524,9 +525,41 @@ class TestEndpointsACLs:
         )
         assert response.status_code == 400
         assert (
-            "Cannot provide access for the LDAP group without being a member: data-prodsec-write"
+            "Cannot provide access without being a member of at least one of the following LDAP group(s): data-prodsec-write"
             in str(response.content)
         )
+
+    @override_settings(PUBLIC_READ_GROUPS=["data-prodsec", "company-wide-group"])
+    def test_partial_acl(self, auth_client, test_api_uri, jira_token, bugzilla_token):
+        """
+        Test if users being part of at least one LDAP group can have access to resources
+        pubrw has data-prodsec and data-prodsec-write but not company-wide-group group
+        """
+        flaw_data = {
+            "cve_id": "CVE-2024-0126",
+            "title": "Foo",
+            "comment_zero": "test",
+            "impact": "LOW",
+            "components": ["curl"],
+            "source": "INTERNET",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "mitigation": "mitigation",
+            "embargoed": False,
+        }
+        response = auth_client("pubrw").post(
+            f"{test_api_uri}/flaws",
+            flaw_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 201
+        body = response.json()
+        created_uuid = body["uuid"]
+
+        response = auth_client("pubrw").get(f"{test_api_uri}/flaws/{created_uuid}")
+        assert response.status_code == 200
 
     def test_flaw_create_cve_description(self, auth_client, test_api_uri):
         """

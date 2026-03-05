@@ -352,14 +352,20 @@ class EmbargoedField(serializers.BooleanField):
         acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
 
         acls = [group.name for group in self.context["request"].user.groups.all()]
-        for acl in acl_read + acl_write:
-            # this is a temporary safeguard with a very simple philosophy that one cannot
-            # give access to something (s)he does not have access to but possibly in the future
-            # we will want some more clever handling like ProdSec can grant anything etc.
-            if acl not in acls:
-                raise serializers.ValidationError(
-                    f"Cannot provide access for the LDAP group without being a member: {acl}"
-                )
+        can_read = any(user_group in acl_read for user_group in acls)
+        can_write = any(user_group in acl_write for user_group in acls)
+
+        # this is a temporary safeguard with a very simple philosophy that one cannot
+        # give access to something (s)he does not have access to but possibly in the future
+        # we will want some more clever handling like ProdSec can grant anything etc.
+        if not can_read:
+            raise serializers.ValidationError(
+                f"Cannot provide access without being a member of at least one of the following LDAP group(s): {','.join(acl_read)}"
+            )
+        if not can_write:
+            raise serializers.ValidationError(
+                f"Cannot provide access without being a member of at least one of the following LDAP group(s): {','.join(acl_write)}"
+            )
 
 
 class BaseSerializer(serializers.ModelSerializer):

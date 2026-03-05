@@ -61,6 +61,21 @@ uid: pubread
 uidnumber: 1002
 userpassword: password
 
+dn: cn=pubrw,ou=users,dc=redhat,dc=com
+cn: PublicReadWrite
+cn: pubrw
+gidnumber: 1003
+givenName: Joseph
+homedirectory: /home/pubrw
+mail: pubrw@redhat.com
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: shadowAccount
+sn: California
+uid: pubrw
+uidnumber: 1003
+userpassword: password
+
 #################
 # Service accounts
 #################
@@ -96,6 +111,7 @@ cn: active
 member: cn=testuser,ou=users,dc=redhat,dc=com
 member: cn=anon,ou=users,dc=redhat,dc=com
 member: cn=pubread,ou=users,dc=redhat,dc=com
+member: cn=pubrw,ou=users,dc=redhat,dc=com
 member: cn=testservice,ou=serviceaccounts,dc=redhat,dc=com
 objectclass: groupOfNames
 
@@ -108,12 +124,14 @@ dn: cn=data-prodsec,ou=users,dc=redhat,dc=com
 cn: data-prodsec
 member: cn=testuser,ou=users,dc=redhat,dc=com
 member: cn=pubread,ou=users,dc=redhat,dc=com
+member: cn=pubrw,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # prodsec data write
 dn: cn=data-prodsec-write,ou=users,dc=redhat,dc=com
 cn: data-prodsec-write
 member: cn=testuser,ou=users,dc=redhat,dc=com
+member: cn=pubrw,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # topsecret data
@@ -132,10 +150,12 @@ objectclass: groupOfNames
 dn: cn=data-internal-read,ou=users,dc=redhat,dc=com
 cn: data-internal-read
 member: cn=testuser,ou=users,dc=redhat,dc=com
+member: cn=pubrw,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # internal data
 dn: cn=data-internal-write,ou=users,dc=redhat,dc=com
 cn: data-internal-write
 member: cn=testuser,ou=users,dc=redhat,dc=com
+member: cn=pubrw,ou=users,dc=redhat,dc=com
 objectclass: groupOfNames
