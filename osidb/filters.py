@@ -687,7 +687,6 @@ class FlawFilter(
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
-            "requires_cve_description": ["exact"],
             "nist_cvss_validation": ["exact"],
             # Workflow fields
             "workflow_state": ["exact"],
@@ -1061,7 +1060,6 @@ class FlawV1Filter(FlawFilter):
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
-            "requires_cve_description": ["exact"],
             "nist_cvss_validation": ["exact"],
             # Workflow fields
             "workflow_state": ["exact"],

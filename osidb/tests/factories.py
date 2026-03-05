@@ -151,19 +151,6 @@ class FlawFactory(BaseFactory):
         )
     )
 
-    @factory.lazy_attribute
-    def requires_cve_description(self):
-        if not self.is_mi and self.cve_description:
-            return self.not_mi_with_cve_description
-        elif not self.is_mi and not self.cve_description:
-            return self.not_mi_without_cve_description
-        elif self.is_mi and self.cve_description:
-            return Flaw.FlawRequiresCVEDescription.APPROVED
-        # MI without cve_description is not a valid combination and should never happen,
-        # but leaving it here to cover all possibilities
-        else:
-            return Flaw.FlawRequiresCVEDescription.NOVALUE
-
     mitigation = factory.LazyAttribute(
         lambda f: "CVE mitigation" if f.is_mi else f.fallback
     )
