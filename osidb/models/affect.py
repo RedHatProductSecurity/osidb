@@ -7,6 +7,7 @@ from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from psqlextra.fields import HStoreField
@@ -247,7 +248,17 @@ class Affect(
     class Meta:
         """define meta"""
 
-        unique_together = ("flaw", "ps_update_stream", "ps_component")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("flaw", "ps_update_stream", "ps_component"),
+                name="uniq_affect_flaw_stream_ps_component",
+            ),
+            models.UniqueConstraint(
+                fields=("flaw", "ps_update_stream", "purl"),
+                condition=Q(purl__isnull=False) & ~Q(purl=""),
+                name="uniq_affect_flaw_stream_purl_present",
+            ),
+        ]
         ordering = (
             "created_dt",
             "uuid",
