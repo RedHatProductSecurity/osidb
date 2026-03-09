@@ -325,3 +325,82 @@ class TestAffect:
         assert "is set as NOTAFFECTED but has CVSS scores associated" in str(
             exc_info.value
         )
+
+    @pytest.mark.parametrize(
+        "ps_component,purl,should_raise",
+        [
+            ("different-component", "", False),
+            ("", "pkg:rpm/redhat/different-component?arch=src", False),
+            (
+                "different-component",
+                "pkg:rpm/redhat/different-component?arch=src",
+                False,
+            ),
+            ("existing-component", "", True),
+            ("", "pkg:rpm/redhat/existing-component?arch=src", True),
+            ("existing-component", "pkg:rpm/redhat/different-component?arch=src", True),
+            ("different-component", "pkg:rpm/redhat/existing-component?arch=src", True),
+        ],
+    )
+    def test_uniqueness(self, ps_component, purl, should_raise):
+        """
+        test affects uniqueness constraints
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory(embargoed=False)
+
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_module=ps_module.name,
+            ps_component="existing-component",
+            purl="pkg:rpm/redhat/existing-component?arch=src",
+        )
+        # ensure empty components (calculated from purl) don't conflict during creation
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_module=ps_module.name,
+            ps_component="",
+            purl="pkg:rpm/redhat/other-existing-component?arch=src",
+        )
+        assert affect.ps_component == "other-existing-component"
+
+        # ensure empty purls don't conflict with each other
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_module=ps_module.name,
+            ps_component="another-existing-component",
+            purl="",
+        )
+        assert affect.purl == ""
+
+        if should_raise:
+            with pytest.raises(ValidationError):
+                AffectFactory(
+                    flaw=flaw,
+                    affectedness=Affect.AffectAffectedness.AFFECTED,
+                    resolution=Affect.AffectResolution.DELEGATED,
+                    ps_update_stream=ps_update_stream.name,
+                    ps_module=ps_module.name,
+                    ps_component=ps_component,
+                    purl=purl,
+                )
+        else:
+            AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_update_stream=ps_update_stream.name,
+                ps_module=ps_module.name,
+                ps_component=ps_component,
+                purl=purl,
+            )

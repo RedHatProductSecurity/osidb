@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Serializer grant access to users with at least one reading LDAP group instead of enforcing all (OSIDB-4826)
+- Alter affect uniqueness constraint to also consider purls uniqueness (OSIDB-4830)
 
 ## [5.6.0] - 2026-03-03
 ### Added
