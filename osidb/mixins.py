@@ -72,17 +72,13 @@ class TrackingMixin(models.Model):
             # updated_dt should never change from the DB version
             # otherwise assume that there was a conflicting parallel change
             if db_self is not None and db_self.updated_dt != self.updated_dt:
-                last_event_user = self._get_last_event_context_user()
                 actual_event_user = self._get_actual_user()
 
                 message = (
                     f"Save operation based on an outdated model instance by "
                     f"{actual_event_user} with updated_dt {self.updated_dt} "
-                    f"differs from the DB {db_self.updated_dt} by {last_event_user}."
+                    f"differs from the DB {db_self.updated_dt} check in history for details."
                 )
-
-                logger.info(message)
-
                 raise DataInconsistencyException(f"{message} You need to refresh.")
 
             # auto-set updated_dt as now on any change
@@ -91,18 +87,6 @@ class TrackingMixin(models.Model):
             self.updated_dt = timezone.now().replace(microsecond=0)
 
         super().save(*args, **kwargs)
-
-    def _get_last_event_context_user(self):
-        all_events = pghistory.models.Events.objects.references(self).order_by(
-            "-pgh_created_at"
-        )
-        last_event = all_events.first()
-        last_event_context = last_event.pgh_context if last_event else None
-
-        if last_event_context is None:
-            return "unknown"
-        last_event_user = last_event_context.get("user", "unknown")
-        return last_event_user
 
     def _get_actual_user(self):
         ctx = getattr(
