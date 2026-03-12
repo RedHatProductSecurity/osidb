@@ -44,6 +44,7 @@ from osidb.models import (
     Flaw,
     FlawCVSS,
     Impact,
+    JiraUserMapping,
     PsUpdateStream,
     Tracker,
 )
@@ -52,6 +53,7 @@ from osidb.tests.factories import (
     AffectFactory,
     FlawCVSSFactory,
     FlawFactory,
+    JiraUserMappingFactory,
     PsModuleFactory,
     PsProductFactory,
     PsUpdateStreamFactory,
@@ -100,7 +102,7 @@ class TestOldTrackerJiraQueryBuilder:
         JiraProjectFields(
             project_key="FOOPROJECT",
             field_id="versions",
-            field_name="Affects Version/s",
+            field_name="Affects versions",
             allowed_values=["1.2.3"],
         ).save()
         expected1 = {
@@ -164,6 +166,8 @@ class TestOldTrackerJiraQueryBuilder:
 
         query_builder = OldTrackerJiraQueryBuilder(tracker)
         query_builder.generate()
+        print(expected1)
+        print(query_builder._query)
         validate_minimum_key_value(minimum=expected1, evaluated=query_builder._query)
 
     @pytest.mark.parametrize(
@@ -559,7 +563,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
                 },
                 {
                     "fixVersions": [{"name": "rhel-8.9.0"}],
-                    "customfield_10113": {"value": "Approved Blocker"},
+                    "customfield_10477": {"value": "Approved Blocker"},
                 },
             ),
         ],
@@ -643,6 +647,9 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         else:
             external_system_id = ""
 
+        for kerberos_id in ("a", "a2", "b", "b2", "c", "c2", "ee"):
+            JiraUserMappingFactory(associate_kerberos_id=kerberos_id)
+
         ps_module = PsModuleFactory(
             bts_name="jboss",
             component_cc=component_cc,
@@ -695,13 +702,26 @@ class TestBothNewOldTrackerJiraQueryBuilder:
                 expected_private_tracker_cc = []
 
             expected_cc = sorted(
-                set(expected_component_cc + expected_private_tracker_cc + default_cc)
+                {
+                    u.removesuffix("@redhat.com")
+                    for u in expected_component_cc
+                    + expected_private_tracker_cc
+                    + default_cc
+                }
             )
 
             if expected_cc:
-                expected_fields = {"contributors": [{"name": n} for n in expected_cc]}
+                expected_fields = {
+                    "contributors": [
+                        {"accountId": JiraUserMapping.kerberos_to_cloud_id(n)}
+                        for n in expected_cc
+                    ]
+                }
                 expected_comment = "Added involved users: " + ", ".join(
-                    [f"[~{u}]" for u in expected_cc]
+                    [
+                        f"[~accountId:{JiraUserMapping.kerberos_to_cloud_id(u)}]"
+                        for u in expected_cc
+                    ]
                 )
             else:
                 expected_fields = {}
@@ -755,10 +775,10 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         # Create mock field
         if available_field:
             if target_release is not None:
-                field_id = "customfield_10445"
+                field_id = "customfield_10310"
                 field_name = "Target Release"
             else:
-                field_id = "customfield_10122"
+                field_id = "customfield_10279"
                 field_name = "Target Version"
             JiraProjectFieldsFactory(
                 project_key=ps_module.bts_key,
@@ -775,8 +795,8 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         if not available_field:
             # If the field is not available in the project, nothing is generated
             query_builder.generate_target_release()
-            assert "customfield_10445" not in query_builder.query["fields"]
-            assert "customfield_10122" not in query_builder.query["fields"]
+            assert "customfield_10310" not in query_builder.query["fields"]
+            assert "customfield_10279" not in query_builder.query["fields"]
         elif valid_jira_field:
             query_builder.generate_target_release()
             query_value = query_builder.query["fields"].get(field_id)
@@ -996,7 +1016,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
             JiraProjectFields(
                 project_key="FOOPROJECT",
                 field_id="versions",
-                field_name="Affects Version/s",
+                field_name="Affects versions",
                 allowed_values=["1.2.3"],
             ).save()
 
@@ -1147,10 +1167,11 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         JiraProjectFields(
             project_key="PROJECT",
             field_id="versions",
-            field_name="Affects Version/s",
+            field_name="Affects versions",
             allowed_values=[version],
         ).save()
 
+        JiraUserMappingFactory(associate_kerberos_id="me")
         ps_module = PsModuleFactory(
             bts_key="PROJECT",
             bts_name="jboss",
@@ -1217,7 +1238,7 @@ class TestTrackerJiraQueryBuilder:
         JiraProjectFields(
             project_key="FOOPROJECT",
             field_id="versions",
-            field_name="Affects Version/s",
+            field_name="Affects versions",
             allowed_values=["1.2.3"],
         ).save()
 

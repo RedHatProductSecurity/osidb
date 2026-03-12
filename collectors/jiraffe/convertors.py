@@ -70,7 +70,7 @@ class JiraTaskConvertor:
         return {
             "external_system_id": self._raw.key,
             "labels": self._raw.fields.labels,
-            "owner": JiraUserMapping.cloud_id_to_kerberos(assignee_cloud_id)
+            "owner": f"{JiraUserMapping.cloud_id_to_kerberos(assignee_cloud_id)}@redhat.com"
             if assignee_cloud_id
             else "",
             "jira_status": status,

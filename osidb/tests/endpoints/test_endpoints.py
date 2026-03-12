@@ -78,11 +78,18 @@ class TestEndpoints(object):
         set_hvac_test_env_vars,
     ):
         auth_client().patch(f"{root_url}/osidb/integrations", data={third_party: "foo"})
-        mock_hvac_client_instance.secrets.kv.v2.patch.assert_called_once_with(
-            path=f"/osidb-integrations/{get_execution_env()}/{third_party}",
-            secret={"testuser": "foo"},
-            mount_point="apps",
-        )
+        if third_party == "jira":
+            mock_hvac_client_instance.secrets.kv.v2.patch.assert_called_once_with(
+                path=f"/osidb-integrations/{get_execution_env()}/{third_party}/token",
+                secret={"testuser": "foo"},
+                mount_point="apps",
+            )
+        else:
+            mock_hvac_client_instance.secrets.kv.v2.patch.assert_called_once_with(
+                path=f"/osidb-integrations/{get_execution_env()}/{third_party}",
+                secret={"testuser": "foo"},
+                mount_point="apps",
+            )
 
     def test_set_both_integration_tokens(
         self,
@@ -95,7 +102,7 @@ class TestEndpoints(object):
             f"{root_url}/osidb/integrations", data={"jira": "foo", "bugzilla": "bar"}
         )
         mock_hvac_client_instance.secrets.kv.v2.patch.assert_any_call(
-            path=f"/osidb-integrations/{get_execution_env()}/jira",
+            path=f"/osidb-integrations/{get_execution_env()}/jira/token",
             secret={"testuser": "foo"},
             mount_point="apps",
         )
@@ -375,7 +382,13 @@ class TestEndpointsACLs:
     @pytest.mark.enable_signals
     @freeze_time(datetime(2014, 9, 11, tzinfo=timezone.get_current_timezone()))
     def test_flaw_unembargo_tracker_security_level(
-        self, auth_client, test_api_uri, enable_jira_tracker_sync
+        self,
+        auth_client,
+        jira_email,
+        jira_token,
+        bugzilla_token,
+        test_api_uri,
+        enable_jira_tracker_sync,
     ):
         """
         test that the tracker security levels are updated for closed status flaws
@@ -449,7 +462,9 @@ class TestEndpointsACLs:
         tracker_obj = tracker_convertor._gen_tracker_object()
         tracker_obj.status = "CLOSED"
         tracker_obj.affects.add(affect)
-        tracker_obj.save(auto_timestamps=False, jira_token="SECRET")
+        tracker_obj.save(
+            auto_timestamps=False, jira_token=jira_token, jira_email=jira_email
+        )
         # tracker.save(auto_timestamps=False, jira_token="SECRET")
 
         assert affect.is_embargoed
@@ -466,8 +481,9 @@ class TestEndpointsACLs:
                     "updated_dt": flaw.updated_dt,
                 },
                 format="json",
-                HTTP_BUGZILLA_API_KEY="SECRET",
-                HTTP_JIRA_API_KEY="SECRET",
+                HTTP_BUGZILLA_API_KEY=bugzilla_token,
+                HTTP_JIRA_API_EMAIL=jira_email,
+                HTTP_JIRA_API_KEY=jira_token,
             )
 
         response_body = response.json()
