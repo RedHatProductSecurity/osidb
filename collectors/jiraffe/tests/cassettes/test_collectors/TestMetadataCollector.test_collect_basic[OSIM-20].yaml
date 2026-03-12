@@ -17,7 +17,7 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/api/2/issuetype
+    uri: https://example.com/rest/api/2/issuetype
   response:
     body:
       string: '[{"self":"https://example.com/rest/api/2/issuetype/3","id":"3","description":"Represents
@@ -209,10 +209,10 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://squid.corp.redhat.com:3128/rest/api/2/issue/createmeta/OSIM/issuetypes/1?maxResults=100&startAt=0
+    uri: https://example.com/rest/api/2/issue/createmeta/OSIM/issuetypes/1?maxResults=100&startAt=0
   response:
     body:
-      string: '{"maxResults": 100, "startAt": 0, "total": 20, "isLast": true, "values":
+      string: '{"maxResults": 100, "startAt": 0, "total": 20, "isLast": true, "fields":
         [{"required": true, "schema": {"type": "issuetype", "system": "issuetype"},
         "name": "Issue Type", "fieldId": "issuetype", "hasDefaultValue": false, "operations":
         [], "allowedValues": [{"self": "https://issues.stage.redhat.com/rest/api/2/issuetype/1",

@@ -109,7 +109,15 @@ class TestFlawModelIntegration(object):
         assert flaw.save() is None
         assert sync_count == 1
 
-    def test_create_api(self, monkeypatch, auth_client, test_osidb_api_v2_uri):
+    def test_create_api(
+        self,
+        monkeypatch,
+        auth_client,
+        bugzilla_token,
+        jira_token,
+        jira_email,
+        test_osidb_api_v2_uri,
+    ):
         sync_count = 0
 
         def mock_create_or_update_task(self, flaw):
@@ -136,13 +144,22 @@ class TestFlawModelIntegration(object):
             f"{test_osidb_api_v2_uri}/flaws",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
         )
         assert response.status_code == 201
         assert sync_count == 1
 
-    def test_update_api(self, monkeypatch, auth_client, test_osidb_api_v2_uri):
+    def test_update_api(
+        self,
+        monkeypatch,
+        auth_client,
+        bugzilla_token,
+        jira_token,
+        jira_email,
+        test_osidb_api_v2_uri,
+    ):
         sync_count = 0
 
         def mock(self, flaw):
@@ -173,8 +190,9 @@ class TestFlawModelIntegration(object):
                 "updated_dt": flaw.updated_dt,
             },
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
         )
         # no important changes requires no syncing
         assert response.status_code == 200
@@ -194,15 +212,22 @@ class TestFlawModelIntegration(object):
                 "updated_dt": flaw.updated_dt,
             },
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
         )
         assert response.status_code == 200
         # changes require sync
         assert sync_count == 1
 
     def test_create_jira_task_param(
-        self, monkeypatch, auth_client, test_osidb_api_v2_uri
+        self,
+        monkeypatch,
+        auth_client,
+        bugzilla_token,
+        jira_token,
+        jira_email,
+        test_osidb_api_v2_uri,
     ):
         def mock_create_or_update_task(self, flaw):
             flaw.task_key = "TASK-123"
@@ -232,8 +257,9 @@ class TestFlawModelIntegration(object):
                 "updated_dt": flaw.updated_dt,
             },
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
         )
         assert response.status_code == 200
         assert not flaw.task_key
@@ -254,8 +280,9 @@ class TestFlawModelIntegration(object):
                 "updated_dt": flaw.updated_dt,
             },
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
         )
         assert "Source value is required" in str(response.content)
         assert response.status_code == 400
@@ -276,8 +303,9 @@ class TestFlawModelIntegration(object):
                 "updated_dt": flaw.updated_dt,
             },
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
         )
         assert response.status_code == 200
         flaw = Flaw.objects.get(uuid=flaw.uuid)
@@ -354,7 +382,7 @@ class TestFlawModelIntegration(object):
         """
         create_or_update_performed = False
 
-        def mock_create_or_update_task(self, jira_token=None):
+        def mock_create_or_update_task(self, jira_token=None, jira_email=None):
             nonlocal create_or_update_performed
             create_or_update_performed = True
 
@@ -362,7 +390,7 @@ class TestFlawModelIntegration(object):
 
         transition_performed = False
 
-        def mock_transition_task(self, jira_token=None):
+        def mock_transition_task(self, jira_token=None, jira_email=None):
             nonlocal transition_performed
             transition_performed = True
 

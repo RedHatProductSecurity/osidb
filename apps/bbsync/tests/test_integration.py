@@ -513,6 +513,7 @@ class TestBBSyncIntegration:
         bugzilla_token,
         enable_bz_sync,
         enable_jira_tracker_sync,
+        jira_email,
         jira_token,
         test_api_v2_uri,
     ):
@@ -673,6 +674,7 @@ class TestBBSyncIntegration:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
