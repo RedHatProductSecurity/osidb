@@ -216,7 +216,9 @@ class JiraTaskmanQuerier(JiraQuerier):
                 "labels": labels,
                 "priority": {"name": IMPACT_TO_JIRA_PRIORITY[flaw.impact]},
                 "assignee": {
-                    "accountId": JiraUserMapping.kerberos_to_cloud_id(flaw.owner)
+                    "accountId": JiraUserMapping.kerberos_to_cloud_id(
+                        flaw.owner.removesuffix("@redhat.com")
+                    )
                 }
                 if flaw.owner
                 else None,

@@ -233,6 +233,14 @@ def mute_signals(request):
     request.addfinalizer(restore_signals)
 
 
+# TODO: Remove this fixture after the migration to Atlassian Cloud.
+# The cloud_api decorator's check_if_cloud (jira/client.py:130)
+# returns None when _is_cloud is False.
+@pytest.fixture(autouse=True)
+def mock_check_if_cloud(monkeypatch):
+    monkeypatch.setattr("jira.client.JIRA._is_cloud", property(lambda self: True))
+
+
 @pytest.fixture(autouse=True)
 def bypass_rls(db, request):
     # Don't bypass if marked with `enable_rls`
@@ -661,13 +669,12 @@ def setup_sample_external_resources():
             "None",
         ],
     ).save()
-    # UAT 2 currently doesn't have the SLA Date field
-    # JiraProjectFields(
-    #     project_key=ps_module.bts_key,
-    #     field_id="customfield_12326740",
-    #     field_name="SLA Date",
-    #     allowed_values=[],
-    # ).save()
+    JiraProjectFields(
+        project_key=ps_module.bts_key,
+        field_id="customfield_12326740",
+        field_name="SLA Date",
+        allowed_values=[],
+    ).save()
     JiraBugIssuetype(project=ps_module.bts_key).save()
 
     # 4) list some valid components accepeted for the

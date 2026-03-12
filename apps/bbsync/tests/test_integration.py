@@ -513,12 +513,14 @@ class TestBBSyncIntegration:
         bugzilla_token,
         enable_bz_sync,
         enable_jira_tracker_sync,
+        jira_email,
         jira_token,
         test_api_v2_uri,
     ):
         """
         test flaw unembargo with Bugzilla two-way sync
         """
+        Flaw.objects.all().delete()
         # change time on one place for easier update
         flaw_last_change_time = "2024-06-17T08:39:02Z"
         tracker1_last_change_time = "2024-06-17T08:36:56Z"
@@ -673,6 +675,7 @@ class TestBBSyncIntegration:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200

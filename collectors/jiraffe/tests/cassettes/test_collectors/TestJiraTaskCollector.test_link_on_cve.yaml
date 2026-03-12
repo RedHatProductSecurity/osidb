@@ -41,7 +41,7 @@ interactions:
         "impact:MODERATE"], "aggregatetimeoriginalestimate": null, "timeestimate":
         null, "versions": [], "issuelinks": [], "customfield_12325240": null, "assignee":
         {"self": "https://example.com/rest/api/2/user?username=ahanwate1%40redhat.com",
-        "name": "ahanwate1@redhat.com", "key": "JIRAUSER175619", "emailAddress": "ahanwate@redhat.com",
+        "name": "ahanwate1@redhat.com", "key": "JIRAUSER175619", "emailAddress": "ahanwate@redhat.com", "accountId": "test-cloud-id",
         "avatarUrls": {"48x48": "https://example.com/secure/useravatar?ownerId=JIRAUSER175619&avatarId=41302",
         "24x24": "https://example.com/secure/useravatar?size=small&ownerId=JIRAUSER175619&avatarId=41302",
         "16x16": "https://example.com/secure/useravatar?size=xsmall&ownerId=JIRAUSER175619&avatarId=41302",

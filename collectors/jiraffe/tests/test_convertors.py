@@ -12,6 +12,7 @@ from osidb.models import Affect, Flaw, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
+    JiraUserMappingFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
 )
@@ -318,6 +319,7 @@ class TestJiraTrackerConvertor:
         translates to a valid 'not affected justification'.
         """
         tracker_data = JiraQuerier().get_issue("RHEL-59004")
+        type(tracker_data.fields)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker = tracker_convertor._gen_tracker_object()
 
@@ -358,6 +360,7 @@ class TestJiraTaskConvertor:
         """
         test that the convertor works
         """
+        mapping = JiraUserMappingFactory(atlassian_cloud_id="test-cloud-id")
         task_data = JiraQuerier().get_issue(self.task_id, expand="changelog")
         task_convertor = JiraTaskConvertor(task_data)
 
@@ -385,4 +388,4 @@ class TestJiraTaskConvertor:
         )
         assert flaw.workflow_name == "DEFAULT"
         assert flaw.workflow_state == "TRIAGE"
-        assert flaw.owner == "rh-ee-atinocom"
+        assert flaw.owner == f"{mapping.associate_kerberos_id}@redhat.com"

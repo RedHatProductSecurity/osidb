@@ -519,7 +519,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             # tracker has access control set in generate_security().
             notify_users = ", ".join(
                 [
-                    ("[~accountId:%s]" % JiraUserMapping.kerberos_to_cloud_id(u))
+                    f"[~accountId:{JiraUserMapping.kerberos_to_cloud_id(u)}]"
                     for u in cc_list
                 ]
             )

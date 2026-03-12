@@ -58,8 +58,8 @@ class JiraConnector:
                 "check_update": False,
                 "rest_api_version": "2",
             },
-            basic_auth=(self._jira_email, self._jira_token),
-            get_server_info=True,
+            basic_auth=(str(self._jira_email), str(self._jira_token)),
+            get_server_info=False,
             proxies={
                 "https": HTTPS_PROXY,
             },

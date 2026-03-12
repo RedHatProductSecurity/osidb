@@ -127,7 +127,7 @@ class TestTrackerSaver:
         ):
             TrackerSaver(tracker)
 
-    def test_jira(self):
+    def test_jira(self, jira_token, jira_email):
         """
         test that the general TrackerSaver turns into TrackerJiraSaver for Jira trackers
         """
@@ -149,7 +149,7 @@ class TestTrackerSaver:
         )
 
         assert isinstance(
-            TrackerSaver(tracker, jira_token="SECRET"),
+            TrackerSaver(tracker, jira_token=jira_token, jira_email=jira_email),
             TrackerJiraSaver,  # nosec
         )
 
@@ -181,7 +181,7 @@ class TestTrackerSaver:
         ):
             TrackerSaver(tracker)
 
-    def test_empty_bz_id(self):
+    def test_empty_bz_id(self, jira_token, jira_email):
         """
         test we can fill a tracker without bz_id
         """
@@ -207,7 +207,7 @@ class TestTrackerSaver:
             type=Tracker.TrackerType.JIRA,
         )
 
-        TrackerSaver(tracker, jira_token="SECRET")  # nosec
+        TrackerSaver(tracker, jira_token=jira_token, jira_email=jira_email)  # nosec
 
 
 class TestTrackerModelSave:
@@ -325,7 +325,7 @@ class TestTrackerModelSave:
             assert not jira_save_mock.called
             assert not jira_load_mock.called
 
-    def test_jira_backend(self, enable_jira_tracker_sync):
+    def test_jira_backend(self, enable_jira_tracker_sync, jira_token, jira_email):
         """
         test the Jira tracker backend save
         """
@@ -355,7 +355,7 @@ class TestTrackerModelSave:
                 JiraTrackerDownloadManager, "link_tracker_with_affects"
             ) as jira_tracker_link_mock,
         ):
-            tracker.save(jira_token="SECRET")  # nosec
+            tracker.save(jira_token=jira_token, jira_email=jira_email)  # nosec
 
             assert jira_save_mock.called
             # the rest is done async
@@ -377,7 +377,9 @@ class TestTrackerJiraSaverIssuetype:
             ("Invalid", None),
         ],
     )
-    def test_jira_issuetype(self, issuetype_param, expected_builder):
+    def test_jira_issuetype(
+        self, issuetype_param, expected_builder, jira_email, jira_token
+    ):
         """
         test that the general TrackerSaver turns into TrackerJiraSaver for Jira trackers
         """
@@ -398,7 +400,12 @@ class TestTrackerJiraSaverIssuetype:
             type=Tracker.TrackerType.JIRA,
         )
 
-        i = TrackerSaver(tracker, jira_token="SECRET", jira_issuetype=issuetype_param)  # nosec
+        i = TrackerSaver(
+            tracker,
+            jira_token=jira_token,
+            jira_email=jira_email,
+            jira_issuetype=issuetype_param,
+        )  # nosec
         assert isinstance(i, TrackerJiraSaver)
         assert i._jira_issuetype == issuetype_param
         if expected_builder is not None:

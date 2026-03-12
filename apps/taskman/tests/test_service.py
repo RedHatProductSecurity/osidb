@@ -11,7 +11,7 @@ from apps.taskman.constants import JIRA_SUMMARY_MAX_LENGTH
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.workflow import WorkflowModel
 from osidb.models import Flaw
-from osidb.tests.factories import AffectFactory, FlawFactory
+from osidb.tests.factories import AffectFactory, FlawFactory, JiraUserMappingFactory
 
 pytestmark = pytest.mark.unit
 
@@ -30,6 +30,7 @@ class TestTaskmanService(object):
         Test that service is able to create and update regular fields, team, assignment and status
         """
         # Remove randomness to reuse VCR every possible time
+        JiraUserMappingFactory(associate_kerberos_id="concosta")
         flaw = FlawFactory(
             embargoed=False,
             workflow_state=WorkflowModel.WorkflowState.NEW,
