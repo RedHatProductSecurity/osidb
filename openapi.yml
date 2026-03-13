@@ -3396,7 +3396,6 @@ paths:
             - -references__url
             - -references__uuid
             - -reported_dt
-            - -requires_cve_description
             - -source
             - -statement
             - -team_id
@@ -3438,7 +3437,6 @@ paths:
             - references__url
             - references__uuid
             - reported_dt
-            - requires_cve_description
             - source
             - statement
             - team_id
@@ -3661,31 +3659,6 @@ paths:
         schema:
           type: string
           format: date-time
-      - in: query
-        name: requires_cve_description
-        schema:
-          type: string
-          enum:
-          - ''
-          - APPROVED
-          - REJECTED
-          - REQUESTED
-      - in: query
-        name: requires_cve_description__in
-        schema:
-          type: array
-          items:
-            type: string
-            enum:
-            - ''
-            - APPROVED
-            - REJECTED
-            - REQUESTED
-        description: |+
-          Multiple values may be separated by commas.
-
-        explode: false
-        style: form
       - in: query
         name: search
         schema:
@@ -10742,7 +10715,6 @@ paths:
             - -references__url
             - -references__uuid
             - -reported_dt
-            - -requires_cve_description
             - -source
             - -statement
             - -team_id
@@ -10804,7 +10776,6 @@ paths:
             - references__url
             - references__uuid
             - reported_dt
-            - requires_cve_description
             - source
             - statement
             - team_id
@@ -11027,31 +10998,6 @@ paths:
         schema:
           type: string
           format: date-time
-      - in: query
-        name: requires_cve_description
-        schema:
-          type: string
-          enum:
-          - ''
-          - APPROVED
-          - REJECTED
-          - REQUESTED
-      - in: query
-        name: requires_cve_description__in
-        schema:
-          type: array
-          items:
-            type: string
-            enum:
-            - ''
-            - APPROVED
-            - REJECTED
-            - REQUESTED
-        description: |+
-          Multiple values may be separated by commas.
-
-        explode: false
-        style: form
       - in: query
         name: search
         schema:
@@ -14464,9 +14410,9 @@ components:
           type: string
           readOnly: true
         requires_cve_description:
-          oneOf:
-          - $ref: '#/components/schemas/RequiresCveDescriptionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          type: string
+          readOnly: true
+          deprecated: true
         statement:
           type: string
         cwe_id:
@@ -14600,6 +14546,7 @@ components:
       - labels
       - package_versions
       - references
+      - requires_cve_description
       - selected_cve_description
       - task_key
       - title
@@ -15299,10 +15246,6 @@ components:
           minLength: 1
         cve_description:
           type: string
-        requires_cve_description:
-          oneOf:
-          - $ref: '#/components/schemas/RequiresCveDescriptionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
         statement:
           type: string
         cwe_id:
@@ -15389,9 +15332,9 @@ components:
           type: string
           readOnly: true
         requires_cve_description:
-          oneOf:
-          - $ref: '#/components/schemas/RequiresCveDescriptionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          type: string
+          readOnly: true
+          deprecated: true
         statement:
           type: string
         cwe_id:
@@ -15526,6 +15469,7 @@ components:
       - labels
       - package_versions
       - references
+      - requires_cve_description
       - selected_cve_description
       - task_key
       - title
@@ -15705,10 +15649,6 @@ components:
           minLength: 1
         cve_description:
           type: string
-        requires_cve_description:
-          oneOf:
-          - $ref: '#/components/schemas/RequiresCveDescriptionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
         statement:
           type: string
         cwe_id:
@@ -15902,9 +15842,9 @@ components:
           type: string
           readOnly: true
         requires_cve_description:
-          oneOf:
-          - $ref: '#/components/schemas/RequiresCveDescriptionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          type: string
+          readOnly: true
+          deprecated: true
         statement:
           type: string
         cwe_id:
@@ -16038,6 +15978,7 @@ components:
       - labels
       - package_versions
       - references
+      - requires_cve_description
       - selected_cve_description
       - task_key
       - title
@@ -16079,10 +16020,6 @@ components:
           minLength: 1
         cve_description:
           type: string
-        requires_cve_description:
-          oneOf:
-          - $ref: '#/components/schemas/RequiresCveDescriptionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
         statement:
           type: string
         cwe_id:
@@ -16894,12 +16831,6 @@ components:
           minLength: 1
       required:
       - reason
-    RequiresCveDescriptionEnum:
-      enum:
-      - REQUESTED
-      - APPROVED
-      - REJECTED
-      type: string
     ResolutionEnum:
       enum:
       - FIX
