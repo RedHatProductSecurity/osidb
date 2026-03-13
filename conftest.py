@@ -233,6 +233,14 @@ def mute_signals(request):
     request.addfinalizer(restore_signals)
 
 
+# TODO: Remove this fixture after the migration to Atlassian Cloud.
+# The cloud_api decorator's check_if_cloud (jira/client.py:130)
+# returns None when _is_cloud is False.
+@pytest.fixture(autouse=True)
+def mock_check_if_cloud(monkeypatch):
+    monkeypatch.setattr("jira.client.JIRA._is_cloud", property(lambda self: True))
+
+
 @pytest.fixture(autouse=True)
 def bypass_rls(db, request):
     # Don't bypass if marked with `enable_rls`
@@ -329,7 +337,7 @@ def is_recording_vcr(pytestconfig):
 @pytest.fixture(autouse=True)
 def set_invalid_tokens(is_recording_vcr, monkeypatch):
     """
-    set required Jira token for collector when not recording VCRs
+    set required Jira token and email for collector when not recording VCRs
     """
     from collectors.cveorg import collectors as cveorg_collector
     from collectors.jiraffe import collectors as jira_collector
@@ -339,11 +347,12 @@ def set_invalid_tokens(is_recording_vcr, monkeypatch):
         monkeypatch.setattr(osv_collector, "JIRA_AUTH_TOKEN", "SECRET")
         monkeypatch.setattr(cveorg_collector, "JIRA_AUTH_TOKEN", "SECRET")
         monkeypatch.setattr(jira_collector, "JIRA_TOKEN", "SECRET")
+        monkeypatch.setattr(jira_collector, "JIRA_EMAIL", "test@redhat.com")
 
 
 @pytest.fixture(autouse=True)  # Automatically use in tests.
 def set_recording_environments(
-    is_recording_vcr, bugzilla_token, jira_token, monkeypatch
+    is_recording_vcr, bugzilla_token, jira_token, jira_email, monkeypatch
 ):
     """
     automatically use local environments variables when writing VCRs cassettes
@@ -367,8 +376,10 @@ def set_recording_environments(
     # from envs but VCR needs them so we manually load values where it is needed
     config = dotenv_values(".env")
 
-    jira_url = config.get("JIRA_URL", "https://issues.redhat.com")
-    jira_task_url = config.get("JIRA_TASKMAN_URL", "https://issues.redhat.com")
+    jira_url = config.get("JIRA_URL", "https://uat-3-2-redhat.atlassian.net")
+    jira_task_url = config.get(
+        "JIRA_TASKMAN_URL", "https://uat-3-2-redhat.atlassian.net"
+    )
     bz_url = config.get("BZIMPORT_BZ_URL", "https://bugzilla.redhat.com")
 
     if "stage" not in jira_url:
@@ -407,10 +418,13 @@ def set_recording_environments(
     monkeypatch.setattr(bzimport_collector, "BZ_API_KEY", bugzilla_token)
 
     monkeypatch.setattr(JiraConnector, "_jira_token", jira_token)
+    monkeypatch.setattr(JiraConnector, "_jira_email", jira_email)
     monkeypatch.setattr(osv_collector, "JIRA_AUTH_TOKEN", jira_token)
     monkeypatch.setattr(cveorg_collector, "JIRA_AUTH_TOKEN", jira_token)
     monkeypatch.setattr(jira_collector, "JIRA_TOKEN", jira_token)
+    monkeypatch.setattr(jira_collector, "JIRA_EMAIL", jira_email)
     monkeypatch.setattr(jira_core, "JIRA_TOKEN", jira_token)
+    monkeypatch.setattr(jira_core, "JIRA_EMAIL", jira_email)
 
 
 @pytest.fixture
@@ -433,6 +447,21 @@ def jira_token(is_recording_vcr):
     # independent from envs so we manually load values where it is needed
     config = dotenv_values(".env")
     return config.get("JIRA_AUTH_TOKEN", "SECRET") if is_recording_vcr else "SECRET"
+
+
+@pytest.fixture
+def jira_email(is_recording_vcr):
+    """
+    return "test@redhat.com" or user env JIRA_EMAIL in case of VCR rewrite
+    """
+    # testrunner should not contains environments set in order to make tests
+    # independent from envs so we manually load values where it is needed
+    config = dotenv_values(".env")
+    return (
+        config.get("JIRA_EMAIL", "test@redhat.com")
+        if is_recording_vcr
+        else "test@redhat.com"
+    )
 
 
 @pytest.fixture
@@ -563,50 +592,50 @@ def setup_sample_external_resources():
     ).save()
     JiraProjectFields(
         project_key=ps_module.bts_key,
-        field_id="customfield_12324746",
+        field_id="customfield_10121",
         field_name="Source",
         # Severely pruned for the test
         allowed_values=["Red Hat", "Upstream"],
     ).save()
     JiraProjectFields(
         project_key=ps_module.bts_key,
-        field_id="customfield_12324749",
+        field_id="customfield_10101",
         field_name="CVE ID",
         allowed_values=[],
     ).save()
     JiraProjectFields(
         project_key=ps_module.bts_key,
-        field_id="customfield_12324748",
+        field_id="customfield_10055",
         field_name="CVSS Score",
         allowed_values=[],
     ).save()
     JiraProjectFields(
         project_key=ps_module.bts_key,
-        field_id="customfield_12324747",
+        field_id="customfield_10151",
         field_name="CWE ID",
         allowed_values=[],
     ).save()
     JiraProjectFields(
         project_key=ps_module.bts_key,
-        field_id="customfield_12324752",
+        field_id="customfield_10056",
         field_name="Downstream Component Name",
         allowed_values=[],
     ).save()
     JiraProjectFields(
         project_key=ps_module.bts_key,
-        field_id="customfield_12324751",
+        field_id="customfield_10057",
         field_name="Upstream Affected Component",
         allowed_values=[],
     ).save()
     JiraProjectFields(
         project_key=ps_module.bts_key,
-        field_id="customfield_12324750",
+        field_id="customfield_10058",
         field_name="Embargo Status",
         allowed_values=["True", "False"],
     ).save()
     JiraProjectFields(
         project_key=ps_module.bts_key,
-        field_id="customfield_12324753",
+        field_id="customfield_10155",
         field_name="Special Handling",
         allowed_values=[
             "0-day",
@@ -623,12 +652,12 @@ def setup_sample_external_resources():
     ).save()
     JiraProjectFields(
         project_key=ps_module.bts_key,
-        field_id="customfield_12313941",
+        field_id="customfield_10022",
         field_name="Target start",
     ).save()
     JiraProjectFields(
         project_key=ps_module.bts_key,
-        field_id="customfield_12316142",
+        field_id="customfield_10054",
         field_name="Severity",
         allowed_values=[
             "Critical",

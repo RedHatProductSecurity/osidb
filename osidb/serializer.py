@@ -50,7 +50,13 @@ from osidb.models.affect import NotAffectedJustification
 
 from .core import generate_acls
 from .exceptions import DataInconsistencyException
-from .helpers import differ, ensure_list, get_bugzilla_api_key, get_jira_api_key
+from .helpers import (
+    differ,
+    ensure_list,
+    get_bugzilla_api_key,
+    get_jira_api_email,
+    get_jira_api_key,
+)
 from .mixins import ACLMixin, Alert, AlertMixin, TrackingMixin
 
 logger = logging.getLogger(__name__)
@@ -564,6 +570,9 @@ class JiraAPIKeyMixin:
     def get_jira_token(self):
         return get_jira_api_key(self.context["request"])
 
+    def get_jira_email(self):
+        return get_jira_api_email(self.context["request"])
+
 
 class AlertSerializer(serializers.ModelSerializer):
     """Alerts indicate some inconsistency in a linked flaw, affect, tracker or other models."""
@@ -873,6 +882,7 @@ class TrackerSerializer(
             # therefore at this point we simply require both secrets
             bz_api_key=self.get_bz_api_key(),
             jira_token=self.get_jira_token(),
+            jira_email=self.get_jira_email(),
         )
 
         ##########################
@@ -951,6 +961,7 @@ class TrackerSerializer(
         tracker.save(
             bz_api_key=self.get_bz_api_key(),
             jira_token=self.get_jira_token(),
+            jira_email=self.get_jira_email(),
             auto_timestamps=False,
         )
 
@@ -1083,7 +1094,11 @@ class JiraTaskSyncMixinSerializer(BaseSerializer, JiraAPIKeyMixin):
         """
         instance = super().create(validated_data)
         if JIRA_TASKMAN_AUTO_SYNC_FLAW:
-            instance.tasksync(jira_token=self.get_jira_token(), force_creation=True)
+            instance.tasksync(
+                jira_token=self.get_jira_token(),
+                jira_email=self.get_jira_email(),
+                force_creation=True,
+            )
         return instance
 
     def update(self, instance, validated_data, *args, **kwargs):
@@ -1093,6 +1108,7 @@ class JiraTaskSyncMixinSerializer(BaseSerializer, JiraAPIKeyMixin):
         """
         if JIRA_TASKMAN_AUTO_SYNC_FLAW:
             kwargs["jira_token"] = self.get_jira_token()
+            kwargs["jira_email"] = self.get_jira_email()
 
         return super().update(instance, validated_data, *args, **kwargs)
 
@@ -1158,7 +1174,9 @@ class AffectCVSSSerializer(
             old_cvss, new_cvss, ["score", "vector", "issuer"]
         ):
             return
-        new_cvss.sync_to_trackers(jira_token=self.get_jira_token())
+        new_cvss.sync_to_trackers(
+            jira_token=self.get_jira_token(), jira_email=self.get_jira_email()
+        )
 
 
 @extend_schema_serializer(exclude_fields=["affect", "updated_dt"])
@@ -1393,6 +1411,7 @@ class AffectSerializer(
             # therefore at this point we simply require both secrets
             bz_api_key=self.get_bz_api_key(),
             jira_token=self.get_jira_token(),
+            jira_email=self.get_jira_email(),
             # do not raise validation errors here as the tracker is not what
             # the user touches which would make the errors hard to understand
             raise_validation_error=False,
@@ -1962,7 +1981,9 @@ class FlawReferenceSerializer(
         if old_ref is not None and not differ(old_ref, new_ref, ["url", "description"]):
             return
 
-        new_ref.sync_to_trackers(jira_token=self.get_jira_token())
+        new_ref.sync_to_trackers(
+            jira_token=self.get_jira_token(), jira_email=self.get_jira_email()
+        )
 
 
 @extend_schema_serializer(exclude_fields=["updated_dt", "flaw"])
@@ -2011,7 +2032,9 @@ class FlawCVSSSerializer(
         ):
             return
 
-        new_cvss.sync_to_trackers(jira_token=self.get_jira_token())
+        new_cvss.sync_to_trackers(
+            jira_token=self.get_jira_token(), jira_email=self.get_jira_email()
+        )
 
 
 @extend_schema_serializer(exclude_fields=["updated_dt", "flaw"])
@@ -2122,6 +2145,7 @@ class FlawCollaboratorPostSerializer(FlawCollaboratorSerializer):
     )
 
 
+@extend_schema_serializer(deprecate_fields=["group_key", "team_id"])
 class FlawSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
@@ -2434,6 +2458,7 @@ class FlawSerializer(
                 # therefore at this point we simply require both secrets
                 bz_api_key=self.get_bz_api_key(),
                 jira_token=self.get_jira_token(),
+                jira_email=self.get_jira_email(),
                 # do not raise validation errors here as the tracker is not what
                 # the user touches which would make the errors hard to understand
                 raise_validation_error=False,
@@ -2441,7 +2466,8 @@ class FlawSerializer(
 
 
 @extend_schema_serializer(
-    exclude_fields=["updated_dt"], deprecate_fields=["major_incident_state"]
+    exclude_fields=["updated_dt"],
+    deprecate_fields=["major_incident_state", "group_key", "team_id"],
 )
 class FlawPostSerializer(FlawSerializer):
     # extra serializer for POST request as there is no last update
@@ -2449,7 +2475,9 @@ class FlawPostSerializer(FlawSerializer):
     pass
 
 
-@extend_schema_serializer(deprecate_fields=["major_incident_state"])
+@extend_schema_serializer(
+    deprecate_fields=["major_incident_state", "group_key", "team_id"]
+)
 class FlawPutSerializer(FlawSerializer):
     pass
 

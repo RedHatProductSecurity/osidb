@@ -968,7 +968,7 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/search?fields=issuekey&jql=labels+%3D+%22SecurityTracking%22+AND+type+in+%28Bug%2CVulnerability%29+AND+updated+%3E%3D+%222014-06-16+00%3A00%22+AND+updated+%3C%3D+%222014-09-19+00%3A01%22&startAt=0&validateQuery=True&maxResults=100
+    uri: https://example.com/rest/api/2/search/jql?jql=labels+%3D+%22SecurityTracking%22+AND+type+in+%28Bug%2CVulnerability%29+AND+updated+%3E%3D+%222014-06-16+00%3A00%22+AND+updated+%3C%3D+%222014-09-19+00%3A01%22&fields=issuekey&maxResults=100
   response:
     body:
       string: '{"expand": "schema,names", "startAt": 0, "maxResults": 100, "total":
