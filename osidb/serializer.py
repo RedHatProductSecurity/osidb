@@ -2145,6 +2145,7 @@ class FlawCollaboratorPostSerializer(FlawCollaboratorSerializer):
     )
 
 
+@extend_schema_serializer(deprecate_fields=["group_key", "team_id"])
 class FlawSerializer(
     ACLMixinSerializer,
     BugzillaSyncMixinSerializer,
@@ -2465,7 +2466,8 @@ class FlawSerializer(
 
 
 @extend_schema_serializer(
-    exclude_fields=["updated_dt"], deprecate_fields=["major_incident_state"]
+    exclude_fields=["updated_dt"],
+    deprecate_fields=["major_incident_state", "group_key", "team_id"],
 )
 class FlawPostSerializer(FlawSerializer):
     # extra serializer for POST request as there is no last update
@@ -2473,7 +2475,9 @@ class FlawPostSerializer(FlawSerializer):
     pass
 
 
-@extend_schema_serializer(deprecate_fields=["major_incident_state"])
+@extend_schema_serializer(
+    deprecate_fields=["major_incident_state", "group_key", "team_id"]
+)
 class FlawPutSerializer(FlawSerializer):
     pass
 

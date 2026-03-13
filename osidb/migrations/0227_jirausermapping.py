@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0227_remove_flaw_insert_insert_remove_flaw_update_update_and_more'),
+        ('osidb', '0226_fill_mitre_cve_description'),
     ]
 
     operations = [

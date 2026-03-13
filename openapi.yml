@@ -14539,6 +14539,10 @@ components:
               - DONE
               - REJECTED
           readOnly: true
+        group_key:
+          type: string
+          readOnly: true
+          deprecated: true
         owner:
           type: string
           maxLength: 60
@@ -14546,6 +14550,10 @@ components:
           type: string
           readOnly: true
           nullable: true
+        team_id:
+          type: string
+          readOnly: true
+          deprecated: true
         alerts:
           type: array
           items:
@@ -14561,11 +14569,13 @@ components:
       - created_dt
       - cvss_scores
       - embargoed
+      - group_key
       - labels
       - package_versions
       - references
       - selected_cve_description
       - task_key
+      - team_id
       - title
       - trackers
       - updated_dt
@@ -15453,6 +15463,10 @@ components:
               - DONE
               - REJECTED
           readOnly: true
+        group_key:
+          type: string
+          readOnly: true
+          deprecated: true
         owner:
           type: string
           maxLength: 60
@@ -15460,6 +15474,10 @@ components:
           type: string
           readOnly: true
           nullable: true
+        team_id:
+          type: string
+          readOnly: true
+          deprecated: true
         alerts:
           type: array
           items:
@@ -15475,11 +15493,13 @@ components:
       - created_dt
       - cvss_scores
       - embargoed
+      - group_key
       - labels
       - package_versions
       - references
       - selected_cve_description
       - task_key
+      - team_id
       - title
       - trackers
       - updated_dt
@@ -15953,6 +15973,10 @@ components:
               - DONE
               - REJECTED
           readOnly: true
+        group_key:
+          type: string
+          readOnly: true
+          deprecated: true
         owner:
           type: string
           maxLength: 60
@@ -15960,6 +15984,10 @@ components:
           type: string
           readOnly: true
           nullable: true
+        team_id:
+          type: string
+          readOnly: true
+          deprecated: true
         alerts:
           type: array
           items:
@@ -15975,11 +16003,13 @@ components:
       - created_dt
       - cvss_scores
       - embargoed
+      - group_key
       - labels
       - package_versions
       - references
       - selected_cve_description
       - task_key
+      - team_id
       - title
       - trackers
       - updated_dt

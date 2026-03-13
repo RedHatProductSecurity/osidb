@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adapt Jira integration for Atlassian Cloud (OSIDB-4800)
 
 ### Removed
-- Remove `team_id` and `group_key` fields from Flaw model and API (OSIDB-4540)
+- Deprecate `team_id` and `group_key` fields from Flaw model and API (OSIDB-4540)
 
 ## [5.6.0] - 2026-03-03
 ### Added

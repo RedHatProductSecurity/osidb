@@ -2,7 +2,7 @@
 Workflows models serializers
 """
 
-from drf_spectacular.utils import extend_schema_field
+from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
 from rest_framework import serializers
 
 from .models import Check, Condition
@@ -142,13 +142,14 @@ class RejectSerializer(serializers.Serializer):
     reason = serializers.CharField()
 
 
+@extend_schema_serializer(deprecate_fields=["group_key", "team_id"])
 class WorkflowModelSerializer(serializers.ModelSerializer):
     classification = serializers.SerializerMethodField()
     task_key = serializers.CharField(read_only=True, allow_null=True)
 
     class Meta:
         model = WorkflowModel
-        fields = ["classification", "owner", "task_key"]
+        fields = ["classification", "group_key", "owner", "task_key", "team_id"]
         abstract = True
 
     @extend_schema_field(

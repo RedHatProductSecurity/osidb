@@ -13,6 +13,8 @@ from typing import Optional
 import yaml
 from django.db import models
 
+from osidb.helpers import deprecate_field
+
 from .constants import WORKFLOW_DIR
 from .exceptions import (
     InitialStateException,
@@ -189,8 +191,10 @@ class WorkflowModel(models.Model):
         default=WorkflowState.NOVALUE,
     )
     owner = models.CharField(max_length=60, blank=True)
+    group_key = deprecate_field(models.CharField(max_length=60, blank=True))
     task_key = models.CharField(max_length=60, blank=True)
     task_updated_dt = models.DateTimeField(null=True, blank=True)
+    team_id = deprecate_field(models.CharField(max_length=8, blank=True))
 
     class Meta:
         abstract = True
