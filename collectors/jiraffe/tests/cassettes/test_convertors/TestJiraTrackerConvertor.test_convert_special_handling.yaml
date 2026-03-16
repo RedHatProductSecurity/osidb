@@ -130,7 +130,7 @@ interactions:
         "test", "customfield_12319040": null, "customfield_12324750": {"self": "https://example.com/rest/api/2/customFieldOption/39386",
         "value": "False", "id": "39386", "disabled": false}, "customfield_12325047":
         null, "watches": {"self": "https://example.com/rest/api/2/issue/RHEL-60033/watchers",
-        "watchCount": 2, "isWatching": true}, "customfield_12324753": [{"self": "https://example.com/rest/api/2/customFieldOption/39387",
+        "watchCount": 2, "isWatching": true}, "customfield_10670": [{"self": "https://example.com/rest/api/2/customFieldOption/39387",
         "value": "Major Incident", "id": "39387", "disabled": false}, {"self": "https://example.com/rest/api/2/customFieldOption/39388",
         "value": "KEV (active exploit case)", "id": "39388", "disabled": false}, {"self":
         "https://example.com/rest/api/2/customFieldOption/39389", "value": "compliance-priority",

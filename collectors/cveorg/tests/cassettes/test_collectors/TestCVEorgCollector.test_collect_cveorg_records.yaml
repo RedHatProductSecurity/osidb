@@ -17,7 +17,7 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/mypermissions?projectKey=OSIM
+    uri: https://example.com/rest/api/2/mypermissions?projectKey=OSIM&permissions=CREATE_ISSUES
   response:
     body:
       string: '{"permissions": {"SLACK_ISSUE_ANONYMOUS": {"id": "-1", "key": "SLACK_ISSUE_ANONYMOUS",
@@ -1412,7 +1412,7 @@ interactions:
       X-Atlassian-Token:
       - no-check
     method: GET
-    uri: https://example.com/rest/api/2/mypermissions?projectKey=OSIM
+    uri: https://example.com/rest/api/2/mypermissions?projectKey=OSIM&permissions=CREATE_ISSUES
   response:
     body:
       string: '{"permissions": {"SLACK_ISSUE_ANONYMOUS": {"id": "-1", "key": "SLACK_ISSUE_ANONYMOUS",

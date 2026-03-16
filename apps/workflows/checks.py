@@ -28,9 +28,7 @@ class CheckParser:
     ATTRIBUTE_MAP = {
         "cve": "cve_id",
         "cwe": "cwe_id",
-        "group": "group_key",
         "state": "workflow_state",
-        "team": "team_id",
         "has_trackers": "trackers_filed",
     }
 

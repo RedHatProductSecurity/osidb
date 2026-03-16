@@ -5,8 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Add Jira user mapping model and collector for Kerberos-to-Cloud ID translation (OSIDB-4542)
+- Add `Jira-Api-Email` header support for Jira Cloud authentication (OSIDB-4551)
+
 ### Changed
 - Serializer grant access to users with at least one reading LDAP group instead of enforcing all (OSIDB-4826)
+- Adapt Jira integration for Atlassian Cloud (OSIDB-4800)
+
+### Removed
+- Deprecate `team_id` and `group_key` fields from Flaw model and API (OSIDB-4540)
 
 ## [5.6.0] - 2026-03-03
 ### Added

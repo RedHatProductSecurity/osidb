@@ -14,7 +14,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
-from apps.taskman.constants import JIRA_AUTH_TOKEN
+from apps.taskman.constants import JIRA_AUTH_TOKEN, JIRA_EMAIL
 from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.framework.models import Collector
 from collectors.osv.constants import OSV_START_DATE
@@ -218,7 +218,9 @@ class OSVCollector(Collector):
             if snippet_created:
                 created_snippets.append(osv_id)
                 # We store flaw uuid as CVE ID is not present
-                if flaw := snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN):
+                if flaw := snippet.convert_snippet_to_flaw(
+                    jira_token=JIRA_AUTH_TOKEN, jira_email=JIRA_EMAIL
+                ):
                     created_flaws.append(flaw.uuid)
         else:
             for cve_id in cve_ids:
@@ -238,7 +240,9 @@ class OSVCollector(Collector):
                 if snippet_created:
                     created_snippets.append(external_id)
                     # Only links snippet to already existing flaw
-                    snippet.convert_snippet_to_flaw(jira_token=JIRA_AUTH_TOKEN)
+                    snippet.convert_snippet_to_flaw(
+                        jira_token=JIRA_AUTH_TOKEN, jira_email=JIRA_EMAIL
+                    )
 
         return created_snippets, created_flaws
 

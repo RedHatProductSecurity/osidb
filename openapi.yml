@@ -14571,7 +14571,8 @@ components:
           readOnly: true
         group_key:
           type: string
-          maxLength: 60
+          readOnly: true
+          deprecated: true
         owner:
           type: string
           maxLength: 60
@@ -14581,7 +14582,8 @@ components:
           nullable: true
         team_id:
           type: string
-          maxLength: 8
+          readOnly: true
+          deprecated: true
         alerts:
           type: array
           items:
@@ -14597,11 +14599,13 @@ components:
       - created_dt
       - cvss_scores
       - embargoed
+      - group_key
       - labels
       - package_versions
       - references
       - selected_cve_description
       - task_key
+      - team_id
       - title
       - trackers
       - updated_dt
@@ -15341,15 +15345,9 @@ components:
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
-        group_key:
-          type: string
-          maxLength: 60
         owner:
           type: string
           maxLength: 60
-        team_id:
-          type: string
-          maxLength: 8
       required:
       - comment_zero
       - embargoed
@@ -15497,7 +15495,8 @@ components:
           readOnly: true
         group_key:
           type: string
-          maxLength: 60
+          readOnly: true
+          deprecated: true
         owner:
           type: string
           maxLength: 60
@@ -15507,7 +15506,8 @@ components:
           nullable: true
         team_id:
           type: string
-          maxLength: 8
+          readOnly: true
+          deprecated: true
         alerts:
           type: array
           items:
@@ -15523,11 +15523,13 @@ components:
       - created_dt
       - cvss_scores
       - embargoed
+      - group_key
       - labels
       - package_versions
       - references
       - selected_cve_description
       - task_key
+      - team_id
       - title
       - trackers
       - updated_dt
@@ -15751,15 +15753,9 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
-        group_key:
-          type: string
-          maxLength: 60
         owner:
           type: string
           maxLength: 60
-        team_id:
-          type: string
-          maxLength: 8
       required:
       - comment_zero
       - embargoed
@@ -16009,7 +16005,8 @@ components:
           readOnly: true
         group_key:
           type: string
-          maxLength: 60
+          readOnly: true
+          deprecated: true
         owner:
           type: string
           maxLength: 60
@@ -16019,7 +16016,8 @@ components:
           nullable: true
         team_id:
           type: string
-          maxLength: 8
+          readOnly: true
+          deprecated: true
         alerts:
           type: array
           items:
@@ -16035,11 +16033,13 @@ components:
       - created_dt
       - cvss_scores
       - embargoed
+      - group_key
       - labels
       - package_versions
       - references
       - selected_cve_description
       - task_key
+      - team_id
       - title
       - trackers
       - updated_dt
@@ -16125,15 +16125,9 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
-        group_key:
-          type: string
-          maxLength: 60
         owner:
           type: string
           maxLength: 60
-        team_id:
-          type: string
-          maxLength: 8
       required:
       - comment_zero
       - embargoed
