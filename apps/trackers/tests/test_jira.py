@@ -563,7 +563,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
                 },
                 {
                     "fixVersions": [{"name": "rhel-8.9.0"}],
-                    "customfield_10477": {"value": "Approved Blocker"},
+                    "customfield_10847": {"value": "Approved Blocker"},
                 },
             ),
         ],
@@ -775,10 +775,10 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         # Create mock field
         if available_field:
             if target_release is not None:
-                field_id = "customfield_10310"
+                field_id = "customfield_10813"
                 field_name = "Target Release"
             else:
-                field_id = "customfield_10279"
+                field_id = "customfield_10855"
                 field_name = "Target Version"
             JiraProjectFieldsFactory(
                 project_key=ps_module.bts_key,
@@ -795,8 +795,8 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         if not available_field:
             # If the field is not available in the project, nothing is generated
             query_builder.generate_target_release()
-            assert "customfield_10310" not in query_builder.query["fields"]
-            assert "customfield_10279" not in query_builder.query["fields"]
+            assert "customfield_10813" not in query_builder.query["fields"]
+            assert "customfield_10855" not in query_builder.query["fields"]
         elif valid_jira_field:
             query_builder.generate_target_release()
             query_value = query_builder.query["fields"].get(field_id)
@@ -816,7 +816,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         test generation of Target Release/Target Version fields
         with PsUpdateStream.target_release being an empty string
 
-        reproducer of https://uat-3-2-redhat.atlassian.net/browse/OSIDB-2909
+        reproducer of https://redhat.atlassian.net/browse/OSIDB-2909
         """
         ps_module = PsModuleFactory(bts_name="jboss")
         ps_update_stream = PsUpdateStreamFactory(
