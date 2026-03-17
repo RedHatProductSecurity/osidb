@@ -5,13 +5,13 @@ Jira tracker query module
 import json
 import logging
 
+from jira import JIRAError
+
 from apps.trackers.exceptions import BTSException
 from collectors.jiraffe.core import JiraQuerier
 
 from .constants import JIRA_SERVER
 from .query import OldTrackerJiraQueryBuilder, TrackerJiraQueryBuilder
-
-from jira import JIRAError
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class TrackerJiraSaver(JiraQuerier):
                 getattr(tracker, "ps_update_stream", None),
                 getattr(tracker, "ps_module", None),
                 getattr(tracker, "ps_component", None),
-                getattr(tracker, "uuid", None)
+                getattr(tracker, "uuid", None),
             )
             raise
         tracker.external_system_id = issue.key
