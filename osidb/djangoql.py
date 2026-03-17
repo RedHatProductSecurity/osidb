@@ -48,7 +48,6 @@ class FlawQLSchema(DjangoQLSchema):
             "major_incident_state",
             "nist_cvss_validation",
             "owner",
-            "requires_cve_description",
             "source",
             "workflow_state",
         ],

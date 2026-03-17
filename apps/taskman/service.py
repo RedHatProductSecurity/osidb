@@ -15,6 +15,7 @@ from apps.trackers.jira.query import JiraPriority
 from collectors.jiraffe.core import JiraQuerier
 from osidb.helpers import safe_get_response_content
 from osidb.models import Flaw, Impact
+from osidb.models.jira_user_mapping import JiraUserMapping
 
 from .constants import (
     JIRA_STORY_ISSUE_TYPE_ID,
@@ -72,7 +73,7 @@ class JiraTaskmanQuerier(JiraQuerier):
     and it methods return data requested with HTTP status code
     """
 
-    def __init__(self, token) -> None:
+    def __init__(self, token, email) -> None:
         """
         Instantiate a new JiraTaskmanQuerier object.
 
@@ -84,13 +85,15 @@ class JiraTaskmanQuerier(JiraQuerier):
         self._jira_server = JIRA_TASKMAN_URL
         if token:
             self._jira_token = token
+        if email:
+            self._jira_email = email
 
     def _check_token(self) -> None:
         """
         check the validity of the used API token
         raise exception if invalid one was given
         """
-        token_validation_url = f"{self.jira_conn._get_url('mypermissions')}?projectKey={JIRA_TASKMAN_PROJECT_KEY}"
+        token_validation_url = f"{self.jira_conn._get_url('mypermissions')}?projectKey={JIRA_TASKMAN_PROJECT_KEY}&permissions=CREATE_ISSUES"
 
         # This request raises exception for unauthenticated users
         permission_response = self.jira_conn._session.get(token_validation_url)
@@ -128,16 +131,9 @@ class JiraTaskmanQuerier(JiraQuerier):
                     fields=data["fields"], prefetch=True
                 )
                 flaw.task_key = issue.key
-                if flaw.team_id:  # Jira does not allow setting team during creation
-                    self.create_or_update_task(
-                        flaw,
-                        check_token=False,  # no need to check the token again
-                    )
                 return flaw.task_key
             else:  # task exists; update
                 url = f"{self.jira_conn._get_url('issue')}/{flaw.task_key}"
-                if flaw.team_id:
-                    data["fields"]["customfield_12313240"] = flaw.team_id
                 self.jira_conn._session.put(url, json.dumps(data))
         except JIRAError as e:
             creating = not flaw.task_key
@@ -216,15 +212,18 @@ class JiraTaskmanQuerier(JiraQuerier):
                 "issuetype": {},
                 "project": {},
                 "summary": summary,
-                "description": flaw.comment_zero,
+                "description": flaw.comment_zero or "",
                 "labels": labels,
                 "priority": {"name": IMPACT_TO_JIRA_PRIORITY[flaw.impact]},
-                "assignee": {"name": flaw.owner},
+                "assignee": {
+                    "accountId": JiraUserMapping.kerberos_to_cloud_id(
+                        flaw.owner.removesuffix("@redhat.com")
+                    )
+                }
+                if flaw.owner
+                else None,
             }
         }
-
-        if flaw.group_key:
-            data["fields"]["customfield_12311140"] = flaw.group_key
 
         return data
 

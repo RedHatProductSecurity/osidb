@@ -24,6 +24,7 @@ from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
+    JiraUserMappingFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
@@ -34,12 +35,12 @@ pytestmark = pytest.mark.unit
 
 class TestJiraTaskCollector:
     @pytest.mark.vcr
-    def test_collect(self, enable_jira_task_sync, jira_token):
+    def test_collect(self, enable_jira_task_sync, jira_token, jira_email):
         """
         test the Jira collector run
         """
         collector = JiraTaskCollector()
-        jtq = JiraTaskmanQuerier(token=jira_token)
+        jtq = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         # remove randomness for VCR usage
         uuid = "fb145b06-82a7-4851-a429-541288633d16"
@@ -48,7 +49,9 @@ class TestJiraTaskCollector:
 
         # freeze the time so NOW corresponds to the Jira as it is split
         with freeze_time(datetime(2024, 11, 26, 12, 6, 0)):
-            flaw.tasksync(force_creation=True, jira_token=jira_token)
+            flaw.tasksync(
+                force_creation=True, jira_token=jira_token, jira_email=jira_email
+            )
             assert flaw.impact == Impact.IMPORTANT
 
         assert flaw.task_key
@@ -102,8 +105,6 @@ class TestJiraTaskCollector:
             "workflow_state": "REJECTED",
             "workflow_name": "REJECTED",
             "owner": "skynet",
-            "group_key": "SKYNET_ROBOTS",
-            "team_id": "ROBOTS",
         }
         for field, value in new_values.items():
             setattr(flaw, field, value)
@@ -120,6 +121,7 @@ class TestJiraTaskCollector:
     @pytest.mark.vcr
     def test_link_on_cve(self):
         # some random UUID
+        JiraUserMappingFactory(atlassian_cloud_id="test-cloud-id")
         flaw = FlawFactory(cve_id="CVE-2024-34703")
         # this is super-unprobable to happen but based
         # on the review feedback I am adding the assert
@@ -131,12 +133,14 @@ class TestJiraTaskCollector:
         assert Flaw.objects.get(uuid=flaw.uuid).task_key
 
     @pytest.mark.vcr
-    def test_outdated_query(self, enable_jira_task_sync, jira_token, monkeypatch):
+    def test_outdated_query(
+        self, enable_jira_task_sync, jira_token, jira_email, monkeypatch
+    ):
         """
         test that Jira task collector ignores tasks with outdated timestamp
         """
 
-        jtq = JiraTaskmanQuerier(token=jira_token)
+        jtq = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         # 1 - create a flaw
         # remove randomness for VCR usage
@@ -147,7 +151,9 @@ class TestJiraTaskCollector:
         # 2 - create a task
         #     freezing the time so NOW corresponds to the Jira as it is split
         with freeze_time(datetime(2024, 7, 22, 14, 30, 14, 665000)):
-            flaw.tasksync(force_creation=True, jira_token=jira_token)
+            flaw.tasksync(
+                force_creation=True, jira_token=jira_token, jira_email=jira_email
+            )
             assert flaw.task_key
 
         # 3 - get the current Jira task and make sure db is in-sync
@@ -164,7 +170,9 @@ class TestJiraTaskCollector:
         flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
         flaw.save(auto_timestamps=False)
         # provide a fake diff just to pretend that the workflow state has changed
-        flaw.tasksync(diff={"workflow_state": None}, jira_token=jira_token)
+        flaw.tasksync(
+            diff={"workflow_state": None}, jira_token=jira_token, jira_email=jira_email
+        )
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         assert flaw.workflow_state == "TRIAGE"
 

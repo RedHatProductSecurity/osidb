@@ -188,6 +188,7 @@ class TestTrackerAPI:
         auth_client,
         bugzilla_token,
         enable_bz_sync,
+        jira_email,
         jira_token,
         setup_sample_external_resources,
         test_api_v2_uri,
@@ -231,6 +232,7 @@ class TestTrackerAPI:
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
@@ -255,6 +257,7 @@ class TestTrackerAPI:
         auth_client,
         bugzilla_token,
         enable_bz_sync,
+        jira_email,
         jira_token,
         setup_sample_external_resources,
         test_api_v2_uri,
@@ -315,6 +318,7 @@ class TestTrackerAPI:
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
@@ -341,6 +345,7 @@ class TestTrackerAPI:
         bugzilla_token,
         enable_bz_sync,
         enable_jira_tracker_sync,
+        jira_email,
         jira_token,
         setup_sample_external_resources,
         test_api_v2_uri,
@@ -388,6 +393,7 @@ class TestTrackerAPI:
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
@@ -414,6 +420,7 @@ class TestTrackerAPI:
         bugzilla_token,
         enable_bz_sync,
         enable_jira_tracker_sync,
+        jira_email,
         jira_token,
         setup_sample_external_resources,
         test_api_v2_uri,
@@ -520,6 +527,7 @@ class TestTrackerAPI:
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
@@ -548,6 +556,7 @@ class TestTrackerAPI:
         bugzilla_token,
         enable_bz_sync,
         enable_jira_tracker_sync,
+        jira_email,
         jira_token,
         setup_sample_external_resources,
         test_api_v2_uri,
@@ -614,6 +623,7 @@ class TestTrackerAPI:
             format="json",
             # TODO sanitize keys both here and in VCRs
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 201
@@ -660,6 +670,7 @@ class TestTrackerAPI:
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
@@ -751,6 +762,7 @@ class TestTrackerAPI:
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200

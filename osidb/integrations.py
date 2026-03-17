@@ -47,13 +47,19 @@ class IntegrationRepository:
         return r["data"]["data"].get(key)
 
     def upsert_jira_token(self, user: str, token: str) -> None:
-        self.upsert_secret(Path("jira"), user, token)
+        self.upsert_secret(Path("jira/token"), user, token)
+
+    def upsert_jira_email(self, user: str, email: str) -> None:
+        self.upsert_secret(Path("jira/email"), user, email)
 
     def upsert_bz_token(self, user: str, token: str) -> None:
         self.upsert_secret(Path("bugzilla"), user, token)
 
     def read_jira_token(self, user: str) -> Optional[str]:
-        return self.read_secret(Path("jira"), user)
+        return self.read_secret(Path("jira/token"), user)
+
+    def read_jira_email(self, user: str) -> Optional[str]:
+        return self.read_secret(Path("jira/email"), user)
 
     def read_bz_token(self, user: str) -> Optional[str]:
         return self.read_secret(Path("bugzilla"), user)

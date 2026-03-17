@@ -17,3 +17,7 @@ class DataInconsistencyException(OSIDBException):
 
 class InvalidTestEnvironmentException(OSIDBException):
     """Invalid Test Environment Exception"""
+
+
+class JiraUserMappingException(OSIDBException):
+    """Exception raised when Jira user mapping lookup fails."""
