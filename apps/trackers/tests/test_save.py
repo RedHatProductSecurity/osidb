@@ -432,7 +432,7 @@ class TestTrackerJiraSaverIssuetype:
         saver = TrackerSaver(
             tracker, jira_token="SECRET", jira_issuetype=issuetype_param
         )
-        saver.jira_email="jira_test@example.com"
+        saver.jira_email = "jira@example.com"
         mock_builder = type(
             "MockQueryBuilder",
             (),

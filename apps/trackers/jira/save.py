@@ -21,7 +21,7 @@ class TrackerJiraSaver(JiraQuerier):
     Jira tracker bug save handler
     """
 
-    def __init__(self, tracker, token, jira_issuetype=None) -> None:
+    def __init__(self, tracker, token, jira_issuetype=None, jira_email=None) -> None:
         """
         Instantiate a new JiraTrackerQuerier object.
 
@@ -33,6 +33,7 @@ class TrackerJiraSaver(JiraQuerier):
         self._jira_server = JIRA_SERVER
         self._jira_token = token
         self._jira_issuetype = jira_issuetype
+        self.jira_email = jira_email
 
     def save(self):
         """
