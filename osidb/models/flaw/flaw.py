@@ -25,6 +25,7 @@ from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.workflow import WorkflowModel, WorkflowModelManager
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
+from osidb.helpers import deprecate_field
 from osidb.mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -204,6 +205,8 @@ class Flaw(
 
     class FlawRequiresCVEDescription(models.TextChoices):
         """
+        DEPRECATED: This field is deprecated and will be removed in a future release.
+
         Stores cve_description state from the requires_doc_text flag in BZ.
 
         The flag states have the following meaning:
@@ -214,8 +217,6 @@ class Flaw(
         * (+) "APPROVED" (set by PS member): cve_description was reviewed and approved;
               this is the only state where cve_description is propagated to the flaw's CVE page
         * (-) "REJECTED": cve_description is not required for this flaw
-
-        Note that if a flaw is MI or Exploits (KEV), requires_cve_description should be "APPROVED".
         """
 
         NOVALUE = ""
@@ -247,8 +248,11 @@ class Flaw(
     # from cveorg collector
     mitre_cve_description = models.TextField(blank=True)
 
-    requires_cve_description = models.CharField(
-        choices=FlawRequiresCVEDescription.choices, max_length=20, blank=True
+    requires_cve_description = deprecate_field(
+        models.CharField(
+            choices=FlawRequiresCVEDescription.choices, max_length=20, blank=True
+        ),
+        return_instead=lambda obj: obj.FlawRequiresCVEDescription.NOVALUE,
     )
 
     # if redhat cve-id then this is required
@@ -546,41 +550,6 @@ class Flaw(
                     "Flaw impact must be set if RH CVSSv3 score is not zero.",
                     **kwargs,
                 )
-
-    @validator
-    def _validate_cve_description_and_requires_cve_description(self, **kwargs):
-        """
-        Checks that if cve_description is missing, then requires_cve_description must not have
-        REQUESTED or APPROVED value set.
-        """
-        if not self.cve_description and self.requires_cve_description in [
-            self.FlawRequiresCVEDescription.REQUESTED,
-            self.FlawRequiresCVEDescription.APPROVED,
-        ]:
-            raise ValidationError(
-                f"requires_cve_description cannot be {self.requires_cve_description} if cve_description is "
-                f"missing."
-            )
-
-    @validator
-    def _validate_requires_cve_description(self, **kwargs):
-        """
-        Checks that if requires_cve_description was already set to
-        something other than NOVALUE, it cannot be set to NOVALUE.
-        """
-        if self._state.adding:
-            # we're creating a new flaw so we don't need to check whether we're
-            # changing from one state to another
-            return
-
-        old_flaw = Flaw.objects.get(pk=self.pk)
-        if (
-            old_flaw.requires_cve_description != self.FlawRequiresCVEDescription.NOVALUE
-            and self.requires_cve_description == self.FlawRequiresCVEDescription.NOVALUE
-        ):
-            raise ValidationError(
-                "requires_cve_description cannot be unset if it was previously set to something other than NOVALUE"
-            )
 
     @validator
     def _validate_nonempty_source(self, **kwargs):
