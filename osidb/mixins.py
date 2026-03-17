@@ -15,7 +15,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, models, transaction
 from django.utils import timezone
-
+from config.settings import LOG_IGNORE_AUTO_TIMESTAMPS
 from osidb.exceptions import DataInconsistencyException
 
 from .core import generate_acls
@@ -83,6 +83,12 @@ class TrackingMixin(models.Model):
             # cut off the microseconds to allow mid-air
             # collision comparison as API works in seconds
             self.updated_dt = timezone.now().replace(microsecond=0)
+        elif LOG_IGNORE_AUTO_TIMESTAMPS:
+            db_self = type(self).objects.filter(pk=self.pk).first()
+            if db_self is not None and db_self.updated_dt != self.updated_dt:
+                logger.info(
+                    f"WARNING saved outdated model instance {self.__class__.__name__}, id: {self.pk}, db_updated_dt: {db_self.updated_dt}, self_updated_dt: {self.updated_dt}"
+                )
 
         super().save(*args, **kwargs)
 
