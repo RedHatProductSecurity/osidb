@@ -11,6 +11,8 @@ from collectors.jiraffe.core import JiraQuerier
 from .constants import JIRA_SERVER
 from .query import OldTrackerJiraQueryBuilder, TrackerJiraQueryBuilder
 
+from jira import JIRAError
+
 logger = logging.getLogger(__name__)
 
 
@@ -65,7 +67,18 @@ class TrackerJiraSaver(JiraQuerier):
         querybuilder = builder(tracker)
         query = querybuilder.query
         comment = querybuilder.query_comment
-        issue = self.jira_conn.create_issue(fields=query["fields"], prefetch=True)
+        try:
+            issue = self.jira_conn.create_issue(fields=query["fields"], prefetch=True)
+        except JIRAError as e:
+            logger.error(
+                "JIRAError during tracker creation: %s | ps_update_stream=%s | ps_module=%s | ps_component=%s | uuid=%s",
+                str(e),
+                getattr(tracker, "ps_update_stream", None),
+                getattr(tracker, "ps_module", None),
+                getattr(tracker, "ps_component", None),
+                getattr(tracker, "uuid", None)
+            )
+            raise
         tracker.external_system_id = issue.key
         if comment:
             self.create_comment(

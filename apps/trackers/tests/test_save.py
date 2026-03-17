@@ -1,10 +1,10 @@
 """
 tracker saver tests
 """
-
 from unittest.mock import patch
 
 import pytest
+import uuid
 
 from apps.bbsync.save import BugzillaSaver
 from apps.trackers.bugzilla.save import TrackerBugzillaSaver
@@ -28,6 +28,7 @@ from osidb.tests.factories import (
     PsUpdateStreamFactory,
     TrackerFactory,
 )
+from jira import JIRAError
 
 pytestmark = pytest.mark.unit
 
@@ -406,3 +407,47 @@ class TestTrackerJiraSaverIssuetype:
         else:
             with pytest.raises(BTSException):
                 i.get_builder()
+
+    def test_jira_error_logging(self,caplog):
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="component",
+        )
+
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+            uuid=str(uuid.uuid4())
+        )
+        issuetype_param = "Bug"
+        saver = TrackerSaver(tracker, jira_token="SECRET", jira_issuetype=issuetype_param)
+
+        mock_builder = type(
+          "MockQueryBuilder",
+          (),
+          {"query":{"fields":{}}, "query_comment": None},  
+        )()
+        
+        with patch.object(
+            saver,
+            "get_builder",
+            return_value=lambda tracker: mock_builder,
+        ) as mock_get_builder, patch.object(
+                saver.jira_conn,
+                "create_issue",
+                side_effect=JIRAError(status_code=422, text="JIRAError during tracker creation")
+            ) as mock_create_issue:
+                with caplog.at_level("ERROR"):
+                    with pytest.raises(JIRAError):
+                        saver.create(tracker)
+
+        assert mock_get_builder.called
+        assert mock_create_issue.called
