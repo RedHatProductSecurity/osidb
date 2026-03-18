@@ -46,6 +46,7 @@ from osidb.models import (
     Package,
     Tracker,
 )
+from osidb.sync_manager import SyncManager
 
 from .djangoql import FlawQLSchema
 from .mixins import ACLMixinVisibility, Alert
@@ -1920,3 +1921,55 @@ class AlertFilter(InFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
             "name": ["exact"],
             "alert_type": ["exact"],
         }
+
+
+# AI-Generated: GPT-5.2
+class SyncManagerFilter(InFilterSet):
+    class Meta:
+        model = SyncManager
+        fields = {
+            "name": ["exact"],
+            "sync_id": ["exact"],
+            "permanently_failed": ["exact"],
+            "last_consecutive_failures": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS,
+            "last_consecutive_reschedules": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS,
+            "last_scheduled_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "last_started_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "last_finished_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "last_failed_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+            "last_rescheduled_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
+        }
+
+    order_fields = [
+        "id",
+        "name",
+        "sync_id",
+        "permanently_failed",
+        "last_consecutive_failures",
+        "last_consecutive_reschedules",
+        "last_scheduled_dt",
+        "last_started_dt",
+        "last_finished_dt",
+        "last_failed_dt",
+        "last_rescheduled_dt",
+    ]
+    order = DistinctOrderingFilter(fields=order_fields)

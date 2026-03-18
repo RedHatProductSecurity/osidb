@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix JiraTrackerCollector returning empty response (OSIDB-4855)
 
+### Added
+- Sync manager endpoint (OSIDB-4676)
+
 ## [5.7.0] - 2026-03-16
 ### Added
 - Add Jira user mapping model and collector for Kerberos-to-Cloud ID translation (OSIDB-4542)
