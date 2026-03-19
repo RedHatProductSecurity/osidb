@@ -59,7 +59,9 @@ class JiraConnector:
                 "rest_api_version": "2",
             },
             basic_auth=(str(self._jira_email), str(self._jira_token)),
-            get_server_info=False,
+            # Do not disable: the jira library needs this to detect Cloud
+            # vs Data Center instance (silently breaks some Cloud only methods otherwise).
+            get_server_info=True,
             proxies={
                 "https": HTTPS_PROXY,
             },

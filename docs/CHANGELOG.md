@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Deprecate `requires_cve_description` field (OSIDB-4461)
 
+### Fixed
+- Fix JiraTrackerCollector returning empty response (OSIDB-4855)
+
 ## [5.7.0] - 2026-03-16
 ### Added
 - Add Jira user mapping model and collector for Kerberos-to-Cloud ID translation (OSIDB-4542)

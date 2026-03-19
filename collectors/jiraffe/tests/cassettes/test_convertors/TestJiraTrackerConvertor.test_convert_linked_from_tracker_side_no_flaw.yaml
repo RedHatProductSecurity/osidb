@@ -231,4 +231,85 @@ interactions:
     status:
       code: 200
       message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*/*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.32.4
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://example.com/rest/api/2/serverInfo
+  response:
+    body:
+      string: '{"baseUrl": "https://example.com", "displayUrl": "https://example.com",
+        "displayUrlServicedeskHelpCenter": "https://example.com", "displayUrlCSMHelpSeeker":
+        "https://example.com", "displayUrlConfluence": "https://example.com", "version":
+        "1001.0.0-SNAPSHOT", "versionNumbers": [1001, 0, 0], "deploymentType": "Cloud",
+        "buildNumber": 100291, "buildDate": "2026-03-18T10:12:28.000+0000", "serverTime":
+        "2026-03-19T09:08:08.572+0000", "scmInfo": "840e5159782fc36d75c17fda78b78de23945cb77",
+        "serverTitle": "Red Hat Issue Tracker", "defaultLocale": {"locale": "en_US"},
+        "serverTimeZone": "Etc/UTC"}'
+    headers:
+      Atl-Request-Id:
+      - 77bb5cd4-26a3-48fc-88f6-bd4fea714ea3
+      Atl-Traceid:
+      - 77bb5cd426a348fc88f6bd4fea714ea3
+      Cache-Control:
+      - no-cache, no-store, no-transform
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Thu, 19 Mar 2026 09:08:08 GMT
+      Nel:
+      - '{"failure_fraction": 0.01, "include_subdomains": true, "max_age": 600, "report_to":
+        "endpoint-1"}'
+      Report-To:
+      - '{"endpoints": [{"url": "https://dz8aopenkvv6s.cloudfront.net"}], "group":
+        "endpoint-1", "include_subdomains": true, "max_age": 600}'
+      Server:
+      - AtlassianEdge
+      Server-Timing:
+      - cdn-cache-miss,cdn-pop;desc="FRA60-P2",cdn-rid;desc="s4ovzg8oiZF1aiG0iAOhNRkkeS9qiJPhxytBJVm6fZVBuna_TBmPtw==",cdn-downstream-fbl;dur=433,cdn-upstream-layer;desc="EDGE",cdn-upstream-dns;dur=0,cdn-upstream-connect;dur=274,cdn-upstream-fbl;dur=430,atl-edge;dur=64,atl-edge-internal;dur=22,atl-edge-upstream;dur=41,atl-edge-pop;desc="aws-us-east-1"
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+      Timing-Allow-Origin:
+      - '*'
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      Via:
+      - 1.1 109c7a7f1cf897851e09b16d3030a948.cloudfront.net (CloudFront)
+      X-Aaccountid:
+      - 712020%3A1f8238fb-e977-4851-83f1-9763f3101776
+      X-Amz-Cf-Id:
+      - s4ovzg8oiZF1aiG0iAOhNRkkeS9qiJPhxytBJVm6fZVBuna_TBmPtw==
+      X-Amz-Cf-Pop:
+      - FRA60-P2
+      X-Arequestid:
+      - b520196bae86644667261696cc431e6c
+      X-Cache:
+      - Miss from cloudfront
+      X-Content-Type-Options:
+      - nosniff
+      X-Xss-Protection:
+      - 1; mode=block
+      content-length:
+      - '606'
+    status:
+      code: 200
+      message: OK
 version: 1

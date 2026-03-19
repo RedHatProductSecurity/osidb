@@ -675,6 +675,7 @@ class TestBugzillaJiraMixinIntegration:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
@@ -694,6 +695,7 @@ class TestBugzillaJiraMixinIntegration:
             f"{test_api_uri}/flaws/{created_uuid}/promote",
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
@@ -710,6 +712,7 @@ class TestBugzillaJiraMixinIntegration:
             {"reason": "This is not a bug."},
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
@@ -959,6 +962,7 @@ class TestMultiMixinIntegration:
         enable_bz_async_sync,
         enable_jira_task_sync,
         enable_jira_tracker_sync,
+        jira_email,
         jira_token,
         monkeypatch,
         test_api_v2_uri,
@@ -1044,6 +1048,7 @@ class TestMultiMixinIntegration:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 201
@@ -1066,6 +1071,7 @@ class TestMultiMixinIntegration:
             affects_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
@@ -1083,6 +1089,7 @@ class TestMultiMixinIntegration:
             tracker_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 201
