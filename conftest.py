@@ -20,8 +20,8 @@ from osidb.exceptions import InvalidTestEnvironmentException
 from osidb.models import PsModule, PsUpdateStream
 from osidb.tests.factories import PsModuleFactory, PsProductFactory
 
-# matches base urls starting with http / https until the first slash after the protocol
-base_url_pattern = re.compile(r"(https?://)[^/]+")
+# matches base urls starting with http / https until the first slash, quote, or whitespace after the protocol
+base_url_pattern = re.compile(r"https?://[^/\s\"']+")
 
 
 def strip_bz_update_token(body):
@@ -361,7 +361,6 @@ def set_recording_environments(
         return
 
     from apps.taskman import service as taskman_service
-    from apps.trackers import common
     from apps.trackers.jira import save as jira_save
     from collectors.bzimport import collectors as bzimport_collector
     from collectors.bzimport.collectors import BugzillaConnector
@@ -407,7 +406,6 @@ def set_recording_environments(
     monkeypatch.setattr(jira_save, "JIRA_SERVER", jira_url)
     monkeypatch.setattr(taskman_service, "JIRA_TASKMAN_URL", jira_task_url)
 
-    monkeypatch.setattr(common, "BZ_URL", bz_url)
     monkeypatch.setattr(bzimport_collector, "BZ_URL", bz_url)
 
     # replace tokens
