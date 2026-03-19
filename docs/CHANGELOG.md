@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Changed
+- Logging JIRAError during tracker creation (OSIDB-4848)
+
+### Changed
 - Deprecate `requires_cve_description` field (OSIDB-4461)
 
 ## [5.7.0] - 2026-03-16
