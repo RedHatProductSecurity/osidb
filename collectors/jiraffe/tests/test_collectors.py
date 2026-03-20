@@ -29,7 +29,7 @@ from osidb.tests.factories import (
     PsUpdateStreamFactory,
     TrackerFactory,
 )
-
+from types import SimpleNamespace
 pytestmark = pytest.mark.unit
 
 
@@ -500,3 +500,67 @@ class TestMetadataCollector:
 
         project_fields = JiraProjectFields.objects.filter(project_key=project_key)
         assert len(project_fields) == fields_count
+
+
+class TestJiraTrackerDownloadManager:
+    def test_sync_task_links_affects_when_tracker_up_to_date(self, monkeypatch):
+        """
+        Regression: when Jira tracker data is up-to-date (convertor returns None),
+        sync_task should still link affects for an existing tracker.
+        """
+        tracker_id = "OSIDB-FAKE-1"
+        ps_module = PsModuleFactory(name="module", bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(name="stream", ps_module=ps_module)
+
+        flaw = FlawFactory(
+            embargoed=False,
+            meta_attr={"jira_trackers": json.dumps([{"key": tracker_id}])},
+        )
+
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="component",
+        )
+
+        tracker = TrackerFactory.build(
+            type=Tracker.TrackerType.JIRA,
+            embargoed=False,
+        )
+        tracker.save(raise_validation_error=False)
+
+        # started()/finished() expect the SyncManager row to exist (normally created by schedule())
+        JiraTrackerDownloadManager.objects.update_or_create(
+            name=JiraTrackerDownloadManager.__name__,
+            sync_id=tracker_id,
+            defaults={"last_scheduled_dt": datetime.now(tz=timezone.utc)},
+        )
+
+        class _FakeIssue:
+            def __init__(self, key: str):
+                self.key = key
+                self.fields = SimpleNamespace(
+                    summary="component: some title [stream]",
+                    created="2014-08-04T15:07:19.000+0000",
+                    updated="2014-09-10T01:43:37.000+0000",
+                    resolutiondate="2014-09-10T01:43:37.000+0000",
+                    labels=[],
+                    status=SimpleNamespace(name="Closed"),
+                    resolution=SimpleNamespace(name="Done"),
+                )
+
+
+        def _fake_get_issue(self, issue_id, *args, **kwargs):
+            return _FakeIssue(issue_id)
+
+        monkeypatch.setattr(
+            "collectors.jiraffe.core.JiraQuerier.get_issue",
+            _fake_get_issue,
+        )
+
+        assert tracker.affects.count() == 0
+        JiraTrackerDownloadManager.sync_task(tracker_id)
+        tracker.refresh_from_db()
+        assert tracker.affects.count() == 1
+        assert tracker.affects.first() == affect
