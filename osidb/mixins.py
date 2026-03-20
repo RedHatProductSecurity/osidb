@@ -15,6 +15,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, models, transaction
 from django.utils import timezone
+
 from config.settings import LOG_IGNORE_AUTO_TIMESTAMPS
 from osidb.exceptions import DataInconsistencyException
 
@@ -75,7 +76,7 @@ class TrackingMixin(models.Model):
                 raise DataInconsistencyException(
                     "Save operation based on an outdated model instance: "
                     f"Updated datetime in the request {self.updated_dt} "
-                    f"differes from the DB {db_self.updated_dt}. "
+                    f"differs from the DB {db_self.updated_dt}. "
                     "You need to refresh."
                 )
 
@@ -86,8 +87,8 @@ class TrackingMixin(models.Model):
         elif LOG_IGNORE_AUTO_TIMESTAMPS:
             db_self = type(self).objects.filter(pk=self.pk).first()
             if db_self is not None and db_self.updated_dt != self.updated_dt:
-                logger.info(
-                    f"WARNING saved outdated model instance {self.__class__.__name__}, id: {self.pk}, db_updated_dt: {db_self.updated_dt}, self_updated_dt: {self.updated_dt}"
+                logger.warning(
+                    f"saved outdated model instance {self.__class__.__name__}, id: {self.pk}, db_updated_dt: {db_self.updated_dt}, self_updated_dt: {self.updated_dt}"
                 )
 
         super().save(*args, **kwargs)

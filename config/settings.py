@@ -189,7 +189,9 @@ CELERY_BEAT_SCHEDULE = {
 # In our case, every hour ~200 tasks are executed. Reasonable number is then (200 / concurrency).
 CELERY_WORKER_MAX_TASKS_PER_CHILD = 60
 
-LOG_IGNORE_AUTO_TIMESTAMPS = get_env("LOG_IGNORE_AUTO_TIMESTAMPS", default="False", is_bool=True)
+LOG_IGNORE_AUTO_TIMESTAMPS = get_env(
+    "LOG_IGNORE_AUTO_TIMESTAMPS", default="False", is_bool=True
+)
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
