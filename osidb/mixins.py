@@ -15,6 +15,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError, models, transaction
 from django.utils import timezone
+
 from config.settings import LOG_IGNORE_AUTO_TIMESTAMPS
 from osidb.exceptions import DataInconsistencyException
 
