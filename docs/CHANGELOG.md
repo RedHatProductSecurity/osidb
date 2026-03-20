@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Logging JIRAError during tracker creation (OSIDB-4848)
 - Deprecate `requires_cve_description` field (OSIDB-4461)
 
+### Added
+- Sync manager endpoint (OSIDB-4676)
+ 
 ### Fixed
 - Fix JiraTrackerCollector returning empty response (OSIDB-4855)
 

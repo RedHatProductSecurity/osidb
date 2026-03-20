@@ -20,6 +20,7 @@ from osidb.helpers import ensure_list, get_execution_env
 from osidb.models import Affect, Flaw, Impact
 from osidb.models.tracker import Tracker
 from osidb.pagination import HardLimitOffsetPagination
+from osidb.sync_manager import SyncManager
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -61,6 +62,54 @@ class TestEndpoints(object):
                 "purl",
             )
         )
+
+    def test_sync_manager_list_and_retrieve(self, auth_client, test_api_uri):
+        now = timezone.now()
+        sm1 = SyncManager.objects.create(
+            name="TestSyncManagerA", sync_id="1", last_scheduled_dt=now
+        )
+        sm2 = SyncManager.objects.create(
+            name="TestSyncManagerB",
+            sync_id="2",
+            last_scheduled_dt=now + timezone.timedelta(seconds=1),
+            permanently_failed=True,
+        )
+
+        # list (paginated)
+        r = auth_client().get(f"{test_api_uri}/sync-managers")
+        assert r.status_code == 200
+        body = r.json()
+        assert "results" in body
+        ids = {item["id"] for item in body["results"]}
+        assert sm1.id in ids
+        assert sm2.id in ids
+
+        # retrieve
+        r2 = auth_client().get(f"{test_api_uri}/sync-managers/{sm1.id}")
+        assert r2.status_code == 200
+        assert r2.json()["id"] == sm1.id
+
+        # filter
+        r3 = auth_client().get(f"{test_api_uri}/sync-managers?name=TestSyncManagerA")
+        assert r3.status_code == 200
+        assert all(item["name"] == "TestSyncManagerA" for item in r3.json()["results"])
+
+        r4 = auth_client().get(
+            f"{test_api_uri}/sync-managers?name__in=TestSyncManagerA,TestSyncManagerB"
+        )
+        assert r4.status_code == 200
+        ids_in = {item["id"] for item in r4.json()["results"]}
+        assert sm1.id in ids_in
+        assert sm2.id in ids_in
+
+        r5 = auth_client().get(f"{test_api_uri}/sync-managers?permanently_failed=True")
+        assert r5.status_code == 200
+        assert all(item["permanently_failed"] is True for item in r5.json()["results"])
+
+        # ordering
+        r6 = auth_client().get(f"{test_api_uri}/sync-managers?order=-last_scheduled_dt")
+        assert r6.status_code == 200
+        assert r6.json()["results"][0]["id"] == sm2.id
 
     def test_whoami(self, auth_client, root_url):
         res = auth_client().get(f"{root_url}/osidb/whoami").json()

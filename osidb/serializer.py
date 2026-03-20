@@ -47,6 +47,7 @@ from osidb.models import (
     Tracker,
 )
 from osidb.models.affect import NotAffectedJustification
+from osidb.sync_manager import SyncManager
 
 from .core import generate_acls
 from .exceptions import DataInconsistencyException
@@ -2693,3 +2694,22 @@ class IntegrationTokenPatchSerializer(serializers.Serializer):
 class IncidentRequestSerializer(serializers.Serializer):
     comment = serializers.CharField(write_only=True)
     kind = serializers.ChoiceField(choices=Flaw.FlawMajorIncident.request_states())
+
+
+# AI-Generated: GPT-5.2
+class SyncManagerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SyncManager
+        fields = [
+            "id",
+            "name",
+            "sync_id",
+            "last_scheduled_dt",
+            "last_started_dt",
+            "last_finished_dt",
+            "last_failed_dt",
+            "last_consecutive_failures",
+            "permanently_failed",
+            "last_rescheduled_dt",
+            "last_consecutive_reschedules",
+        ]

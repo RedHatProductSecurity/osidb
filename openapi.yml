@@ -6802,6 +6802,384 @@ paths:
                   version:
                     type: string
           description: ''
+  /osidb/api/v1/sync-managers:
+    get:
+      operationId: osidb_api_v1_sync_managers_list
+      description: Read-only view for sync managers
+      parameters:
+      - in: query
+        name: last_consecutive_failures
+        schema:
+          type: integer
+      - in: query
+        name: last_consecutive_failures__gt
+        schema:
+          type: integer
+      - in: query
+        name: last_consecutive_failures__gte
+        schema:
+          type: integer
+      - in: query
+        name: last_consecutive_failures__lt
+        schema:
+          type: integer
+      - in: query
+        name: last_consecutive_failures__lte
+        schema:
+          type: integer
+      - in: query
+        name: last_consecutive_reschedules
+        schema:
+          type: integer
+      - in: query
+        name: last_consecutive_reschedules__gt
+        schema:
+          type: integer
+      - in: query
+        name: last_consecutive_reschedules__gte
+        schema:
+          type: integer
+      - in: query
+        name: last_consecutive_reschedules__lt
+        schema:
+          type: integer
+      - in: query
+        name: last_consecutive_reschedules__lte
+        schema:
+          type: integer
+      - in: query
+        name: last_failed_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_failed_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_failed_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_failed_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_failed_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_failed_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_failed_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_failed_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_finished_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_finished_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_finished_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_finished_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_finished_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_finished_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_finished_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_finished_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_rescheduled_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_rescheduled_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_rescheduled_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_rescheduled_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_rescheduled_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_rescheduled_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_rescheduled_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_rescheduled_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_scheduled_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_scheduled_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_scheduled_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_scheduled_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_scheduled_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_scheduled_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_scheduled_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_scheduled_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_started_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_started_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_started_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_started_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: last_started_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_started_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_started_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: last_started_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: name
+        schema:
+          type: string
+      - in: query
+        name: name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: order
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - -id
+            - -last_consecutive_failures
+            - -last_consecutive_reschedules
+            - -last_failed_dt
+            - -last_finished_dt
+            - -last_rescheduled_dt
+            - -last_scheduled_dt
+            - -last_started_dt
+            - -name
+            - -permanently_failed
+            - -sync_id
+            - id
+            - last_consecutive_failures
+            - last_consecutive_reschedules
+            - last_failed_dt
+            - last_finished_dt
+            - last_rescheduled_dt
+            - last_scheduled_dt
+            - last_started_dt
+            - name
+            - permanently_failed
+            - sync_id
+        description: |+
+          Ordering
+
+        explode: false
+        style: form
+      - in: query
+        name: permanently_failed
+        schema:
+          type: boolean
+      - in: query
+        name: sync_id
+        schema:
+          type: string
+      - in: query
+        name: sync_id__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedSyncManagerList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v1/sync-managers/{id}:
+    get:
+      operationId: osidb_api_v1_sync_managers_retrieve
+      description: Read-only view for sync managers
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this sync manager.
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SyncManager'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /osidb/api/v1/trackers:
     get:
       operationId: osidb_api_v1_trackers_list
@@ -16731,6 +17109,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SupportedProducts'
+    PaginatedSyncManagerList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncManager'
     PaginatedTrackerList:
       type: object
       required:
@@ -16878,6 +17279,50 @@ components:
           maxLength: 100
       required:
       - name
+    SyncManager:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+        sync_id:
+          type: string
+        last_scheduled_dt:
+          type: string
+          format: date-time
+          nullable: true
+        last_started_dt:
+          type: string
+          format: date-time
+          nullable: true
+        last_finished_dt:
+          type: string
+          format: date-time
+          nullable: true
+        last_failed_dt:
+          type: string
+          format: date-time
+          nullable: true
+        last_consecutive_failures:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        permanently_failed:
+          type: boolean
+        last_rescheduled_dt:
+          type: string
+          format: date-time
+          nullable: true
+        last_consecutive_reschedules:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+      required:
+      - id
+      - name
+      - sync_id
     TokenObtainPair:
       type: object
       properties:
