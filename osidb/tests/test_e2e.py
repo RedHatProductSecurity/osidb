@@ -95,6 +95,7 @@ class TestE2E:
         enable_bz_async_sync,
         enable_jira_task_async_sync,
         enable_jira_tracker_sync,
+        jira_email,
         jira_token,
         monkeypatch,
         setup_sample_external_resources,
@@ -136,6 +137,7 @@ class TestE2E:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
@@ -194,6 +196,7 @@ class TestE2E:
             affects_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
@@ -242,6 +245,7 @@ class TestE2E:
                 tracker_data,
                 format="json",
                 HTTP_BUGZILLA_API_KEY=bugzilla_token,
+                HTTP_JIRA_API_EMAIL=jira_email,
                 HTTP_JIRA_API_KEY=jira_token,
             )
             assert response.status_code == 201
@@ -301,6 +305,7 @@ class TestE2E:
             data={},
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 200
@@ -336,6 +341,7 @@ class TestE2E:
                     flaw_data,
                     format="json",
                     HTTP_BUGZILLA_API_KEY=bugzilla_token,
+                    HTTP_JIRA_API_EMAIL=jira_email,
                     HTTP_JIRA_API_KEY=jira_token,
                 )
                 assert response.status_code == 200

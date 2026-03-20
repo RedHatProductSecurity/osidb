@@ -5,11 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [5.8.0] - 2026-03-19
 ### Changed
+- Logging JIRAError during tracker creation (OSIDB-4848)
 - Deprecate `requires_cve_description` field (OSIDB-4461)
 
 ### Added
 - Sync manager endpoint (OSIDB-4676)
+ 
+### Fixed
+- Fix JiraTrackerCollector returning empty response (OSIDB-4855)
 
 ## [5.7.0] - 2026-03-16
 ### Added
