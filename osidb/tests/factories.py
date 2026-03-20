@@ -81,12 +81,14 @@ class FlawFactory(BaseFactory):
         )
 
         is_mi = factory.LazyAttribute(
-            lambda f: f.major_incident_state
-            in [
-                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
-                Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-                Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED,
-            ]
+            lambda f: (
+                f.major_incident_state
+                in [
+                    Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                    Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+                    Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED,
+                ]
+            )
         )
 
         not_mi_with_cve_description = factory.Faker(
@@ -273,10 +275,12 @@ class AffectFactory(BaseFactory):
         lambda a: AFFECTEDNESS_VALID_RESOLUTIONS[a.affectedness][0]
     )
     resolved_dt = factory.LazyAttribute(
-        lambda a: factory.Faker("date_time", tzinfo=UTC)
-        if a.affectedness not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS
-        or a.resolution not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS[a.affectedness]
-        else None
+        lambda a: (
+            factory.Faker("date_time", tzinfo=UTC)
+            if a.affectedness not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS
+            or a.resolution not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS[a.affectedness]
+            else None
+        )
     )
     not_affected_justification = factory.LazyAttribute(
         lambda a: (
@@ -796,16 +800,20 @@ class FlawCVSSFactory(CVSSFactory):
 
         # if RH CVSSv3 score is not zero, flaw impact must not be NOVALUE
         is_rh_cvss3_non_zero = factory.LazyAttribute(
-            lambda f: f.issuer == FlawCVSS.CVSSIssuer.REDHAT
-            and f.version == FlawCVSS.CVSSVersion.VERSION3
-            and f.CVSS_TO_CVSSLIB[f.version](f.vector).base_score != Decimal("0.0")
+            lambda f: (
+                f.issuer == FlawCVSS.CVSSIssuer.REDHAT
+                and f.version == FlawCVSS.CVSSVersion.VERSION3
+                and f.CVSS_TO_CVSSLIB[f.version](f.vector).base_score != Decimal("0.0")
+            )
         )
 
         # if RH CVSSv3 score is zero, flaw impact must be NOVALUE
         is_rh_cvss3_zero = factory.LazyAttribute(
-            lambda f: f.issuer == FlawCVSS.CVSSIssuer.REDHAT
-            and f.version == FlawCVSS.CVSSVersion.VERSION3
-            and f.CVSS_TO_CVSSLIB[f.version](f.vector).base_score == Decimal("0.0")
+            lambda f: (
+                f.issuer == FlawCVSS.CVSSIssuer.REDHAT
+                and f.version == FlawCVSS.CVSSVersion.VERSION3
+                and f.CVSS_TO_CVSSLIB[f.version](f.vector).base_score == Decimal("0.0")
+            )
         )
 
     flaw = factory.SubFactory(
