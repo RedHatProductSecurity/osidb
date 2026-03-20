@@ -271,7 +271,7 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         """
 
         if new_issuetype_metadata_present:
-            assert JiraProjectFields.objects.count() == 9
+            assert JiraProjectFields.objects.count() == 10
         else:
             assert JiraProjectFields.objects.count() == 0
 
@@ -1112,6 +1112,11 @@ class TestBothNewOldTrackerJiraQueryBuilder:
             field_id="customfield_10058",
             field_name="Embargo Status",
             allowed_values=["True", "False"],
+        ).save()
+        JiraProjectFields(
+            project_key="PROJECT",
+            field_id="customfield_10059",
+            field_name="SLA Date",
         ).save()
         JiraProjectFields(
             project_key="PROJECT",
