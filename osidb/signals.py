@@ -32,6 +32,17 @@ from osidb.tasks import async_send_email
 logger = logging.getLogger(__name__)
 
 
+def log_signal_update(instance, sender, handler_name, *, flaw=None):
+    logger.info(
+        "signal_parent_save handler=%s sender=%s instance_model=%s instance_pk=%s flaw_pk=%s",
+        handler_name,
+        getattr(sender, "__name__", str(sender)),
+        type(instance).__name__,
+        getattr(instance, "pk", None),
+        flaw.pk if flaw is not None else None,
+    )
+
+
 def get_bz_user_id(email: str) -> str:
     api_key = get_env("BZIMPORT_BZ_API_KEY")
     bz_url = get_env("BZIMPORT_BZ_URL", "https://bugzilla.redhat.com")
@@ -126,6 +137,9 @@ def update_flaw_fields(sender, instance, **kwargs):
 @receiver(post_save, sender=FlawCollaborator)
 @receiver(post_save, sender=FlawCVSS)
 def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
+    log_signal_update(
+        instance, sender, "flaw_dependant_update_local_updated_dt", flaw=instance.flaw
+    )
     instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
 
 
@@ -140,6 +154,9 @@ def update_local_updated_dt_tracker(sender, instance, **kwargs):
         for affect in instance.affects.all():
             flaws.add(affect.flaw)
     for flaw in list(flaws):
+        log_signal_update(
+            instance, sender, "update_local_updated_dt_tracker", flaw=flaw
+        )
         flaw.save(
             auto_timestamps=False,
             no_alerts=True,  # recreating alerts from nested entities can cause deadlocks
@@ -149,6 +166,12 @@ def update_local_updated_dt_tracker(sender, instance, **kwargs):
 
 @receiver(post_save, sender=AffectCVSS)
 def updated_local_updated_dt_affectcvss(sender, instance, **kwargs):
+    log_signal_update(
+        instance,
+        sender,
+        "updated_local_updated_dt_affectcvss",
+        flaw=instance.affect.flaw,
+    )
     instance.affect.flaw.save(auto_timestamps=False, raise_validation_error=False)
 
 
