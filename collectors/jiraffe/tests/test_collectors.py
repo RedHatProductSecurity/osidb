@@ -500,3 +500,59 @@ class TestMetadataCollector:
 
         project_fields = JiraProjectFields.objects.filter(project_key=project_key)
         assert len(project_fields) == fields_count
+
+    @pytest.mark.vcr
+    def test_sync_task_links_affects_when_tracker_up_to_date(self, monkeypatch):
+        """
+        Regression: when Jira tracker data is up-to-date (convertor returns None),
+        sync_task should still link affects for an existing tracker.
+        """
+        JiraUserMappingFactory(atlassian_cloud_id="test-cloud-id")
+        tracker_id = "RHEL-159920"
+        ps_module = PsModuleFactory(name="module", bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(name="stream", ps_module=ps_module)
+
+        flaw = FlawFactory(
+            embargoed=False,
+            meta_attr={"jira_trackers": json.dumps([{"key": tracker_id}])},
+        )
+
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="component",
+        )
+
+        meta_atr = {
+            "issuetype": {"id": "17"},
+            "project": {"id": "12337520"},
+            "summary": "test validations",
+            "description": "this is a simple test",
+            "ps_component": "component",
+            "labels": json.dumps(
+                [flaw.cve_id, "Security", "SecurityTracking", "component:elasticsearch"]
+            ),
+        }
+
+        tracker = TrackerFactory.build(
+            ps_update_stream=ps_update_stream.name,
+            external_system_id=tracker_id,
+            type=Tracker.TrackerType.JIRA,
+            embargoed=False,
+            meta_attr=meta_atr,
+        )
+        tracker.save()
+
+        # started()/finished() expect the SyncManager row to exist (normally created by schedule())
+        JiraTrackerDownloadManager.objects.update_or_create(
+            name=JiraTrackerDownloadManager.__name__,
+            sync_id=tracker_id,
+            defaults={"last_scheduled_dt": datetime.now(tz=timezone.utc)},
+        )
+
+        assert tracker.affects.count() == 0
+        JiraTrackerDownloadManager.sync_task(tracker_id)
+        tracker.refresh_from_db()
+        assert tracker.affects.count() == 1
+        assert tracker.affects.first() == affect
