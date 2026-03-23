@@ -7,6 +7,7 @@ from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
     PsModuleFactory,
+    PsProductFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
 )
@@ -220,8 +221,6 @@ class TestAffect:
         self, business_unit, purl, should_raise, expected_error, monkeypatch
     ):
         """Test PURL validation for new affects on middleware products"""
-        from osidb.tests.factories import PsProductFactory
-
         monkeypatch.setenv("OSIDB_AFFECTS_REQUIRE_PURL_FOR_MIDDLEWARE", "true")
 
         ps_product = PsProductFactory(business_unit=business_unit)
@@ -288,8 +287,6 @@ class TestAffect:
         monkeypatch,
     ):
         """Test PURL validation for existing affects on middleware products"""
-        from osidb.tests.factories import PsProductFactory
-
         monkeypatch.setenv("OSIDB_AFFECTS_REQUIRE_PURL_FOR_MIDDLEWARE", "true")
 
         ps_product = PsProductFactory(business_unit=business_unit)
@@ -325,3 +322,44 @@ class TestAffect:
         assert "is set as NOTAFFECTED but has CVSS scores associated" in str(
             exc_info.value
         )
+
+    @pytest.mark.parametrize(
+        "purl",
+        [
+            ("pkg:rpm/redhat/firefox"),
+            ("pkg:rpm/redhat/firefox@1.2"),
+            ("pkg:rpm/redhat/firefox?arch=src"),
+            ("pkg:rpm/redhat/firefox?repository_url=hack.me"),
+        ],
+    )
+    @pytest.mark.parametrize(
+        "ps_component,should_raise",
+        [
+            ("", False),
+            ("firefox", False),
+            ("thunderbird", True),
+            ("firefoxes", True),
+            ("hack.me", True),
+        ],
+    )
+    def test_validate_purl_and_ps_component(self, purl, ps_component, should_raise):
+        """Test that ps_component can't mismatch purl parsed component"""
+        ps_product = PsProductFactory()
+        ps_module = PsModuleFactory(ps_product=ps_product)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory()
+
+        affect = Affect(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            ps_component=ps_component,
+            purl=purl,
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
+        )
+        if should_raise:
+            with pytest.raises(ValidationError) as exc_info:
+                affect.save()
+            assert "does not match user-provided ps_component" in str(exc_info.value)
+        else:
+            affect.save()

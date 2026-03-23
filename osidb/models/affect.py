@@ -702,8 +702,7 @@ class Affect(
                 )
 
             if self.ps_component and self.ps_component != ps_component_from_purl:
-                self.flaw.alert(
-                    "purl_ps_component_mismatch",
+                raise ValidationError(
                     f"Extrapolated ps_component ({ps_component_from_purl}) "
                     f"from PURL ({self.purl}) "
                     f"does not match user-provided ps_component ({self.ps_component}).",
