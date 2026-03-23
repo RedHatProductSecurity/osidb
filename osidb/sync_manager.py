@@ -991,30 +991,30 @@ class JiraTrackerDownloadManager(SyncManager):
             tracker = JiraTrackerConvertor(tracker_data).tracker
             if tracker:
                 tracker.save()
-                result = JiraTrackerDownloadManager.link_tracker_with_affects(
-                    tracker_id
-                )
 
-                # Handle link failures
-                affects, failed_flaws, failed_affects = result
-                if failed_flaws:
-                    JiraTrackerDownloadManager.failed(
-                        tracker_id,
-                        RuntimeError(
-                            f"Flaws do not exist: {failed_flaws}, "
-                            f"Affects do not exist: {failed_affects}"
-                        ),
-                    )
-                elif failed_affects:
-                    JiraTrackerDownloadManager.failed(
-                        tracker_id,
-                        RuntimeError(f"Affects do not exist: {failed_affects}"),
-                        permanent=True,
-                    )
-                elif not affects:
-                    JiraTrackerDownloadManager.failed(
-                        tracker_id, RuntimeError("No Affects found")
-                    )
+            # Link this Jira tracker to OSIDB Affects as part of the sync process.
+            result = JiraTrackerDownloadManager.link_tracker_with_affects(tracker_id)
+
+            # Handle link failures
+            affects, failed_flaws, failed_affects = result
+            if failed_flaws:
+                JiraTrackerDownloadManager.failed(
+                    tracker_id,
+                    RuntimeError(
+                        f"Flaws do not exist: {failed_flaws}, "
+                        f"Affects do not exist: {failed_affects}"
+                    ),
+                )
+            elif failed_affects:
+                JiraTrackerDownloadManager.failed(
+                    tracker_id,
+                    RuntimeError(f"Affects do not exist: {failed_affects}"),
+                    permanent=True,
+                )
+            elif not affects:
+                JiraTrackerDownloadManager.failed(
+                    tracker_id, RuntimeError("No Affects found")
+                )
         except Exception as e:
             JiraTrackerDownloadManager.failed(tracker_id, e)
         else:
