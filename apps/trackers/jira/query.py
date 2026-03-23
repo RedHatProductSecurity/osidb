@@ -986,8 +986,12 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         ).first()
 
         if not sla_date_field:
-            # SLA Date field doesn't exist for this project
-            return
+            error_msg = (
+                f"Jira project {self.ps_module.bts_key} is missing the SLA Date field "
+                f"for Vulnerability issuetype. Tracker creation will fail."
+            )
+            logger.error(error_msg)
+            raise TrackerCreationError(error_msg)
 
         if not self.tracker.external_system_id:
             # Workaround for when a new tracker is filed. At this point in the code it
