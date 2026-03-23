@@ -231,7 +231,7 @@ class TestAffect:
         affect = Affect(
             flaw=flaw,
             ps_update_stream=ps_update_stream.name,
-            ps_component="test-component",
+            ps_component="example",
             purl=purl,
             acl_read=flaw.acl_read,
             acl_write=flaw.acl_write,
@@ -297,7 +297,7 @@ class TestAffect:
         affect = AffectFactory.build(
             flaw=flaw,
             ps_update_stream=ps_update_stream.name,
-            ps_component="test-component",
+            ps_component="example",
             purl=initial_purl,
         )
         # Simulate existing affect by saving without the validation

@@ -290,7 +290,11 @@ class AffectFactory(BaseFactory):
         )
     )
     ps_update_stream = factory.LazyAttribute(lambda a: PsUpdateStreamFactory().name)
-    ps_component = factory.sequence(lambda n: f"ps-component-{n}")
+    ps_component = factory.Maybe(
+        "purl",
+        yes_declaration="",
+        no_declaration=factory.Sequence(lambda n: f"ps-component-{n}"),
+    )
     impact = factory.Faker(
         "random_element",
         elements=(
