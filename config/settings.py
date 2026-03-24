@@ -329,9 +329,10 @@ CORS_ALLOW_CREDENTIALS = True
 # NOTE: this will have to be switched to False to bulk import historical BZ
 PGHISTORY_APPEND_ONLY = True
 
+OSIM_URL: str = get_env("OSIM_URL", default="http://localhost:8000")
+
+
 # Email configuration
-
-
 class EmailSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="OSIDB_EMAIL_")
 
@@ -339,6 +340,8 @@ class EmailSettings(BaseSettings):
     host: str = "smtp.example.com"
     default_from: str = "Foo <foo@example.com>"
     incident_request_recipient: str = "bar@example.com"
+    incident_peer_review_recipient: str = "bar@example.com"
+    incident_management_review_recipient: str = "bar@example.com"
 
 
 email_settings = EmailSettings()

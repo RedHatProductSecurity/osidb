@@ -10,8 +10,8 @@ from jira import JIRA
 
 from apps.workflows.workflow import WorkflowModel
 from collectors.jiraffe.constants import HTTPS_PROXY
-from config.settings import EmailSettings
-from osidb.helpers import get_env, get_execution_env
+from config.settings import OSIM_URL, EmailSettings
+from osidb.helpers import get_env
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -318,19 +318,12 @@ def send_email_on_incident_state_change(
             return
         previous_incident_state = db_instance.major_incident_state
 
-    def get_osim_url():
-        if (env := get_execution_env()) == "prod":
-            return "https://osim.prodsec.redhat.com"
-        elif env in ["stage", "uat"]:
-            return f"https://osim-{env}.prodsec.redhat.com"
-        return "http://localhost:8000"
-
     flaw_id = instance.cve_id or instance.uuid
     context = {
         "flaw_id": flaw_id,
         "previous_incident_state": previous_incident_state,
         "new_incident_state": instance.major_incident_state,
-        "osim_url": get_osim_url(),
+        "osim_url": OSIM_URL,
     }
 
     text_body = render_to_string("email/incident_state_change.txt", context=context)
@@ -351,3 +344,49 @@ def send_email_on_incident_state_change(
     # Celery dynamically adds the .delay() method to task functions at runtime,
     # which static type checkers don't recognize, hence the type ignore
     async_send_email.delay(**payload, html_body=html_body)  # type: ignore[attr-defined]
+
+
+@receiver(pre_save, sender=FlawCollaborator)
+def send_email_on_incident_review(
+    sender: type[FlawCollaborator], instance: FlawCollaborator, **kwargs
+) -> None:
+    """
+    Sends a notification email to people when they are added as contributor to
+    incident review. The notification is either for a peer type or management type.
+    """
+    # Only send notification for creation not updates
+    if not instance._state.adding:
+        return
+
+    email_settings = EmailSettings()
+    incident_review_recipients = {
+        "incident_peer_review": email_settings.incident_peer_review_recipient,
+        "incident_management_review": email_settings.incident_management_review_recipient,
+    }
+
+    recipient = incident_review_recipients.get(instance.label)
+    if recipient is None:
+        return
+
+    flaw_id = instance.flaw.cve_id or instance.flaw.uuid
+
+    context = {
+        "flaw_id": flaw_id,
+        "review_label": instance.label,
+        "osim_url": OSIM_URL,
+    }
+
+    text_body = render_to_string("email/incident_contributor_set.txt", context=context)
+    html_body = render_to_string("email/incident_contributor_set.html", context=context)
+
+    payload = {
+        "subject": f"Request for contribution on incident - {flaw_id}",
+        "to": [recipient],
+        "body": text_body,
+        "reply_to": [recipient],
+        "headers": {
+            "List-Post": f"<mailto:{recipient}>",
+        },
+    }
+
+    async_send_email.delay(**payload, html_body=html_body)
