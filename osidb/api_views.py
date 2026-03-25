@@ -56,6 +56,7 @@ from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import Affect, AffectCVSS, AffectV1, Flaw, FlawLabel, Tracker
 from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.cvss import FlawCVSS
+from osidb.sync_manager import SyncManager
 
 from .constants import OSIDB_API_VERSION, PYPI_URL
 from .filters import (
@@ -71,6 +72,7 @@ from .filters import (
     FlawQLSchema,
     FlawReferenceFilter,
     FlawV1Filter,
+    SyncManagerFilter,
     TrackerFilter,
     TrackerV1Filter,
 )
@@ -116,6 +118,7 @@ from .serializer import (
     IncidentRequestSerializer,
     IntegrationTokenGetSerializer,
     IntegrationTokenPatchSerializer,
+    SyncManagerSerializer,
     TrackerPostSerializer,
     TrackerSerializer,
     TrackerV1Serializer,
@@ -1813,3 +1816,11 @@ class IncidentRequestView(
         flaw.major_incident_state = serializer.validated_data["kind"]
         flaw.save()
         return Response()
+
+
+# AI-Generated: GPT-5.2
+@extend_schema(description="Read-only view for sync managers")
+class SyncManagerViewSet(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
+    serializer_class = SyncManagerSerializer
+    queryset = SyncManager.objects.all().order_by("-last_scheduled_dt", "-id")
+    filterset_class = SyncManagerFilter
