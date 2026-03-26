@@ -170,6 +170,13 @@ def jira_vulnissuetype_fields_setup_without_versions():
         field_name="SLA Date",
     ).save()
 
+    JiraProjectFields(
+        project_key="FOOPROJECT",
+        field_id="customfield_10832",
+        field_name="Update Stream",
+        allowed_values=[],
+    ).save()
+
 
 @pytest.fixture()
 def setup_vulnerability_issue_type_fields() -> None:
