@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Fail and log tracker creation error when SLA Date field is missing (OSIDB-4856)
 - Adjust Jira tracker sync to use `Update Stream` field and `ps_component` label (OSIDB-3830)
+- make purl_ps_component_mismatch an error instead of an alert (OSIDB-4830)
 
 ## [5.8.0] - 2026-03-19
 ### Changed
