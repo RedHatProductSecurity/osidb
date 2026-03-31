@@ -2,7 +2,10 @@ import pytest
 from celery.schedules import crontab
 from django.utils import timezone
 
-from collectors.framework.models import CollectorMetadata, collector
+from collectors.framework.models import (
+    CollectorMetadata,
+    collector,
+)
 from osidb.models import Affect, Flaw, Tracker
 
 pytestmark = pytest.mark.unit
@@ -123,3 +126,36 @@ class TestCollectorFramework:
         collector6_metadata.save()
 
         test_collector5.apply().get()
+
+    def test_collector_enabled_default(self):
+        """test that collector enabled defaults to True in metadata"""
+
+        @collector(
+            crontab=crontab(minute="5"),
+        )
+        def test_collector7(collector_obj):
+            return str(collector_obj.name)
+
+        test_collector7()
+
+        metadata = CollectorMetadata.objects.filter(
+            name=f"{self.__module__}.test_collector7"
+        ).first()
+        assert metadata is not None
+        assert metadata.enabled is True
+
+    def test_collector_enabled_false(self):
+        """test that disabled collector stores enabled=False in metadata at decorator time"""
+
+        @collector(
+            crontab=crontab(minute="5"),
+            enabled=False,
+        )
+        def test_collector8(collector_obj):
+            return str(collector_obj.name)
+
+        metadata = CollectorMetadata.objects.filter(
+            name=f"{self.__module__}.test_collector8"
+        ).first()
+        assert metadata is not None
+        assert metadata.enabled is False

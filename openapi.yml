@@ -249,6 +249,8 @@ paths:
                         updated_until:
                           type: string
                           format: date-time
+                        enabled:
+                          type: boolean
                   dt:
                     type: string
                     format: date-time
