@@ -15,7 +15,7 @@ from django.utils import timezone
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.convertors import BugzillaTrackerConvertor
 from collectors.framework.models import Collector
-from osidb.models import Flaw, PsModule
+from osidb.models import Flaw, PsModule, Tracker
 from osidb.sync_manager import (
     BZTrackerDownloadManager,
 )
@@ -367,8 +367,14 @@ class BugzillaTrackerCollector(Collector):
         BZTrackerDownloadManager.check_for_reschedules()
 
         tracker_ids = self.get_batch()
+        existing_trackers = Tracker.objects.filter(
+            external_system_id__in=tracker_ids
+        ).values_list("external_system_id", flat=True)
         for tracker_id, _ in tracker_ids:
-            BZTrackerDownloadManager.schedule(tracker_id)
+            # if tracker doesn't exist on db yet it may have been manually created on Jira or is being
+            # collected it too early, we delay the scheduling to avoid a writing race on the later
+            opt = {"countdown": 0 if tracker_id in existing_trackers else 30}
+            BZTrackerDownloadManager.schedule(tracker_id, schedule_options=opt)
             successes.append(tracker_id)
 
         complete = bool(self.is_complete or len(tracker_ids) < self.BATCH_SIZE)

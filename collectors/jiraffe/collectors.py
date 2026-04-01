@@ -16,7 +16,7 @@ from jira.exceptions import JIRAError
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
 from collectors.framework.models import Collector
-from osidb.models import PsModule
+from osidb.models import PsModule, Tracker
 from osidb.sync_manager import (
     JiraTaskDownloadManager,
     JiraTrackerDownloadManager,
@@ -198,9 +198,16 @@ class JiraTrackerCollector(Collector):
             else "No Jira trackers were updated."
         )
 
+        existing_trackers = Tracker.objects.filter(
+            external_system_id__in=updated_trackers
+        ).values_list("external_system_id", flat=True)
+
         # schedule data sync
         for tracker_key in updated_trackers:
-            JiraTrackerDownloadManager.schedule(tracker_key)
+            # if tracker doesn't exist on db yet it may have been manually created on Jira or is being
+            # collected it too early, we delay the scheduling to avoid a writing race on the later
+            opt = {"countdown": 0 if tracker_key in existing_trackers else 30}
+            JiraTrackerDownloadManager.schedule(tracker_key, schedule_options=opt)
 
         # when we get to the future with the period end
         # the initial sync is done and the data are complete

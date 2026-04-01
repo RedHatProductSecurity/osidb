@@ -24,10 +24,6 @@ from osidb.mixins import (
 )
 from osidb.models.affect import Affect, NotAffectedJustification
 from osidb.models.fields import CVEIDField
-from osidb.sync_manager import (
-    BZTrackerDownloadManager,
-    JiraTrackerDownloadManager,
-)
 
 from .ps_module import PsModule
 from .ps_update_stream import PsUpdateStream
@@ -209,11 +205,10 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         ):
             # sync to Bugzilla
             tracker_instance = TrackerSaver(self, bz_api_key=bz_api_key).save()
-            # no save or fetch to prevent collisions
-            # only schedule an asynchronous sync
-            BZTrackerDownloadManager.schedule(tracker_instance.external_system_id)
-            # at the end delete the temporary empty tracker
-            Tracker.objects.filter(external_system_id="").delete()
+
+            # skip alerts as the tracker has already being validated on first creation save
+            # skip timestamp generation as it should be updated soon with external timestamp
+            tracker_instance.save(no_alerts=True, auto_timestamps=False)
 
         # check Jira conditions are met
         elif (
@@ -240,11 +235,10 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
                 jira_token=jira_token,
                 jira_issuetype=actual_jira_issuetype,
             ).save()
-            # no save or fetch to prevent collisions
-            # only schedule an asynchronous sync
-            JiraTrackerDownloadManager.schedule(tracker_instance.external_system_id)
-            # at the end delete the temporary empty tracker
-            Tracker.objects.filter(external_system_id="").delete()
+
+            # skip alerts as the tracker has already being validated on first creation save
+            # skip timestamp generation as it should be updated soon with external timestamp
+            tracker_instance.save(no_alerts=True, auto_timestamps=False)
 
         # regular save otherwise
         else:
