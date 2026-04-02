@@ -894,7 +894,7 @@ class TestBBSyncIntegration:
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
         )
         assert response.status_code == 400
-        assert "Components value is required" in str(response.content)
+        assert "Source value is required" in str(response.content)
 
     def test_flaw_update_multi_cve_restricted(self, auth_client, test_api_v2_uri):
         """

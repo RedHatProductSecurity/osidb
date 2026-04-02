@@ -755,14 +755,28 @@ class Flaw(
         we cannot enforce this by model definition
         as the old flaws may have no components
 
-        flaws in NEW or REJECTED workflow state are exempt as
+        flaws in NOVALUE, NEW, or REJECTED workflow state are exempt as
         components may not yet be known at the time of creation
         and flaws can be rejected directly from NEW without them
+
+        however clearing existing components on legacy flaws
+        (NOVALUE state without a Jira task) is not allowed
         """
         if self.workflow_state in (
+            WorkflowModel.WorkflowState.NOVALUE,
             WorkflowModel.WorkflowState.NEW,
             WorkflowModel.WorkflowState.REJECTED,
         ):
+            if (
+                self.workflow_state == WorkflowModel.WorkflowState.NOVALUE
+                and not self.components
+                and not self._state.adding
+            ):
+                old_flaw = Flaw.objects.get(uuid=self.uuid)
+                if old_flaw.components:
+                    raise ValidationError(
+                        "Components cannot be cleared on a flaw without a task."
+                    )
             return
         if not self.components:
             raise ValidationError("Components value is required.")
