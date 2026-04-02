@@ -284,6 +284,10 @@ class Flaw(
     # This field is either synced with BZ or handled by a signal.
     major_incident_start_dt = models.DateTimeField(null=True, blank=True)
 
+    # Indicates if this vulnerability is known to be exploited in the wild
+    # This should be set based on CISA KEV catalog or other exploit intelligence sources
+    is_exploited = models.BooleanField(default=False)
+
     # non operational meta data
     meta_attr = HStoreField(default=dict)
     # aegis metadata

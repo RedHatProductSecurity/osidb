@@ -2277,6 +2277,7 @@ class FlawSerializer(
                 "mitigation",
                 "major_incident_state",
                 "major_incident_start_dt",
+                "is_exploited",
                 "nist_cvss_validation",
                 "affects",
                 "comments",
