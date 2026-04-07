@@ -10,6 +10,7 @@ from pathlib import Path
 from celery.schedules import crontab
 from corsheaders.defaults import default_headers
 from django.core.management.utils import get_random_secret_key
+from pghistory.config import ObjForeignKey
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from osidb.helpers import get_env
@@ -328,6 +329,10 @@ CORS_ALLOW_CREDENTIALS = True
 # audit history is immutable
 # NOTE: this will have to be switched to False to bulk import historical BZ
 PGHISTORY_APPEND_ONLY = True
+# Base model for any pghistory-generated event
+PGHISTORY_BASE_MODEL = "osidb.models.audit_history.CustomHistoryBase"
+PGHISTORY_OBJ_FIELD = ObjForeignKey(related_name="events")
+
 
 # Email configuration
 
