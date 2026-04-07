@@ -405,7 +405,7 @@ wheels = [
 
 [[package]]
 name = "django-kaminarimon"
-version = "0.2.1"
+version = "0.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
@@ -415,9 +415,9 @@ dependencies = [
     { name = "kerberos" },
     { name = "python-ldap" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d2/75/477ba1417d703f70d30c685521166e65f23adb6dc105da8d5726247c5b05/django_kaminarimon-0.2.1.tar.gz", hash = "sha256:9a10f1bb61af6b6a89427b881950e68beb78e607ecc2ff94f48b796b47034912", size = 6659, upload-time = "2025-06-03T11:33:25.349Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/83/7d/c7cc9c6cb2ab9a56767fa0784eba04d95a80c850f5601633e3070d9d5563/django_kaminarimon-0.2.2.tar.gz", hash = "sha256:68bd7b83ac58f40692ff0d05c810940910701a064f73d59d86e370abbb382296", size = 6654, upload-time = "2026-04-07T19:16:43.468Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e4/ce/a398ec81569ac02e2249b9f4dde74f2cd8fa4b80b7495fb72152e5fef181/django_kaminarimon-0.2.1-py3-none-any.whl", hash = "sha256:a4c48d8c6d632cf656cf88b3026f2d0c27fc5fdc7744246f2d137cf06a4e13ee", size = 8364, upload-time = "2025-06-03T11:33:23.755Z" },
+    { url = "https://files.pythonhosted.org/packages/fb/fa/06b06be943a5322b8c93aa6f86d8390bf675b37003be04d9adfb0f14b257/django_kaminarimon-0.2.2-py3-none-any.whl", hash = "sha256:bc5f27d3466e26d693ecce2d9029d503bde7cbbf652610611819db3bb3f6bce7", size = 8356, upload-time = "2026-04-07T19:16:42.179Z" },
 ]
 
 [[package]]
@@ -1124,7 +1124,7 @@ requires-dist = [
     { name = "django-deprecate-fields", specifier = ">=0.1.1" },
     { name = "django-extensions", specifier = ">=3.1.5" },
     { name = "django-filter", specifier = ">=23.4" },
-    { name = "django-kaminarimon", specifier = ">=0.2.1" },
+    { name = "django-kaminarimon", specifier = ">=0.2.2" },
     { name = "django-model-utils", specifier = ">=5.0.0" },
     { name = "django-pghistory", specifier = ">=3.9.1,<4.0" },
     { name = "django-polymorphic", specifier = ">=4.1.0" },

@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+### Fixed
+- Fix invalid `in` field in kerberos OpenAPI security scheme(OSIDB-1590)
+
 ### Added
 - Add a new field to /collectors/api/v1/status representing if a collector is enabled(OSIDB-4869)
 - Add indexing for audit history tables (OSIDB-4803)
