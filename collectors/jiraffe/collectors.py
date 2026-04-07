@@ -2,6 +2,7 @@
 Jira collector
 """
 
+from datetime import timedelta
 from time import sleep
 from typing import List, Optional, Union
 
@@ -21,7 +22,7 @@ from osidb.sync_manager import (
     JiraTrackerDownloadManager,
 )
 
-from .constants import JIRA_EMAIL, JIRA_TOKEN
+from .constants import JIRA_EMAIL, JIRA_TOKEN, jira_collector_settings
 from .convertors import JiraTaskConvertor, JiraTrackerConvertor
 from .core import JiraQuerier
 from .exceptions import MetadataCollectorInsufficientDataJiraffeException
@@ -152,9 +153,16 @@ class JiraTrackerCollector(Collector):
         """
         period_start = self.metadata.updated_until_dt or self.BEGINNING
         period_end = period_start + timezone.timedelta(days=self.BATCH_PERIOD_DAYS)
+
+        # add overlaping collection from the last one to prevent missing trackers on HA Jira sync delays
+        period_start = period_start - timedelta(
+            seconds=jira_collector_settings.overlap_seconds
+        )
+
         # query for trackers in the period and return them together with the timestamp
         return (
             self.jira_querier.get_tracker_period(period_start, period_end),
+            period_start,
             period_end,
         )
 
@@ -179,22 +187,20 @@ class JiraTrackerCollector(Collector):
 
         # multi-tracker sync
         start_dt = timezone.now()
-        updated_trackers = []
 
         JiraTrackerDownloadManager.check_for_reschedules()
 
-        batch_data, period_end = self.get_batch()
-
-        # schedule data sync
-        for tracker in batch_data:
-            JiraTrackerDownloadManager.schedule(tracker.key)
-            updated_trackers.append(tracker.key)
-
+        batch_data, period_start, period_end = self.get_batch()
+        updated_trackers = [issue.key for issue in batch_data]
         logger.info(
-            f"Jira tracker sync was scheduled for the following IDs: {', '.join(updated_trackers)}"
+            f"Collected {len(batch_data)} Jira tracker key(s) from {period_start} to {period_end}: {', '.join(updated_trackers)}"
             if updated_trackers
             else "No Jira trackers were updated."
         )
+
+        # schedule data sync
+        for tracker_key in updated_trackers:
+            JiraTrackerDownloadManager.schedule(tracker_key)
 
         # when we get to the future with the period end
         # the initial sync is done and the data are complete
