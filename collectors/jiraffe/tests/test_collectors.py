@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from freezegun import freeze_time
@@ -16,6 +16,7 @@ from collectors.jiraffe.collectors import (
     JiraTrackerDownloadManager,
     MetadataCollector,
 )
+from collectors.jiraffe.constants import jira_collector_settings
 from collectors.jiraffe.core import JiraQuerier
 from collectors.jiraffe.exceptions import (
     MetadataCollectorInsufficientDataJiraffeException,
@@ -198,16 +199,76 @@ class TestJiraTrackerCollector:
         assert collector.BEGINNING == datetime(2014, 1, 1, tzinfo=timezone.utc)
         assert collector.metadata.updated_until_dt is None
 
-        trackers, period_end = collector.get_batch()
+        trackers, _, period_end = collector.get_batch()
         assert len(trackers) == 15  # all the trackers from 2014
         assert period_end == datetime(2015, 1, 1, tzinfo=timezone.utc)
 
         # artificially change the updated until timestamp
         collector.metadata.updated_until_dt = period_end
 
-        trackers, period_end = collector.get_batch()
+        trackers, _, period_end = collector.get_batch()
         assert len(trackers) == 31  # all the trackers from 2015
         assert period_end == datetime(2016, 1, 1, tzinfo=timezone.utc)
+
+    def test_get_batch_with_overlap(self, monkeypatch):
+        """
+        test that overlap_seconds works correctly when getting batches
+
+        - First batch: [period_start - overlap, period_end]
+        - Second batch: [period_end - overlap, new_period_end]
+        - The two batches should overlap by exactly overlap_seconds
+        """
+
+        # Set overlap to 5 minutes (300 seconds)
+        overlap_seconds = 300
+        monkeypatch.setattr(jira_collector_settings, "overlap_seconds", overlap_seconds)
+
+        collector = JiraTrackerCollector()
+        collector.BATCH_PERIOD_DAYS = 1
+
+        # Set initial period_start
+        initial_start = datetime(2026, 2, 10, 10, 0, 0, tzinfo=timezone.utc)
+        collector.metadata.updated_until_dt = initial_start
+
+        # Mock get_tracker_period to avoid actual Jira calls
+        def mock_get_tracker_period(period_start, period_end):
+            return []
+
+        monkeypatch.setattr(
+            collector.jira_querier, "get_tracker_period", mock_get_tracker_period
+        )
+
+        _, first_period_start, first_period_end = collector.get_batch()
+
+        expected_first_start = initial_start - timedelta(seconds=overlap_seconds)
+        expected_first_end = initial_start + timedelta(days=collector.BATCH_PERIOD_DAYS)
+
+        assert first_period_start == expected_first_start
+        assert first_period_end == expected_first_end
+
+        collector.metadata.updated_until_dt = first_period_end
+        _, second_period_start, second_period_end = collector.get_batch()
+
+        expected_second_start = first_period_end - timedelta(seconds=overlap_seconds)
+        expected_second_end = first_period_end + timedelta(
+            days=collector.BATCH_PERIOD_DAYS
+        )
+
+        overlap_duration = first_period_end - second_period_start
+
+        # Verify the overlap
+        assert second_period_start == expected_second_start
+        assert second_period_end == expected_second_end
+        assert overlap_duration == timedelta(seconds=overlap_seconds)
+
+        assert first_period_start == datetime(
+            2026, 2, 10, 9, 55, 0, tzinfo=timezone.utc
+        )
+        assert first_period_end == datetime(2026, 2, 11, 10, 0, 0, tzinfo=timezone.utc)
+        assert second_period_start == datetime(
+            2026, 2, 11, 9, 55, 0, tzinfo=timezone.utc
+        )
+        assert second_period_end == datetime(2026, 2, 12, 10, 0, 0, tzinfo=timezone.utc)
 
     @pytest.mark.vcr
     def test_collect(self):

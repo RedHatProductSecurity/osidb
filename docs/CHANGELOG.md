@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add a new field to /collectors/api/v1/status representing if a collector is enabled(OSIDB-4869)
 - Add indexing for audit history tables (OSIDB-4803)
+- Add overlaping time on Jira tracker collector (OSIDB-4888)
 
 ### Changed
 - Fail and log tracker creation error when SLA Date field is missing (OSIDB-4856)
