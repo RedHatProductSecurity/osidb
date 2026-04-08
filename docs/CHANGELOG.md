@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - make purl_ps_component_mismatch an error instead of an alert (OSIDB-4830)
 - Allow empty components in empty workflow state (OSIDB-4857)
 
+### Fixed
+- Fix JiraTrackerCollector not linking affect when OSIDB updated_dt was newer that jira updated_dt (OSIDB-4864)
+
 ## [5.8.0] - 2026-03-19
 ### Changed
 - Logging JIRAError during tracker creation (OSIDB-4848)

@@ -1,0 +1,378 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*/*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.32.4
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://example.com/rest/api/2/serverInfo
+  response:
+    body:
+      string: '{"baseUrl": "https://example.com", "displayUrl": "https://example.com",
+        "displayUrlServicedeskHelpCenter": "https://example.com", "displayUrlCSMHelpSeeker":
+        "https://example.com", "displayUrlConfluence": "https://example.com", "version":
+        "1001.0.0-SNAPSHOT", "versionNumbers": [1001, 0, 0], "deploymentType": "Cloud",
+        "buildNumber": 100291, "buildDate": "2026-03-24T10:51:27.000+0000", "serverTime":
+        "2026-03-25T13:09:13.854+0000", "scmInfo": "8ca11684eac695c1d2f0973ec397dadf35ba78eb",
+        "serverTitle": "Red Hat Issue Tracker", "defaultLocale": {"locale": "en_US"},
+        "serverTimeZone": "Etc/UTC"}'
+    headers:
+      Atl-Request-Id:
+      - f9126097-5ce6-49a7-b623-a744e19b5544
+      Atl-Traceid:
+      - f91260975ce649a7b623a744e19b5544
+      Cache-Control:
+      - no-cache, no-store, no-transform
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Wed, 25 Mar 2026 13:09:13 GMT
+      Nel:
+      - '{"failure_fraction": 0.01, "include_subdomains": true, "max_age": 600, "report_to":
+        "endpoint-1"}'
+      Report-To:
+      - '{"endpoints": [{"url": "https://dz8aopenkvv6s.cloudfront.net"}], "group":
+        "endpoint-1", "include_subdomains": true, "max_age": 600}'
+      Server:
+      - AtlassianEdge
+      Server-Timing:
+      - cdn-upstream-layer;desc="EDGE",cdn-upstream-dns;dur=1,cdn-upstream-connect;dur=274,cdn-upstream-fbl;dur=425,atl-edge;dur=58,atl-edge-internal;dur=13,atl-edge-upstream;dur=45,atl-edge-pop;desc="aws-us-east-1",cdn-cache-miss,cdn-pop;desc="FRA60-P3",cdn-rid;desc="h87wiiRib9PQdcl-3IHC4LQxaJlPIT5uodBcaQQpJ4MQ8e--o_HCAg==",cdn-downstream-fbl;dur=429
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+      Timing-Allow-Origin:
+      - '*'
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      Via:
+      - 1.1 dc0aad619823d3400ef947433d0af8fa.cloudfront.net (CloudFront)
+      X-Aaccountid:
+      - 712020%3A6063ba7c-5dd9-4f8e-88cf-72a588b496ed
+      X-Amz-Cf-Id:
+      - h87wiiRib9PQdcl-3IHC4LQxaJlPIT5uodBcaQQpJ4MQ8e--o_HCAg==
+      X-Amz-Cf-Pop:
+      - FRA60-P3
+      X-Arequestid:
+      - e6aec41dcb00bdeefd009d990811fced
+      X-Cache:
+      - Miss from cloudfront
+      X-Content-Type-Options:
+      - nosniff
+      X-Xss-Protection:
+      - 1; mode=block
+      content-length:
+      - '606'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json,*/*;q=0.9
+      Accept-Encoding:
+      - gzip, deflate
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.32.4
+      X-Atlassian-Token:
+      - no-check
+    method: GET
+    uri: https://example.com/rest/api/2/issue/RHEL-159920
+  response:
+    body:
+      string: '{"expand": "renderedFields,names,schema,operations,editmeta,changelog,versionedRepresentations,customfield_10010.requestTypePractice",
+        "id": "5626281", "self": "https://example.com/rest/api/2/issue/5626281", "key":
+        "RHEL-159920", "fields": {"statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/3",
+        "id": 3, "key": "done", "colorName": "green", "name": "Done"}, "customfield_11046":
+        null, "customfield_11047": null, "resolution": {"self": "https://example.com/rest/api/2/resolution/10038",
+        "id": "10038", "description": "This issue was closed because it is no longer
+        relevant", "name": "Obsolete"}, "customfield_11048": null, "customfield_10630":
+        "CWE-825", "customfield_11049": null, "customfield_10873": null, "customfield_10984":
+        null, "customfield_10622": null, "customfield_10623": null, "customfield_10986":
+        null, "customfield_10987": null, "customfield_10624": null, "customfield_10988":
+        null, "customfield_10868": null, "customfield_10626": null, "lastViewed":
+        "2026-03-25T10:25:17.159+0000", "customfield_10980": null, "customfield_10860":
+        {"self": "https://example.com/rest/api/2/customFieldOption/19872", "value":
+        "False", "id": "19872"}, "customfield_10981": null, "customfield_10620": null,
+        "labels": ["Security", "SecurityTracking"], "customfield_10975": null, "customfield_10855":
+        null, "customfield_10977": null, "aggregatetimeoriginalestimate": null, "customfield_10978":
+        null, "customfield_10979": null, "customfield_10859": "9.8 CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+        "issuelinks": [], "assignee": {"self": "https://example.com/rest/api/2/user?accountId=712020%3A34feffc9-7f70-4974-89b1-efae1529c7ae",
+        "accountId": "test-cloud-id", "emailAddress":
+        "se-desktop@redhat.com", "avatarUrls": {"48x48": "https://example.com/avatar/b667ce471388c5c8e9a28a0a5defadb0?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSD-4.png",
+        "24x24": "https://example.com/avatar/b667ce471388c5c8e9a28a0a5defadb0?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSD-4.png",
+        "16x16": "https://example.com/avatar/b667ce471388c5c8e9a28a0a5defadb0?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSD-4.png",
+        "32x32": "https://example.com/avatar/b667ce471388c5c8e9a28a0a5defadb0?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSD-4.png"},
+        "displayName": "SE Desktop", "active": true, "timeZone": "Etc/GMT", "accountType":
+        "atlassian"}, "components": [{"self": "https://example.com/rest/api/2/component/22667",
+        "id": "22667", "name": "firefox", "description": " Mozilla Firefox Web browser"}],
+        "customfield_10290": null, "customfield_10291": null, "dataclassification":
+        {}, "customfield_10962": null, "customfield_10963": null, "customfield_10724":
+        {"self": "https://example.com/rest/api/2/customFieldOption/12635", "value":
+        "Unspecified", "id": "12635"}, "customfield_10847": null, "customfield_10606":
+        {"self": "https://example.com/rest/api/2/customFieldOption/13414", "value":
+        "rhel-se-display", "id": "13414"}, "customfield_10849": null, "customfield_10280":
+        null, "subtasks": [], "customfield_10281": null, "customfield_10282": null,
+        "customfield_10283": null, "customfield_11010": null, "customfield_10284":
+        null, "reporter": {"self": "https://example.com/rest/api/2/user?accountId=70121%3A8b463485-1925-40a6-b4e1-5e2e1ae96b7a",
+        "accountId": "70121:8b463485-1925-40a6-b4e1-5e2e1ae96b7a", "emailAddress":
+        "mrehak@redhat.com", "avatarUrls": {"48x48": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png",
+        "24x24": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png",
+        "16x16": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png",
+        "32x32": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png"},
+        "displayName": "Marian Rehak", "active": true, "timeZone": "Etc/GMT", "accountType":
+        "atlassian"}, "customfield_10285": null, "customfield_11012": null, "customfield_10286":
+        null, "customfield_10287": null, "customfield_10288": null, "customfield_10289":
+        null, "customfield_10840": {"self": "https://example.com/rest/api/2/customFieldOption/19919",
+        "value": "Moderate", "id": "19919"}, "customfield_10951": null, "customfield_10830":
+        {"self": "https://example.com/rest/api/2/customFieldOption/16366", "value":
+        "CVEORG", "id": "16366"}, "customfield_10952": null, "customfield_10832":
+        null, "customfield_10833": null, "customfield_10955": null, "customfield_10956":
+        null, "progress": {"progress": 0, "total": 0}, "customfield_10718": null,
+        "votes": {"self": "https://example.com/rest/api/2/issue/RHEL-159920/votes",
+        "votes": 0, "hasVoted": false}, "worklog": {"startAt": 0, "maxResults": 20,
+        "total": 0, "worklogs": []}, "issuetype": {"self": "https://example.com/rest/api/2/issuetype/10172",
+        "id": "10172", "description": "Used by Product Security to communicate CVE-based
+        vulnerabilities identified from manifest data so Engineering can prioritize
+        and track remediation.", "iconUrl": "https://example.com/rest/api/2/universal_avatar/view/type/issuetype/avatar/10323?size=medium",
+        "name": "Vulnerability", "subtask": false, "avatarId": 10323, "hierarchyLevel":
+        0}, "customfield_10030": null, "project": {"self": "https://example.com/rest/api/2/project/10390",
+        "id": "10390", "key": "RHEL", "name": "RHEL", "projectTypeKey": "software",
+        "simplified": false, "avatarUrls": {"48x48": "https://example.com/rest/api/2/universal_avatar/view/type/project/avatar/10406",
+        "24x24": "https://example.com/rest/api/2/universal_avatar/view/type/project/avatar/10406?size=small",
+        "16x16": "https://example.com/rest/api/2/universal_avatar/view/type/project/avatar/10406?size=xsmall",
+        "32x32": "https://example.com/rest/api/2/universal_avatar/view/type/project/avatar/10406?size=medium"},
+        "projectCategory": {"self": "https://example.com/rest/api/2/projectCategory/10013",
+        "id": "10013", "description": "Core Platforms Projects", "name": "Core Platforms"}},
+        "customfield_10031": null, "customfield_11000": "FjFI4vRDXIGtYHewzEzZdWESyFA/Gw7Ht8urdZQnuEB+C5dFnre+GwpvLMURfdDoSmo/BTUGak9MCD2uyoet6soSfw8BmzfrGuvRacW9pw4=",
+        "customfield_10032": null, "customfield_10033": null, "customfield_11003":
+        null, "customfield_10035": null, "customfield_10036": null, "customfield_10940":
+        null, "customfield_10028": 3.0, "customfield_10941": null, "customfield_10820":
+        null, "customfield_10942": null, "customfield_10029": null, "customfield_10821":
+        null, "customfield_10701": "2026-03-25T11:02:00.000+0000", "customfield_10945":
+        null, "customfield_10825": null, "resolutiondate": "2026-03-25T11:02:18.206+0000",
+        "customfield_10947": null, "customfield_10948": null, "watches": {"self":
+        "https://example.com/rest/api/2/issue/RHEL-159920/watchers", "watchCount":
+        4, "isWatching": false}, "customfield_10381": [], "customfield_10020": null,
+        "customfield_10021": null, "customfield_10022": "2026-03-25", "customfield_10023":
+        null, "customfield_10024": null, "customfield_10025": "6_*:*_1_*:*_0_*|*_10142_*:*_1_*:*_2814644",
+        "customfield_10016": null, "customfield_10017": null, "customfield_10930":
+        null, "customfield_10932": null, "customfield_10019": "0|iqejof:", "customfield_10933":
+        null, "customfield_10934": null, "customfield_10935": null, "customfield_10814":
+        null, "customfield_10937": null, "customfield_10939": null, "updated": "2026-03-25T11:29:26.784+0000",
+        "timeoriginalestimate": null, "description": "Security Tracking Issue\n\nDo
+        not make this issue public.\n\nFlaw:\n-----\n\nUse-after-free in the JavaScript
+        Engine component\n\nUse-after-free in the JavaScript Engine component. This
+        vulnerability affects Firefox < 149 and Firefox ESR < 140.9.\n\n~~~\n\nThe
+        following link provides references to all essential vulnerability management
+        information. If something is wrong or missing, please contact a member of
+        PSIRT.\nhttps://example.com/prodsec-docs/incident-response/Vulnerability_Management_Essentials/\n\nTracker
+        accuracy feedback form: https://example.com/forms/d/e/1FAIpQLSfa6zTaEGohRdiIqGVAvWTSAL0kpO_DkkEICuIHzQHFwmKswg/viewform",
+        "customfield_10010": null, "customfield_10254": null, "customfield_10014":
+        null, "timetracking": {}, "customfield_10015": null, "customfield_10005":
+        null, "customfield_10006": null, "customfield_10007": null, "customfield_10008":
+        null, "customfield_10009": null, "customfield_10807": null, "customfield_10929":
+        null, "summary": "CVE-2026-4701 firefox: Use-after-free in the JavaScript
+        Engine component [rhel-8.6.0.z]", "customfield_10482": null, "customfield_10483":
+        "None", "customfield_10000": "{}", "customfield_10484": {"self": "https://example.com/rest/api/2/customFieldOption/10472",
+        "value": "False", "id": "10472"}, "customfield_10001": null, "customfield_10485":
+        {"self": "https://example.com/rest/api/2/customFieldOption/17125", "value":
+        "Not Started", "id": "17125"}, "customfield_10002": [], "customfield_10487":
+        null, "customfield_10003": null, "customfield_10004": null, "customfield_10479":
+        null, "environment": null, "duedate": "2026-05-21", "comment": {"comments":
+        [{"self": "https://example.com/rest/api/2/issue/5626281/comment/16532028",
+        "id": "16532028", "author": {"self": "https://example.com/rest/api/2/user?accountId=70121%3A8b463485-1925-40a6-b4e1-5e2e1ae96b7a",
+        "accountId": "70121:8b463485-1925-40a6-b4e1-5e2e1ae96b7a", "emailAddress":
+        "mrehak@redhat.com", "avatarUrls": {"48x48": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png",
+        "24x24": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png",
+        "16x16": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png",
+        "32x32": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png"},
+        "displayName": "Marian Rehak", "active": true, "timeZone": "Etc/GMT", "accountType":
+        "atlassian"}, "body": "Added involved users: [~accountId:61d429df90cfd200710202c9],
+        [~accountId:70121:4fa712ed-6149-4a8e-bc08-9bde6845e653], [~accountId:712020:d3b0860e-4bea-46d8-b8a8-f77077de8e0a],
+        [~accountId:712020:5ef0a0f8-860d-46d6-a43f-64363cdb83fb], [~accountId:63c8fdbcd16a886a25e69ee6]",
+        "updateAuthor": {"self": "https://example.com/rest/api/2/user?accountId=70121%3A8b463485-1925-40a6-b4e1-5e2e1ae96b7a",
+        "accountId": "70121:8b463485-1925-40a6-b4e1-5e2e1ae96b7a", "emailAddress":
+        "mrehak@redhat.com", "avatarUrls": {"48x48": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png",
+        "24x24": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png",
+        "16x16": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png",
+        "32x32": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png"},
+        "displayName": "Marian Rehak", "active": true, "timeZone": "Etc/GMT", "accountType":
+        "atlassian"}, "created": "2026-03-25T10:15:24.529+0000", "updated": "2026-03-25T10:15:24.529+0000",
+        "jsdPublic": true}], "self": "https://example.com/rest/api/2/issue/5626281/comment",
+        "maxResults": 1, "total": 1, "startAt": 0}, "statuscategorychangedate": "2026-03-25T11:02:18.230+0000",
+        "customfield_10470": {"self": "https://example.com/rest/api/2/user?accountId=712020%3A34feffc9-7f70-4974-89b1-efae1529c7ae",
+        "accountId": "test-cloud-id", "emailAddress":
+        "se-desktop@redhat.com", "avatarUrls": {"48x48": "https://example.com/avatar/b667ce471388c5c8e9a28a0a5defadb0?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSD-4.png",
+        "24x24": "https://example.com/avatar/b667ce471388c5c8e9a28a0a5defadb0?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSD-4.png",
+        "16x16": "https://example.com/avatar/b667ce471388c5c8e9a28a0a5defadb0?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSD-4.png",
+        "32x32": "https://example.com/avatar/b667ce471388c5c8e9a28a0a5defadb0?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSD-4.png"},
+        "displayName": "SE Desktop", "active": true, "timeZone": "Etc/GMT", "accountType":
+        "atlassian"}, "customfield_10471": null, "fixVersions": [{"self": "https://example.com/rest/api/2/version/27176",
+        "id": "27176", "description": "PPSync [release:1983]", "name": "rhel-8.6.0.z",
+        "archived": false, "released": false}], "customfield_10473": null, "customfield_10468":
+        {"self": "https://example.com/rest/api/2/user?accountId=712020%3A34feffc9-7f70-4974-89b1-efae1529c7ae",
+        "accountId": "test-cloud-id", "emailAddress":
+        "se-desktop@redhat.com", "avatarUrls": {"48x48": "https://example.com/avatar/b667ce471388c5c8e9a28a0a5defadb0?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSD-4.png",
+        "24x24": "https://example.com/avatar/b667ce471388c5c8e9a28a0a5defadb0?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSD-4.png",
+        "16x16": "https://example.com/avatar/b667ce471388c5c8e9a28a0a5defadb0?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSD-4.png",
+        "32x32": "https://example.com/avatar/b667ce471388c5c8e9a28a0a5defadb0?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FSD-4.png"},
+        "displayName": "SE Desktop", "active": true, "timeZone": "Etc/GMT", "accountType":
+        "atlassian"}, "customfield_10348": null, "priority": {"self": "https://example.com/rest/api/2/priority/10005",
+        "iconUrl": "https://example.com/images/icons/priorities/trivial.svg", "name":
+        "Undefined", "id": "10005"}, "customfield_10464": null, "customfield_10466":
+        [{"self": "https://example.com/rest/api/2/user?accountId=61d429df90cfd200710202c9",
+        "accountId": "61d429df90cfd200710202c9", "emailAddress": "gotiwari@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/avatar/5dc557d4835ed4af346915b2e812ccc8?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGT-0.png",
+        "24x24": "https://example.com/avatar/5dc557d4835ed4af346915b2e812ccc8?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGT-0.png",
+        "16x16": "https://example.com/avatar/5dc557d4835ed4af346915b2e812ccc8?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGT-0.png",
+        "32x32": "https://example.com/avatar/5dc557d4835ed4af346915b2e812ccc8?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FGT-0.png"},
+        "displayName": "Goutam Tiwari", "active": true, "timeZone": "Etc/GMT", "accountType":
+        "atlassian"}, {"self": "https://example.com/rest/api/2/user?accountId=70121%3A4fa712ed-6149-4a8e-bc08-9bde6845e653",
+        "accountId": "70121:4fa712ed-6149-4a8e-bc08-9bde6845e653", "emailAddress":
+        "jgrulich@redhat.com", "avatarUrls": {"48x48": "https://example.com/70121:4fa712ed-6149-4a8e-bc08-9bde6845e653/dfccaef8-a6c0-4b6e-b2cb-9643aeb4ea39/48",
+        "24x24": "https://example.com/70121:4fa712ed-6149-4a8e-bc08-9bde6845e653/dfccaef8-a6c0-4b6e-b2cb-9643aeb4ea39/24",
+        "16x16": "https://example.com/70121:4fa712ed-6149-4a8e-bc08-9bde6845e653/dfccaef8-a6c0-4b6e-b2cb-9643aeb4ea39/16",
+        "32x32": "https://example.com/70121:4fa712ed-6149-4a8e-bc08-9bde6845e653/dfccaef8-a6c0-4b6e-b2cb-9643aeb4ea39/32"},
+        "displayName": "Jan Grulich", "active": true, "timeZone": "Europe/Prague",
+        "accountType": "atlassian"}, {"self": "https://example.com/rest/api/2/user?accountId=712020%3Ad3b0860e-4bea-46d8-b8a8-f77077de8e0a",
+        "accountId": "712020:d3b0860e-4bea-46d8-b8a8-f77077de8e0a", "emailAddress":
+        "jhorak@redhat.com", "avatarUrls": {"48x48": "https://example.com/712020:d3b0860e-4bea-46d8-b8a8-f77077de8e0a/927049fc-62a1-478a-988a-5039cc0ace2c/48",
+        "24x24": "https://example.com/712020:d3b0860e-4bea-46d8-b8a8-f77077de8e0a/927049fc-62a1-478a-988a-5039cc0ace2c/24",
+        "16x16": "https://example.com/712020:d3b0860e-4bea-46d8-b8a8-f77077de8e0a/927049fc-62a1-478a-988a-5039cc0ace2c/16",
+        "32x32": "https://example.com/712020:d3b0860e-4bea-46d8-b8a8-f77077de8e0a/927049fc-62a1-478a-988a-5039cc0ace2c/32"},
+        "displayName": "Jan Horak", "active": true, "timeZone": "Etc/GMT", "accountType":
+        "atlassian"}, {"self": "https://example.com/rest/api/2/user?accountId=712020%3A5ef0a0f8-860d-46d6-a43f-64363cdb83fb",
+        "accountId": "712020:5ef0a0f8-860d-46d6-a43f-64363cdb83fb", "emailAddress":
+        "mvyas@redhat.com", "avatarUrls": {"48x48": "https://example.com/avatar/4e80cb27785b1bcbb41996d90fe81f8b?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMV-0.png",
+        "24x24": "https://example.com/avatar/4e80cb27785b1bcbb41996d90fe81f8b?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMV-0.png",
+        "16x16": "https://example.com/avatar/4e80cb27785b1bcbb41996d90fe81f8b?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMV-0.png",
+        "32x32": "https://example.com/avatar/4e80cb27785b1bcbb41996d90fe81f8b?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMV-0.png"},
+        "displayName": "Mohit Vyas", "active": true, "timeZone": "Etc/GMT", "accountType":
+        "atlassian"}, {"self": "https://example.com/rest/api/2/user?accountId=63c8fdbcd16a886a25e69ee6",
+        "accountId": "63c8fdbcd16a886a25e69ee6", "emailAddress": "tpopela@redhat.com",
+        "avatarUrls": {"48x48": "https://example.com/63c8fdbcd16a886a25e69ee6/284628cc-b538-475d-9373-37a6caea227f/48",
+        "24x24": "https://example.com/63c8fdbcd16a886a25e69ee6/284628cc-b538-475d-9373-37a6caea227f/24",
+        "16x16": "https://example.com/63c8fdbcd16a886a25e69ee6/284628cc-b538-475d-9373-37a6caea227f/16",
+        "32x32": "https://example.com/63c8fdbcd16a886a25e69ee6/284628cc-b538-475d-9373-37a6caea227f/32"},
+        "displayName": "Tomas Popela", "active": true, "timeZone": "Europe/Prague",
+        "accountType": "atlassian"}], "customfield_10578": null, "timeestimate": null,
+        "versions": [{"self": "https://example.com/rest/api/2/version/27176", "id":
+        "27176", "description": "PPSync [release:1983]", "name": "rhel-8.6.0.z", "archived":
+        false, "released": false}], "status": {"self": "https://example.com/rest/api/2/status/6",
+        "description": "The work item is considered finished, the resolution is correct.
+        work items which are closed can be reopened.", "iconUrl": "https://example.com/images/icons/statuses/closed.png",
+        "name": "Closed", "id": "6", "statusCategory": {"self": "https://example.com/rest/api/2/statuscategory/3",
+        "id": 3, "key": "done", "colorName": "green", "name": "Done"}}, "customfield_10324":
+        null, "customfield_10687": null, "customfield_10567": null, "customfield_10689":
+        null, "aggregatetimeestimate": null, "creator": {"self": "https://example.com/rest/api/2/user?accountId=70121%3A8b463485-1925-40a6-b4e1-5e2e1ae96b7a",
+        "accountId": "70121:8b463485-1925-40a6-b4e1-5e2e1ae96b7a", "emailAddress":
+        "mrehak@redhat.com", "avatarUrls": {"48x48": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png",
+        "24x24": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png",
+        "16x16": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png",
+        "32x32": "https://example.com/avatar/69620cf0db7de56732da91d3b206cb02?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FMR-0.png"},
+        "displayName": "Marian Rehak", "active": true, "timeZone": "Etc/GMT", "accountType":
+        "atlassian"}, "aggregateprogress": {"progress": 0, "total": 0}, "customfield_10320":
+        null, "customfield_10321": null, "customfield_10322": null, "customfield_10323":
+        null, "customfield_10315": null, "customfield_10557": null, "customfield_10799":
+        null, "customfield_10316": null, "customfield_10317": [], "customfield_10318":
+        null, "customfield_10319": null, "timespent": null, "customfield_10670": null,
+        "aggregatetimespent": null, "customfield_10430": null, "customfield_10672":
+        null, "customfield_10431": null, "customfield_10553": null, "customfield_10665":
+        null, "customfield_10423": null, "customfield_10666": null, "customfield_10424":
+        null, "customfield_10667": "CVE-2026-4701", "customfield_10425": null, "customfield_10426":
+        null, "customfield_10669": "firefox", "customfield_10427": null, "customfield_10548":
+        null, "customfield_10428": null, "customfield_10429": null, "workratio": -1,
+        "created": "2026-03-25T10:15:23.585+0000", "customfield_10780": null, "customfield_10783":
+        null, "customfield_10420": null, "customfield_10421": null, "customfield_10785":
+        null, "customfield_10422": null, "customfield_10654": null, "customfield_10896":
+        {"self": "https://example.com/rest/api/2/customFieldOption/20469", "value":
+        "Unspecified", "id": "20469"}, "customfield_10656": null, "customfield_10414":
+        null, "customfield_10415": null, "customfield_10416": null, "customfield_10417":
+        null, "customfield_10659": null, "customfield_10418": null, "customfield_10419":
+        null, "customfield_10890": {"self": "https://example.com/rest/api/2/customFieldOption/20479",
+        "value": "Unspecified", "id": "20479"}, "customfield_10772": null, "customfield_10894":
+        null, "security": {"self": "https://example.com/rest/api/2/securitylevel/10034",
+        "id": "10034", "description": "Red Hat Employee and Contractors only", "name":
+        "Red Hat Employee"}, "customfield_10888": {"self": "https://example.com/rest/api/2/customFieldOption/20483",
+        "value": "Unspecified", "id": "20483"}, "attachment": [], "customfield_10648":
+        null, "customfield_10769": null, "customfield_10632": "firefox; thunderbird",
+        "customfield_10995": null, "customfield_10875": null, "customfield_10996":
+        null, "customfield_10997": null, "customfield_10877": null, "customfield_10998":
+        null, "customfield_10878": null, "customfield_10879": null, "customfield_10638":
+        null, "customfield_10759": null, "customfield_10517": {"self": "https://example.com/rest/api/2/customFieldOption/10853",
+        "value": "False", "id": "10853"}, "customfield_10519": null}}'
+    headers:
+      Atl-Request-Id:
+      - bbe65d40-f3a9-403a-ace7-06edfacc6537
+      Atl-Traceid:
+      - bbe65d40f3a9403aace706edfacc6537
+      Cache-Control:
+      - no-cache, no-store, no-transform
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Wed, 25 Mar 2026 13:09:14 GMT
+      Nel:
+      - '{"failure_fraction": 0.01, "include_subdomains": true, "max_age": 600, "report_to":
+        "endpoint-1"}'
+      Report-To:
+      - '{"endpoints": [{"url": "https://dz8aopenkvv6s.cloudfront.net"}], "group":
+        "endpoint-1", "include_subdomains": true, "max_age": 600}'
+      Server:
+      - AtlassianEdge
+      Server-Timing:
+      - cdn-upstream-layer;desc="EDGE",cdn-upstream-dns;dur=0,cdn-upstream-connect;dur=0,cdn-upstream-fbl;dur=458,atl-edge;dur=365,atl-edge-internal;dur=19,atl-edge-upstream;dur=345,atl-edge-pop;desc="aws-us-east-1",cdn-cache-miss,cdn-pop;desc="FRA56-P6",cdn-rid;desc="zNsEz-Tl37APwd32remYw7mymt7Z5cyGZIw4XLIDtGDevCuHLftJgg==",cdn-downstream-fbl;dur=461
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+      Timing-Allow-Origin:
+      - '*'
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Accept-Encoding
+      Via:
+      - 1.1 0ece2d48b2ca1badca11fa675b7785ea.cloudfront.net (CloudFront)
+      X-Aaccountid:
+      - 712020%3A6063ba7c-5dd9-4f8e-88cf-72a588b496ed
+      X-Amz-Cf-Id:
+      - zNsEz-Tl37APwd32remYw7mymt7Z5cyGZIw4XLIDtGDevCuHLftJgg==
+      X-Amz-Cf-Pop:
+      - FRA56-P6
+      X-Arequestid:
+      - 84b17306435b9aec03d0f2b2df83a4a9
+      X-Cache:
+      - Miss from cloudfront
+      X-Content-Type-Options:
+      - nosniff
+      X-Xss-Protection:
+      - 1; mode=block
+      content-length:
+      - '23551'
+    status:
+      code: 200
+      message: OK
+version: 1
