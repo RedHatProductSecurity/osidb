@@ -17806,7 +17806,6 @@ components:
     KerberosAuthentication:
       type: http
       scheme: negotiate
-      in: header
     OsidbTokenAuthentication:
       type: http
       scheme: bearer
