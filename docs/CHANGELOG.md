@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Add schema validation to PURLs (OSIDB-4910)
+- Affect(s) can be automatically created and assigned to Flaw(s) for
+  specific products (OSIDB-4878)
 
 ## [5.9.0] - 2026-04-09
 ### Fixed
@@ -120,7 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [5.2.2] - 2025-12-04
 ### Added
-- support for multiple endings 
+- support for multiple endings
 - new ending type "no shutdown" [christmas + new year + from jan 2 to jan 7]
 
 ## [5.2.1] - 2025-11-13
@@ -165,7 +167,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix PUT request being allowed for `AuditView` endpoint (OSIDB-4428)
 - Fix creation of related objects for public flaws having internal visibility (OSIDB-4552)
-- Fix CVE_id parsing for OSV in linux DB (OSIDB-4548) 
+- Fix CVE_id parsing for OSV in linux DB (OSIDB-4548)
 - Prevent unintended publicizing flaws when workflow state has unexpected value during sync tasks (OSIDB-4446)
 - Fix changing flaw's severity making trackers to temporarily disappear (OSIDB-4069)
 
@@ -175,7 +177,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add filter and Djangoql field for multi-label flaws (OSIDB-4531)
 
 ### Changed
-- Adjust `unembargo_dt` validation for embargoed flaws to only trigger when 
+- Adjust `unembargo_dt` validation for embargoed flaws to only trigger when
   `unembargo_dt` is changed (OSIDB-4296)
 - Improve performance in Alerts and ACL serialization (OSIDB-4313)
 - Implement affects v2 (OSIDB-4023)
@@ -186,7 +188,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Require an internal comment on incident request (OSIDB-3852)
 
 ### Removed
-- Remove deprecated fields/models: `PsProduct`'s `team`, `FlawComment`'s `order` 
+- Remove deprecated fields/models: `PsProduct`'s `team`, `FlawComment`'s `order`
   and models in `package_versions.py` (OSIDB-3552)
 
 ## [4.16.1] - 2025-10-01
@@ -282,7 +284,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   don't meet Moderate and CVSS score >= 7.0 criteria (OSIDB-4199)
 
 ### Fixed
-- Prevent running multiple Jira transition managers at the same time (OSIDB-4175) 
+- Prevent running multiple Jira transition managers at the same time (OSIDB-4175)
 
 ## [4.10.1] - 2025-04-30
 ### Added
@@ -826,7 +828,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed OSIM module to Workflows (OSIDB-1395)
 - Change settings to allow regex in CORS policy in stage environment (OSIDB-1737)
 - Enhanced prefetches on Flaw, Affect, and Tracker api querysets
-- Change default pg configs 
+- Change default pg configs
 - Adjust CONN_MAX_AGE and CONN_MAX_CONNS to maintain a minimal pool of idle db conns (OSIDB-1620)
 - Tracker status field is read-only (OSIDB-1780)
 - Change Bugzilla collector and Flaw model to allow multiple components in bz_summary (OSIDB-1420)

@@ -1,0 +1,51 @@
+{
+  "builds": [],
+  "deps": [
+    {
+      "build_id": null,
+      "build_is_scl": null,
+      "build_name": "python-cryptography",
+      "build_nvr": "python-cryptography-46.0.6-1.hum1",
+      "build_repo": null,
+      "build_scl": null,
+      "build_scl_build_ids": null,
+      "build_type": "rpm",
+      "inactive": null,
+      "modules": null,
+      "ps_module": "hummingbird-1",
+      "ps_update_stream": "hummingbird-1",
+      "sources": [
+        {
+          "dependencies": [
+            {
+              "dev": 0,
+              "ecosystem": "cargo",
+              "id": null,
+              "name": "openssl",
+              "nvr": "openssl-0.10.73",
+              "version": "0.10.73"
+            },
+            {
+              "dev": 0,
+              "ecosystem": "cargo",
+              "id": null,
+              "name": "openssl",
+              "nvr": "openssl-0.10.74",
+              "version": "0.10.74"
+            }
+          ],
+          "hash": "7bca1d9029f834712ccb75ae70e72a46cab54361",
+          "id": null,
+          "provenance": null,
+          "source": "git+https://gitlab.com/redhat/hummingbird/rpms.git#rpms/python-cryptography",
+          "type": null
+        }
+      ],
+      "manifest_source": "konflux",
+      "purls": [
+        "pkg:oci/python-cryptography?repository_url=registry.redhat.io/python-cryptography"
+      ]
+    }
+  ],
+  "params": null
+}
