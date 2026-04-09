@@ -1,17 +1,23 @@
+import json
+import subprocess  # nosec: B404
 from time import time
+from typing import Any
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail.message import EmailMultiAlternatives
-from django.db import OperationalError, connection
+from django.db import OperationalError, connection, transaction
 from django.db.models import OuterRef, Q, Subquery
 from django.db.models.functions import Cast
 
 from config.celery import app
 from config.settings import EmailSettings
 from osidb.core import set_user_acls
+from osidb.helpers import bypass_rls
 from osidb.mixins import Alert
+from osidb.models import Flaw, Impact
+from osidb.models.affect import Affect, AffectSettings
 from osidb.sync_manager import (
     BZSyncManager,
     JiraTaskSyncManager,
@@ -19,6 +25,97 @@ from osidb.sync_manager import (
 )
 
 logger = get_task_logger(__name__)
+
+
+def _newcli_include_modules_csv() -> str:
+    return ",".join(AffectSettings().auto_create_ps_modules)
+
+
+def _flaw_components_for_newcli(flaw: Flaw) -> list[str]:
+    components = [c for c in (flaw.components or []) if c and str(c).strip()]
+    if not components:
+        raise ValueError(f"Flaw {flaw.uuid} has no non-empty components for newcli -s")
+    return components
+
+
+def _run_newcli_deps_json(flaw_component: str) -> dict[str, Any]:
+    cmd = [
+        "newcli",
+        "-s",
+        flaw_component,
+        "--include",
+        _newcli_include_modules_csv(),
+        "--json",
+    ]
+    result = subprocess.run(  # noqa: S603
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"newcli failed (exit {result.returncode}): {result.stderr or result.stdout}"
+        )
+    return json.loads(result.stdout or "{}")
+
+
+def _sync_affects_from_newcli_deps(
+    flaw: Flaw, payload: dict[str, Any]
+) -> dict[str, int]:
+    deps = payload.get("deps") or []
+    created = 0
+    skipped = 0
+    skipped_existing = 0
+
+    with transaction.atomic():
+        for dep in deps:
+            if not isinstance(dep, dict):
+                skipped += 1
+                continue
+            ps_update_stream = dep.get("ps_update_stream") or dep.get("ps_module")
+            purls = dep.get("purls") or []
+            purl_str = purls[0] if purls else None
+
+            if not ps_update_stream or not purl_str:
+                logger.warning(
+                    "Skipping newcli dep missing ps_update_stream or purls: %s",
+                    dep.get("build_nvr"),
+                )
+                skipped += 1
+                continue
+
+            ps_component = Affect(purl=purl_str).ps_component_from_purl()
+
+            if (
+                ps_component
+                and Affect.objects.filter(
+                    flaw=flaw,
+                    ps_update_stream=ps_update_stream,
+                    ps_component=ps_component,
+                ).exists()
+            ):
+                skipped_existing += 1
+                continue
+
+            affect = Affect(
+                flaw=flaw,
+                ps_update_stream=ps_update_stream,
+                purl=purl_str,
+                acl_read=flaw.acl_read,
+                acl_write=flaw.acl_write,
+                affectedness=Affect.AffectAffectedness.NEW,
+                resolution=Affect.AffectResolution.NOVALUE,
+                impact=flaw.impact or Impact.NOVALUE,
+            )
+            affect.save(raise_validation_error=False)
+            created += 1
+
+    return {
+        "created": created,
+        "skipped": skipped,
+        "skipped_existing": skipped_existing,
+    }
 
 
 @app.task
@@ -111,6 +208,40 @@ def refresh_affect_v1_view():
         message = f'Could not refresh "affect_v1" (likely already in progress): {e}'
         logger.warning(message)
         return message
+
+
+@app.task
+@bypass_rls
+def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
+    """
+    For each entry in ``Flaw.components``, run ``newcli`` and create affects for each
+    ``deps`` row: ``ps_update_stream`` from the payload, ``purl`` from the first ``purls``
+    entry. Existing affects for the same flaw, stream, and ``ps_component`` (inferred from
+    the purl) are left unchanged.
+
+    ``newcli --include`` is built from :attr:`osidb.models.affect.AffectSettings.auto_create_ps_modules`
+    (``OSIDB_AFFECTS_AUTO_CREATE_PS_MODULES``, JSON list; default ``["hummingbird-1"]``).
+
+    When :attr:`osidb.models.affect.AffectSettings.auto_create` is true
+    (``OSIDB_AFFECTS_AUTO_CREATE``), changes to :attr:`~osidb.models.flaw.flaw.Flaw.components`
+    register this task on :func:`django.db.transaction.on_commit` from a ``pre_save`` signal
+    on :class:`~osidb.models.flaw.flaw.Flaw`.
+    """
+    flaw = Flaw.objects.get(uuid=flaw_id)
+    components = _flaw_components_for_newcli(flaw)
+    totals: dict[str, int] = {"created": 0, "skipped": 0, "skipped_existing": 0}
+    for flaw_component in components:
+        payload = _run_newcli_deps_json(flaw_component)
+        stats = _sync_affects_from_newcli_deps(flaw, payload)
+        for key in totals:
+            totals[key] += stats[key]
+    logger.info(
+        "sync_flaw_affects_from_newcli flaw=%s components=%s %s",
+        flaw_id,
+        components,
+        totals,
+    )
+    return totals
 
 
 @app.task

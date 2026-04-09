@@ -62,6 +62,25 @@ RUN uv sync --frozen --no-dev && \
     rm -f /opt/app-root/src/pyproject.toml && \ 
     rm -f /opt/app-root/src/uv.lock
 
+# Optional: GitLab HTTPS clone URL for the newtopia-cli monorepo; when set, install in-repo
+# deptopia_client first, then newtopia_cli (PyPI has no deptopia_client).
+# Optional: branch, tag, or commit for both installs (omit for the remote default branch).
+ARG NEWCLI_REPO_URL=""
+ARG NEWCLI_EXPERIMENTAL_BRANCH=""
+RUN if [ -n "$NEWCLI_REPO_URL" ]; then \
+        if [ -n "$NEWCLI_EXPERIMENTAL_BRANCH" ]; then \
+            uv pip install --no-cache --python "$UV_PROJECT_ENVIRONMENT/bin/python" \
+                "git+${NEWCLI_REPO_URL}@${NEWCLI_EXPERIMENTAL_BRANCH}#subdirectory=python/deptopia-client" && \
+            uv pip install --no-cache --python "$UV_PROJECT_ENVIRONMENT/bin/python" \
+                "git+${NEWCLI_REPO_URL}@${NEWCLI_EXPERIMENTAL_BRANCH}#egg=newtopia_cli&subdirectory=python/newtopia_cli"; \
+        else \
+            uv pip install --no-cache --python "$UV_PROJECT_ENVIRONMENT/bin/python" \
+                "git+${NEWCLI_REPO_URL}#subdirectory=python/deptopia-client" && \
+            uv pip install --no-cache --python "$UV_PROJECT_ENVIRONMENT/bin/python" \
+                "git+${NEWCLI_REPO_URL}#egg=newtopia_cli&subdirectory=python/newtopia_cli"; \
+        fi; \
+    fi
+
 # Copy the project into the image
 COPY . /opt/app-root/src
 

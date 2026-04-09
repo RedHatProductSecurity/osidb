@@ -10,6 +10,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from psqlextra.fields import HStoreField
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from apps.bbsync.constants import RHSCL_BTS_KEY
@@ -42,6 +43,10 @@ class AffectSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="OSIDB_AFFECTS_")
 
     require_purl_for_middleware: bool = False
+    auto_create: bool = False
+    auto_create_ps_modules: list[str] = Field(
+        default_factory=lambda: ["hummingbird-1"],
+    )
 
 
 class NotAffectedJustification(models.TextChoices):
