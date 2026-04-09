@@ -6,11 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [5.9.0] - 2026-04-09
 ### Fixed
-- Fix invalid `in` field in kerberos OpenAPI security scheme(OSIDB-1590)
+- Fix invalid `in` field in kerberos OpenAPI security scheme (OSIDB-1590)
+- Fix JiraTrackerCollector not linking affect when OSIDB updated_dt was newer that jira updated_dt (OSIDB-4864)
 
 ### Added
-- Add a new field to /collectors/api/v1/status representing if a collector is enabled(OSIDB-4869)
+- Add a new field to /collectors/api/v1/status representing if a collector is enabled (OSIDB-4869)
 - Add indexing for audit history tables (OSIDB-4803)
 - Add overlaping time on Jira tracker collector (OSIDB-4888)
 
@@ -20,9 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - make purl_ps_component_mismatch an error instead of an alert (OSIDB-4830)
 - Allow empty components in empty workflow state (OSIDB-4857)
 - Trackers will save external id on first creation before async get (OSIDB-4872)
-
-### Fixed
-- Fix JiraTrackerCollector not linking affect when OSIDB updated_dt was newer that jira updated_dt (OSIDB-4864)
 
 ## [5.8.0] - 2026-03-19
 ### Changed
