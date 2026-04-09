@@ -238,9 +238,9 @@ class TestTrackerAPI:
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        # 4) the tracker is not stored to DB as it happens async
-        #    so check that there is no tracker relic stored
-        assert not Tracker.objects.count()
+        # 4) the tracker has been created with an external id
+        assert Tracker.objects.count() == 1
+        assert Tracker.objects.first().external_system_id
 
         # 5) so check at least the response
         #    even though it is not complete
@@ -399,9 +399,9 @@ class TestTrackerAPI:
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        # 4) the tracker is not stored to DB as it happens async
-        #    so check that there is no tracker relic stored
-        assert not Tracker.objects.count()
+        # 4) the tracker has been created with an external id
+        assert Tracker.objects.count() == 1
+        assert Tracker.objects.first().external_system_id
 
         # 5) so check at least the response
         #    even though it is not complete
@@ -676,9 +676,9 @@ class TestTrackerAPI:
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        # 4) the tracker is not stored to DB as it happens async
-        #    so check that there is no tracker relic stored
-        assert not Tracker.objects.count()
+        # 4) the tracker has been created with an external id
+        assert Tracker.objects.count() == 1
+        assert Tracker.objects.first().external_system_id
 
         # 5) so check at least the response
         #    even though it is not complete
@@ -704,7 +704,7 @@ class TestTrackerAPI:
         assert Affect.objects.count() == 1
         assert Flaw.objects.first().affects.count() == 1
         assert flaw.affects.count() == 1
-        assert Tracker.objects.count() == 0
+        assert Tracker.objects.count() == 1
         assert Affect.objects.first() == affect
         assert affect.flaw == flaw
 

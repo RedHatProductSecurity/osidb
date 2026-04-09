@@ -305,7 +305,9 @@ class TestEndpointsFlawsUpdateTrackers:
             "updated_dt": flaw.updated_dt,
         }
 
-        monkeypatch.setattr(BZTrackerDownloadManager, "schedule", lambda x: None)
+        monkeypatch.setattr(
+            BZTrackerDownloadManager, "schedule", lambda *args, **kwargs: None
+        )
         # enable autospec to get self as part of the method call args
         with patch.object(BugzillaSaver, "save", autospec=True) as mock_save:
             response = auth_client().put(

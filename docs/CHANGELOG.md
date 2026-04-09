@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adjust Jira tracker sync to use `Update Stream` field and `ps_component` label (OSIDB-3830)
 - make purl_ps_component_mismatch an error instead of an alert (OSIDB-4830)
 - Allow empty components in empty workflow state (OSIDB-4857)
+- Trackers will save external id on first creation before async get (OSIDB-4872)
 
 ### Fixed
 - Fix JiraTrackerCollector not linking affect when OSIDB updated_dt was newer that jira updated_dt (OSIDB-4864)
