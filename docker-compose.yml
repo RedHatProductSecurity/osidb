@@ -62,6 +62,8 @@ services:
         args:
           RH_CERT_URL: ${RH_CERT_URL}
           PYPI_MIRROR: ${PIP_INDEX_URL}
+          NEWCLI_REPO_URL: ${NEWCLI_REPO_URL}
+          NEWCLI_EXPERIMENTAL_BRANCH: ${NEWCLI_EXPERIMENTAL_BRANCH}
       image: localhost/osidb-service
       pull_policy: never
       stdin_open: true

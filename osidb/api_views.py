@@ -50,8 +50,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from apps.workflows.workflow import WorkflowModel
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
-from osidb.core import set_user_acls
-from osidb.helpers import get_bugzilla_api_key, get_flaw_or_404
+from osidb.helpers import bypass_rls, get_bugzilla_api_key, get_flaw_or_404
 from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import Affect, AffectCVSS, AffectV1, Flaw, FlawLabel, Tracker
 from osidb.models.flaw.comment import FlawComment
@@ -1007,6 +1006,7 @@ class FlawCVSSV2View(
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOrReadOnly])
+@bypass_rls
 def flaw_available(request: Request, *args, **kwargs) -> Response:
     """
     Report whether a flaw is available for public consumption purposes
@@ -1044,14 +1044,11 @@ def flaw_available(request: Request, *args, **kwargs) -> Response:
     cve_id = kwargs["cve_id"]
 
     try:
-        set_user_acls(settings.ALL_GROUPS)
         flaw = Flaw.objects.get_by_identifier(cve_id)
     except Flaw.DoesNotExist:
         return Response(status=HTTP_204_NO_CONTENT)
     except ValidationError:
         return Response(status=HTTP_400_BAD_REQUEST)
-    finally:
-        set_user_acls([])
 
     if (
         flaw.is_public
