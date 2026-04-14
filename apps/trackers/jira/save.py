@@ -5,6 +5,8 @@ Jira tracker query module
 import json
 import logging
 
+from jira import JIRAError
+
 from apps.trackers.exceptions import BTSException
 from collectors.jiraffe.core import JiraQuerier
 
@@ -19,17 +21,19 @@ class TrackerJiraSaver(JiraQuerier):
     Jira tracker bug save handler
     """
 
-    def __init__(self, tracker, token, jira_issuetype=None) -> None:
+    def __init__(self, tracker, token, email, jira_issuetype=None) -> None:
         """
         Instantiate a new JiraTrackerQuerier object.
 
         Keyword arguments:
         token -- user token used in every request to Jira
+        email -- user email used in every request to Jira
         """
         super().__init__()
         self.tracker = tracker
         self._jira_server = JIRA_SERVER
         self._jira_token = token
+        self._jira_email = email
         self._jira_issuetype = jira_issuetype
 
     def save(self):
@@ -65,7 +69,18 @@ class TrackerJiraSaver(JiraQuerier):
         querybuilder = builder(tracker)
         query = querybuilder.query
         comment = querybuilder.query_comment
-        issue = self.jira_conn.create_issue(fields=query["fields"], prefetch=True)
+        try:
+            issue = self.jira_conn.create_issue(fields=query["fields"], prefetch=True)
+        except JIRAError as e:
+            logger.error(
+                "JIRAError during tracker creation: %s | ps_update_stream=%s | ps_module=%s | ps_component=%s | uuid=%s",
+                str(e),
+                getattr(tracker, "ps_update_stream", None),
+                getattr(tracker, "ps_module", None),
+                getattr(tracker, "ps_component", None),
+                getattr(tracker, "uuid", None),
+            )
+            raise
         tracker.external_system_id = issue.key
         if comment:
             self.create_comment(

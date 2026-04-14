@@ -2,9 +2,11 @@
 tracker saver tests
 """
 
+import uuid
 from unittest.mock import patch
 
 import pytest
+from jira import JIRAError
 
 from apps.bbsync.save import BugzillaSaver
 from apps.trackers.bugzilla.save import TrackerBugzillaSaver
@@ -127,7 +129,7 @@ class TestTrackerSaver:
         ):
             TrackerSaver(tracker)
 
-    def test_jira(self):
+    def test_jira(self, jira_token, jira_email):
         """
         test that the general TrackerSaver turns into TrackerJiraSaver for Jira trackers
         """
@@ -149,7 +151,7 @@ class TestTrackerSaver:
         )
 
         assert isinstance(
-            TrackerSaver(tracker, jira_token="SECRET"),
+            TrackerSaver(tracker, jira_token=jira_token, jira_email=jira_email),
             TrackerJiraSaver,  # nosec
         )
 
@@ -181,7 +183,7 @@ class TestTrackerSaver:
         ):
             TrackerSaver(tracker)
 
-    def test_empty_bz_id(self):
+    def test_empty_bz_id(self, jira_token, jira_email):
         """
         test we can fill a tracker without bz_id
         """
@@ -207,7 +209,7 @@ class TestTrackerSaver:
             type=Tracker.TrackerType.JIRA,
         )
 
-        TrackerSaver(tracker, jira_token="SECRET")  # nosec
+        TrackerSaver(tracker, jira_token=jira_token, jira_email=jira_email)  # nosec
 
 
 class TestTrackerModelSave:
@@ -325,7 +327,7 @@ class TestTrackerModelSave:
             assert not jira_save_mock.called
             assert not jira_load_mock.called
 
-    def test_jira_backend(self, enable_jira_tracker_sync):
+    def test_jira_backend(self, enable_jira_tracker_sync, jira_token, jira_email):
         """
         test the Jira tracker backend save
         """
@@ -355,7 +357,7 @@ class TestTrackerModelSave:
                 JiraTrackerDownloadManager, "link_tracker_with_affects"
             ) as jira_tracker_link_mock,
         ):
-            tracker.save(jira_token="SECRET")  # nosec
+            tracker.save(jira_token=jira_token, jira_email=jira_email)  # nosec
 
             assert jira_save_mock.called
             # the rest is done async
@@ -377,7 +379,9 @@ class TestTrackerJiraSaverIssuetype:
             ("Invalid", None),
         ],
     )
-    def test_jira_issuetype(self, issuetype_param, expected_builder):
+    def test_jira_issuetype(
+        self, issuetype_param, expected_builder, jira_email, jira_token
+    ):
         """
         test that the general TrackerSaver turns into TrackerJiraSaver for Jira trackers
         """
@@ -398,7 +402,12 @@ class TestTrackerJiraSaverIssuetype:
             type=Tracker.TrackerType.JIRA,
         )
 
-        i = TrackerSaver(tracker, jira_token="SECRET", jira_issuetype=issuetype_param)  # nosec
+        i = TrackerSaver(
+            tracker,
+            jira_token=jira_token,
+            jira_email=jira_email,
+            jira_issuetype=issuetype_param,
+        )  # nosec
         assert isinstance(i, TrackerJiraSaver)
         assert i._jira_issuetype == issuetype_param
         if expected_builder is not None:
@@ -406,3 +415,60 @@ class TestTrackerJiraSaverIssuetype:
         else:
             with pytest.raises(BTSException):
                 i.get_builder()
+
+    @pytest.mark.parametrize(
+        "issuetype_param",
+        [None, "Bug", "Vulnerability", "Invalid"],
+    )
+    def test_jira_error_logging(self, caplog, issuetype_param, jira_token, jira_email):
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_module=ps_module,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="component",
+        )
+
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+            uuid=str(uuid.uuid4()),
+        )
+        saver = TrackerSaver(
+            tracker,
+            jira_token=jira_token,
+            jira_issuetype=issuetype_param,
+            jira_email=jira_email,
+        )
+        mock_builder = type(
+            "MockQueryBuilder",
+            (),
+            {"query": {"fields": {}}, "query_comment": None},
+        )()
+        with (
+            patch.object(
+                saver,
+                "get_builder",
+                return_value=lambda tracker: mock_builder,
+            ) as mock_get_builder,
+            patch.object(
+                saver.jira_conn,
+                "create_issue",
+                side_effect=JIRAError(
+                    status_code=422, text="JIRAError during tracker creation"
+                ),
+            ) as mock_create_issue,
+        ):
+            with caplog.at_level("ERROR"):
+                with pytest.raises(JIRAError):
+                    saver.create(tracker)
+
+        assert mock_get_builder.called
+        assert mock_create_issue.called
+        assert "JIRAError during tracker creation" in caplog.text
+        assert str(tracker.uuid) in caplog.text

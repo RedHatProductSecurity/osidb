@@ -4,6 +4,7 @@ import uuid
 import pytest
 from bugzilla.exceptions import BugzillaError
 from django.conf import settings
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import datetime
@@ -19,6 +20,7 @@ from osidb.helpers import ensure_list, get_execution_env
 from osidb.models import Affect, Flaw, Impact
 from osidb.models.tracker import Tracker
 from osidb.pagination import HardLimitOffsetPagination
+from osidb.sync_manager import SyncManager
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -27,6 +29,10 @@ from osidb.tests.factories import (
 )
 
 pytestmark = pytest.mark.unit
+
+TEST_SYNC_MANAGER_A = "TestSyncManagerA"
+TEST_SYNC_MANAGER_B = "TestSyncManagerB"
+TEST_SYNC_MANAGER_C = "TestSyncManagerC"
 
 
 class TestEndpoints(object):
@@ -61,6 +67,73 @@ class TestEndpoints(object):
             )
         )
 
+    def test_sync_manager_list_and_retrieve(self, auth_client, test_api_uri):
+        now = timezone.now()
+        sm1 = SyncManager.objects.create(
+            name=TEST_SYNC_MANAGER_A, sync_id="1", last_scheduled_dt=now
+        )
+        sm2 = SyncManager.objects.create(
+            name=TEST_SYNC_MANAGER_B,
+            sync_id="2",
+            last_scheduled_dt=now + timezone.timedelta(seconds=1),
+            permanently_failed=True,
+        )
+
+        sm3 = SyncManager.objects.create(
+            name=TEST_SYNC_MANAGER_C,
+            sync_id="3",
+            last_scheduled_dt=now + timezone.timedelta(seconds=2),
+            permanently_failed=False,
+        )
+
+        # list (paginated)
+        r = auth_client().get(f"{test_api_uri}/sync-managers")
+        assert r.status_code == 200
+        body = r.json()
+        assert "results" in body
+        ids = {item["id"] for item in body["results"]}
+        assert sm1.id in ids
+        assert sm2.id in ids
+        assert sm3.id in ids
+
+        # retrieve
+        r2 = auth_client().get(f"{test_api_uri}/sync-managers/{sm1.id}")
+        assert r2.status_code == 200
+        assert r2.json()["id"] == sm1.id
+
+        # filter
+        r3 = auth_client().get(
+            f"{test_api_uri}/sync-managers?name={TEST_SYNC_MANAGER_A}"
+        )
+        assert r3.status_code == 200
+        assert all(item["name"] == TEST_SYNC_MANAGER_A for item in r3.json()["results"])
+
+        r4 = auth_client().get(
+            f"{test_api_uri}/sync-managers?name__in={TEST_SYNC_MANAGER_A},{TEST_SYNC_MANAGER_B}"
+        )
+        assert r4.status_code == 200
+        ids_in = {item["id"] for item in r4.json()["results"]}
+        assert sm1.id in ids_in
+        assert sm2.id in ids_in
+        assert sm3.id not in ids_in
+
+        r5 = auth_client().get(f"{test_api_uri}/sync-managers?permanently_failed=True")
+        assert r5.status_code == 200
+        assert all(item["permanently_failed"] is True for item in r5.json()["results"])
+
+        # ordering
+        r6 = auth_client().get(f"{test_api_uri}/sync-managers?order=-last_scheduled_dt")
+        assert r6.status_code == 200
+        assert r6.json()["results"][0]["id"] == sm3.id
+        assert r6.json()["results"][1]["id"] == sm2.id
+        assert r6.json()["results"][2]["id"] == sm1.id
+
+        r7 = auth_client().get(f"{test_api_uri}/sync-managers?order=last_scheduled_dt")
+        assert r7.status_code == 200
+        assert r7.json()["results"][0]["id"] == sm1.id
+        assert r7.json()["results"][1]["id"] == sm2.id
+        assert r7.json()["results"][2]["id"] == sm3.id
+
     def test_whoami(self, auth_client, root_url):
         res = auth_client().get(f"{root_url}/osidb/whoami").json()
         assert res["username"] == "testuser"
@@ -78,11 +151,18 @@ class TestEndpoints(object):
         set_hvac_test_env_vars,
     ):
         auth_client().patch(f"{root_url}/osidb/integrations", data={third_party: "foo"})
-        mock_hvac_client_instance.secrets.kv.v2.patch.assert_called_once_with(
-            path=f"/osidb-integrations/{get_execution_env()}/{third_party}",
-            secret={"testuser": "foo"},
-            mount_point="apps",
-        )
+        if third_party == "jira":
+            mock_hvac_client_instance.secrets.kv.v2.patch.assert_called_once_with(
+                path=f"/osidb-integrations/{get_execution_env()}/{third_party}/token",
+                secret={"testuser": "foo"},
+                mount_point="apps",
+            )
+        else:
+            mock_hvac_client_instance.secrets.kv.v2.patch.assert_called_once_with(
+                path=f"/osidb-integrations/{get_execution_env()}/{third_party}",
+                secret={"testuser": "foo"},
+                mount_point="apps",
+            )
 
     def test_set_both_integration_tokens(
         self,
@@ -95,7 +175,7 @@ class TestEndpoints(object):
             f"{root_url}/osidb/integrations", data={"jira": "foo", "bugzilla": "bar"}
         )
         mock_hvac_client_instance.secrets.kv.v2.patch.assert_any_call(
-            path=f"/osidb-integrations/{get_execution_env()}/jira",
+            path=f"/osidb-integrations/{get_execution_env()}/jira/token",
             secret={"testuser": "foo"},
             mount_point="apps",
         )
@@ -375,7 +455,13 @@ class TestEndpointsACLs:
     @pytest.mark.enable_signals
     @freeze_time(datetime(2014, 9, 11, tzinfo=timezone.get_current_timezone()))
     def test_flaw_unembargo_tracker_security_level(
-        self, auth_client, test_api_uri, enable_jira_tracker_sync
+        self,
+        auth_client,
+        jira_email,
+        jira_token,
+        bugzilla_token,
+        test_api_uri,
+        enable_jira_tracker_sync,
     ):
         """
         test that the tracker security levels are updated for closed status flaws
@@ -449,7 +535,9 @@ class TestEndpointsACLs:
         tracker_obj = tracker_convertor._gen_tracker_object()
         tracker_obj.status = "CLOSED"
         tracker_obj.affects.add(affect)
-        tracker_obj.save(auto_timestamps=False, jira_token="SECRET")
+        tracker_obj.save(
+            auto_timestamps=False, jira_token=jira_token, jira_email=jira_email
+        )
         # tracker.save(auto_timestamps=False, jira_token="SECRET")
 
         assert affect.is_embargoed
@@ -466,8 +554,9 @@ class TestEndpointsACLs:
                     "updated_dt": flaw.updated_dt,
                 },
                 format="json",
-                HTTP_BUGZILLA_API_KEY="SECRET",
-                HTTP_JIRA_API_KEY="SECRET",
+                HTTP_BUGZILLA_API_KEY=bugzilla_token,
+                HTTP_JIRA_API_EMAIL=jira_email,
+                HTTP_JIRA_API_KEY=jira_token,
             )
 
         response_body = response.json()
@@ -497,7 +586,7 @@ class TestEndpointsACLs:
         )
         assert response.status_code == 400
         assert (
-            "Cannot provide access for the LDAP group without being a member: data-topsecret"
+            "Cannot provide access without being a member of at least one of the following LDAP group(s): data-topsecret"
             in str(response.content)
         )
 
@@ -524,77 +613,44 @@ class TestEndpointsACLs:
         )
         assert response.status_code == 400
         assert (
-            "Cannot provide access for the LDAP group without being a member: data-prodsec-write"
+            "Cannot provide access without being a member of at least one of the following LDAP group(s): data-prodsec-write"
             in str(response.content)
         )
 
-    def test_flaw_create_cve_description(self, auth_client, test_api_uri):
+    @override_settings(PUBLIC_READ_GROUPS=["data-prodsec", "company-wide-group"])
+    def test_partial_acl(
+        self, auth_client, test_api_uri, jira_email, jira_token, bugzilla_token
+    ):
         """
-        test that creating a Flaw with cve_description and without requires_cve_description,
-        sets the requires_cve_description field to REQUESTED
+        Test if users being part of at least one LDAP group can have access to resources
+        pubrw has data-prodsec and data-prodsec-write but not company-wide-group group
         """
         flaw_data = {
+            "cve_id": "CVE-2024-0126",
             "title": "Foo",
             "comment_zero": "test",
-            "reported_dt": "2022-11-22T15:55:22.830Z",
             "impact": "LOW",
             "components": ["curl"],
-            "source": "DEBIAN",
-            "embargoed": False,
+            "source": "INTERNET",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
             "unembargo_dt": "2000-1-1T22:03:26.065Z",
-            "cve_description": "some description",
+            "mitigation": "mitigation",
+            "embargoed": False,
         }
-        response = auth_client().post(
+        response = auth_client("pubrw").post(
             f"{test_api_uri}/flaws",
             flaw_data,
             format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
+            HTTP_JIRA_API_KEY=jira_token,
         )
         assert response.status_code == 201
         body = response.json()
         created_uuid = body["uuid"]
 
-        response = auth_client().get(f"{test_api_uri}/flaws/{created_uuid}")
+        response = auth_client("pubrw").get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
-        assert response.json()["requires_cve_description"] == "REQUESTED"
-
-    def test_flaw_update_cve_description(self, auth_client, test_api_uri):
-        """
-        test that updating a Flaw with cve_description and without requires_cve_description,
-        updates the requires_cve_description field to REQUESTED
-        """
-        flaw = FlawFactory(
-            embargoed=False,
-            cve_description="some description",
-            requires_cve_description="",
-        )
-        AffectFactory(flaw=flaw)
-
-        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
-        assert response.status_code == 200
-        original_body = response.json()
-        assert original_body["requires_cve_description"] == ""
-
-        response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}",
-            {
-                "title": f"{flaw.title} appended test title",
-                "comment_zero": flaw.comment_zero,
-                "embargoed": False,
-                "updated_dt": flaw.updated_dt,
-                "bz_api_key": "SECRET",
-                "cve_description": "some other description",
-            },
-            format="json",
-            HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
-        )
-
-        assert response.status_code == 200
-        body = response.json()
-        assert original_body["cve_description"] != body["cve_description"]
-        assert body["requires_cve_description"] == "REQUESTED"
 
     @pytest.mark.parametrize(
         "embargoed,acl_read,acl_write",

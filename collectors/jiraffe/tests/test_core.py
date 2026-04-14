@@ -1,12 +1,22 @@
 from datetime import datetime, timezone
+from unittest.mock import patch
 
 import pytest
 from jira import Issue
 
-from collectors.jiraffe.core import JiraQuerier
+from collectors.jiraffe.core import JiraConnector, JiraQuerier
 from collectors.jiraffe.exceptions import NonRecoverableJiraffeException
 
 pytestmark = pytest.mark.unit
+
+
+class TestJiraConnector:
+    def test_jira_connection_gets_server_info(self):
+        """get_server_info must be True for Cloud instance detection"""
+        with patch("collectors.jiraffe.core.JIRA") as mock_jira:
+            JiraConnector()._get_jira_connection()
+            mock_jira.assert_called_once()
+            assert mock_jira.call_args.kwargs["get_server_info"] is True
 
 
 class TestJiraQuerier:

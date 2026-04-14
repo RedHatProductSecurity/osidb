@@ -31,6 +31,7 @@ from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
 from osidb.cc import JiraAffectCCBuilder
 from osidb.models import Affect, AffectCVSS, Flaw, FlawCVSS, FlawSource, Impact
 from osidb.models.abstract import CVSS
+from osidb.models.jira_user_mapping import JiraUserMapping
 from osidb.validators import CVE_RE_STR
 
 from .constants import (
@@ -294,6 +295,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         """
         generates query for the tracker description
         """
+
         self._query["fields"]["description"] = self.description
 
     def generate_labels(self):
@@ -411,7 +413,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             return
 
         versions = JiraProjectFields.objects.filter(
-            project_key=self.ps_module.bts_key, field_name="Affects Version/s"
+            project_key=self.ps_module.bts_key, field_name="Affects versions"
         )
         # project may or may not support versions so it is optional
         if versions.exists() and self.ps_update_stream.version:
@@ -505,12 +507,22 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             cc_list.update(affect_cc_builder.generate_cc())
 
         if cc_list:
+            # CC list may contain emails (user@redhat.com), strip to kerberos IDs
+            cc_list = {
+                u.removesuffix("@redhat.com") if u.endswith("@redhat.com") else u
+                for u in cc_list
+            }
             # Keep the order stable for ease of testing and debugging
             cc_list = sorted(cc_list)
 
             # Note that access control for the comment is not necessary because the whole
             # tracker has access control set in generate_security().
-            notify_users = ", ".join([("[~%s]" % u) for u in cc_list])
+            notify_users = ", ".join(
+                [
+                    f"[~accountId:{JiraUserMapping.kerberos_to_cloud_id(u)}]"
+                    for u in cc_list
+                ]
+            )
             self._comment = "Added involved users: " + notify_users
 
             # contributors fields will replace the involved field
@@ -519,13 +531,15 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
                 project_key=self.ps_module.bts_key, field_name="Contributors"
             ).first():
                 self._query["fields"][contr_field_obj.field_id] = [
-                    {"name": un} for un in cc_list
+                    {"accountId": JiraUserMapping.kerberos_to_cloud_id(un)}
+                    for un in cc_list
                 ]
             elif inv_field_obj := JiraProjectFields.objects.filter(
                 project_key=self.ps_module.bts_key, field_name="Involved"
             ).first():
                 self._query["fields"][inv_field_obj.field_id] = [
-                    {"name": un} for un in cc_list
+                    {"accountId": JiraUserMapping.kerberos_to_cloud_id(un)}
+                    for un in cc_list
                 ]
             else:
                 # At the time of writing this, all Jira projects have these fields.
@@ -623,6 +637,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         self.generate_downstream_component()
         self.generate_upstream_component()
         self.generate_special_handling()
+        self.generate_update_stream()
 
         # we set both embargo status and security level field values since
         # the Jira automation responsible for handling the security level based
@@ -972,8 +987,12 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         ).first()
 
         if not sla_date_field:
-            # SLA Date field doesn't exist for this project
-            return
+            error_msg = (
+                f"Jira project {self.ps_module.bts_key} is missing the SLA Date field "
+                f"for Vulnerability issuetype. Tracker creation will fail."
+            )
+            logger.error(error_msg)
+            raise TrackerCreationError(error_msg)
 
         if not self.tracker.external_system_id:
             # Workaround for when a new tracker is filed. At this point in the code it
@@ -994,3 +1013,13 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             # explicitly set the empty dates so they are cleared
             # out in case of falling out of SLA later on update
             self._query["fields"][sla_date_field.field_id] = None
+
+    def generate_update_stream(self):
+        """
+        Generate query for Jira Update Stream field
+        """
+
+        field_name = "Update Stream"
+        _, field_id = self.field_check_and_get_values_and_id(field_name)
+
+        self._query["fields"][field_id] = self.ps_update_stream.name

@@ -78,6 +78,8 @@ class CollectorMetadata(NullStrFieldsMixin):
     # collector-specific metadata
     meta_attr = HStoreField(blank=True, null=True)
 
+    enabled = models.BooleanField(default=True)
+
     def __str__(self):
         return self.name
 
@@ -261,6 +263,8 @@ class Collector(LockableTask):
     # collected data classes
     data_models = None
 
+    enabled = True
+
     ###########################
     # INSTANCE IDENTIFICATION #
     ###########################
@@ -315,6 +319,7 @@ class Collector(LockableTask):
                 "data_models": [data_model.__name__ for data_model in self.data_models]
                 if self.data_models is not None
                 else [],
+                "enabled": self.enabled,
             },
         )
 
@@ -498,12 +503,23 @@ def collector(
         if crontab is None:
             raise RuntimeError("Collector crontab must be defined")
 
+        name = Collector.get_name_from_entity(func)
+
         if not enabled:
             # Return the original function so it can still be called from a shell,
             # but do not register it in celery
+            CollectorMetadata.objects.update_or_create(
+                name=name,
+                defaults={
+                    "crontab": str(crontab) if crontab is not None else "",
+                    "depends_on": depends_on or [],
+                    "data_models": [data_model.__name__ for data_model in data_models]
+                    if data_models
+                    else [],
+                    "enabled": enabled,
+                },
+            )
             return func
-
-        name = Collector.get_name_from_entity(func)
 
         # register collector to celery beat
         settings.CELERY_BEAT_SCHEDULE[name] = {

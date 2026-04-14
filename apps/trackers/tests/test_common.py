@@ -11,6 +11,9 @@ from apps.sla.models import SLAPolicy, SLOPolicy
 from apps.sla.tests.test_framework import load_policies
 from apps.trackers.bugzilla.query import TrackerBugzillaQueryBuilder
 from apps.trackers.common import TrackerQueryBuilder
+from apps.trackers.exceptions import (
+    TrackerCreationError,
+)
 from apps.trackers.jira.query import TrackerJiraQueryBuilder
 from apps.trackers.models import JiraProjectFields
 from osidb.models import Affect, Flaw, Impact, Tracker
@@ -844,7 +847,7 @@ class TestTrackerQueryBuilderSLO:
             type=Tracker.TrackerType.JIRA,
         )
 
-        target_start_id = "customfield_12313941"
+        target_start_id = "customfield_10022"
         JiraProjectFields(
             project_key=ps_module2.bts_key,
             field_id=target_start_id,
@@ -989,3 +992,90 @@ sla:
         query = TrackerJiraQueryBuilder(tracker).query
         assert "customfield_12326740" in query["fields"]
         assert bool(query["fields"]["customfield_12326740"]) is under_sla
+
+    @pytest.mark.parametrize(
+        "impact",
+        [Impact.LOW, Impact.MODERATE, Impact.IMPORTANT, Impact.CRITICAL],
+    )
+    def test_explicit_when_sla_field_missing(
+        self,
+        clean_policies,
+        setup_sample_external_resources,
+        setup_vulnerability_issue_type_fields,
+        impact,
+    ):
+        """
+        test that fails to create a tracker
+        because of missing SLA Date field
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            impact=impact,
+            reported_dt=datetime(2020, 1, 1, tzinfo=timezone.utc),
+            source="REDHAT",
+        )
+
+        # Jira tracker context
+        ps_module = PsModuleFactory(
+            bts_key="RHEL",
+            bts_name="jboss",
+            private_trackers_allowed=False,
+        )
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            impact=Impact.NOVALUE,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+
+        # simplified impact policies effective today
+        sla_file = """
+---
+name: Critical
+description: SLA policy applied to critical impact
+conditions:
+  affect:
+    - aggregated impact is critical
+sla:
+  duration: 7
+  start:
+    latest:
+      flaw:
+        - unembargo date
+  type: calendar days
+---
+name: Important
+description: SLA policy applied to important impact
+conditions:
+  affect:
+    - aggregated impact is important
+sla:
+  duration: 21
+  start:
+    latest:
+      flaw:
+        - unembargo date
+  type: calendar days
+"""
+
+        load_policies(SLAPolicy, sla_file)
+
+        # check that the SLA fields are always in the query
+        # but has a non-empty value only when SLA is applied
+
+        with patch(
+            "apps.trackers.jira.query.JiraProjectFields.objects.filter"
+        ) as mock_filter:
+            mock_filter.return_value.first.return_value = None
+            with pytest.raises(TrackerCreationError) as tce:
+                TrackerJiraQueryBuilder(tracker).query
+
+            assert "missing the SLA Date field" in str(tce.value)

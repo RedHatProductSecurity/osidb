@@ -2,6 +2,7 @@
 Jira collector
 """
 
+from datetime import timedelta
 from time import sleep
 from typing import List, Optional, Union
 
@@ -15,13 +16,13 @@ from jira.exceptions import JIRAError
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
 from collectors.framework.models import Collector
-from osidb.models import PsModule
+from osidb.models import PsModule, Tracker
 from osidb.sync_manager import (
     JiraTaskDownloadManager,
     JiraTrackerDownloadManager,
 )
 
-from .constants import JIRA_TOKEN
+from .constants import JIRA_EMAIL, JIRA_TOKEN, jira_collector_settings
 from .convertors import JiraTaskConvertor, JiraTrackerConvertor
 from .core import JiraQuerier
 from .exceptions import MetadataCollectorInsufficientDataJiraffeException
@@ -47,7 +48,7 @@ class JiraTaskCollector(Collector):
     @property
     def jira_querier(self):
         if self._jira_querier is None:
-            self._jira_querier = JiraTaskmanQuerier(JIRA_TOKEN)
+            self._jira_querier = JiraTaskmanQuerier(JIRA_TOKEN, JIRA_EMAIL)
         return self._jira_querier
 
     def free_queriers(self):
@@ -152,9 +153,16 @@ class JiraTrackerCollector(Collector):
         """
         period_start = self.metadata.updated_until_dt or self.BEGINNING
         period_end = period_start + timezone.timedelta(days=self.BATCH_PERIOD_DAYS)
+
+        # add overlaping collection from the last one to prevent missing trackers on HA Jira sync delays
+        period_start = period_start - timedelta(
+            seconds=jira_collector_settings.overlap_seconds
+        )
+
         # query for trackers in the period and return them together with the timestamp
         return (
             self.jira_querier.get_tracker_period(period_start, period_end),
+            period_start,
             period_end,
         )
 
@@ -179,22 +187,27 @@ class JiraTrackerCollector(Collector):
 
         # multi-tracker sync
         start_dt = timezone.now()
-        updated_trackers = []
 
         JiraTrackerDownloadManager.check_for_reschedules()
 
-        batch_data, period_end = self.get_batch()
-
-        # schedule data sync
-        for tracker in batch_data:
-            JiraTrackerDownloadManager.schedule(tracker.key)
-            updated_trackers.append(tracker.key)
-
+        batch_data, period_start, period_end = self.get_batch()
+        updated_trackers = [issue.key for issue in batch_data]
         logger.info(
-            f"Jira tracker sync was scheduled for the following IDs: {', '.join(updated_trackers)}"
+            f"Collected {len(batch_data)} Jira tracker key(s) from {period_start} to {period_end}: {', '.join(updated_trackers)}"
             if updated_trackers
             else "No Jira trackers were updated."
         )
+
+        existing_trackers = Tracker.objects.filter(
+            external_system_id__in=updated_trackers
+        ).values_list("external_system_id", flat=True)
+
+        # schedule data sync
+        for tracker_key in updated_trackers:
+            # if tracker doesn't exist on db yet it may have been manually created on Jira or is being
+            # collected it too early, we delay the scheduling to avoid a writing race on the later
+            opt = {"countdown": 0 if tracker_key in existing_trackers else 30}
+            JiraTrackerDownloadManager.schedule(tracker_key, schedule_options=opt)
 
         # when we get to the future with the period end
         # the initial sync is done and the data are complete
@@ -302,10 +315,12 @@ class MetadataCollector(Collector):
                         res = self.jira_querier.jira_conn._get_json(
                             f"issue/createmeta/{project}/issuetypes/{issuetype}?startAt={start_at}&maxResults={page_size}"
                         )
-                        project_fields[project].extend(res["values"])
-                        page_size = res["maxResults"]
-                        start_at += page_size
-                        is_last = res["isLast"]
+
+                        project_fields[project].extend(res["fields"])
+                        total = res.get("total", 0)
+                        max_results = res.get("maxResults", page_size)
+                        start_at += max_results
+                        is_last = start_at >= total
                     projects_already_collected.add(project)
                 except JIRAError as e:
                     if e.status_code == 400:

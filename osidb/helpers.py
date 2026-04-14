@@ -432,3 +432,30 @@ def get_jira_api_key(request: Request) -> str:
         )
 
     return jira_api_key
+
+
+def get_jira_api_email(request: Request) -> str:
+    """
+    Checks that a user-provided JIRA API email exists and returns it.
+
+    The email can either be provided through the Jira-Api-Email HTTP header
+    on each request or it can be retrieved from the integrations store if the
+    user has previously stored it using PATCH /osidb/integrations.
+    """
+    from django.contrib.auth.models import User
+
+    from osidb.integrations import IntegrationRepository, IntegrationSettings
+
+    user = cast(User, request.user)
+
+    # explicitly passed-through header takes precedence
+    if not (jira_api_email := request.META.get("HTTP_JIRA_API_EMAIL")):
+        integration_settings = IntegrationSettings()
+        integration_repo = IntegrationRepository(integration_settings)
+        jira_api_email = integration_repo.read_jira_email(user.username)
+
+    # fall back to deriving email from username
+    if not jira_api_email:
+        jira_api_email = f"{user.username}@redhat.com"
+
+    return jira_api_email

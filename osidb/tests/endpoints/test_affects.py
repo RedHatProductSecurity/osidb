@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 from rest_framework import status
 
-from osidb.models import Affect, AffectCVSS, Impact, Tracker
+from osidb.models import Affect, AffectCVSS, Tracker
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,
@@ -127,128 +127,6 @@ class TestEndpointsAffectsV1:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["count"] == 1
         assert response.data["results"][0]["cve_id"] == flaw.cve_id
-
-    @pytest.mark.parametrize(
-        "purl_1,purl_2,affectedness_1,affectedness_2,impact_1,impact_2,expected_winner",
-        [
-            (
-                "pkg:rpm/redhat/curl@7.50.3-1.el8#subdir/component",
-                "pkg:rpm/redhat/curl@7.50.3-1.el8",
-                Affect.AffectAffectedness.AFFECTED,
-                Affect.AffectAffectedness.AFFECTED,
-                Impact.MODERATE,
-                Impact.MODERATE,
-                1,  # First affect (with subpath in PURL) should win
-            ),
-            (
-                "pkg:rpm/redhat/curl@7.50.3-1.el8#component",
-                "pkg:rpm/redhat/curl@7.50.3-1.el8",
-                Affect.AffectAffectedness.AFFECTED,
-                Affect.AffectAffectedness.AFFECTED,
-                Impact.LOW,
-                Impact.CRITICAL,
-                1,  # First affect (with subpath in PURL) should win despite lower impact
-            ),
-            (
-                "pkg:rpm/redhat/curl@7.50.3-1.el8#module/part",
-                "pkg:rpm/redhat/curl@7.50.3-1.el8",
-                Affect.AffectAffectedness.NOTAFFECTED,
-                Affect.AffectAffectedness.AFFECTED,
-                Impact.MODERATE,
-                Impact.MODERATE,
-                1,  # First affect (with subpath in PURL) should win despite being NOTAFFECTED
-            ),
-            (
-                "pkg:npm/namespace/package@1.0.0#path/to/component",
-                "pkg:npm/namespace/package@1.0.0",
-                Affect.AffectAffectedness.AFFECTED,
-                Affect.AffectAffectedness.AFFECTED,
-                Impact.MODERATE,
-                Impact.CRITICAL,
-                1,  # First affect (with subpath in PURL) should win
-            ),
-            (
-                "pkg:generic/package@1.0.0#path#subpath",
-                "pkg:generic/package@1.0.0",
-                Affect.AffectAffectedness.NOTAFFECTED,
-                Affect.AffectAffectedness.AFFECTED,
-                Impact.LOW,
-                Impact.IMPORTANT,
-                1,  # First affect (with subpath in PURL) should win
-            ),
-            (
-                "pkg:rpm/redhat/openssl@1.1.1-1.el8",
-                "pkg:rpm/redhat/openssl@1.1.1-2.el8",
-                Affect.AffectAffectedness.AFFECTED,
-                Affect.AffectAffectedness.NOTAFFECTED,
-                Impact.LOW,
-                Impact.CRITICAL,
-                1,  # First affect (AFFECTED) should win despite lower impact
-            ),
-            (
-                "pkg:rpm/redhat/httpd@2.4.0-1.el8",
-                "pkg:rpm/redhat/httpd@2.4.0-2.el8",
-                Affect.AffectAffectedness.NOTAFFECTED,
-                Affect.AffectAffectedness.NOTAFFECTED,
-                Impact.LOW,
-                Impact.CRITICAL,
-                2,  # Second affect (higher impact) should win
-            ),
-        ],
-    )
-    @pytest.mark.enable_signals
-    def test_v1_affects_prioritization(
-        self,
-        auth_client,
-        test_api_uri,
-        refresh_v1_view,
-        transactional_db,
-        purl_1,
-        purl_2,
-        affectedness_1,
-        affectedness_2,
-        impact_1,
-        impact_2,
-        expected_winner,
-    ):
-        """
-        Test how v2 affects are prioritized when choosing a candidate for the v1 representative.
-        """
-        flaw = FlawFactory(embargoed=False)
-        ps_module = PsModuleFactory()
-        ps_update_stream_1 = PsUpdateStreamFactory(ps_module=ps_module)
-        ps_update_stream_2 = PsUpdateStreamFactory(ps_module=ps_module)
-
-        affect_1 = AffectFactory(
-            flaw=flaw,
-            ps_update_stream=ps_update_stream_1.name,
-            ps_component="test_component",
-            purl=purl_1,
-            affectedness=affectedness_1,
-            impact=impact_1,
-        )
-        affect_2 = AffectFactory(
-            flaw=flaw,
-            ps_update_stream=ps_update_stream_2.name,
-            ps_component="test_component",
-            purl=purl_2,
-            affectedness=affectedness_2,
-            impact=impact_2,
-        )
-
-        refresh_v1_view()
-
-        response = auth_client().get(
-            f"{test_api_uri}/affects?flaw__uuid={flaw.uuid}&ps_module={ps_module.name}&ps_component=test_component"
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-        body = response.json()
-        assert body["count"] == 1
-
-        returned_affect = body["results"][0]
-        expected_affect = affect_1 if expected_winner == 1 else affect_2
-        assert returned_affect["uuid"] == str(expected_affect.uuid)
 
 
 class TestEndpointsAffects:
@@ -1072,26 +950,24 @@ class TestEndpointsAffectsPurl:
         assert body["purl"] == purl
 
     @pytest.mark.parametrize(
-        "ps_component,purl,error,warning",
+        "ps_component,purl,error",
         [
             (
                 "",
                 "rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
                 "Invalid PURL",
-                None,
             ),
             (
                 "podman",
                 "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
-                None,
-                "purl_ps_component_mismatch",
+                "does not match user-provided ps_component",
             ),
-            ("", "", "must have either purl or ps_component", None),
-            (None, None, "must have either purl or ps_component", None),
+            ("", "", "must have either purl or ps_component"),
+            (None, None, "must have either purl or ps_component"),
         ],
     )
     def test_invalid_data_create(
-        self, auth_client, test_api_v2_uri, ps_component, purl, error, warning
+        self, auth_client, test_api_v2_uri, ps_component, purl, error
     ):
         """
         Test that Affect is not created when new data contains incorrect purl,
@@ -1119,31 +995,26 @@ class TestEndpointsAffectsPurl:
         if error:
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert error in str(response.content)
-        elif warning:
-            assert response.status_code == status.HTTP_201_CREATED
-            assert flaw.alerts.filter(name=warning).exists()
 
     @pytest.mark.parametrize(
-        "ps_component,purl,error,warning",
+        "ps_component,purl,error",
         [
             (
                 "",
                 "rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
                 "Invalid PURL",
-                None,
             ),
             (
                 "podman",
                 "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25",
-                None,
-                "purl_ps_component_mismatch",
+                "does not match user-provided ps_component",
             ),
-            ("", "", "must have either purl or ps_component", None),
-            (None, None, "must have either purl or ps_component", None),
+            ("", "", "must have either purl or ps_component"),
+            (None, None, "must have either purl or ps_component"),
         ],
     )
     def test_invalid_data_update(
-        self, auth_client, test_api_v2_uri, ps_component, purl, error, warning
+        self, auth_client, test_api_v2_uri, ps_component, purl, error
     ):
         """
         Test that Affect's purl and ps_component are not updated when new data contains incorrect purl,
@@ -1167,9 +1038,6 @@ class TestEndpointsAffectsPurl:
         if error:
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert error in str(response.content)
-        elif warning:
-            assert response.status_code == status.HTTP_200_OK
-            assert flaw.alerts.filter(name=warning).exists()
 
 
 class TestEndpointsAffectsCVSSScoresV2:

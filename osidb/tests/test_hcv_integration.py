@@ -31,12 +31,25 @@ def test_integration_repo_read(
     )
 
 
-def test_integration_repo_jira_upsert(fake_integration_repo, mock_hvac_client_instance):
+def test_integration_repo_jira_token_upsert(
+    fake_integration_repo, mock_hvac_client_instance
+):
     fake_integration_repo.upsert_jira_token("atorresj", "my-token")
 
     mock_hvac_client_instance.secrets.kv.v2.patch.assert_called_once_with(
-        path=f"/osidb-integrations/{get_execution_env()}/jira",
+        path=f"/osidb-integrations/{get_execution_env()}/jira/token",
         secret={"atorresj": "my-token"},
+        mount_point="apps",
+    )
+
+
+def test_integration_repo_jira_email_upsert(
+    fake_integration_repo, mock_hvac_client_instance
+):
+    fake_integration_repo.upsert_jira_email("atorresj", "email@redhat.com")
+    mock_hvac_client_instance.secrets.kv.v2.patch.assert_called_once_with(
+        path=f"/osidb-integrations/{get_execution_env()}/jira/email",
+        secret={"atorresj": "email@redhat.com"},
         mount_point="apps",
     )
 
@@ -56,7 +69,17 @@ def test_integration_repo_read_jira_token(
 ):
     fake_integration_repo.read_jira_token("atorresj")
     mock_hvac_client_instance.secrets.kv.v2.read_secret_version.assert_called_once_with(
-        path=f"/osidb-integrations/{get_execution_env()}/jira",
+        path=f"/osidb-integrations/{get_execution_env()}/jira/token",
+        mount_point="apps",
+    )
+
+
+def test_integration_repo_read_jira_email(
+    fake_integration_repo, mock_hvac_client_instance
+):
+    fake_integration_repo.read_jira_email("atorresj")
+    mock_hvac_client_instance.secrets.kv.v2.read_secret_version.assert_called_once_with(
+        path=f"/osidb-integrations/{get_execution_env()}/jira/email",
         mount_point="apps",
     )
 

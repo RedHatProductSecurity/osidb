@@ -6,6 +6,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [5.9.0] - 2026-04-09
+### Fixed
+- Fix invalid `in` field in kerberos OpenAPI security scheme (OSIDB-1590)
+- Fix JiraTrackerCollector not linking affect when OSIDB updated_dt was newer that jira updated_dt (OSIDB-4864)
+
+### Added
+- Add a new field to /collectors/api/v1/status representing if a collector is enabled (OSIDB-4869)
+- Add indexing for audit history tables (OSIDB-4803)
+- Add overlaping time on Jira tracker collector (OSIDB-4888)
+
+### Changed
+- Fail and log tracker creation error when SLA Date field is missing (OSIDB-4856)
+- Adjust Jira tracker sync to use `Update Stream` field and `ps_component` label (OSIDB-3830)
+- make purl_ps_component_mismatch an error instead of an alert (OSIDB-4830)
+- Allow empty components in empty workflow state (OSIDB-4857)
+- Trackers will save external id on first creation before async get (OSIDB-4872)
+
+## [5.8.0] - 2026-03-19
+### Changed
+- Logging JIRAError during tracker creation (OSIDB-4848)
+- Deprecate `requires_cve_description` field (OSIDB-4461)
+
+### Fixed
+- Fix JiraTrackerCollector returning empty response (OSIDB-4855)
+
+### Added
+- Sync manager endpoint (OSIDB-4676)
+
+## [5.7.0] - 2026-03-16
+### Added
+- Add Jira user mapping model and collector for Kerberos-to-Cloud ID translation (OSIDB-4542)
+- Add `Jira-Api-Email` header support for Jira Cloud authentication (OSIDB-4551)
+
+### Changed
+- Serializer grant access to users with at least one reading LDAP group instead of enforcing all (OSIDB-4826)
+- Adapt Jira integration for Atlassian Cloud (OSIDB-4800)
+
+### Removed
+- Deprecate `team_id` and `group_key` fields from Flaw model and API (OSIDB-4540)
+
 ## [5.6.0] - 2026-03-03
 ### Added
 - Add `affects__isnull` for flaws endpoint filter (OSIDB-4787)

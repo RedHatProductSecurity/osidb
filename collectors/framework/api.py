@@ -90,6 +90,7 @@ class status(RudimentaryUserPathLoggingMixin, APIView):
                                     "type": "string",
                                     "format": "date-time",
                                 },
+                                "enabled": {"type": "boolean"},
                             },
                         },
                     },
@@ -116,6 +117,7 @@ class status(RudimentaryUserPathLoggingMixin, APIView):
                         "data_models": collector.data_models,
                         "state": collector.collector_state,
                         "updated_until": collector.updated_until_dt,
+                        "enabled": collector.enabled,
                     }
                     # the official collectors are always in the tasks directory
                     for name, collector in CollectorFramework.collectors().items()

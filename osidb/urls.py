@@ -37,6 +37,7 @@ from .api_views import (
     LabelView,
     ManifestView,
     StatusView,
+    SyncManagerViewSet,
     TrackerV1View,
     TrackerView,
     flaw_available,
@@ -82,6 +83,7 @@ router.register(
 router.register(r"trackers", TrackerV1View)
 router.register(r"alerts", AlertView)
 router.register(r"audit", AuditView)
+router.register(r"sync-managers", SyncManagerViewSet, basename="syncmanagers")
 
 vnext_router = routers.DefaultRouter(trailing_slash=False)
 vnext_router.register(

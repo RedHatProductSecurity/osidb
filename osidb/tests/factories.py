@@ -25,6 +25,7 @@ from osidb.models import (
     FlawReference,
     FlawSource,
     Impact,
+    JiraUserMapping,
     NotAffectedJustification,
     Package,
     PackageVer,
@@ -151,19 +152,6 @@ class FlawFactory(BaseFactory):
             )
         )
     )
-
-    @factory.lazy_attribute
-    def requires_cve_description(self):
-        if not self.is_mi and self.cve_description:
-            return self.not_mi_with_cve_description
-        elif not self.is_mi and not self.cve_description:
-            return self.not_mi_without_cve_description
-        elif self.is_mi and self.cve_description:
-            return Flaw.FlawRequiresCVEDescription.APPROVED
-        # MI without cve_description is not a valid combination and should never happen,
-        # but leaving it here to cover all possibilities
-        else:
-            return Flaw.FlawRequiresCVEDescription.NOVALUE
 
     mitigation = factory.LazyAttribute(
         lambda f: "CVE mitigation" if f.is_mi else f.fallback
@@ -302,7 +290,11 @@ class AffectFactory(BaseFactory):
         )
     )
     ps_update_stream = factory.LazyAttribute(lambda a: PsUpdateStreamFactory().name)
-    ps_component = factory.sequence(lambda n: f"ps-component-{n}")
+    ps_component = factory.Maybe(
+        "purl",
+        yes_declaration="",
+        no_declaration=factory.Sequence(lambda n: f"ps-component-{n}"),
+    )
     impact = factory.Faker(
         "random_element",
         elements=(
@@ -878,3 +870,14 @@ class SpecialConsiderationPackageFactory(factory.django.DjangoModelFactory):
 
     def __new__(cls, *args, **kwargs) -> SpecialConsiderationPackage:
         return super().__new__(*args, **kwargs)
+
+
+class JiraUserMappingFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = JiraUserMapping
+
+    associate_kerberos_id = factory.sequence(lambda n: f"user{n}")
+    associate_uuid = factory.LazyFunction(uuid.uuid4)
+    atlassian_cloud_id = factory.sequence(lambda n: f"cloud-id-{n}")
+    is_employed = True
+    name = factory.Faker("name")

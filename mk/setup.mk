@@ -95,15 +95,6 @@ upgrade-dep: check-venv-active
 
 
 #***********************************
-### Export uv.lock to requirements.txt. For security scanning purposes. Read DEVELOP.md for details
-#***********************************
-.PHONY : generate-requirements
-generate-requirements: check-venv-active
-	@echo ">generating requirements.txt"
-	$(uv) export --output-file 'requirements.txt'
-
-
-#***********************************
 ### Update installed python packages based on uv.lock both in local venv and in all containers
 #***********************************
 .PHONY : apply-uv-sync

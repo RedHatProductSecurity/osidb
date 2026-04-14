@@ -220,7 +220,7 @@ class Affect(
 
     # the length 255 does not have any special meaning in Postgres
     # but it is the maximum SFM2 value so let us just keep parity for now
-    # to fix https://issues.redhat.com/browse/OSIDB-635
+    # to fix https://redhat.atlassian.net/browse/OSIDB-635
     ps_component = models.CharField(max_length=255)
 
     purl = PURLField()
@@ -702,8 +702,7 @@ class Affect(
                 )
 
             if self.ps_component and self.ps_component != ps_component_from_purl:
-                self.flaw.alert(
-                    "purl_ps_component_mismatch",
+                raise ValidationError(
                     f"Extrapolated ps_component ({ps_component_from_purl}) "
                     f"from PURL ({self.purl}) "
                     f"does not match user-provided ps_component ({self.ps_component}).",
@@ -1169,7 +1168,7 @@ class AffectCVSS(CVSS):
         # AffectCVSS needs to be synced through affect
         self.affect.save(*args, **kwargs)
 
-    def sync_to_trackers(self, jira_token):
+    def sync_to_trackers(self, jira_token, jira_email):
         """Sync this CVSS in the related Jira tracker."""
         from osidb.models.tracker import Tracker
 
@@ -1183,7 +1182,7 @@ class AffectCVSS(CVSS):
             and tracker.type == Tracker.TrackerType.JIRA
         ):
             # default save already sync with Jira when needed
-            tracker.save(jira_token=jira_token)
+            tracker.save(jira_token=jira_token, jira_email=jira_email)
 
 
 # List of all states an Affect is considered open/not resolved

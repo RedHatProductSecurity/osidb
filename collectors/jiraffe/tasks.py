@@ -12,7 +12,7 @@ from .collectors import JiraTaskCollector, JiraTrackerCollector, MetadataCollect
 from .constants import (
     JIRA_METADATA_COLLECTOR_ENABLED,
     JIRA_TASK_COLLECTOR_ENABLED,
-    JIRA_TRACKER_COLLECTOR_ENABLED,
+    jira_collector_settings,
 )
 
 logger = get_task_logger(__name__)
@@ -34,7 +34,7 @@ def jira_task_collector(collector_obj):
     crontab=crontab(),  # run every minute
     data_models=[Tracker],
     depends_on=["collectors.product_definitions.tasks.product_definitions_collector"],
-    enabled=JIRA_TRACKER_COLLECTOR_ENABLED,
+    enabled=jira_collector_settings.enabled,
 )
 def jira_tracker_collector(collector_obj):
     logger.info(f"Collector {collector_obj.name} is running")

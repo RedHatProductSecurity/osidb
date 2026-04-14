@@ -544,7 +544,7 @@ class TestPURLFilter:
             "affects": {
                 "rhel_kernel": AffectFactory(
                     flaw=flaw,
-                    purl="pkg:rhel/kernel",
+                    purl="pkg:rhel/kernel-rt",
                     subpackage_purls=["pkg:rhel/kernel"],
                 ),
                 "rhel_glibc": AffectFactory(
@@ -693,7 +693,7 @@ class TestPURLFilter:
     @pytest.mark.parametrize(
         "query_value,expected_count,expected_affect_keys",
         [
-            ("pkg:rhel/kernel", 2, ["rhel_kernel", "kernel_multiple"]),
+            ("pkg:rhel/kernel", 1, ["kernel_multiple"]),
             ("pkg:rhel/glibc", 1, ["rhel_glibc"]),
             ("pkg:openssl/rhel", 1, ["openssl"]),
             ("pkg:nonexistent/test", 0, []),

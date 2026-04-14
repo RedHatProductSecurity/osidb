@@ -25,6 +25,7 @@ from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.workflow import WorkflowModel, WorkflowModelManager
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
+from osidb.helpers import deprecate_field
 from osidb.mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -204,6 +205,8 @@ class Flaw(
 
     class FlawRequiresCVEDescription(models.TextChoices):
         """
+        DEPRECATED: This field is deprecated and will be removed in a future release.
+
         Stores cve_description state from the requires_doc_text flag in BZ.
 
         The flag states have the following meaning:
@@ -214,8 +217,6 @@ class Flaw(
         * (+) "APPROVED" (set by PS member): cve_description was reviewed and approved;
               this is the only state where cve_description is propagated to the flaw's CVE page
         * (-) "REJECTED": cve_description is not required for this flaw
-
-        Note that if a flaw is MI or Exploits (KEV), requires_cve_description should be "APPROVED".
         """
 
         NOVALUE = ""
@@ -247,8 +248,11 @@ class Flaw(
     # from cveorg collector
     mitre_cve_description = models.TextField(blank=True)
 
-    requires_cve_description = models.CharField(
-        choices=FlawRequiresCVEDescription.choices, max_length=20, blank=True
+    requires_cve_description = deprecate_field(
+        models.CharField(
+            choices=FlawRequiresCVEDescription.choices, max_length=20, blank=True
+        ),
+        return_instead=lambda obj: obj.FlawRequiresCVEDescription.NOVALUE,
     )
 
     # if redhat cve-id then this is required
@@ -548,41 +552,6 @@ class Flaw(
                 )
 
     @validator
-    def _validate_cve_description_and_requires_cve_description(self, **kwargs):
-        """
-        Checks that if cve_description is missing, then requires_cve_description must not have
-        REQUESTED or APPROVED value set.
-        """
-        if not self.cve_description and self.requires_cve_description in [
-            self.FlawRequiresCVEDescription.REQUESTED,
-            self.FlawRequiresCVEDescription.APPROVED,
-        ]:
-            raise ValidationError(
-                f"requires_cve_description cannot be {self.requires_cve_description} if cve_description is "
-                f"missing."
-            )
-
-    @validator
-    def _validate_requires_cve_description(self, **kwargs):
-        """
-        Checks that if requires_cve_description was already set to
-        something other than NOVALUE, it cannot be set to NOVALUE.
-        """
-        if self._state.adding:
-            # we're creating a new flaw so we don't need to check whether we're
-            # changing from one state to another
-            return
-
-        old_flaw = Flaw.objects.get(pk=self.pk)
-        if (
-            old_flaw.requires_cve_description != self.FlawRequiresCVEDescription.NOVALUE
-            and self.requires_cve_description == self.FlawRequiresCVEDescription.NOVALUE
-        ):
-            raise ValidationError(
-                "requires_cve_description cannot be unset if it was previously set to something other than NOVALUE"
-            )
-
-    @validator
     def _validate_nonempty_source(self, **kwargs):
         """
         checks that the source is not empty
@@ -786,14 +755,28 @@ class Flaw(
         we cannot enforce this by model definition
         as the old flaws may have no components
 
-        flaws in NEW or REJECTED workflow state are exempt as
+        flaws in NOVALUE, NEW, or REJECTED workflow state are exempt as
         components may not yet be known at the time of creation
         and flaws can be rejected directly from NEW without them
+
+        however clearing existing components on legacy flaws
+        (NOVALUE state without a Jira task) is not allowed
         """
         if self.workflow_state in (
+            WorkflowModel.WorkflowState.NOVALUE,
             WorkflowModel.WorkflowState.NEW,
             WorkflowModel.WorkflowState.REJECTED,
         ):
+            if (
+                self.workflow_state == WorkflowModel.WorkflowState.NOVALUE
+                and not self.components
+                and not self._state.adding
+            ):
+                old_flaw = Flaw.objects.get(uuid=self.uuid)
+                if old_flaw.components:
+                    raise ValidationError(
+                        "Components cannot be cleared on a flaw without a task."
+                    )
             return
         if not self.components:
             raise ValidationError("Components value is required.")
@@ -1082,6 +1065,7 @@ class Flaw(
     def tasksync(
         self,
         jira_token,
+        jira_email,
         diff=None,
         force_creation=False,
         *args,
@@ -1130,7 +1114,7 @@ class Flaw(
 
         else:
             if update_task:
-                self._create_or_update_task(jira_token)
+                self._create_or_update_task(jira_token, jira_email)
 
             if transition_task:
                 # workflow transition may result in ACL change
@@ -1140,16 +1124,16 @@ class Flaw(
                     acl_write=self.acl_write,
                 )
 
-                self._transition_task(jira_token)
+                self._transition_task(jira_token, jira_email)
 
-    def _create_or_update_task(self, jira_token=None):
+    def _create_or_update_task(self, jira_token=None, jira_email=None):
         """
         create or update the Jira task of this flaw based on its existence
         """
         # import here to prevent cycles
         from apps.taskman.service import JiraTaskmanQuerier
 
-        jtq = JiraTaskmanQuerier(token=jira_token)
+        jtq = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         # creation
         if not self.task_key:
@@ -1162,13 +1146,13 @@ class Flaw(
         else:
             jtq.create_or_update_task(self)
 
-    def _transition_task(self, jira_token=None):
+    def _transition_task(self, jira_token=None, jira_email=None):
         """
         transition the Jira task of this flaw
         """
         # import here to prevent cycles
         from apps.taskman.service import JiraTaskmanQuerier
 
-        jtq = JiraTaskmanQuerier(token=jira_token)
+        jtq = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         jtq.transition_task(self)

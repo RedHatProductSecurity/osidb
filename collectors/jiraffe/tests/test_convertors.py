@@ -1,5 +1,6 @@
 import datetime
 import json
+from unittest.mock import Mock
 
 import pytest
 
@@ -12,6 +13,7 @@ from osidb.models import Affect, Flaw, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
+    JiraUserMappingFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
 )
@@ -318,6 +320,7 @@ class TestJiraTrackerConvertor:
         translates to a valid 'not affected justification'.
         """
         tracker_data = JiraQuerier().get_issue("RHEL-59004")
+        type(tracker_data.fields)
         tracker_convertor = JiraTrackerConvertor(tracker_data)
         tracker = tracker_convertor._gen_tracker_object()
 
@@ -345,6 +348,59 @@ class TestJiraTrackerConvertor:
             "compliance-priority",
         ]
 
+    @pytest.mark.parametrize(
+        "update_stream,labels,summary",
+        [
+            (
+                "test-stream",
+                ["pscomponent:test-component"],
+                "CVE-2026-99999 component: description [stream]",
+            ),
+            (
+                None,
+                ["pscomponent:test-component"],
+                "CVE-2026-99999 component: description [test-stream]",
+            ),
+            (
+                "test-stream",
+                [],
+                "CVE-2026-99999 test-component: description [stream]",
+            ),
+            (
+                None,
+                [],
+                "CVE-2026-99999 test-component: description [test-stream]",
+            ),
+        ],
+    )
+    def test_ps_update_stream_and_component_syncing(
+        self, update_stream, labels, summary
+    ):
+        """
+        Test that ps_update_stream is parsed from the Update Stream field and
+        and ps_component is parsed from the pscomponent label. If either is
+        missing test the fallback to the summary.
+        """
+        ps_module = PsModuleFactory(name="test-module")
+        PsUpdateStreamFactory(name="test-stream", ps_module=ps_module)
+
+        mock_issue = Mock()
+        mock_issue.key = "TEST-0"
+        mock_issue.fields.customfield_10832 = update_stream
+        mock_issue.fields.labels = labels
+        mock_issue.fields.summary = summary
+        mock_issue.fields.created = "2026-01-01T00:00:00.000+0000"
+        mock_issue.fields.updated = "2026-01-01T00:00:00.000+0000"
+        mock_issue.fields.resolutiondate = None
+        mock_issue.fields.assignee = None
+        mock_issue.fields.customfield_12316243 = None
+
+        convertor = JiraTrackerConvertor(mock_issue)
+
+        assert convertor.ps_update_stream == "test-stream"
+        assert convertor.ps_component == "test-component"
+        assert convertor.ps_module == "test-module"
+
 
 class TestJiraTaskConvertor:
     """
@@ -358,6 +414,7 @@ class TestJiraTaskConvertor:
         """
         test that the convertor works
         """
+        mapping = JiraUserMappingFactory(atlassian_cloud_id="test-cloud-id")
         task_data = JiraQuerier().get_issue(self.task_id, expand="changelog")
         task_convertor = JiraTaskConvertor(task_data)
 
@@ -380,10 +437,9 @@ class TestJiraTaskConvertor:
 
         assert flaw is not None
         assert flaw.task_key == self.task_id
-        assert flaw.team_id == ""
         assert flaw.task_updated_dt == datetime.datetime(
             2025, 9, 8, 9, 25, 14, 405000, tzinfo=datetime.timezone.utc
         )
         assert flaw.workflow_name == "DEFAULT"
         assert flaw.workflow_state == "TRIAGE"
-        assert flaw.owner == "rh-ee-atinocom"
+        assert flaw.owner == f"{mapping.associate_kerberos_id}@redhat.com"

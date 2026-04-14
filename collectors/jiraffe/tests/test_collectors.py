@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from freezegun import freeze_time
@@ -16,6 +16,7 @@ from collectors.jiraffe.collectors import (
     JiraTrackerDownloadManager,
     MetadataCollector,
 )
+from collectors.jiraffe.constants import jira_collector_settings
 from collectors.jiraffe.core import JiraQuerier
 from collectors.jiraffe.exceptions import (
     MetadataCollectorInsufficientDataJiraffeException,
@@ -24,6 +25,7 @@ from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
+    JiraUserMappingFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
@@ -34,12 +36,12 @@ pytestmark = pytest.mark.unit
 
 class TestJiraTaskCollector:
     @pytest.mark.vcr
-    def test_collect(self, enable_jira_task_sync, jira_token):
+    def test_collect(self, enable_jira_task_sync, jira_token, jira_email):
         """
         test the Jira collector run
         """
         collector = JiraTaskCollector()
-        jtq = JiraTaskmanQuerier(token=jira_token)
+        jtq = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         # remove randomness for VCR usage
         uuid = "fb145b06-82a7-4851-a429-541288633d16"
@@ -48,7 +50,9 @@ class TestJiraTaskCollector:
 
         # freeze the time so NOW corresponds to the Jira as it is split
         with freeze_time(datetime(2024, 11, 26, 12, 6, 0)):
-            flaw.tasksync(force_creation=True, jira_token=jira_token)
+            flaw.tasksync(
+                force_creation=True, jira_token=jira_token, jira_email=jira_email
+            )
             assert flaw.impact == Impact.IMPORTANT
 
         assert flaw.task_key
@@ -102,8 +106,6 @@ class TestJiraTaskCollector:
             "workflow_state": "REJECTED",
             "workflow_name": "REJECTED",
             "owner": "skynet",
-            "group_key": "SKYNET_ROBOTS",
-            "team_id": "ROBOTS",
         }
         for field, value in new_values.items():
             setattr(flaw, field, value)
@@ -120,6 +122,7 @@ class TestJiraTaskCollector:
     @pytest.mark.vcr
     def test_link_on_cve(self):
         # some random UUID
+        JiraUserMappingFactory(atlassian_cloud_id="test-cloud-id")
         flaw = FlawFactory(cve_id="CVE-2024-34703")
         # this is super-unprobable to happen but based
         # on the review feedback I am adding the assert
@@ -131,12 +134,14 @@ class TestJiraTaskCollector:
         assert Flaw.objects.get(uuid=flaw.uuid).task_key
 
     @pytest.mark.vcr
-    def test_outdated_query(self, enable_jira_task_sync, jira_token, monkeypatch):
+    def test_outdated_query(
+        self, enable_jira_task_sync, jira_token, jira_email, monkeypatch
+    ):
         """
         test that Jira task collector ignores tasks with outdated timestamp
         """
 
-        jtq = JiraTaskmanQuerier(token=jira_token)
+        jtq = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         # 1 - create a flaw
         # remove randomness for VCR usage
@@ -147,7 +152,9 @@ class TestJiraTaskCollector:
         # 2 - create a task
         #     freezing the time so NOW corresponds to the Jira as it is split
         with freeze_time(datetime(2024, 7, 22, 14, 30, 14, 665000)):
-            flaw.tasksync(force_creation=True, jira_token=jira_token)
+            flaw.tasksync(
+                force_creation=True, jira_token=jira_token, jira_email=jira_email
+            )
             assert flaw.task_key
 
         # 3 - get the current Jira task and make sure db is in-sync
@@ -164,7 +171,9 @@ class TestJiraTaskCollector:
         flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
         flaw.save(auto_timestamps=False)
         # provide a fake diff just to pretend that the workflow state has changed
-        flaw.tasksync(diff={"workflow_state": None}, jira_token=jira_token)
+        flaw.tasksync(
+            diff={"workflow_state": None}, jira_token=jira_token, jira_email=jira_email
+        )
         flaw = Flaw.objects.get(uuid=flaw.uuid)
         assert flaw.workflow_state == "TRIAGE"
 
@@ -190,16 +199,76 @@ class TestJiraTrackerCollector:
         assert collector.BEGINNING == datetime(2014, 1, 1, tzinfo=timezone.utc)
         assert collector.metadata.updated_until_dt is None
 
-        trackers, period_end = collector.get_batch()
+        trackers, _, period_end = collector.get_batch()
         assert len(trackers) == 15  # all the trackers from 2014
         assert period_end == datetime(2015, 1, 1, tzinfo=timezone.utc)
 
         # artificially change the updated until timestamp
         collector.metadata.updated_until_dt = period_end
 
-        trackers, period_end = collector.get_batch()
+        trackers, _, period_end = collector.get_batch()
         assert len(trackers) == 31  # all the trackers from 2015
         assert period_end == datetime(2016, 1, 1, tzinfo=timezone.utc)
+
+    def test_get_batch_with_overlap(self, monkeypatch):
+        """
+        test that overlap_seconds works correctly when getting batches
+
+        - First batch: [period_start - overlap, period_end]
+        - Second batch: [period_end - overlap, new_period_end]
+        - The two batches should overlap by exactly overlap_seconds
+        """
+
+        # Set overlap to 5 minutes (300 seconds)
+        overlap_seconds = 300
+        monkeypatch.setattr(jira_collector_settings, "overlap_seconds", overlap_seconds)
+
+        collector = JiraTrackerCollector()
+        collector.BATCH_PERIOD_DAYS = 1
+
+        # Set initial period_start
+        initial_start = datetime(2026, 2, 10, 10, 0, 0, tzinfo=timezone.utc)
+        collector.metadata.updated_until_dt = initial_start
+
+        # Mock get_tracker_period to avoid actual Jira calls
+        def mock_get_tracker_period(period_start, period_end):
+            return []
+
+        monkeypatch.setattr(
+            collector.jira_querier, "get_tracker_period", mock_get_tracker_period
+        )
+
+        _, first_period_start, first_period_end = collector.get_batch()
+
+        expected_first_start = initial_start - timedelta(seconds=overlap_seconds)
+        expected_first_end = initial_start + timedelta(days=collector.BATCH_PERIOD_DAYS)
+
+        assert first_period_start == expected_first_start
+        assert first_period_end == expected_first_end
+
+        collector.metadata.updated_until_dt = first_period_end
+        _, second_period_start, second_period_end = collector.get_batch()
+
+        expected_second_start = first_period_end - timedelta(seconds=overlap_seconds)
+        expected_second_end = first_period_end + timedelta(
+            days=collector.BATCH_PERIOD_DAYS
+        )
+
+        overlap_duration = first_period_end - second_period_start
+
+        # Verify the overlap
+        assert second_period_start == expected_second_start
+        assert second_period_end == expected_second_end
+        assert overlap_duration == timedelta(seconds=overlap_seconds)
+
+        assert first_period_start == datetime(
+            2026, 2, 10, 9, 55, 0, tzinfo=timezone.utc
+        )
+        assert first_period_end == datetime(2026, 2, 11, 10, 0, 0, tzinfo=timezone.utc)
+        assert second_period_start == datetime(
+            2026, 2, 11, 9, 55, 0, tzinfo=timezone.utc
+        )
+        assert second_period_end == datetime(2026, 2, 12, 10, 0, 0, tzinfo=timezone.utc)
 
     @pytest.mark.vcr
     def test_collect(self):
@@ -492,3 +561,59 @@ class TestMetadataCollector:
 
         project_fields = JiraProjectFields.objects.filter(project_key=project_key)
         assert len(project_fields) == fields_count
+
+    @pytest.mark.vcr
+    def test_sync_task_links_affects_when_tracker_up_to_date(self, monkeypatch):
+        """
+        Regression: when Jira tracker data is up-to-date (convertor returns None),
+        sync_task should still link affects for an existing tracker.
+        """
+        JiraUserMappingFactory(atlassian_cloud_id="test-cloud-id")
+        tracker_id = "RHEL-159920"
+        ps_module = PsModuleFactory(name="module", bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(name="stream", ps_module=ps_module)
+
+        flaw = FlawFactory(
+            embargoed=False,
+            meta_attr={"jira_trackers": json.dumps([{"key": tracker_id}])},
+        )
+
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="component",
+        )
+
+        meta_atr = {
+            "issuetype": {"id": "17"},
+            "project": {"id": "12337520"},
+            "summary": "test validations",
+            "description": "this is a simple test",
+            "ps_component": "component",
+            "labels": json.dumps(
+                [flaw.cve_id, "Security", "SecurityTracking", "component:elasticsearch"]
+            ),
+        }
+
+        tracker = TrackerFactory.build(
+            ps_update_stream=ps_update_stream.name,
+            external_system_id=tracker_id,
+            type=Tracker.TrackerType.JIRA,
+            embargoed=False,
+            meta_attr=meta_atr,
+        )
+        tracker.save()
+
+        # started()/finished() expect the SyncManager row to exist (normally created by schedule())
+        JiraTrackerDownloadManager.objects.update_or_create(
+            name=JiraTrackerDownloadManager.__name__,
+            sync_id=tracker_id,
+            defaults={"last_scheduled_dt": datetime.now(tz=timezone.utc)},
+        )
+
+        assert tracker.affects.count() == 0
+        JiraTrackerDownloadManager.sync_task(tracker_id)
+        tracker.refresh_from_db()
+        assert tracker.affects.count() == 1
+        assert tracker.affects.first() == affect
