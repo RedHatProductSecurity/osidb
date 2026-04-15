@@ -1027,10 +1027,6 @@ class JiraTrackerDownloadManager(SyncManager):
                     celery_task_id=getattr(getattr(task, "request", None), "id", None),
                 ):
                     tracker.save()
-                result = JiraTrackerDownloadManager.link_tracker_with_affects(
-                    tracker_id
-                )
-
             # Link this Jira tracker to OSIDB Affects as part of the sync process.
             result = JiraTrackerDownloadManager.link_tracker_with_affects(tracker_id)
 
