@@ -544,24 +544,24 @@ class TestPURLFilter:
             "affects": {
                 "rhel_kernel": AffectFactory(
                     flaw=flaw,
-                    purl="pkg:rhel/kernel-rt",
-                    subpackage_purls=["pkg:rhel/kernel"],
+                    purl="pkg:generic/kernel-rt",
+                    subpackage_purls=["pkg:generic/kernel"],
                 ),
                 "rhel_glibc": AffectFactory(
                     flaw=flaw,
-                    purl="pkg:rhel/glibc",
-                    subpackage_purls=["pkg:rhel/glibc"],
+                    purl="pkg:generic/glibc",
+                    subpackage_purls=["pkg:generic/glibc"],
                 ),
                 "kernel_multiple": AffectFactory(
                     flaw=flaw,
-                    purl="pkg:rhel/kernel",
-                    subpackage_purls=["pkg:rhel/kernel", "pkg:openssl/rhel"],
+                    purl="pkg:generic/kernel",
+                    subpackage_purls=["pkg:generic/kernel", "pkg:generic/openssl"],
                 ),
                 "empty": AffectFactory(flaw=flaw, purl=None, subpackage_purls=[]),
                 "openssl": AffectFactory(
                     flaw=flaw,
-                    purl="pkg:openssl/rhel",
-                    subpackage_purls=["pkg:openssl/rhel"],
+                    purl="pkg:generic/openssl",
+                    subpackage_purls=["pkg:generic/openssl"],
                 ),
             },
         }
@@ -572,32 +572,32 @@ class TestPURLFilter:
             # Exact matching tests
             (
                 "subpackage_purls",
-                "pkg:rhel/kernel",
+                "pkg:generic/kernel",
                 2,
                 ["rhel_kernel", "kernel_multiple"],
             ),
-            ("subpackage_purls", "pkg:rhel/glibc", 1, ["rhel_glibc"]),
-            ("subpackage_purls", "pkg:nonexistent/test", 0, []),
+            ("subpackage_purls", "pkg:generic/glibc", 1, ["rhel_glibc"]),
+            ("subpackage_purls", "pkg:generic/nonexistent", 0, []),
             # __in matching tests
             (
                 "subpackage_purls__in",
-                "pkg:rhel/kernel",
+                "pkg:generic/kernel",
                 2,
                 ["rhel_kernel", "kernel_multiple"],
             ),
             (
                 "subpackage_purls__in",
-                "pkg:rhel/kernel,pkg:rhel/glibc",
+                "pkg:generic/kernel,pkg:generic/glibc",
                 3,
                 ["rhel_kernel", "kernel_multiple", "rhel_glibc"],
             ),
             (
                 "subpackage_purls__in",
-                "pkg:openssl/rhel",
+                "pkg:generic/openssl",
                 2,
                 ["kernel_multiple", "openssl"],
             ),
-            ("subpackage_purls__in", "pkg:nonexistent/test,pkg:fake/package", 0, []),
+            ("subpackage_purls__in", "pkg:generic/nonexistent,pkg:generic/fake", 0, []),
         ],
     )
     def test_purl_filter_matching(
@@ -672,7 +672,7 @@ class TestPURLFilter:
         "filter_type,invalid_value",
         [
             ("subpackage_purls", "invalid-purl-format"),
-            ("subpackage_purls__in", "pkg:rhel/kernel,invalid-format"),
+            ("subpackage_purls__in", "pkg:generic/kernel,invalid-format"),
         ],
     )
     def test_purl_filter_invalid_format(
@@ -680,7 +680,7 @@ class TestPURLFilter:
     ):
         """Test that invalid PURL formats return appropriate errors"""
         flaw = FlawFactory(embargoed=False)
-        AffectFactory(flaw=flaw, subpackage_purls=["pkg:rhel/kernel"])
+        AffectFactory(flaw=flaw, subpackage_purls=["pkg:generic/kernel"])
 
         response = auth_client().get(
             f"{test_api_v2_uri}/affects?{filter_type}={invalid_value}"
@@ -693,10 +693,10 @@ class TestPURLFilter:
     @pytest.mark.parametrize(
         "query_value,expected_count,expected_affect_keys",
         [
-            ("pkg:rhel/kernel", 1, ["kernel_multiple"]),
-            ("pkg:rhel/glibc", 1, ["rhel_glibc"]),
-            ("pkg:openssl/rhel", 1, ["openssl"]),
-            ("pkg:nonexistent/test", 0, []),
+            ("pkg:generic/kernel", 1, ["kernel_multiple"]),
+            ("pkg:generic/glibc", 1, ["rhel_glibc"]),
+            ("pkg:generic/openssl", 1, ["openssl"]),
+            ("pkg:generic/nonexistent", 0, []),
         ],
     )
     def test_single_purl_filter_matching(
@@ -729,7 +729,9 @@ class TestPURLFilter:
         affects = purl_test_data["affects"]
 
         # Test that empty PURL returns no results when filtering for a specific value
-        response = auth_client().get(f"{test_api_v2_uri}/affects?purl=pkg:rhel/kernel")
+        response = auth_client().get(
+            f"{test_api_v2_uri}/affects?purl=pkg:generic/kernel"
+        )
         assert response.status_code == status.HTTP_200_OK
 
         results = response.json()["results"]
@@ -740,7 +742,7 @@ class TestPURLFilter:
     def test_single_purl_filter_invalid_format(self, auth_client, test_api_v2_uri):
         """Test that invalid PURL formats return appropriate errors for single PURL field"""
         flaw = FlawFactory(embargoed=False)
-        AffectFactory(flaw=flaw, purl="pkg:rhel/kernel")
+        AffectFactory(flaw=flaw, purl="pkg:generic/kernel")
 
         response = auth_client().get(
             f"{test_api_v2_uri}/affects?purl=invalid-purl-format"

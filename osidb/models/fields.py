@@ -64,19 +64,33 @@ class CVEIDField(models.CharField):
         return name, path, args, kwargs
 
 
-def to_purl(value: Optional[str | PackageURL]) -> Optional[PackageURL]:
+def validate_purl(purl: PackageURL) -> None:
+    """Validate a PackageURL against its type-specific schema rules."""
+    errors = purl.validate()
+    if len(errors) > 0:
+        raise ValidationError(errors)
+
+
+def to_purl(
+    value: Optional[str | PackageURL], validate: bool = True
+) -> Optional[PackageURL]:
     if value is None or value == "":
         # in case of PURL being blank we return None as well in order
         # to avoid type confusion, as blank is not a valid PURL
         return None
 
     if isinstance(value, PackageURL):
-        return value
+        purl = value
+    else:
+        try:
+            purl = PackageURL.from_string(value)
+        except ValueError as e:
+            raise ValidationError(f"Invalid PURL: {e}")
 
-    try:
-        return PackageURL.from_string(value)
-    except ValueError as e:
-        raise ValidationError(f"Invalid PURL: {e}")
+    if validate:
+        validate_purl(purl)
+
+    return purl
 
 
 class PURLDescriptor(DeferredAttribute):
@@ -121,17 +135,20 @@ class PURLField(models.CharField):
             return ""
 
         if isinstance(value, PackageURL):
+            validate_purl(value)
             return value.to_string()
 
         try:
             # here we ensure that before querying / saving to the database
             # we normalize the string so that the order of e.g. qualifiers
             # is consistent
-            return PackageURL.from_string(value).to_string()
+            purl = PackageURL.from_string(value)
+            validate_purl(purl)
+            return purl.to_string()
         except ValueError as e:
             raise ValidationError(f"Invalid PURL: {e}")
 
     def from_db_value(
         self, value: Optional[str], expression, connection
     ) -> Optional[PackageURL]:
-        return to_purl(value)
+        return to_purl(value, validate=False)
