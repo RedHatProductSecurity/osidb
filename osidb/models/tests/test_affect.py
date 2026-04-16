@@ -210,11 +210,11 @@ class TestAffect:
             # Middleware products require PURL for new affects
             ("Core Middleware", None, True, "must specify a PURL"),
             ("Core Middleware", "", True, "must specify a PURL"),
-            ("Core Middleware", "pkg:rpm/example@1.0", False, None),
+            ("Core Middleware", "pkg:rpm/redhat/example@1.0", False, None),
             # Non-middleware products don't require PURL
             ("RHEL", None, False, None),
             ("RHEL", "", False, None),
-            ("RHEL", "pkg:rpm/example@1.0", False, None),
+            ("RHEL", "pkg:rpm/redhat/example@1.0", False, None),
         ],
     )
     def test_validate_purl_middleware_new_affects(
@@ -250,14 +250,14 @@ class TestAffect:
             # Middleware product: removing PURL should raise error
             (
                 "Core Middleware",
-                "pkg:rpm/example@1.0",
+                "pkg:rpm/redhat/example@1.0",
                 None,
                 True,
                 "cannot have its PURL removed",
             ),
             (
                 "Core Middleware",
-                "pkg:rpm/example@1.0",
+                "pkg:rpm/redhat/example@1.0",
                 "",
                 True,
                 "cannot have its PURL removed",
@@ -265,16 +265,16 @@ class TestAffect:
             # Middleware product: keeping PURL should be fine
             (
                 "Core Middleware",
-                "pkg:rpm/example@1.0",
-                "pkg:rpm/example@2.0",
+                "pkg:rpm/redhat/example@1.0",
+                "pkg:rpm/redhat/example@2.0",
                 False,
                 None,
             ),
             # Middleware product: adding PURL to existing affect should be fine
-            ("Core Middleware", "", "pkg:rpm/example@1.0", False, None),
+            ("Core Middleware", "", "pkg:rpm/redhat/example@1.0", False, None),
             # Non-middleware product: removing PURL should be fine
-            ("RHEL", "pkg:rpm/example@1.0", None, False, None),
-            ("RHEL", "pkg:rpm/example@1.0", "", False, None),
+            ("RHEL", "pkg:rpm/redhat/example@1.0", None, False, None),
+            ("RHEL", "pkg:rpm/redhat/example@1.0", "", False, None),
         ],
     )
     def test_validate_purl_middleware_existing_affects(
