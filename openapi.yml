@@ -6514,6 +6514,44 @@ paths:
                     version:
                       type: string
           description: ''
+  /osidb/api/v1/flaws/index:
+    get:
+      operationId: osidb_api_v1_flaws_index_retrieve
+      description: Simple API endpoint to return ID and update time pairs
+      parameters:
+      - in: query
+        name: id_type
+        schema:
+          type: string
+          enum:
+          - cve_id
+          - uuid
+        description: Specify which ID type to return. This is either internal OSIDB
+          UUID of a Flaw or the CVE number of a Flaw
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawV1'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /osidb/api/v1/labels:
     get:
       operationId: osidb_api_v1_labels_list
@@ -12340,6 +12378,44 @@ paths:
               schema:
                 allOf:
                 - $ref: '#/components/schemas/FlawPut'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v2/flaws/index:
+    get:
+      operationId: osidb_api_v2_flaws_index_retrieve
+      description: Simple API endpoint to return ID and update time pairs
+      parameters:
+      - in: query
+        name: id_type
+        schema:
+          type: string
+          enum:
+          - cve_id
+          - uuid
+        description: Specify which ID type to return. This is either internal OSIDB
+          UUID of a Flaw or the CVE number of a Flaw
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/Flaw'
                 - type: object
                   properties:
                     dt:

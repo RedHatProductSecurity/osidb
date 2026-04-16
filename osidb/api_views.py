@@ -419,6 +419,18 @@ query_api_param = OpenApiParameter(
     ),
 )
 
+query_id_type_param = OpenApiParameter(
+    name="id_type",
+    required=False,
+    type=str,
+    enum=["uuid", "cve_id"],
+    location=OpenApiParameter.QUERY,
+    description=(
+        "Specify which ID type to return. This is either internal OSIDB UUID of a Flaw "
+        "or the CVE number of a Flaw"
+    ),
+)
+
 
 def jira_api_key_extend_schema_view(
     cls: Type[ViewSetMixin],
@@ -794,6 +806,24 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         }
         response["Location"] = f"/api/{OSIDB_API_VERSION}/flaws/{response.data['uuid']}"
         return response
+
+    @extend_schema(parameters=[query_id_type_param])
+    @action(detail=False, methods=["get"])
+    def index(self, request, *args, **kwargs):
+        """
+        Simple API endpoint to return ID and update time pairs
+        """
+        id_type = request.query_params.get("id_type", "uuid")
+
+        # Default to using UUID unless CVE ID is requested
+        if id_type == "cve_id":
+            queryset = Flaw.objects.exclude(cve_id__isnull=True).values(
+                "cve_id", "updated_dt"
+            )
+        else:
+            queryset = Flaw.objects.values("uuid", "updated_dt")
+
+        return Response({"results": list(queryset)})
 
 
 @include_meta_attr_extend_schema_view
