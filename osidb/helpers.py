@@ -2,6 +2,7 @@
 Helpers for direct or development shell usage
 """
 
+import functools
 import json
 import logging
 import logging.handlers
@@ -22,7 +23,11 @@ from requests.models import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
 
-from osidb.core import set_user_acls
+from osidb.core import (
+    restore_user_acl_session,
+    set_user_acls,
+    snapshot_user_acl_session,
+)
 from osidb.validators import CVE_RE_STR, restrict_regex
 
 from .exceptions import OSIDBException
@@ -348,6 +353,8 @@ def bypass_rls(f: Callable) -> Callable:
 
     When a callable is decorated with this helper, the ACLs will be set to
     ALL_GROUPS, effectively bypassing Row-Level Security / Authorization.
+    After the callable returns, the previous ``osidb.acl`` session values per
+    connection are restored (same as before the decorator ran), not cleared.
 
     Be aware of the implications of bypassing RLS, namely that any actions
     that depend on a user's permissions will not work correctly if executed
@@ -359,10 +366,14 @@ def bypass_rls(f: Callable) -> Callable:
         * Non user-driven processes
     """
 
+    @functools.wraps(f)
     def wrapped(*args, **kwargs):
+        previous_acl = snapshot_user_acl_session()
         set_user_acls(settings.ALL_GROUPS)
-        f(*args, **kwargs)
-        set_user_acls([])
+        try:
+            return f(*args, **kwargs)
+        finally:
+            restore_user_acl_session(previous_acl)
 
     return wrapped
 

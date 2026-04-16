@@ -1,5 +1,7 @@
 import json
 import re
+from copy import deepcopy
+from pathlib import Path
 
 import pytest
 from django.conf import settings
@@ -247,6 +249,37 @@ def bypass_rls(db, request):
     if "enable_rls" in request.keywords:
         return
     set_user_acls(settings.ALL_GROUPS)
+
+
+_NEWCLI_FIXTURE_DIR = Path(__file__).resolve().parent / "osidb" / "tests" / "fixtures"
+
+
+def _load_newcli_json_fixture(filename: str) -> dict:
+    path = _NEWCLI_FIXTURE_DIR / filename
+    with path.open(encoding="utf-8") as f:
+        return json.load(f)
+
+
+@pytest.fixture
+def newcli_urllib3_hummingbird1_json():
+    """
+    Pretty-printed sample of ``newcli -s urllib3 --include hummingbird-1 --json``.
+
+    Source: ``osidb/tests/fixtures/newcli_urllib3_hummingbird1.json`` (multiple ``deps`` for
+    multi-affect tests).
+    """
+    return deepcopy(_load_newcli_json_fixture("newcli_urllib3_hummingbird1.json"))
+
+
+@pytest.fixture
+def newcli_openssl_hummingbird1_json():
+    """
+    Pretty-printed sample of ``newcli -s openssl --include hummingbird-1 --json`` (openssl /
+    cargo dependency shape; single ``deps`` entry).
+
+    Source: ``osidb/tests/fixtures/newcli_openssl_hummingbird1.json``.
+    """
+    return deepcopy(_load_newcli_json_fixture("newcli_openssl_hummingbird1.json"))
 
 
 @pytest.fixture
