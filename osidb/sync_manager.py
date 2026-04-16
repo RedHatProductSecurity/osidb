@@ -1,7 +1,9 @@
 import json
+from contextlib import contextmanager
 from datetime import timedelta
-from typing import Optional, Type
+from typing import Any, Iterator, Optional, Type
 
+import pghistory
 from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -13,6 +15,22 @@ from config.celery import app
 from osidb.core import set_user_acls
 
 logger = get_task_logger(__name__)
+
+
+@contextmanager
+def pghistory_context(
+    action: str,
+    celery_task_id: str,
+    *,
+    source: str = "celery",
+    user: str = "celery_task",
+    **extra_context: Any,
+) -> Iterator[None]:
+    ctx = {"source": source, "user": user, "action": action, **extra_context}
+    if celery_task_id:
+        ctx["celery_task_id"] = celery_task_id
+    with pghistory.context(**ctx):
+        yield
 
 
 class SyncManager(models.Model):
@@ -486,7 +504,7 @@ class BZTrackerDownloadManager(SyncManager):
         return result
 
     @staticmethod
-    def link_tracker_with_affects(tracker_id):
+    def link_tracker_with_affects(tracker_id, task="UNKNOWN"):
         # Code adapted from collectors.bzimport.convertors.BugzillaTrackerConvertor.affects
 
         from osidb.models import Affect, Flaw, Tracker
@@ -561,9 +579,13 @@ class BZTrackerDownloadManager(SyncManager):
         affects = list(set(affects))
 
         with transaction.atomic():
-            tracker.affects.clear()
-            tracker.affects.add(*affects)
-            tracker.save(raise_validation_error=False, auto_timestamps=False)
+            with pghistory_context(
+                action="link_tracker_with_affects",
+                celery_task_id=getattr(getattr(task, "request", None), "id", None),
+            ):
+                tracker.affects.clear()
+                tracker.affects.add(*affects)
+                tracker.save(raise_validation_error=False, auto_timestamps=False)
 
         return affects, failed_flaws, failed_affects
 
@@ -580,7 +602,9 @@ class BZTrackerDownloadManager(SyncManager):
         collector = collectors.BugzillaTrackerCollector()
         try:
             collector.sync_tracker(tracker_id)
-            result = BZTrackerDownloadManager.link_tracker_with_affects(tracker_id)
+            result = BZTrackerDownloadManager.link_tracker_with_affects(
+                tracker_id, task
+            )
             # Handle link failures
             affects, failed_flaws, failed_affects = result
             if failed_flaws:
@@ -819,8 +843,12 @@ class JiraTaskSyncManager(SyncManager):
         set_user_acls(settings.ALL_GROUPS)
 
         try:
-            flaw = Flaw.objects.get(uuid=flaw_id)
-            flaw._create_or_update_task()
+            with pghistory_context(
+                action="jira_task_sync",
+                celery_task_id=getattr(getattr(task, "request", None), "id", None),
+            ):
+                flaw = Flaw.objects.get(uuid=flaw_id)
+                flaw._create_or_update_task()
 
         except Exception as e:
             JiraTaskSyncManager.failed(flaw_id, e)
@@ -869,8 +897,12 @@ class JiraTaskTransitionManager(SyncManager):
         set_user_acls(settings.ALL_GROUPS)
 
         try:
-            flaw = Flaw.objects.get(uuid=flaw_id)
-            flaw._transition_task()
+            with pghistory_context(
+                action="jira_task_transition",
+                celery_task_id=getattr(getattr(task, "request", None), "id", None),
+            ):
+                flaw = Flaw.objects.get(uuid=flaw_id)
+                flaw._transition_task()
 
         except Exception as e:
             JiraTaskTransitionManager.failed(flaw_id, e)
@@ -990,8 +1022,11 @@ class JiraTrackerDownloadManager(SyncManager):
             tracker_data = JiraQuerier().get_issue(tracker_id)
             tracker = JiraTrackerConvertor(tracker_data).tracker
             if tracker:
-                tracker.save()
-
+                with pghistory_context(
+                    action="jira_tracker_download",
+                    celery_task_id=getattr(getattr(task, "request", None), "id", None),
+                ):
+                    tracker.save()
             # Link this Jira tracker to OSIDB Affects as part of the sync process.
             result = JiraTrackerDownloadManager.link_tracker_with_affects(tracker_id)
 
