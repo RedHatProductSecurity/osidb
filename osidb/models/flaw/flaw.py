@@ -309,6 +309,12 @@ class Flaw(
             models.Index(fields=["-cve_id"]),
             GinIndex(fields=["acl_read"]),
             models.Index(fields=["-local_updated_dt"]),
+            models.Index(fields=["uuid", "updated_dt"]),
+            models.Index(
+                fields=["cve_id", "updated_dt"],
+                condition=models.Q(cve_id__isnull=False),
+                name="osidb_flaw_cve_index",
+            ),
         ]
 
     def __str__(self):

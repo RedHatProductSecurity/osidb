@@ -2160,3 +2160,51 @@ class TestEndpointsFlaws:
         response = auth_client().get(f"{test_api_uri}/flaws/{flaw2.cve_id}")
         assert response.status_code == 200
         assert response.data["selected_cve_description"] == flaw2.mitre_cve_description
+
+    def test_flaw_index(self, auth_client, test_api_v2_uri):
+        """
+        Test that flaw index returns uuid and updated_dt pair
+        """
+        flaw1 = FlawFactory(embargoed=False)
+        flaw2 = FlawFactory(embargoed=False)
+
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/index")
+        assert response.status_code == 200
+
+        body = {item["uuid"]: item["updated_dt"] for item in response.data["results"]}
+
+        assert body[flaw1.uuid] == flaw1.updated_dt
+        assert body[flaw2.uuid] == flaw2.updated_dt
+
+    def test_flaw_cve_index(self, auth_client, test_api_v2_uri):
+        """
+        Test that flaw index returns cve_id and updated_dt pair.
+        Flaws w/o CVE ID are skipped.
+        """
+        flaw1 = FlawFactory(embargoed=False)
+        flaw2 = FlawFactory(embargoed=False)
+        FlawFactory(cve_id="")
+
+        response = auth_client().get(f"{test_api_v2_uri}/flaws/index?id_type=cve_id")
+        assert response.status_code == 200
+
+        body = {item["cve_id"]: item["updated_dt"] for item in response.data["results"]}
+
+        assert len(body) == 2
+        assert body[flaw1.cve_id] == flaw1.updated_dt
+        assert body[flaw2.cve_id] == flaw2.updated_dt
+
+    def test_flaw_embargoed_index(self, client, test_api_v2_uri):
+        """
+        Test flaw index on embargoed flaw.
+        """
+        flaw1 = FlawFactory(embargoed=False)
+        FlawFactory(embargoed=True)
+
+        response = client.get(f"{test_api_v2_uri}/flaws/index")
+        assert response.status_code == 200
+
+        body = {item["uuid"]: item["updated_dt"] for item in response.data["results"]}
+
+        assert len(body) == 1
+        assert body[flaw1.uuid] == flaw1.updated_dt

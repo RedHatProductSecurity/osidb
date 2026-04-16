@@ -139,6 +139,10 @@ urlpatterns = [
         f"api/{OSIDB_API_VERSION}/schema/swagger-ui/",
         SpectacularSwaggerView.as_view(url_name="schema"),
     ),
+    path(
+        f"api/{OSIDB_API_VERSION_NEXT}/flaws/index",
+        FlawView.as_view({"get": "index"}),
+    ),
     path(f"api/{OSIDB_API_VERSION_NEXT}/", include(vnext_router.urls)),
 ]
 
