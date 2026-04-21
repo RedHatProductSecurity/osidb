@@ -6514,6 +6514,51 @@ paths:
                     version:
                       type: string
           description: ''
+  /osidb/api/v1/flaws/index:
+    get:
+      operationId: osidb_api_v1_flaws_index_retrieve
+      description: Simple API endpoint to return ID and local update time pairs
+      parameters:
+      - in: query
+        name: id_type
+        schema:
+          type: string
+          enum:
+          - cve_id
+          - uuid
+        description: Specify which ID type to return. This is either internal OSIDB
+          UUID of a Flaw or the CVE number of a Flaw
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - results
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      minItems: 2
+                      maxItems: 2
+                      items:
+                        type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /osidb/api/v1/labels:
     get:
       operationId: osidb_api_v1_labels_list
@@ -12351,6 +12396,51 @@ paths:
                       type: string
                     version:
                       type: string
+          description: ''
+  /osidb/api/v2/flaws/index:
+    get:
+      operationId: osidb_api_v2_flaws_index_retrieve
+      description: Simple API endpoint to return ID and local update time pairs
+      parameters:
+      - in: query
+        name: id_type
+        schema:
+          type: string
+          enum:
+          - cve_id
+          - uuid
+        description: Specify which ID type to return. This is either internal OSIDB
+          UUID of a Flaw or the CVE number of a Flaw
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - results
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      minItems: 2
+                      maxItems: 2
+                      items:
+                        type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
           description: ''
   /osidb/api/v2/trackers:
     get:
