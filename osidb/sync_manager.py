@@ -8,6 +8,7 @@ from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db import models, transaction
+from django.db.models import F, Q
 from django.utils import timezone
 from rhubarb.tasks import LockableTaskWithArgs
 
@@ -324,97 +325,102 @@ class SyncManager(models.Model):
         This method needs to be called occasionally to check if any of the existing sync managers
         need to re-schedule tasks for any reason (like previous failure).
         """
-        for sync_manager in SyncManager.objects.filter(name=cls.__name__):
-            # TODO: Find a cause and remove this workaround OSIDB-3131
-            # TODO: Should be fixed, check from time to time to see if this problem is logged
-            if (
-                sync_manager.last_scheduled_dt is None
-                and sync_manager.last_started_dt is not None
-            ):
-                logger.info(
-                    f"{sync_manager.__class__.__name__} {sync_manager.sync_id}: "
-                    f"Started but not scheduled, this should NEVER happen"
-                )
-                continue
+        sync_managers = SyncManager.objects.filter(name=cls.__name__)
+        processed = set()
 
-            # SCHEDULED, DID NOT START
-            # 1) Scheduled at least once before
-            # 2) Scheduled for more than MAX_SCHEDULE_DELAY
-            # 3) Not started after scheduled (or ever)
-            #
-            #      |       MAX_SCHEDULE_DELAY      |
-            #      |-------------------------------|---//-------?
-            #  Scheduled                          NOW        Started
-            #
-            if (
-                sync_manager.last_scheduled_dt is not None
-                and timezone.now() - sync_manager.last_scheduled_dt
-                > cls.MAX_SCHEDULE_DELAY
-                and (
-                    sync_manager.last_started_dt is None
-                    or sync_manager.last_started_dt < sync_manager.last_scheduled_dt
-                )
-            ):
-                cls.reschedule(
-                    sync_manager.sync_id, "Sync did not start after MAX_SCHEDULE_DELAY"
-                )
-                continue
+        def reschedule(sm_fields, msg=None, msg_fn=None):
+            for sm in sm_fields:
+                sync_id = sm["sync_id"]
+                if sync_id in processed:
+                    continue
 
-            # STARTED, DID NOT FINISH
-            # 1) Started at least once before
-            # 2) Running for more than MAX_RUN_LENGTH
-            # 3) Not finish after it started (or ever)
-            # 4) Not failed after it started (or ever)
-            # 5) Not scheduled after started
-            #
-            #     |       MAX_RUN_LENGTH          |
-            #     |-------------------------------|---//-------------?----------------?
-            #  Started                           NOW         Success / Failure     Scheduled
-            #
+                reason = msg_fn(sm) if msg_fn is not None else msg
+                cls.reschedule(sync_id, reason)
+                processed.add(sync_id)
 
-            if (
-                sync_manager.last_started_dt is not None
-                and timezone.now() - sync_manager.last_started_dt > cls.MAX_RUN_LENGTH
-                and (
-                    sync_manager.last_finished_dt is None
-                    or sync_manager.last_finished_dt < sync_manager.last_started_dt
-                )
-                and (
-                    sync_manager.last_failed_dt is None
-                    or sync_manager.last_failed_dt < sync_manager.last_started_dt
-                )
-                and sync_manager.last_scheduled_dt < sync_manager.last_started_dt
-            ):
-                cls.reschedule(
-                    sync_manager.sync_id, "Sync did not finish after MAX_RUN_LENGTH"
-                )
-                continue
+        # TODO: Find a cause and remove this workaround OSIDB-3131
+        # TODO: Should be fixed, check from time to time to see if this problem is logged
+        started_not_scheduled_ids = sync_managers.filter(
+            last_scheduled_dt__isnull=True, last_started_dt__isnull=False
+        ).values_list("sync_id", flat=True)
 
-            # STARTED, FAILED, NOT PERMANENTLY
-            # 1) Started at least once before
-            # 2) Failed recently
-            # 3) Not permanent failure
-            # 3) Failed more than FAIL_RESCHEDULE_DELAY ago
-            # 4) Was not scheduled after last failure
-            #
-            #                 |     FAIL_RESCHEDULE_DELAY    |
-            #     |-----------|------------------------------|---//----------?
-            #  Started      Fail (not permanent?)           NOW          Scheduled
-            #
+        for sync_id in started_not_scheduled_ids:
+            logger.info(
+                f"{cls.__name__} {sync_id}: "
+                f"Started but not scheduled, this should NEVER happen"
+            )
 
-            if (
-                sync_manager.last_started_dt is not None
-                and 0 < sync_manager.last_consecutive_failures
-                and not sync_manager.permanently_failed
-                and timezone.now() - sync_manager.last_failed_dt
-                > cls.FAIL_RESCHEDULE_DELAY
-                and sync_manager.last_scheduled_dt < sync_manager.last_failed_dt
-            ):
-                cls.reschedule(
-                    sync_manager.sync_id,
-                    f"Failed {sync_manager.last_consecutive_failures} times",
-                )
-                continue
+            processed.add(sync_id)
+
+        # SCHEDULED, DID NOT START
+        # 1) Scheduled at least once before
+        # 2) Scheduled for more than MAX_SCHEDULE_DELAY
+        # 3) Not started after scheduled (or ever)
+        #
+        #      |       MAX_SCHEDULE_DELAY      |
+        #      |-------------------------------|---//-------?
+        #  Scheduled                          NOW        Started
+        #
+        scheduled_not_started = sync_managers.filter(
+            Q(last_started_dt__isnull=True)
+            | Q(last_started_dt__lt=F("last_scheduled_dt")),
+            last_scheduled_dt__isnull=False,
+            last_scheduled_dt__lt=timezone.now() - cls.MAX_SCHEDULE_DELAY,
+        ).values("sync_id")
+
+        reschedule(
+            scheduled_not_started,
+            "Sync did not start after MAX_SCHEDULE_DELAY",
+        )
+
+        # STARTED, DID NOT FINISH
+        # 1) Started at least once before
+        # 2) Running for more than MAX_RUN_LENGTH
+        # 3) Not finish after it started (or ever)
+        # 4) Not failed after it started (or ever)
+        # 5) Not scheduled after started
+        #
+        #     |       MAX_RUN_LENGTH          |
+        #     |-------------------------------|---//-------------?----------------?
+        #  Started                           NOW         Success / Failure     Scheduled
+        #
+        started_not_finished = sync_managers.filter(
+            Q(last_finished_dt__isnull=True)
+            | Q(last_finished_dt__lt=F("last_started_dt")),
+            Q(last_failed_dt__isnull=True) | Q(last_failed_dt__lt=F("last_started_dt")),
+            last_started_dt__isnull=False,
+            last_started_dt__lt=timezone.now() - cls.MAX_RUN_LENGTH,
+            last_scheduled_dt__lt=F("last_started_dt"),
+        ).values("sync_id")
+
+        reschedule(
+            started_not_finished,
+            "Sync did not finish after MAX_RUN_LENGTH",
+        )
+
+        # STARTED, FAILED, NOT PERMANENTLY
+        # 1) Started at least once before
+        # 2) Failed recently
+        # 3) Not permanent failure
+        # 4) Failed more than FAIL_RESCHEDULE_DELAY ago
+        # 5) Was not scheduled after last failure
+        #
+        #                 |     FAIL_RESCHEDULE_DELAY    |
+        #     |-----------|------------------------------|---//----------?
+        #  Started      Fail (not permanent?)           NOW          Scheduled
+        #
+        started_failed_not_permanently = sync_managers.filter(
+            last_started_dt__isnull=False,
+            last_consecutive_failures__gt=0,
+            permanently_failed=False,
+            last_failed_dt__lt=timezone.now() - cls.FAIL_RESCHEDULE_DELAY,
+            last_scheduled_dt__lt=F("last_failed_dt"),
+        ).values("sync_id", "last_consecutive_failures")
+
+        reschedule(
+            started_failed_not_permanently,
+            msg_fn=lambda sm: f"Failed {sm['last_consecutive_failures']} times",
+        )
 
     @classmethod
     def is_in_progress(cls, sync_id):
