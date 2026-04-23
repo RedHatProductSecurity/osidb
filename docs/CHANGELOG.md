@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add schema validation to PURLs (OSIDB-4910)
 - Affect(s) can be automatically created and assigned to Flaw(s) for
   specific products (OSIDB-4878)
+- Add index API for flaw ID and updated datetime (OSIDB-4738)
 
 ## [5.9.0] - 2026-04-09
 ### Fixed
