@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Affect(s) can be automatically created and assigned to Flaw(s) for
   specific products (OSIDB-4878)
 
+### Removed
+- Remove `owner` and `qe_owner` parsing from Jira Tracker and Task download to prevent tracker sync failure(OSIDB-4875)
+
 ## [5.9.0] - 2026-04-09
 ### Fixed
 - Fix invalid `in` field in kerberos OpenAPI security scheme (OSIDB-1590)

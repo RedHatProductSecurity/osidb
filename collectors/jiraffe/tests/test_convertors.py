@@ -13,7 +13,6 @@ from osidb.models import Affect, Flaw, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
-    JiraUserMappingFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
 )
@@ -392,9 +391,6 @@ class TestJiraTrackerConvertor:
         mock_issue.fields.created = "2026-01-01T00:00:00.000+0000"
         mock_issue.fields.updated = "2026-01-01T00:00:00.000+0000"
         mock_issue.fields.resolutiondate = None
-        mock_issue.fields.assignee = None
-        mock_issue.fields.customfield_12316243 = None
-
         convertor = JiraTrackerConvertor(mock_issue)
 
         assert convertor.ps_update_stream == "test-stream"
@@ -414,7 +410,6 @@ class TestJiraTaskConvertor:
         """
         test that the convertor works
         """
-        mapping = JiraUserMappingFactory(atlassian_cloud_id="test-cloud-id")
         task_data = JiraQuerier().get_issue(self.task_id, expand="changelog")
         task_convertor = JiraTaskConvertor(task_data)
 
@@ -442,4 +437,3 @@ class TestJiraTaskConvertor:
         )
         assert flaw.workflow_name == "DEFAULT"
         assert flaw.workflow_state == "TRIAGE"
-        assert flaw.owner == f"{mapping.associate_kerberos_id}@redhat.com"
