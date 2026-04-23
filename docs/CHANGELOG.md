@@ -38,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace JiraUserMapping with direct Jira API user lookup and cache in Profile model(OSIDB-4865)
 
 
+### Changed
+- osv_collector now ignore withdrawn items (OSIDB-4929)
+
 ## [5.9.0] - 2026-04-09
 ### Fixed
 - Fix invalid `in` field in kerberos OpenAPI security scheme (OSIDB-1590)
