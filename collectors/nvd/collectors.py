@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Optional, Union
 
 import nvdlib
 from celery.utils.log import get_task_logger
@@ -65,6 +65,20 @@ class NVDQuerier:
         filtering out everything unnecessary and simplifying
         """
 
+        def get_cpe_list(data: CVE) -> Optional[List[str]]:
+            """
+            Return a list of CPEs from the CVE `data`
+            """
+            cpe_list = []
+            if "cpe" in data and len(data.cpe) > 0:
+                for entry in data.cpe:
+                    cpe_list.append(entry.criteria)
+
+            if len(cpe_list) > 0:
+                return cpe_list
+            else:
+                return None
+
         def get_cvss_metric(data: CVE, version: str) -> Union[dict, None]:
             """
             Return CVSS metric from `data` for the given `version`.
@@ -104,6 +118,7 @@ class NVDQuerier:
                             ],
                         )
                     ),
+                    "nvd_cpes": get_cpe_list(vulnerability),
                 }
             )
 
