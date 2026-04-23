@@ -30,6 +30,22 @@ class OSVCollectorException(Exception):
     """exception for OSV Collector"""
 
 
+class OSVCollectorWithdrawnException(Exception):
+    """exception for OSV Collector withdrawn vulnerability"""
+
+    osv_id = None
+    cve_ids = None
+    withdrawn = None
+
+    def __init__(self, osv_id, cve_ids, withdrawn):
+        self.osv_id = osv_id
+        self.cve_ids = cve_ids
+        self.withdrawn = withdrawn
+
+    def __str__(self):
+        return f"OSV vulnerability {self.osv_id} CVE_IDs: {self.cve_ids} withdrawn on {self.withdrawn}."
+
+
 class OSVCollector(Collector):
     # Snippet creation is disabled for now
     snippet_creation_enabled = None
@@ -148,6 +164,9 @@ class OSVCollector(Collector):
                 for osv_vuln in self.fetch_osv_vulns_for_ecosystem(ecosystem):
                     try:
                         osv_id, cve_ids, content = self.extract_content(osv_vuln)
+                    except OSVCollectorWithdrawnException as exc:
+                        logger.warning(str(exc))
+                        continue
                     except Exception as exc:
                         logger.error(
                             f"Failed to parse data from {osv_vuln['id']} vulnerability: {exc}"
@@ -268,6 +287,10 @@ class OSVCollector(Collector):
 
         cve_ids = get_cve_ids_from_osv_vuln(osv_vuln)
         osv_id = osv_vuln["id"]
+
+        # ignore withdrawn vulnerabilities
+        if withdrawn := osv_vuln.get("withdrawn", ""):
+            raise OSVCollectorWithdrawnException(osv_id, cve_ids, withdrawn)
 
         def get_refs(data: dict) -> list:
             #  https://ossf.github.io/osv-schema/#references-field
