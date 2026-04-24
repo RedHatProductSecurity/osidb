@@ -139,6 +139,20 @@ class TestOSVCollector:
         assert Snippet.objects.count() == 0
         assert Flaw.objects.count() == 0
 
+    @pytest.mark.vcr
+    @pytest.mark.default_cassette("osv_record_without_details.yaml")
+    def test_ignore_osv_record_without_details(self):
+        """
+        Test that OSV record without details and withdrawn is ignored.
+        """
+        osvc = OSVCollector()
+        osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        osvc.collect(osv_id="GO-2023-1494")
+
+        assert Snippet.objects.count() == 0
+        assert Flaw.objects.count() == 0
+
     @pytest.mark.enable_signals
     @pytest.mark.vcr
     def test_collect_osv_record_with_cvss(self):

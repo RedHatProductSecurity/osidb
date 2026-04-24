@@ -146,10 +146,13 @@ class OSVCollector(Collector):
         if osv_id is not None:
             # Surface an exception when collecting an individual OSV vulnerability
             osv_vuln = self.fetch_osv_vuln_by_id(osv_id)
-            osv_id, cve_ids, content = self.extract_content(osv_vuln)
             try:
+                osv_id, cve_ids, content = self.extract_content(osv_vuln)
                 with transaction.atomic():
                     self.save_snippet_and_flaw(osv_id, cve_ids, content)
+            except OSVCollectorWithdrawnException as exc:
+                logger.warning(str(exc))
+                return f"OSV collection for {osv_id} was ignored because it is withdrawn and without details."
             except Exception as exc:
                 message = f"Failed to save snippet and flaw for {osv_id}. Error: {exc}."
                 logger.error(message)
@@ -288,10 +291,6 @@ class OSVCollector(Collector):
         cve_ids = get_cve_ids_from_osv_vuln(osv_vuln)
         osv_id = osv_vuln["id"]
 
-        # ignore withdrawn vulnerabilities
-        if withdrawn := osv_vuln.get("withdrawn", ""):
-            raise OSVCollectorWithdrawnException(osv_id, cve_ids, withdrawn)
-
         def get_refs(data: dict) -> list:
             #  https://ossf.github.io/osv-schema/#references-field
             refs = [
@@ -310,7 +309,14 @@ class OSVCollector(Collector):
 
         def get_comment_zero(data: dict) -> str:
             #  https://ossf.github.io/osv-schema/#summary-details-fields
-            return data.get("details", "")
+
+            # ignore withdrawn vulnerabilities without details
+            if not (details := data.get("details", "")) and (
+                withdrawn := data.get("withdrawn", "")
+            ):
+                raise OSVCollectorWithdrawnException(osv_id, cve_ids, withdrawn)
+
+            return details
 
         def get_title(data: dict) -> str:
             #  https://ossf.github.io/osv-schema/#summary-details-fields
