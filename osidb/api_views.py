@@ -7,6 +7,7 @@ from datetime import datetime
 from importlib.metadata import distributions
 from typing import Any, Type, cast
 from urllib.parse import urljoin
+from uuid import uuid4
 
 import pghistory
 import requests
@@ -14,6 +15,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from djangoql.serializers import SuggestionsAPISerializer
 from djangoql.views import SuggestionsAPIView
@@ -52,7 +54,15 @@ from apps.workflows.workflow import WorkflowModel
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 from osidb.helpers import bypass_rls, get_bugzilla_api_key, get_flaw_or_404
 from osidb.integrations import IntegrationRepository, IntegrationSettings
-from osidb.models import Affect, AffectCVSS, AffectV1, Flaw, FlawLabel, Tracker
+from osidb.models import (
+    Affect,
+    AffectCVSS,
+    AffectV1,
+    Flaw,
+    FlawLabel,
+    PsUpdateStream,
+    Tracker,
+)
 from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.cvss import FlawCVSS
 from osidb.sync_manager import SyncManager
@@ -1243,6 +1253,75 @@ class FlawPackageVersionView(
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
+def _prepare_affect_for_bulk(instance, flaw, ps_update_stream_map):
+    """
+    Run all the pre-save processing that Affect.save() and pre_save signals
+    normally perform, preparing the instance for bulk_create without actually
+    saving it.
+
+    *flaw* is the pre-fetched parent Flaw and *ps_update_stream_map* is a
+    ``{name: PsUpdateStream}`` dict (with ``ps_module`` already
+    select_related), both passed in to avoid N+1 queries.
+
+    Raises ValidationError if the instance is invalid.
+    """
+    # Pin the cached FK so Django never lazy-loads it again.
+    instance.flaw = flaw
+
+    # --- Affect.save() pre-processing ---
+    if instance.purl and not instance.ps_component:
+        try:
+            maybe_ps_component = instance.ps_component_from_purl()
+            if maybe_ps_component:
+                instance.ps_component = maybe_ps_component
+        except ValueError:
+            pass
+
+    if instance.is_resolved:
+        instance.resolved_dt = timezone.now().replace(microsecond=0)
+    else:
+        instance.resolved_dt = None
+
+    ps_update_stream_obj = ps_update_stream_map.get(instance.ps_update_stream)
+    if ps_update_stream_obj and ps_update_stream_obj.ps_module:
+        instance.ps_module = ps_update_stream_obj.ps_module.name
+    else:
+        instance.ps_module = None
+
+    # --- pre_save signal: mirror_parent_cve_id ---
+    instance.cve_id = flaw.cve_id
+
+    # --- pre_save signal: remove_not_affected_justification ---
+    if instance.affectedness != Affect.AffectAffectedness.NOTAFFECTED:
+        instance.not_affected_justification = ""
+
+    # --- pre_save signal: update_denormalized_labels_on_affect_change ---
+    instance.update_denormalized_labels()
+
+    # --- TrackingMixin: set timestamps for a new instance ---
+    now = timezone.now().replace(microsecond=0)
+    instance.created_dt = now
+    instance.updated_dt = now
+
+    # --- AlertMixin: set last_validated_dt and run validation ---
+    instance.last_validated_dt = timezone.now()
+    instance.validate(raise_validation_error=True)
+
+
+def _run_post_save_effects_for_bulk(created_affects, flaw):
+    """
+    Run the post_save side-effects that are normally triggered by signals
+    after each individual Affect.save().  Called once after bulk_create.
+    """
+    from apps.workflows.workflow import WorkflowModel
+    from osidb.models import FlawCollaborator
+
+    # FlawCollaborator labels for PRE_SECONDARY_ASSESSMENT flaws
+    if flaw.workflow_state == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT:
+        for affect in created_affects:
+            FlawCollaborator.objects.create_from_affect(affect)
+
+
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
 @include_history_extend_schema_view
@@ -1345,44 +1424,109 @@ class AffectView(
     def bulk_post(self, request, *args, **kwargs):
         """
         Bulk create endpoint. Expects a list of dict Affect objects.
-        """
 
+        Valid affects are created via bulk_create; invalid or duplicate
+        entries are skipped and reported in the ``failed`` list.
+        """
         bz_api_key = get_bugzilla_api_key(request)
 
-        # TODO sometime: Some of these actions probably belong to another layer, perhaps serializer.
-
-        # first, perform validations
-        flaws = set()
-        validated_serializers = []
+        # --- Pre-scan: collect flaw UUIDs and enforce constraints ---
+        flaw_uuids = set()
         for datum in request.data:
             try:
-                flaw_uuid = datum["flaw"]
-            except KeyError:
+                flaw_uuids.add(datum["flaw"])
+            except (KeyError, TypeError):
                 raise ValidationError({"flaw": "This field is required."})
 
-            flaws.add(flaw_uuid)
-
-            serializer = self.get_serializer(data=datum)
-            serializer.is_valid(raise_exception=True)
-            validated_serializers.append(serializer)
-
-        if len(flaws) > 1:
+        if len(flaw_uuids) > 1:
             raise ValidationError(
                 {"flaw": "Provided affects belong to multiple flaws."}
             )
 
-        # Second, save the updated affects to the database, but not sync with BZ.
-        ret = []
-        for serializer in validated_serializers:
-            # Make the serializer skip the sync for each affect
-            serializer.save(skip_bz_sync=True)
-            ret.append(serializer.data)
+        if not flaw_uuids:
+            raise ValidationError({"flaw": "This field is required."})
 
-        # Third, proxy the update to Bugzilla
-        flaw = Flaw.objects.get(uuid=next(iter(flaws)))
+        flaw_uuid = next(iter(flaw_uuids))
+        flaw = get_object_or_404(Flaw, uuid=flaw_uuid)
+
+        # Prefetch all PsUpdateStreams referenced in the batch (+ their PsModule)
+        stream_names = {
+            d.get("ps_update_stream")
+            for d in request.data
+            if isinstance(d, dict) and d.get("ps_update_stream")
+        }
+        ps_update_stream_map = {
+            obj.name: obj
+            for obj in PsUpdateStream.objects.filter(
+                name__in=stream_names
+            ).select_related("ps_module")
+        }
+
+        # --- Phase 1 + 2: validate, build and prepare each instance ---
+        prepared_instances = []
+        errors = []
+
+        for idx, datum in enumerate(request.data):
+            serializer = self.get_serializer(data=datum)
+            if not serializer.is_valid():
+                errors.append({"index": idx, "errors": serializer.errors})
+                continue
+
+            validated_data = serializer.validated_data
+            if "acl_read" not in validated_data or "acl_write" not in validated_data:
+                validated_data = serializer.embargoed2acls(validated_data)
+
+            try:
+                instance = Affect(**validated_data)
+                instance.uuid = uuid4()
+                _prepare_affect_for_bulk(instance, flaw, ps_update_stream_map)
+            except ValidationError as e:
+                error_detail = (
+                    e.message_dict
+                    if hasattr(e, "message_dict")
+                    else {"non_field_errors": e.messages}
+                )
+                errors.append({"index": idx, "errors": error_detail})
+                continue
+
+            prepared_instances.append((idx, datum, instance))
+
+        if not prepared_instances:
+            return Response(
+                {"results": [], "failed": errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # --- Phase 3: bulk insert, let Postgres skip duplicates ---
+        instances = [inst for _, _, inst in prepared_instances]
+        submitted_uuids = {inst.uuid for inst in instances}
+
+        Affect.objects.bulk_create(instances, ignore_conflicts=True)
+
+        # Refetch by pre-generated UUIDs to find which ones Postgres kept.
+        created = list(Affect.objects.filter(uuid__in=submitted_uuids))
+        created_uuids = {a.uuid for a in created}
+
+        for idx, datum, inst in prepared_instances:
+            if inst.uuid not in created_uuids:
+                errors.append(
+                    {
+                        "index": idx,
+                        "input": datum,
+                        "errors": {
+                            "non_field_errors": [
+                                "Affect already exists for this flaw/stream/component."
+                            ]
+                        },
+                    }
+                )
+
+        # --- Phase 4: post-save effects ---
+        _run_post_save_effects_for_bulk(created, flaw)
         flaw.save(bz_api_key=bz_api_key)
 
-        return Response({"results": ret})
+        ret = self.get_serializer(created, many=True).data
+        return Response({"results": ret, "failed": errors})
 
     @extend_schema(
         methods=["DELETE"],

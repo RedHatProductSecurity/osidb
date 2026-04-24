@@ -1440,13 +1440,12 @@ class AffectBulkPutSerializer(AffectSerializer):
         fields = AffectSerializer.Meta.fields + ["uuid"]
 
 
-class AffectBulkPostPutResponseSerializer(serializers.ModelSerializer):
+class AffectBulkPostPutResponseSerializer(serializers.Serializer):
     # Extra serializer for drf-spectacular to describe format of bulk POST & PUT response.
     results = AffectSerializer(many=True)
-
-    class Meta:
-        model = Affect
-        fields = ["results"]
+    failed = serializers.ListField(
+        child=serializers.DictField(), required=False, default=list
+    )
 
 
 class AffectV1Serializer(

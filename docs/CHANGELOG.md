@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Remove `owner` and `qe_owner` parsing from Jira Tracker and Task download to prevent tracker sync failure(OSIDB-4875)
 
+### Changed
+- Improve resilience, error-reporting and performance of /bulk create
+  affects endpoint (OSIDB-4748)
+
 ## [5.9.0] - 2026-04-09
 ### Fixed
 - Fix invalid `in` field in kerberos OpenAPI security scheme (OSIDB-1590)
