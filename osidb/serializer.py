@@ -1252,7 +1252,7 @@ class AffectSerializer(
     cvss_scores = AffectCVSSSerializer(many=True, read_only=True)
     # at least one of ps_component or purl is required
     ps_component = serializers.CharField(
-        max_length=255, allow_blank=True, allow_null=True, required=False
+        max_length=255, allow_blank=True, allow_null=True, required=False, default=""
     )
     ps_module = serializers.CharField(read_only=True)
     purl = serializers.CharField(

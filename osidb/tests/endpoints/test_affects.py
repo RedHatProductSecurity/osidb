@@ -662,6 +662,311 @@ class TestEndpointsAffectsBulk:
         assert not created_affect.is_internal
         assert created_affect.is_public
 
+    def test_bulk_post_purl_only(self, auth_client, test_api_v2_uri):
+        """
+        Bulk POST with purl provided and ps_component key omitted should
+        succeed; ps_component is derived from purl.
+        """
+        purl = "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25"
+        flaw = FlawFactory(embargoed=False)
+        ps_update_stream = PsUpdateStreamFactory()
+
+        bulk_request = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": Affect.AffectAffectedness.NEW,
+                "resolution": Affect.AffectResolution.NOVALUE,
+                "ps_update_stream": ps_update_stream.name,
+                "purl": purl,
+                "embargoed": False,
+            }
+        ]
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        result = response.json()["results"][0]
+        assert result["ps_component"] == "curl"
+        assert result["purl"] == purl
+
+    def test_bulk_post_ps_component_only(self, auth_client, test_api_v2_uri):
+        """
+        Bulk POST with ps_component provided and purl key omitted should
+        succeed.
+        """
+        flaw = FlawFactory(embargoed=False)
+        ps_update_stream = PsUpdateStreamFactory()
+
+        bulk_request = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": Affect.AffectAffectedness.NEW,
+                "resolution": Affect.AffectResolution.NOVALUE,
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "my-component",
+                "embargoed": False,
+            }
+        ]
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        result = response.json()["results"][0]
+        assert result["ps_component"] == "my-component"
+
+    def test_bulk_put_purl_only(self, auth_client, test_api_v2_uri):
+        """
+        Bulk PUT with purl provided and ps_component key omitted should
+        succeed; ps_component is derived from purl.
+        """
+        purl = "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25"
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw, ps_component="old-component", purl="")
+
+        response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
+        assert response.status_code == 200
+        original = response.json()
+
+        update_data = {
+            "uuid": str(affect.uuid),
+            "flaw": str(flaw.uuid),
+            "affectedness": original["affectedness"],
+            "resolution": original["resolution"],
+            "ps_update_stream": original["ps_update_stream"],
+            "purl": purl,
+            "embargoed": original["embargoed"],
+            "updated_dt": original["updated_dt"],
+        }
+
+        response = auth_client().put(
+            f"{test_api_v2_uri}/affects/bulk",
+            [update_data],
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        result = response.json()["results"][0]
+        assert result["ps_component"] == "curl"
+        assert result["purl"] == purl
+
+    @pytest.mark.parametrize("ps_component_value", ["explicit_null", "omitted"])
+    def test_create_purl_only(self, auth_client, test_api_v2_uri, ps_component_value):
+        """
+        Non-bulk POST with purl provided and ps_component either null or
+        entirely absent should succeed; ps_component is derived from purl.
+        """
+        purl = "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25"
+        flaw = FlawFactory(embargoed=False)
+        PsUpdateStreamFactory(name="test-stream-1.0.z")
+
+        affect_data = {
+            "flaw": str(flaw.uuid),
+            "affectedness": Affect.AffectAffectedness.NEW,
+            "resolution": Affect.AffectResolution.NOVALUE,
+            "ps_update_stream": "test-stream-1.0.z",
+            "purl": purl,
+            "embargoed": False,
+        }
+        if ps_component_value == "explicit_null":
+            affect_data["ps_component"] = None
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects",
+            affect_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        body = response.json()
+        assert body["ps_component"] == "curl"
+        assert body["purl"] == purl
+
+    @pytest.mark.parametrize("purl_value", ["explicit_null", "omitted"])
+    def test_create_ps_component_only(self, auth_client, test_api_v2_uri, purl_value):
+        """
+        Non-bulk POST with ps_component provided and purl either null or
+        entirely absent should succeed.
+        """
+        flaw = FlawFactory(embargoed=False)
+        PsUpdateStreamFactory(name="test-stream-2.0.z")
+
+        affect_data = {
+            "flaw": str(flaw.uuid),
+            "affectedness": Affect.AffectAffectedness.NEW,
+            "resolution": Affect.AffectResolution.NOVALUE,
+            "ps_update_stream": "test-stream-2.0.z",
+            "ps_component": "my-component",
+            "embargoed": False,
+        }
+        if purl_value == "explicit_null":
+            affect_data["purl"] = None
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects",
+            affect_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        body = response.json()
+        assert body["ps_component"] == "my-component"
+
+    @pytest.mark.parametrize("ps_component_value", ["explicit_null", "omitted"])
+    def test_update_purl_only(self, auth_client, test_api_v2_uri, ps_component_value):
+        """
+        Non-bulk PUT with purl provided and ps_component either null or
+        entirely absent should succeed; ps_component is derived from purl.
+        """
+        purl = "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25"
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw, ps_component="old-component", purl="")
+
+        response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
+        assert response.status_code == 200
+        original = response.json()
+
+        update_data = {**original, "purl": purl}
+        if ps_component_value == "explicit_null":
+            update_data["ps_component"] = None
+        else:
+            update_data.pop("ps_component", None)
+
+        response = auth_client().put(
+            f"{test_api_v2_uri}/affects/{affect.uuid}",
+            update_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["ps_component"] == "curl"
+        assert body["purl"] == purl
+
+    def test_bulk_post_neither_purl_nor_ps_component(
+        self, auth_client, test_api_v2_uri
+    ):
+        """
+        Bulk POST with both purl and ps_component omitted should fail
+        with a validation error.
+        """
+        flaw = FlawFactory(embargoed=False)
+        ps_update_stream = PsUpdateStreamFactory()
+
+        bulk_request = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": Affect.AffectAffectedness.NEW,
+                "resolution": Affect.AffectResolution.NOVALUE,
+                "ps_update_stream": ps_update_stream.name,
+                "embargoed": False,
+            }
+        ]
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "must have either purl or ps_component" in str(response.content)
+
+    def test_bulk_put_neither_purl_nor_ps_component(self, auth_client, test_api_v2_uri):
+        """
+        Bulk PUT clearing both purl and ps_component should fail
+        with a validation error.
+        """
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw, ps_component="old-component", purl="")
+
+        response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
+        assert response.status_code == 200
+        original = response.json()
+
+        update_data = {
+            "uuid": str(affect.uuid),
+            "flaw": str(flaw.uuid),
+            "affectedness": original["affectedness"],
+            "resolution": original["resolution"],
+            "ps_update_stream": original["ps_update_stream"],
+            "embargoed": original["embargoed"],
+            "updated_dt": original["updated_dt"],
+        }
+
+        response = auth_client().put(
+            f"{test_api_v2_uri}/affects/bulk",
+            [update_data],
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "must have either purl or ps_component" in str(response.content)
+
+    def test_create_neither_purl_nor_ps_component(self, auth_client, test_api_v2_uri):
+        """
+        Non-bulk POST with both purl and ps_component omitted should fail
+        with a validation error.
+        """
+        flaw = FlawFactory(embargoed=False)
+        PsUpdateStreamFactory(name="test-stream-3.0.z")
+
+        affect_data = {
+            "flaw": str(flaw.uuid),
+            "affectedness": Affect.AffectAffectedness.NEW,
+            "resolution": Affect.AffectResolution.NOVALUE,
+            "ps_update_stream": "test-stream-3.0.z",
+            "embargoed": False,
+        }
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects",
+            affect_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "must have either purl or ps_component" in str(response.content)
+
+    def test_update_neither_purl_nor_ps_component(self, auth_client, test_api_v2_uri):
+        """
+        Non-bulk PUT clearing both purl and ps_component should fail
+        with a validation error.
+        """
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw, ps_component="old-component", purl="")
+
+        response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
+        assert response.status_code == 200
+        original = response.json()
+
+        update_data = {**original}
+        update_data.pop("ps_component", None)
+        update_data.pop("purl", None)
+
+        response = auth_client().put(
+            f"{test_api_v2_uri}/affects/{affect.uuid}",
+            update_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "must have either purl or ps_component" in str(response.content)
+
 
 class TestEndpointsAffectsUpdateTrackers:
     """
