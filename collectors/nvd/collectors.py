@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Union
 
 import nvdlib
 from celery.utils.log import get_task_logger
@@ -65,7 +65,7 @@ class NVDQuerier:
         filtering out everything unnecessary and simplifying
         """
 
-        def get_cpe_list(data: CVE) -> Optional[List[str]]:
+        def get_cpe_list(data: CVE) -> List[str]:
             """
             Return a list of CPEs from the CVE `data`
             """
