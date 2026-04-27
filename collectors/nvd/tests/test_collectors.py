@@ -257,6 +257,21 @@ class TestNVDCollector:
             ),
         ],
     )
+    @pytest.mark.vcr
+    def test_cpe_load(self):
+        """
+        Test that CPE values are correctly loaded in the Flaw model.
+        """
+        cve_id = "CVE-2020-1234"
+        FlawFactory(cve_id=cve_id)
+
+        nvdc = NVDCollector()
+        nvdc.collect(cve_id)
+
+        flaw = Flaw.objects.get(cve_id=cve_id)
+        assert hasattr(flaw, "cpe")
+        assert False
+
     def test_reset_flag_on_removal(self, old_flag, new_flag):
         """
         test that NIST CVSS validation flag is correctly adjusted when NVD CVSSv3 is removed
