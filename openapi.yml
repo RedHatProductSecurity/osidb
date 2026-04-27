@@ -14000,6 +14000,7 @@ components:
         ps_component:
           type: string
           nullable: true
+          default: ''
           maxLength: 255
         impact:
           oneOf:
@@ -14120,6 +14121,7 @@ components:
         ps_component:
           type: string
           nullable: true
+          default: ''
           maxLength: 255
         impact:
           oneOf:
@@ -14382,6 +14384,7 @@ components:
         ps_component:
           type: string
           nullable: true
+          default: ''
           maxLength: 255
         impact:
           oneOf:
@@ -14450,6 +14453,7 @@ components:
         ps_component:
           type: string
           nullable: true
+          default: ''
           maxLength: 255
         impact:
           oneOf:
