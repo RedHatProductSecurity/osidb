@@ -74,10 +74,7 @@ class NVDQuerier:
                 for entry in data.cpe:
                     cpe_list.append(entry.criteria)
 
-            if len(cpe_list) > 0:
-                return cpe_list
-            else:
-                return None
+            return cpe_list
 
         def get_cvss_metric(data: CVE, version: str) -> Union[dict, None]:
             """
