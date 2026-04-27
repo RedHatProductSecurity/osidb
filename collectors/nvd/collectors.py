@@ -70,7 +70,7 @@ class NVDQuerier:
             Return a list of CPEs from the CVE `data`
             """
             cpe_list = []
-            if "cpe" in data and len(data.cpe) > 0:
+            if hasattr(data, "cpe"):
                 for entry in data.cpe:
                     cpe_list.append(entry.criteria)
 
