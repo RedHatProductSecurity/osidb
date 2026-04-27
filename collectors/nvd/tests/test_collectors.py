@@ -236,6 +236,20 @@ class TestNVDCollector:
         flaw = Flaw.objects.get(cve_id=cve_id)
         assert flaw.cvss_scores.filter(version=FlawCVSS.CVSSVersion.VERSION4)
 
+    @pytest.mark.vcr
+    def test_cpe_load(self):
+        """
+        Test that CPE values are correctly loaded in the Flaw model.
+        """
+        cve_id = "CVE-2020-1234"
+        FlawFactory(cve_id=cve_id)
+
+        nvdc = NVDCollector()
+        nvdc.collect(cve_id)
+
+        flaw = Flaw.objects.get(cve_id=cve_id)
+        assert len(flaw.nvd_cpes) > 0
+
     @pytest.mark.parametrize(
         "old_flag,new_flag",
         [
@@ -257,20 +271,6 @@ class TestNVDCollector:
             ),
         ],
     )
-    @pytest.mark.vcr
-    def test_cpe_load(self):
-        """
-        Test that CPE values are correctly loaded in the Flaw model.
-        """
-        cve_id = "CVE-2020-1234"
-        FlawFactory(cve_id=cve_id)
-
-        nvdc = NVDCollector()
-        nvdc.collect(cve_id)
-
-        flaw = Flaw.objects.get(cve_id=cve_id)
-        assert hasattr(flaw, "cpe")
-        assert False
 
     def test_reset_flag_on_removal(self, old_flag, new_flag):
         """
