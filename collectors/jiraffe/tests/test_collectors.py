@@ -25,7 +25,6 @@ from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
-    JiraUserMappingFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
@@ -121,8 +120,6 @@ class TestJiraTaskCollector:
 
     @pytest.mark.vcr
     def test_link_on_cve(self):
-        # some random UUID
-        JiraUserMappingFactory(atlassian_cloud_id="test-cloud-id")
         flaw = FlawFactory(cve_id="CVE-2024-34703")
         # this is super-unprobable to happen but based
         # on the review feedback I am adding the assert
@@ -568,7 +565,6 @@ class TestMetadataCollector:
         Regression: when Jira tracker data is up-to-date (convertor returns None),
         sync_task should still link affects for an existing tracker.
         """
-        JiraUserMappingFactory(atlassian_cloud_id="test-cloud-id")
         tracker_id = "RHEL-159920"
         ps_module = PsModuleFactory(name="module", bts_name="jboss")
         ps_update_stream = PsUpdateStreamFactory(name="stream", ps_module=ps_module)
