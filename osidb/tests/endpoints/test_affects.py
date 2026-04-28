@@ -662,6 +662,254 @@ class TestEndpointsAffectsBulk:
         assert not created_affect.is_internal
         assert created_affect.is_public
 
+    @pytest.mark.enable_signals
+    def test_affect_create_bulk_partial_success(self, auth_client, test_api_v2_uri):
+        """
+        Test that valid affects are created even when some entries are invalid.
+        Invalid entries should be reported in the failed list.
+        """
+        flaw = FlawFactory(cve_id="CVE-2345-6789", embargoed=False)
+        ps_update_stream = PsUpdateStreamFactory()
+
+        bulk_request = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": Affect.AffectAffectedness.NEW,
+                "resolution": Affect.AffectResolution.NOVALUE,
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "valid-component",
+                "embargoed": False,
+            },
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": "INVALID_VALUE",
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "another-component",
+                "embargoed": False,
+            },
+        ]
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert len(body["results"]) == 1
+        assert body["results"][0]["ps_component"] == "valid-component"
+        assert len(body["failed"]) == 1
+        assert body["failed"][0]["index"] == 1
+
+    @pytest.mark.enable_signals
+    def test_affect_create_bulk_all_invalid(self, auth_client, test_api_v2_uri):
+        """
+        Test that when all entries are invalid, none are created and all are
+        reported in the failed list.
+        """
+        flaw = FlawFactory(cve_id="CVE-2345-6789", embargoed=False)
+        ps_update_stream = PsUpdateStreamFactory()
+
+        bulk_request = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": "INVALID_VALUE",
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "component-a",
+                "embargoed": False,
+            },
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": "ALSO_INVALID",
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "component-b",
+                "embargoed": False,
+            },
+        ]
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == 400
+        body = response.json()
+        assert len(body["results"]) == 0
+        assert len(body["failed"]) == 2
+        assert Affect.objects.count() == 0
+
+    @pytest.mark.enable_signals
+    def test_affect_create_bulk_missing_flaw_rejected(
+        self, auth_client, test_api_v2_uri
+    ):
+        """
+        Test that the entire request is rejected when any entry is missing
+        the flaw field.
+        """
+        flaw = FlawFactory(cve_id="CVE-2345-6789", embargoed=False)
+        ps_update_stream = PsUpdateStreamFactory()
+
+        bulk_request = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": Affect.AffectAffectedness.NEW,
+                "resolution": Affect.AffectResolution.NOVALUE,
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "valid-component",
+                "embargoed": False,
+            },
+            {
+                "affectedness": Affect.AffectAffectedness.NEW,
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "another-component",
+                "embargoed": False,
+            },
+        ]
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == 400
+        assert Affect.objects.count() == 0
+
+    @pytest.mark.enable_signals
+    def test_affect_create_bulk_preexisting_duplicate(
+        self, auth_client, test_api_v2_uri
+    ):
+        """
+        Test that a batch entry conflicting with a pre-existing DB row is
+        caught during validation and reported in errors, while the valid
+        entry is still created.
+        """
+        flaw = FlawFactory(cve_id="CVE-2345-6789", embargoed=False)
+        ps_update_stream = PsUpdateStreamFactory()
+
+        AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="existing-component",
+        )
+        assert Affect.objects.count() == 1
+
+        bulk_request = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": Affect.AffectAffectedness.NEW,
+                "resolution": Affect.AffectResolution.NOVALUE,
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "new-component",
+                "embargoed": False,
+            },
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": Affect.AffectAffectedness.NEW,
+                "resolution": Affect.AffectResolution.NOVALUE,
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "existing-component",
+                "embargoed": False,
+            },
+        ]
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert len(body["results"]) == 1
+        assert body["results"][0]["ps_component"] == "new-component"
+        assert len(body["failed"]) == 1
+        assert body["failed"][0]["index"] == 1
+        assert Affect.objects.count() == 2
+
+    @pytest.mark.enable_signals
+    def test_affect_create_bulk_intra_batch_duplicate(
+        self, auth_client, test_api_v2_uri
+    ):
+        """
+        Test that intra-batch duplicates (same flaw/stream/component within the
+        same request) are detected: one is created, the other reported as error.
+        """
+        flaw = FlawFactory(cve_id="CVE-2345-6789", embargoed=False)
+        ps_update_stream = PsUpdateStreamFactory()
+
+        bulk_request = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": Affect.AffectAffectedness.NEW,
+                "resolution": Affect.AffectResolution.NOVALUE,
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "same-component",
+                "embargoed": False,
+            },
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": Affect.AffectAffectedness.NEW,
+                "resolution": Affect.AffectResolution.NOVALUE,
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "same-component",
+                "embargoed": False,
+            },
+        ]
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert len(body["results"]) == 1
+        assert len(body["failed"]) == 1
+        assert body["failed"][0]["index"] == 1
+        assert Affect.objects.count() == 1
+
+    @pytest.mark.enable_signals
+    def test_affect_create_bulk_returns_errors_key(self, auth_client, test_api_v2_uri):
+        """
+        Test that the bulk create response always includes a failed key.
+        """
+        flaw = FlawFactory(cve_id="CVE-2345-6789", embargoed=False)
+        ps_update_stream = PsUpdateStreamFactory()
+
+        bulk_request = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": Affect.AffectAffectedness.NEW,
+                "resolution": Affect.AffectResolution.NOVALUE,
+                "ps_update_stream": ps_update_stream.name,
+                "ps_component": "component-foo",
+                "embargoed": False,
+            }
+        ]
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert "results" in body
+        assert "failed" in body
+        assert len(body["failed"]) == 0
+        assert len(body["results"]) == 1
+
     def test_bulk_post_purl_only(self, auth_client, test_api_v2_uri):
         """
         Bulk POST with purl provided and ps_component key omitted should
@@ -687,7 +935,6 @@ class TestEndpointsAffectsBulk:
             bulk_request,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
         result = response.json()["results"][0]
@@ -718,7 +965,6 @@ class TestEndpointsAffectsBulk:
             bulk_request,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
         )
         assert response.status_code == 200
         result = response.json()["results"][0]
@@ -858,8 +1104,8 @@ class TestEndpointsAffectsBulk:
         self, auth_client, test_api_v2_uri
     ):
         """
-        Bulk POST with both purl and ps_component omitted should fail
-        with a validation error.
+        Bulk POST with both purl and ps_component omitted should report
+        the entry in the failed list.
         """
         flaw = FlawFactory(embargoed=False)
         ps_update_stream = PsUpdateStreamFactory()
@@ -879,10 +1125,12 @@ class TestEndpointsAffectsBulk:
             bulk_request,
             format="json",
             HTTP_BUGZILLA_API_KEY="SECRET",
-            HTTP_JIRA_API_KEY="SECRET",
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "must have either purl or ps_component" in str(response.content)
+        assert response.status_code == 400
+        body = response.json()
+        assert len(body["results"]) == 0
+        assert len(body["failed"]) == 1
+        assert "must have either purl or ps_component" in str(body["failed"])
 
     def test_bulk_put_neither_purl_nor_ps_component(self, auth_client, test_api_v2_uri):
         """

@@ -9844,7 +9844,11 @@ paths:
   /osidb/api/v2/affects/bulk:
     post:
       operationId: osidb_api_v2_affects_bulk_create
-      description: Bulk create endpoint. Expects a list of dict Affect objects.
+      description: |-
+        Bulk create endpoint. Expects a list of dict Affect objects.
+
+        Valid affects are created via bulk_create; invalid or duplicate
+        entries are skipped and reported in the ``failed`` list.
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -14095,6 +14099,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Affect'
+        failed:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
       required:
       - results
     AffectBulkPutRequest:
