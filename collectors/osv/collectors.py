@@ -17,7 +17,7 @@ from django.utils.dateparse import parse_datetime
 from apps.taskman.constants import JIRA_AUTH_TOKEN, JIRA_EMAIL
 from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.framework.models import Collector
-from collectors.osv.constants import OSV_START_DATE
+from collectors.osv.constants import OSV_START_DATE, REFERENCES_THAT_CAN_BE_IGNORED
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
 from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
@@ -28,6 +28,13 @@ logger = get_task_logger(__name__)
 
 class OSVCollectorException(Exception):
     """exception for OSV Collector"""
+
+
+class OSVCollectorIgnoredException(Exception):
+    """exception for OSV Collector ignored vulnerability"""
+
+    def __init__(self, osv_id):
+        super().__init__(f"OSV vulnerability {osv_id} was ignored.")
 
 
 class OSVCollector(Collector):
@@ -130,10 +137,13 @@ class OSVCollector(Collector):
         if osv_id is not None:
             # Surface an exception when collecting an individual OSV vulnerability
             osv_vuln = self.fetch_osv_vuln_by_id(osv_id)
-            osv_id, cve_ids, content = self.extract_content(osv_vuln)
             try:
+                osv_id, cve_ids, content = self.extract_content(osv_vuln)
                 with transaction.atomic():
                     self.save_snippet_and_flaw(osv_id, cve_ids, content)
+            except OSVCollectorIgnoredException as exc:
+                logger.warning(str(exc))
+                return f"OSV collection for {osv_id} was ignored."
             except Exception as exc:
                 message = f"Failed to save snippet and flaw for {osv_id}. Error: {exc}."
                 logger.error(message)
@@ -148,6 +158,9 @@ class OSVCollector(Collector):
                 for osv_vuln in self.fetch_osv_vulns_for_ecosystem(ecosystem):
                     try:
                         osv_id, cve_ids, content = self.extract_content(osv_vuln)
+                    except OSVCollectorIgnoredException as exc:
+                        logger.warning(str(exc))
+                        continue
                     except Exception as exc:
                         logger.error(
                             f"Failed to parse data from {osv_vuln['id']} vulnerability: {exc}"
@@ -286,8 +299,11 @@ class OSVCollector(Collector):
             return refs
 
         def get_comment_zero(data: dict) -> str:
-            #  https://ossf.github.io/osv-schema/#summary-details-fields
-            return data.get("details", "")
+            if not (detail := data.get("details", "")) and self.can_be_ignored(
+                osv_vuln
+            ):
+                raise OSVCollectorIgnoredException(osv_vuln["id"])
+            return detail
 
         def get_title(data: dict) -> str:
             #  https://ossf.github.io/osv-schema/#summary-details-fields
@@ -342,3 +358,17 @@ class OSVCollector(Collector):
         }
 
         return osv_id, cve_ids, content
+
+    def has_reference_to_ignore(self, osv_vuln: dict) -> bool:
+        for ref_to_ignore in REFERENCES_THAT_CAN_BE_IGNORED:
+            for osv_reference in osv_vuln.get("references", [{}]):
+                if ref_to_ignore in osv_reference.get("url", ""):
+                    return True
+        return False
+
+    def is_withdrawn(self, osv_vuln: dict) -> bool:
+        return osv_vuln.get("withdrawn", False)
+
+    def can_be_ignored(self, osv_vuln: dict) -> bool:
+        """Advisories come from some echohq.com site and have been withdrawn can be ignored."""
+        return self.is_withdrawn(osv_vuln) and self.has_reference_to_ignore(osv_vuln)
