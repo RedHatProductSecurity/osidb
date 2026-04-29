@@ -94,28 +94,55 @@ def filter_response(response):
     return response
 
 
+def _vcr_should_override_response_domain(request):
+    """
+    Default True: scrub http(s) hosts in response bodies to example.com when recording.
+
+    Request URIs are always scrubbed so cassettes stay stable and playback still matches
+    (VCR applies before_record_request when matching too).
+
+    Use @pytest.mark.vcr_override_domain(False) to keep original domains in recorded
+    response bodies only (e.g. echohq.com URLs that tests assert on).
+    """
+    marker = request.node.get_closest_marker("vcr_override_domain")
+    if marker is None:
+        return True
+    if "override_domain" in marker.kwargs:
+        return bool(marker.kwargs["override_domain"])
+    if marker.args:
+        return bool(marker.args[0])
+    return True
+
+
 def remove_host_request(request):
+    """Normalize request host for stable cassettes and consistent playback matching."""
     request.uri = re.sub(base_url_pattern, "https://example.com", request.uri)
     return request
 
 
-def remove_host_response(response):
-    body_string = re.sub(
-        base_url_pattern,
-        "https://example.com",
-        response["body"]["string"].decode("utf-8"),
-    )
-    response["body"]["string"] = body_string.encode("utf-8")
+def make_remove_host_response(override_domain: bool):
+    def remove_host_response(response):
+        if override_domain:
+            body_string = re.sub(
+                base_url_pattern,
+                "https://example.com",
+                response["body"]["string"].decode("utf-8"),
+            )
+            response["body"]["string"] = body_string.encode("utf-8")
 
-    # redirected requests need Location header
-    original_locations = response["headers"].get("Location", [])
-    if original_locations:
-        locations = []
-        for location in original_locations:
-            locations.append(re.sub(base_url_pattern, "https://example.com", location))
-        response["headers"]["Location"] = locations
+            # redirected requests need Location header
+            original_locations = response["headers"].get("Location", [])
+            if original_locations:
+                locations = []
+                for location in original_locations:
+                    locations.append(
+                        re.sub(base_url_pattern, "https://example.com", location)
+                    )
+                response["headers"]["Location"] = locations
 
-    return response
+        return response
+
+    return remove_host_response
 
 
 @pytest.fixture(scope="function")
@@ -130,15 +157,19 @@ def refresh_v1_view():
     return refresh_func
 
 
-@pytest.fixture(scope="session")
-def vcr_config():
+@pytest.fixture(scope="function")
+def vcr_config(request):
+    override_response_domain = _vcr_should_override_response_domain(request)
     return {
         "filter_headers": [
             "Authorization",
             "Cookie",
         ],
         "before_record_request": [remove_host_request],
-        "before_record_response": [remove_host_response, filter_response],
+        "before_record_response": [
+            make_remove_host_response(override_response_domain),
+            filter_response,
+        ],
         "filter_query_parameters": [
             "Bugzilla_api_key",
         ],
