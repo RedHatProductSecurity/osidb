@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict
 
 import pytest
+from django.contrib.auth.models import User
 from django.utils.timezone import make_aware
 
 from apps.sla.models import SLAPolicy, SLOPolicy
@@ -44,7 +45,7 @@ from osidb.models import (
     Flaw,
     FlawCVSS,
     Impact,
-    JiraUserMapping,
+    Profile,
     PsUpdateStream,
     Tracker,
 )
@@ -53,7 +54,6 @@ from osidb.tests.factories import (
     AffectFactory,
     FlawCVSSFactory,
     FlawFactory,
-    JiraUserMappingFactory,
     PsModuleFactory,
     PsProductFactory,
     PsUpdateStreamFactory,
@@ -648,7 +648,8 @@ class TestBothNewOldTrackerJiraQueryBuilder:
             external_system_id = ""
 
         for kerberos_id in ("a", "a2", "b", "b2", "c", "c2", "ee"):
-            JiraUserMappingFactory(associate_kerberos_id=kerberos_id)
+            user = User.objects.create(username=kerberos_id)
+            Profile.objects.create(user=user, atlassian_cloud_id=f"cloud-{kerberos_id}")
 
         ps_module = PsModuleFactory(
             bts_name="jboss",
@@ -713,13 +714,13 @@ class TestBothNewOldTrackerJiraQueryBuilder:
             if expected_cc:
                 expected_fields = {
                     "contributors": [
-                        {"accountId": JiraUserMapping.kerberos_to_cloud_id(n)}
+                        {"accountId": Profile.kerberos_to_cloud_id(n)}
                         for n in expected_cc
                     ]
                 }
                 expected_comment = "Added involved users: " + ", ".join(
                     [
-                        f"[~accountId:{JiraUserMapping.kerberos_to_cloud_id(u)}]"
+                        f"[~accountId:{Profile.kerberos_to_cloud_id(u)}]"
                         for u in expected_cc
                     ]
                 )
@@ -1182,7 +1183,8 @@ class TestBothNewOldTrackerJiraQueryBuilder:
             allowed_values=[version],
         ).save()
 
-        JiraUserMappingFactory(associate_kerberos_id="me")
+        user = User.objects.create(username="me")
+        Profile.objects.create(user=user, atlassian_cloud_id="test-cloud-id")
         ps_module = PsModuleFactory(
             bts_key="PROJECT",
             bts_name="jboss",

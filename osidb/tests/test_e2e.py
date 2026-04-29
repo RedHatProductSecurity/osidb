@@ -2,6 +2,7 @@ import uuid
 from pathlib import Path
 
 import pytest
+from django.contrib.auth.models import User
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -16,12 +17,11 @@ from collectors.jiraffe.collectors import (
     JiraTrackerCollector,
     JiraTrackerDownloadManager,
 )
-from osidb.models import Affect, Flaw, PsUpdateStream, Snippet, Tracker
+from osidb.models import Affect, Flaw, Profile, PsUpdateStream, Snippet, Tracker
 from osidb.sync_manager import (
     BZSyncManager,
     JiraTaskSyncManager,
 )
-from osidb.tests.factories import JiraUserMappingFactory
 
 pytestmark = pytest.mark.unit
 
@@ -500,7 +500,8 @@ class TestE2E:
         flaw2_body = response.json()
 
         # 4) Test editing collected flaw
-        JiraUserMappingFactory(associate_kerberos_id="concosta")
+        user = User.objects.create(username="concosta")
+        Profile.objects.create(user=user, atlassian_cloud_id="test-cloud-id")
         flaw_data = {
             "title": "Spooky vulnerability",
             "comment_zero": flaw1_body["comment_zero"],

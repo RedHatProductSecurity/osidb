@@ -29,9 +29,8 @@ from apps.trackers.exceptions import (
 from apps.trackers.models import JiraProjectFields
 from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
 from osidb.cc import JiraAffectCCBuilder
-from osidb.models import Affect, AffectCVSS, Flaw, FlawCVSS, FlawSource, Impact
+from osidb.models import Affect, AffectCVSS, Flaw, FlawCVSS, FlawSource, Impact, Profile
 from osidb.models.abstract import CVSS
-from osidb.models.jira_user_mapping import JiraUserMapping
 from osidb.validators import CVE_RE_STR
 
 from .constants import (
@@ -518,10 +517,7 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             # Note that access control for the comment is not necessary because the whole
             # tracker has access control set in generate_security().
             notify_users = ", ".join(
-                [
-                    f"[~accountId:{JiraUserMapping.kerberos_to_cloud_id(u)}]"
-                    for u in cc_list
-                ]
+                [f"[~accountId:{Profile.kerberos_to_cloud_id(u)}]" for u in cc_list]
             )
             self._comment = "Added involved users: " + notify_users
 
@@ -531,15 +527,13 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
                 project_key=self.ps_module.bts_key, field_name="Contributors"
             ).first():
                 self._query["fields"][contr_field_obj.field_id] = [
-                    {"accountId": JiraUserMapping.kerberos_to_cloud_id(un)}
-                    for un in cc_list
+                    {"accountId": Profile.kerberos_to_cloud_id(un)} for un in cc_list
                 ]
             elif inv_field_obj := JiraProjectFields.objects.filter(
                 project_key=self.ps_module.bts_key, field_name="Involved"
             ).first():
                 self._query["fields"][inv_field_obj.field_id] = [
-                    {"accountId": JiraUserMapping.kerberos_to_cloud_id(un)}
-                    for un in cc_list
+                    {"accountId": Profile.kerberos_to_cloud_id(un)} for un in cc_list
                 ]
             else:
                 # At the time of writing this, all Jira projects have these fields.

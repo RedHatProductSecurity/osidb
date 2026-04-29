@@ -6,12 +6,13 @@ instance for generating new cassettes.
 """
 
 import pytest
+from django.contrib.auth.models import User
 
 from apps.taskman.constants import JIRA_SUMMARY_MAX_LENGTH
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.workflow import WorkflowModel
-from osidb.models import Flaw
-from osidb.tests.factories import AffectFactory, FlawFactory, JiraUserMappingFactory
+from osidb.models import Flaw, Profile
+from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
 
@@ -24,7 +25,8 @@ class TestTaskmanService(object):
         Test that service is able to create and update regular fields, team, assignment and status
         """
         # Remove randomness to reuse VCR every possible time
-        JiraUserMappingFactory(associate_kerberos_id="concosta")
+        user = User.objects.create(username="concosta")
+        Profile.objects.filter(user=user).update(atlassian_cloud_id="test=cloud-id")
         flaw = FlawFactory(
             embargoed=False,
             workflow_state=WorkflowModel.WorkflowState.NEW,
