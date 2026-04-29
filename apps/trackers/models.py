@@ -12,7 +12,7 @@ class JiraProjectFields(models.Model):
     allowed_values = models.JSONField(default=list)
 
     class Meta:
-        unique_together = ("project_key", "field_name")
+        unique_together = ("project_key", "field_id")
 
     def __str__(self):
         return self.field_name

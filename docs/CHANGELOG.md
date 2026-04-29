@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve resilience, error-reporting and performance of /bulk create
   affects endpoint (OSIDB-4748)
 
+### Fixed
+- Fix JiraProjectFields unique constraint to use field_id instead of field_name, allowing projects with duplicate field names (OSIDB-4920)
+
 ## [5.9.0] - 2026-04-09
 ### Fixed
 - Fix invalid `in` field in kerberos OpenAPI security scheme (OSIDB-1590)
