@@ -139,6 +139,7 @@ class TestOSVCollector:
         assert Snippet.objects.count() == 0
         assert Flaw.objects.count() == 0
 
+    @pytest.mark.vcr_override_domain(False)
     @pytest.mark.vcr
     @pytest.mark.default_cassette("osv_record_without_details.yaml")
     def test_ignore_osv_record_without_details(self):
