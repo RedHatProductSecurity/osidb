@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-from osidb.exceptions import JiraUserMappingException
 from osidb.helpers import get_jira_cloud_id
 
 
@@ -28,12 +27,9 @@ class Profile(models.Model):
         """
         return Atlassian Cloud ID for a user
         """
-        try:
-            profile = cls.objects.get(user__username=kerberos_id)
-        except cls.DoesNotExist:
-            raise JiraUserMappingException(
-                f"No profile found for Kerberos ID:{kerberos_id}"
-            )
+        user, _ = User.objects.get_or_create(username=kerberos_id)
+        profile, _ = cls.objects.get_or_create(user=user)
+
         if not profile.atlassian_cloud_id:
             profile.atlassian_cloud_id = get_jira_cloud_id(kerberos_id)
             profile.save(update_fields=["atlassian_cloud_id"])

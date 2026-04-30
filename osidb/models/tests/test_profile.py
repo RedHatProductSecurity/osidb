@@ -35,3 +35,13 @@ class TestKerberosToCloudId:
             == "fetched-cloud-id"
         )
         mock_get.assert_called_once_with("testuser2")
+
+    def test_creates_profile_when_missing(self):
+        """creates user and profile if not exist"""
+
+        with patch("osidb.models.profile.get_jira_cloud_id") as mock_get:
+            mock_get.return_value = "new-cloud-id"
+            result = Profile.kerberos_to_cloud_id("newuser")
+
+        assert result == "new-cloud-id"
+        assert Profile.objects.filter(user__username="newuser").exists()

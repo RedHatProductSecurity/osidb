@@ -18,7 +18,6 @@ from django.conf import settings
 from django.db import models
 from django.utils.timezone import datetime, make_aware
 from django_deprecate_fields import DeprecatedField, logger
-from jira import JIRA
 from requests.exceptions import JSONDecodeError
 from requests.models import Response
 from rest_framework.exceptions import ValidationError
@@ -478,22 +477,16 @@ def get_jira_cloud_id(kerberos_id: str) -> str:
     fetches the Atlassian Cloud ID for a given Kerberos ID by querying
     the Jira Cloud API using the user's email.
     """
-    from collectors.jiraffe.constants import HTTPS_PROXY
+    from collectors.jiraffe.core import JiraConnector
+    from osidb.exceptions import JiraUserMappingException
 
     email = f"{kerberos_id}@redhat.com"
-    auth_token = get_env("JIRA_AUTH_TOKEN")
-    jira_url = get_env("JIRA_URL", "https://redhat.atlassian.net")
     try:
-        jira_api = JIRA(
-            options={"server": jira_url, "check_update": False},
-            token_auth=auth_token,
-            get_server_info=False,
-            proxies={"https": HTTPS_PROXY},
-        )
-        users = jira_api.search_users(email)
+        connector = JiraConnector()
+        users = connector.jira_conn.search_users(query=email)
     except Exception:
         logger.error(f"Failed to fetch Jira cloud ID for {kerberos_id}")
-        return ""
-    if users:
-        return users[0].accountId
-    return ""
+        raise JiraUserMappingException(f"Unable to connect to Jira for {kerberos_id}")
+    if not users:
+        raise JiraUserMappingException(f"No Jira User found for {kerberos_id}")
+    return users[0].accountId

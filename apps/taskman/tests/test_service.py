@@ -25,7 +25,7 @@ class TestTaskmanService(object):
         Test that service is able to create and update regular fields, team, assignment and status
         """
         # Remove randomness to reuse VCR every possible time
-        user = User.objects.create(username="concosta")
+        user, _ = User.objects.get_or_create(username="concosta")
         Profile.objects.filter(user=user).update(atlassian_cloud_id="test=cloud-id")
         flaw = FlawFactory(
             embargoed=False,
