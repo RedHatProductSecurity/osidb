@@ -11,6 +11,7 @@ from osidb.tests.factories import (
     PsUpdateStreamFactory,
     TrackerFactory,
 )
+from osidb.validators import validate_cme_id
 
 pytestmark = pytest.mark.unit
 
@@ -363,3 +364,37 @@ class TestAffect:
             assert "does not match user-provided ps_component" in str(exc_info.value)
         else:
             affect.save()
+
+    def test_cme_ids_default_empty(self):
+        """Test that the cme_ids field defaults to an empty list"""
+        affect = AffectFactory()
+        assert affect.cme_ids == []
+
+    def test_cme_ids_stores_valid_ids(self):
+        """Test that valid CME IDs can be stored on an affect"""
+        affect = AffectFactory(cme_ids=["CME-101", "CME-601", "CME-1001"])
+        affect.refresh_from_db()
+        assert affect.cme_ids == ["CME-101", "CME-601", "CME-1001"]
+
+    @pytest.mark.parametrize(
+        "cme_id,is_valid",
+        [
+            ("CME-101", True),
+            ("CME-999", True),
+            ("CME-1001", True),
+            ("CME-1299", True),
+            ("CME-10", False),
+            ("CME-12345", False),
+            ("cme-101", False),
+            ("CME101", False),
+            ("CVE-101", False),
+            ("", False),
+        ],
+    )
+    def test_validate_cme_id(self, cme_id, is_valid):
+        """Test the CME ID validator accepts valid formats and rejects invalid ones"""
+        if is_valid:
+            validate_cme_id(cme_id)
+        else:
+            with pytest.raises(ValidationError):
+                validate_cme_id(cme_id)
