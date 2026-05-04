@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Improve resilience, error-reporting and performance of /bulk create
   affects endpoint (OSIDB-4748)
+- Update drf-spectacular to generate OpenAPI 3.1 schema(OSIDB-2995)
 
 ## [5.9.0] - 2026-04-09
 ### Fixed

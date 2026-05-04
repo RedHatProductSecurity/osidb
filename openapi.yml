@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: OSIDB API
   version: 5.9.0
@@ -14002,19 +14002,19 @@ components:
           type: string
           readOnly: true
         ps_component:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           default: ''
-          maxLength: 255
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
           - $ref: '#/components/schemas/BlankEnum'
         tracker:
-          allOf:
+          oneOf:
           - $ref: '#/components/schemas/Tracker'
+          - type: 'null'
           readOnly: true
-          nullable: true
         delegated_resolution:
           type: string
           readOnly: true
@@ -14024,8 +14024,9 @@ components:
             $ref: '#/components/schemas/AffectCVSS'
           readOnly: true
         purl:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           default: ''
         subpackage_purls:
           type: array
@@ -14041,10 +14042,11 @@ components:
           - $ref: '#/components/schemas/DelegatedNotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
         resolved_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
           readOnly: true
-          nullable: true
         labels:
           type: array
           items:
@@ -14128,17 +14130,18 @@ components:
           type: string
           minLength: 1
         ps_component:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           default: ''
-          maxLength: 255
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
           - $ref: '#/components/schemas/BlankEnum'
         purl:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           default: ''
         subpackage_purls:
           type: array
@@ -14172,8 +14175,9 @@ components:
           type: string
           format: uuid
         comment:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
@@ -14233,8 +14237,9 @@ components:
           type: string
           format: uuid
         comment:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
@@ -14268,8 +14273,9 @@ components:
           type: string
           format: uuid
         comment:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
@@ -14327,8 +14333,9 @@ components:
       description: Abstract serializer for FlawCVSS and AffectCVSS serializer
       properties:
         comment:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         vector:
@@ -14349,8 +14356,9 @@ components:
       description: Abstract serializer for FlawCVSS and AffectCVSS serializer
       properties:
         comment:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         vector:
@@ -14391,17 +14399,18 @@ components:
           type: string
           minLength: 1
         ps_component:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           default: ''
-          maxLength: 255
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
           - $ref: '#/components/schemas/BlankEnum'
         purl:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           default: ''
         subpackage_purls:
           type: array
@@ -14460,17 +14469,18 @@ components:
           type: string
           minLength: 1
         ps_component:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           default: ''
-          maxLength: 255
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
           - $ref: '#/components/schemas/BlankEnum'
         purl:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           default: ''
         subpackage_purls:
           type: array
@@ -14504,9 +14514,10 @@ components:
           format: uuid
           readOnly: true
         flaw:
-          type: string
+          type:
+          - string
+          - 'null'
           format: uuid
-          nullable: true
         affectedness:
           oneOf:
           - $ref: '#/components/schemas/AffectednessEnum'
@@ -14552,10 +14563,11 @@ components:
           type: string
           readOnly: true
         resolved_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
           readOnly: true
-          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -14683,14 +14695,17 @@ components:
           description: The object model.
           maxLength: 64
         pgh_obj_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The primary key of the object.
         pgh_label:
           type: string
           description: The event label.
         pgh_context:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
           description: The context associated with the event.
         pgh_diff:
           description: The diff between the previous event of the same label.
@@ -14805,10 +14820,11 @@ components:
           type: string
           readOnly: true
         shipped_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
           readOnly: true
-          nullable: true
         created_dt:
           type: string
           format: date-time
@@ -14831,9 +14847,10 @@ components:
           type: string
           maxLength: 50
         date:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date
-          nullable: true
         source:
           $ref: '#/components/schemas/ExploitOnlyReportDataSourceEnum'
         reference:
@@ -14867,8 +14884,9 @@ components:
           format: uuid
           readOnly: true
         cve_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -14902,17 +14920,19 @@ components:
           type: string
           maxLength: 255
         unembargo_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         source:
           oneOf:
           - $ref: '#/components/schemas/FlawSource'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         mitigation:
           type: string
         major_incident_state:
@@ -14920,9 +14940,10 @@ components:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
           - $ref: '#/components/schemas/BlankEnum'
         major_incident_start_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         nist_cvss_validation:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
@@ -15006,9 +15027,10 @@ components:
           type: string
           maxLength: 60
         task_key:
-          type: string
+          type:
+          - string
+          - 'null'
           readOnly: true
-          nullable: true
         team_id:
           type: string
           readOnly: true
@@ -15188,8 +15210,9 @@ components:
           type: string
           format: uuid
         comment:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
@@ -15246,8 +15269,9 @@ components:
       description: FlawCVSS serializer
       properties:
         comment:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
@@ -15272,8 +15296,9 @@ components:
       description: FlawCVSS serializer
       properties:
         comment:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
@@ -15307,8 +15332,9 @@ components:
           type: string
           format: uuid
         comment:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
@@ -15342,8 +15368,9 @@ components:
           type: string
           format: uuid
         comment:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         issuer:
@@ -15401,8 +15428,9 @@ components:
       description: Abstract serializer for FlawCVSS and AffectCVSS serializer
       properties:
         comment:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         vector:
@@ -15423,8 +15451,9 @@ components:
       description: Abstract serializer for FlawCVSS and AffectCVSS serializer
       properties:
         comment:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         cvss_version:
           $ref: '#/components/schemas/CvssVersionEnum'
         vector:
@@ -15714,8 +15743,9 @@ components:
       description: serialize flaw model
       properties:
         cve_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -15739,17 +15769,19 @@ components:
           type: string
           maxLength: 255
         unembargo_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         source:
           oneOf:
           - $ref: '#/components/schemas/FlawSource'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         mitigation:
           type: string
         major_incident_state:
@@ -15758,9 +15790,10 @@ components:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
           - $ref: '#/components/schemas/BlankEnum'
         major_incident_start_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         nist_cvss_validation:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
@@ -15787,8 +15820,9 @@ components:
           format: uuid
           readOnly: true
         cve_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -15822,17 +15856,19 @@ components:
           type: string
           maxLength: 255
         unembargo_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         source:
           oneOf:
           - $ref: '#/components/schemas/FlawSource'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         mitigation:
           type: string
         major_incident_state:
@@ -15841,9 +15877,10 @@ components:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
           - $ref: '#/components/schemas/BlankEnum'
         major_incident_start_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         nist_cvss_validation:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
@@ -15927,9 +15964,10 @@ components:
           type: string
           maxLength: 60
         task_key:
-          type: string
+          type:
+          - string
+          - 'null'
           readOnly: true
-          nullable: true
         team_id:
           type: string
           readOnly: true
@@ -16104,8 +16142,9 @@ components:
       type: object
       properties:
         cve_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         affects:
           type: array
           items:
@@ -16115,8 +16154,9 @@ components:
       description: serialize flaw model
       properties:
         cve_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -16140,17 +16180,19 @@ components:
           type: string
           maxLength: 255
         unembargo_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         source:
           oneOf:
           - $ref: '#/components/schemas/FlawSource'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         mitigation:
           type: string
         major_incident_state:
@@ -16158,9 +16200,10 @@ components:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
           - $ref: '#/components/schemas/BlankEnum'
         major_incident_start_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         nist_cvss_validation:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
@@ -16295,8 +16338,9 @@ components:
           format: uuid
           readOnly: true
         cve_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -16330,17 +16374,19 @@ components:
           type: string
           maxLength: 255
         unembargo_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         source:
           oneOf:
           - $ref: '#/components/schemas/FlawSource'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         mitigation:
           type: string
         major_incident_state:
@@ -16348,9 +16394,10 @@ components:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
           - $ref: '#/components/schemas/BlankEnum'
         major_incident_start_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         nist_cvss_validation:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
@@ -16434,9 +16481,10 @@ components:
           type: string
           maxLength: 60
         task_key:
-          type: string
+          type:
+          - string
+          - 'null'
           readOnly: true
-          nullable: true
         team_id:
           type: string
           readOnly: true
@@ -16473,8 +16521,9 @@ components:
       type: object
       properties:
         cve_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         affects:
           type: array
           items:
@@ -16484,8 +16533,9 @@ components:
       description: Serializer for the flaw model adapted to affects v1
       properties:
         cve_id:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -16509,17 +16559,19 @@ components:
           type: string
           maxLength: 255
         unembargo_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         source:
           oneOf:
           - $ref: '#/components/schemas/FlawSource'
           - $ref: '#/components/schemas/BlankEnum'
         reported_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         mitigation:
           type: string
         major_incident_state:
@@ -16527,9 +16579,10 @@ components:
           - $ref: '#/components/schemas/MajorIncidentStateEnum'
           - $ref: '#/components/schemas/BlankEnum'
         major_incident_start_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         nist_cvss_validation:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
@@ -16595,11 +16648,13 @@ components:
       type: object
       properties:
         jira:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
         bugzilla:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
       required:
       - bugzilla
       - jira
@@ -17395,21 +17450,25 @@ components:
         sync_id:
           type: string
         last_scheduled_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         last_started_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         last_finished_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         last_failed_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         last_consecutive_failures:
           type: integer
           maximum: 2147483647
@@ -17417,9 +17476,10 @@ components:
         permanently_failed:
           type: boolean
         last_rescheduled_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
         last_consecutive_reschedules:
           type: integer
           maximum: 2147483647
@@ -17528,10 +17588,11 @@ components:
             $ref: '#/components/schemas/SpecialHandlingEnum'
           readOnly: true
         resolved_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
           readOnly: true
-          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -17618,10 +17679,11 @@ components:
             $ref: '#/components/schemas/SpecialHandlingEnum'
           readOnly: true
         resolved_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
           readOnly: true
-          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -17828,10 +17890,11 @@ components:
             $ref: '#/components/schemas/SpecialHandlingEnum'
           readOnly: true
         resolved_dt:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
           readOnly: true
-          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
