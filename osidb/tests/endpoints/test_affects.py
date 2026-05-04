@@ -1592,6 +1592,37 @@ class TestEndpointsAffectsPurl:
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert error in str(response.content)
 
+    def test_affect_read_with_legacy_invalid_purl(self, auth_client, test_api_v2_uri):
+        """
+        Regression test: an affect whose purl fails current schema validation
+        (e.g., pkg:oci with a namespace, which is prohibited by the oci PURL spec)
+        but is already present in the database should always be readable via the
+        API without errors.  Such data can exist as a result of schema rules being
+        tightened after the data was originally written.
+
+        The fix ensures that PURL schema validation is only applied on write
+        (i.e. when preparing a value for the database), never on read.
+        """
+        from django.db import connection
+
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw, purl="")
+
+        # Bypass Django's ORM to insert a purl that fails current schema
+        # validation: pkg:oci with a namespace is prohibited by the oci PURL
+        # spec, so it would be rejected on save but may already live in the DB
+        # as legacy data.
+        legacy_purl = "pkg:oci/myregistry/myimage@sha256:abc123"
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE osidb_affect SET purl = %s WHERE uuid = %s",
+                [legacy_purl, str(affect.uuid)],
+            )
+
+        response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["purl"] == legacy_purl
+
 
 class TestEndpointsAffectsCVSSScoresV2:
     """

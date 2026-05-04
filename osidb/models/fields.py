@@ -103,7 +103,13 @@ class PURLDescriptor(DeferredAttribute):
         self, instance: Optional[models.Model], value: Optional[str | PackageURL]
     ) -> None:
         if instance:
-            instance.__dict__[self.field.name] = to_purl(value)
+            # Validation is intentionally skipped here because __set__ is
+            # called both on explicit assignment *and* by Django's Model.__init__
+            # when populating an instance from a database row.  Validating on
+            # read would break any row whose purl was valid when written but
+            # fails a schema rule added later.  Write-path validation is
+            # enforced by get_prep_value, which runs on every INSERT/UPDATE.
+            instance.__dict__[self.field.name] = to_purl(value, validate=False)
 
 
 class PURLField(models.CharField):

@@ -371,76 +371,41 @@ class TestPURLField:
 
     @isolate_apps("tests")
     @pytest.mark.parametrize(
-        "purl_string",
+        "purl_value",
         [
             "pkg:faketype/somepkg@1.0",
             "pkg:pypi/myns/django@4.2.0",
             "pkg:rpm/bash@5.0",
-        ],
-    )
-    def test_purl_schema_validation_on_construction(self, db, purl_string):
-        """Test that constructing a model with a PURL string that parses
-        but fails schema validation raises ValidationError"""
-        with pytest.raises(ValidationError):
-            PURLTestModel(purl=purl_string)
-
-    @isolate_apps("tests")
-    @pytest.mark.parametrize(
-        "purl_string",
-        [
-            "pkg:faketype/somepkg@1.0",
-            "pkg:pypi/myns/django@4.2.0",
-            "pkg:rpm/bash@5.0",
-        ],
-    )
-    def test_purl_schema_validation_on_assignment(self, db, purl_string):
-        """Test that assigning a PURL string that parses but fails schema
-        validation raises ValidationError on attribute assignment"""
-        model = PURLTestModel()
-        with pytest.raises(ValidationError):
-            model.purl = purl_string
-
-    @isolate_apps("tests")
-    @pytest.mark.parametrize(
-        "purl_string",
-        [
-            "pkg:faketype/somepkg@1.0",
-            "pkg:pypi/myns/django@4.2.0",
-            "pkg:rpm/bash@5.0",
-        ],
-    )
-    def test_purl_schema_validation_on_queryset_filter(self, db, purl_string):
-        """Test that filtering a queryset with a PURL string that parses
-        but fails schema validation raises ValidationError"""
-        with pytest.raises(ValidationError):
-            PURLTestModel.objects.filter(purl=purl_string).exists()
-
-    @isolate_apps("tests")
-    @pytest.mark.parametrize(
-        "purl_obj",
-        [
             PackageURL(type="faketype", name="somepkg", version="1.0"),
             PackageURL(type="pypi", namespace="myns", name="django", version="4.2.0"),
             PackageURL(type="rpm", name="bash", version="5.0"),
         ],
     )
-    def test_purl_schema_validation_on_packageurl_construction(self, db, purl_obj):
-        """Test that constructing a model with a PackageURL object that
-        fails schema validation raises ValidationError"""
+    def test_purl_schema_validation_on_save(self, db, purl_value):
+        """Test that a PURL that parses but fails schema validation does not
+        raise on construction or assignment (so legacy DB rows are always
+        readable) but does raise on save, whether the value was provided as a
+        string or a PackageURL object."""
+        model = PURLTestModel(purl=purl_value)
+        assert model.purl is not None
         with pytest.raises(ValidationError):
-            PURLTestModel(purl=purl_obj)
+            model.save()
 
     @isolate_apps("tests")
     @pytest.mark.parametrize(
-        "purl_obj",
+        "purl_value",
         [
+            "pkg:faketype/somepkg@1.0",
+            "pkg:pypi/myns/django@4.2.0",
+            "pkg:rpm/bash@5.0",
             PackageURL(type="faketype", name="somepkg", version="1.0"),
             PackageURL(type="pypi", namespace="myns", name="django", version="4.2.0"),
             PackageURL(type="rpm", name="bash", version="5.0"),
         ],
     )
-    def test_purl_schema_validation_on_prep_packageurl(self, db, purl_obj):
-        """Test that filtering a queryset with a PackageURL object that
-        fails schema validation raises ValidationError"""
+    def test_purl_schema_validation_on_queryset_filter(self, db, purl_value):
+        """Test that filtering a queryset with a PURL that parses but fails
+        schema validation raises ValidationError, for both string and
+        PackageURL inputs."""
         with pytest.raises(ValidationError):
-            PURLTestModel.objects.filter(purl=purl_obj).exists()
+            PURLTestModel.objects.filter(purl=purl_value).exists()
