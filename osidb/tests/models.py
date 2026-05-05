@@ -38,3 +38,6 @@ class PURLTestModel(models.Model):
 
     class Meta:  # type: ignore
         app_label = "tests"
+
+    def context_string(self, msg):
+        return f"Test {msg}"

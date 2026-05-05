@@ -11,6 +11,7 @@ from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
     PsModuleFactory,
+    PsProductFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
 )
@@ -539,6 +540,9 @@ class TestPURLFilter:
     @pytest.fixture
     def purl_test_data(self):
         flaw = FlawFactory(embargoed=False)
+        community_product = PsProductFactory(business_unit="Community")
+        community_module = PsModuleFactory(ps_product=community_product)
+        community_stream = PsUpdateStreamFactory(ps_module=community_module)
         return {
             "flaw": flaw,
             "affects": {
@@ -557,11 +561,17 @@ class TestPURLFilter:
                     purl="pkg:generic/kernel",
                     subpackage_purls=["pkg:generic/kernel", "pkg:generic/openssl"],
                 ),
-                "empty": AffectFactory(flaw=flaw, purl=None, subpackage_purls=[]),
                 "openssl": AffectFactory(
                     flaw=flaw,
                     purl="pkg:generic/openssl",
                     subpackage_purls=["pkg:generic/openssl"],
+                ),
+                "empty": AffectFactory(
+                    flaw=flaw,
+                    ps_update_stream=community_stream.name,
+                    ps_module=community_module.name,
+                    ps_component="empty-purl-component",
+                    purl="",
                 ),
             },
         }

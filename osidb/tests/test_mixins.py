@@ -30,6 +30,7 @@ from osidb.tests.factories import (
     PsModuleFactory,
     PsProductFactory,
     PsUpdateStreamFactory,
+    default_rpm_purl_for_ps_component,
 )
 
 from .test_flaw import tzdatetime
@@ -921,6 +922,7 @@ class TestMultiMixinIntegration:
                 "resolution": "DELEGATED",
                 "ps_update_stream": ps_update_stream.name,
                 "ps_component": "kernel",
+                "purl": default_rpm_purl_for_ps_component("kernel"),
                 "impact": "MODERATE",
                 "embargoed": False,
             }
@@ -1062,6 +1064,7 @@ class TestMultiMixinIntegration:
                 "resolution": "DELEGATED",
                 "ps_update_stream": ps_update_stream.name,
                 "ps_component": "kernel",
+                "purl": default_rpm_purl_for_ps_component("kernel"),
                 "impact": "MODERATE",
                 "embargoed": False,
             }
@@ -1160,6 +1163,7 @@ class TestMultiMixinIntegration:
                 "resolution": "",
                 "ps_update_stream": ps_update_stream.name,
                 "ps_component": "kernel",
+                "purl": default_rpm_purl_for_ps_component("kernel"),
                 "impact": "MODERATE",
                 "embargoed": flaw.embargoed,
             }
@@ -1182,6 +1186,7 @@ class TestMultiMixinIntegration:
         affects_data[0]["affectedness"] = "AFFECTED"
         affects_data[0]["resolution"] = "DELEGATED"
         affects_data[0]["updated_dt"] = affect.updated_dt
+        affects_data[0]["purl"] = str(affect.purl)
 
         validation_counter = {}
 

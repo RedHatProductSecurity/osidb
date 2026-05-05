@@ -627,14 +627,10 @@ class Affect(
         Validate that wontreport resolution only can be used for
         products associated with services.
         """
-        from osidb.constants import SERVICES_PRODUCTS
 
         if self.resolution == Affect.AffectResolution.WONTREPORT:
             ps_module = PsModule.objects.filter(name=self.ps_module).first()
-            if (
-                not ps_module
-                or ps_module.ps_product.short_name not in SERVICES_PRODUCTS
-            ):
+            if not ps_module or not ps_module.ps_product.is_service:
                 raise ValidationError(
                     f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as WONTREPORT, "
                     f"which can only be used for service products."
@@ -727,14 +723,13 @@ class Affect(
         Validate that a PURL exists for affects. This does not include
         affects for services or community affects.
         """
-        from osidb.constants import SERVICES_PRODUCTS
 
         ps_module = PsModule.objects.filter(name=self.ps_module).first()
         if not ps_module:
             return
 
         ps_product = ps_module.ps_product
-        if ps_product.is_community or ps_product.short_name in SERVICES_PRODUCTS:
+        if ps_product.is_community or ps_product.is_service:
             return
 
         if not self.purl:

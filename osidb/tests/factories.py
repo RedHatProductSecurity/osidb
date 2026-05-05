@@ -258,6 +258,22 @@ class FlawFactory(BaseFactory):
         return flaw
 
 
+def default_rpm_purl_for_ps_component(ps_component: str) -> str:
+    """
+    Build a default rpm PURL whose extrapolated ps_component matches ``ps_component``.
+
+    ``pkg:rpm/redhat/{full_path}@...`` parses with only the last path segment as the
+    package name, which breaks validation for components like ``rhel10/firefox``.
+    Use ``rpmmod`` + final segment so ``ps_component_from_purl`` matches.
+    """
+    if "/" not in ps_component:
+        return f"pkg:rpm/redhat/{ps_component}@1?arch=src"
+    parts = ps_component.split("/")
+    rpmmod = "/".join(parts[:-1])
+    name = parts[-1]
+    return f"pkg:rpm/redhat/{name}@1?arch=src&rpmmod={rpmmod}"
+
+
 class AffectFactory(BaseFactory):
     class Meta:
         model = Affect
@@ -322,6 +338,10 @@ class AffectFactory(BaseFactory):
         with saving to DB
         """
         affect = cls._build(model_class, *args, **kwargs)
+        # Non-community affects require a PURL; default one from ps_component when the
+        # caller did not pass purl.
+        if "purl" not in kwargs and not affect.purl and affect.ps_component:
+            affect.purl = default_rpm_purl_for_ps_component(affect.ps_component)
         # turn of automatic timestamps
         # so we can explicitly assign them
         affect.save(auto_timestamps=False)

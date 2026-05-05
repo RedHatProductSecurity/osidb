@@ -12,9 +12,29 @@ from osidb.tests.factories import (
     PsProductFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
+    default_rpm_purl_for_ps_component,
 )
 
 pytestmark = pytest.mark.unit
+
+
+def _community_ps_for_affect():
+    """Product stream where affects may omit a PURL (community)."""
+    ps_product = PsProductFactory(business_unit="Community")
+    ps_module = PsModuleFactory(ps_product=ps_product)
+    ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+    return {
+        "ps_update_stream": ps_update_stream.name,
+        "ps_module": ps_module.name,
+    }
+
+
+def _affect_purl_for_api(affect):
+    if affect.purl:
+        return str(affect.purl)
+    if affect.ps_component:
+        return default_rpm_purl_for_ps_component(affect.ps_component)
+    return None
 
 
 class TestEndpointsAffectsV1:
@@ -178,6 +198,7 @@ class TestEndpointsAffects:
             "resolution": Affect.AffectResolution.NOVALUE,
             "ps_update_stream": "rhacm-2.11.z",
             "ps_component": "curl",
+            "purl": default_rpm_purl_for_ps_component("curl"),
             "embargoed": affect_embargo,
         }
         response = auth_client().post(
@@ -304,6 +325,7 @@ class TestEndpointsAffects:
             "resolution": Affect.AffectResolution.NOVALUE,
             "ps_update_stream": "rhacm-2.11.z",
             "ps_component": "curl",
+            "purl": default_rpm_purl_for_ps_component("curl"),
             "embargoed": flaw.is_embargoed,
         }
         response = auth_client().post(
@@ -327,6 +349,7 @@ class TestEndpointsAffects:
         affect_data["affectedness"] = Affect.AffectAffectedness.AFFECTED
         affect_data["resolution"] = Affect.AffectResolution.WONTFIX
         affect_data["ps_component"] = "kernel"
+        affect_data["purl"] = default_rpm_purl_for_ps_component("kernel")
 
         response = auth_client().post(
             f"{test_api_v2_uri}/affects",
@@ -636,6 +659,7 @@ class TestEndpointsAffectsBulk:
                 "resolution": Affect.AffectResolution.NOVALUE,
                 "ps_update_stream": ps_update_stream.name,
                 "ps_component": "component-foo",
+                "purl": default_rpm_purl_for_ps_component("component-foo"),
                 "embargoed": False,
             }
         ]
@@ -678,6 +702,7 @@ class TestEndpointsAffectsBulk:
                 "resolution": Affect.AffectResolution.NOVALUE,
                 "ps_update_stream": ps_update_stream.name,
                 "ps_component": "valid-component",
+                "purl": default_rpm_purl_for_ps_component("valid-component"),
                 "embargoed": False,
             },
             {
@@ -806,6 +831,7 @@ class TestEndpointsAffectsBulk:
                 "resolution": Affect.AffectResolution.NOVALUE,
                 "ps_update_stream": ps_update_stream.name,
                 "ps_component": "new-component",
+                "purl": default_rpm_purl_for_ps_component("new-component"),
                 "embargoed": False,
             },
             {
@@ -814,6 +840,7 @@ class TestEndpointsAffectsBulk:
                 "resolution": Affect.AffectResolution.NOVALUE,
                 "ps_update_stream": ps_update_stream.name,
                 "ps_component": "existing-component",
+                "purl": default_rpm_purl_for_ps_component("existing-component"),
                 "embargoed": False,
             },
         ]
@@ -851,6 +878,7 @@ class TestEndpointsAffectsBulk:
                 "resolution": Affect.AffectResolution.NOVALUE,
                 "ps_update_stream": ps_update_stream.name,
                 "ps_component": "same-component",
+                "purl": default_rpm_purl_for_ps_component("same-component"),
                 "embargoed": False,
             },
             {
@@ -859,6 +887,7 @@ class TestEndpointsAffectsBulk:
                 "resolution": Affect.AffectResolution.NOVALUE,
                 "ps_update_stream": ps_update_stream.name,
                 "ps_component": "same-component",
+                "purl": default_rpm_purl_for_ps_component("same-component"),
                 "embargoed": False,
             },
         ]
@@ -892,6 +921,7 @@ class TestEndpointsAffectsBulk:
                 "resolution": Affect.AffectResolution.NOVALUE,
                 "ps_update_stream": ps_update_stream.name,
                 "ps_component": "component-foo",
+                "purl": default_rpm_purl_for_ps_component("component-foo"),
                 "embargoed": False,
             }
         ]
@@ -944,17 +974,17 @@ class TestEndpointsAffectsBulk:
     def test_bulk_post_ps_component_only(self, auth_client, test_api_v2_uri):
         """
         Bulk POST with ps_component provided and purl key omitted should
-        succeed.
+        succeed for community streams (PURL not required there).
         """
         flaw = FlawFactory(embargoed=False)
-        ps_update_stream = PsUpdateStreamFactory()
+        comm = _community_ps_for_affect()
 
         bulk_request = [
             {
                 "flaw": str(flaw.uuid),
                 "affectedness": Affect.AffectAffectedness.NEW,
                 "resolution": Affect.AffectResolution.NOVALUE,
-                "ps_update_stream": ps_update_stream.name,
+                "ps_update_stream": comm["ps_update_stream"],
                 "ps_component": "my-component",
                 "embargoed": False,
             }
@@ -977,7 +1007,12 @@ class TestEndpointsAffectsBulk:
         """
         purl = "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25"
         flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(flaw=flaw, ps_component="old-component", purl="")
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_component="old-component",
+            purl="",
+            **_community_ps_for_affect(),
+        )
 
         response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
@@ -1042,16 +1077,16 @@ class TestEndpointsAffectsBulk:
     def test_create_ps_component_only(self, auth_client, test_api_v2_uri, purl_value):
         """
         Non-bulk POST with ps_component provided and purl either null or
-        entirely absent should succeed.
+        entirely absent should succeed for community streams.
         """
         flaw = FlawFactory(embargoed=False)
-        PsUpdateStreamFactory(name="test-stream-2.0.z")
+        comm = _community_ps_for_affect()
 
         affect_data = {
             "flaw": str(flaw.uuid),
             "affectedness": Affect.AffectAffectedness.NEW,
             "resolution": Affect.AffectResolution.NOVALUE,
-            "ps_update_stream": "test-stream-2.0.z",
+            "ps_update_stream": comm["ps_update_stream"],
             "ps_component": "my-component",
             "embargoed": False,
         }
@@ -1076,7 +1111,12 @@ class TestEndpointsAffectsBulk:
         """
         purl = "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25"
         flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(flaw=flaw, ps_component="old-component", purl="")
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_component="old-component",
+            purl="",
+            **_community_ps_for_affect(),
+        )
 
         response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
@@ -1138,7 +1178,12 @@ class TestEndpointsAffectsBulk:
         with a validation error.
         """
         flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(flaw=flaw, ps_component="old-component", purl="")
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_component="old-component",
+            purl="",
+            **_community_ps_for_affect(),
+        )
 
         response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
@@ -1195,7 +1240,12 @@ class TestEndpointsAffectsBulk:
         with a validation error.
         """
         flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(flaw=flaw, ps_component="old-component", purl="")
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_component="old-component",
+            purl="",
+            **_community_ps_for_affect(),
+        )
 
         response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
@@ -1284,6 +1334,7 @@ class TestEndpointsAffectsUpdateTrackers:
             "impact": "MODERATE",  # tracker update trigger
             "ps_component": affect1.ps_component,
             "ps_update_stream": affect1.ps_update_stream,
+            "purl": _affect_purl_for_api(affect1),
             "updated_dt": affect1.updated_dt,
         }
         affect2_data = {
@@ -1292,6 +1343,7 @@ class TestEndpointsAffectsUpdateTrackers:
             "impact": "MODERATE",  # tracker update trigger
             "ps_component": affect2.ps_component,
             "ps_update_stream": affect2.ps_update_stream,
+            "purl": _affect_purl_for_api(affect2),
             "updated_dt": affect2.updated_dt,
         }
         affect3_data = {
@@ -1300,6 +1352,7 @@ class TestEndpointsAffectsUpdateTrackers:
             "impact": "MODERATE",  # tracker update trigger
             "ps_component": affect3.ps_component,
             "ps_update_stream": affect3.ps_update_stream,
+            "purl": _affect_purl_for_api(affect3),
             "updated_dt": affect3.updated_dt,
         }
 
@@ -1372,10 +1425,15 @@ class TestEndpointsAffectsUpdateTrackers:
             "flaw": flaw.uuid,
             "ps_component": affect.ps_component,
             "ps_update_stream": affect.ps_update_stream,
+            "purl": _affect_purl_for_api(affect),
             "updated_dt": affect.updated_dt,
         }
         for attribute, value in to_update.items():
             affect_data[attribute] = value
+        if "ps_component" in to_update:
+            affect_data["purl"] = default_rpm_purl_for_ps_component(
+                to_update["ps_component"]
+            )
 
         with patch.object(Tracker, "save") as mock_save:
             response = auth_client().put(
@@ -1414,6 +1472,7 @@ class TestEndpointsAffectsUpdateTrackers:
             "flaw": flaw2.uuid,  # re-link the affect
             "ps_component": affect.ps_component,
             "ps_update_stream": affect.ps_update_stream,
+            "purl": _affect_purl_for_api(affect),
             "updated_dt": affect.updated_dt,
         }
 
@@ -1477,7 +1536,12 @@ class TestEndpointsAffectsPurl:
         """
         purl = "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25"
         flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(flaw=flaw, ps_component="podman", purl="")
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_component="podman",
+            purl="",
+            **_community_ps_for_affect(),
+        )
 
         response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
@@ -1548,6 +1612,7 @@ class TestEndpointsAffectsPurl:
         if error:
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert error in str(response.content)
+            assert "rhacm-2.11.z" in str(response.content)
 
     @pytest.mark.parametrize(
         "ps_component,purl,error",
@@ -1575,7 +1640,12 @@ class TestEndpointsAffectsPurl:
         or purl and ps_component are missing.
         """
         flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(flaw=flaw, ps_component="podman", purl="")
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_component="podman",
+            purl="",
+            **_community_ps_for_affect(),
+        )
 
         response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
         assert response.status_code == 200
@@ -1606,7 +1676,9 @@ class TestEndpointsAffectsPurl:
         from django.db import connection
 
         flaw = FlawFactory(embargoed=False)
-        affect = AffectFactory(flaw=flaw, purl="")
+        # Save-time validation requires a PURL for standard product streams; use any
+        # valid value here and replace it with legacy invalid data via SQL below.
+        affect = AffectFactory(flaw=flaw)
 
         # Bypass Django's ORM to insert a purl that fails current schema
         # validation: pkg:oci with a namespace is prohibited by the oci PURL
