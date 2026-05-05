@@ -852,6 +852,12 @@ class Affect(
             name=self.ps_module, ps_product__business_unit="Community"
         ).exists()
 
+    def is_hummingbird(self) -> bool:
+        """
+        check and return whether the given affect is targeting HUM project
+        """
+        return PsModule.objects.filter(name=self.ps_module, bts_key="HUM").exists()
+
     @property
     def is_notaffected(self) -> bool:
         """
