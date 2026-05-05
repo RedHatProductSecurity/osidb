@@ -514,11 +514,12 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
             # Keep the order stable for ease of testing and debugging
             cc_list = sorted(cc_list)
 
+            # precalculate cloud IDs once for all users
+            cloud_ids = {un: Profile.kerberos_to_cloud_id(un) for un in cc_list}
+
             # Note that access control for the comment is not necessary because the whole
             # tracker has access control set in generate_security().
-            notify_users = ", ".join(
-                [f"[~accountId:{Profile.kerberos_to_cloud_id(u)}]" for u in cc_list]
-            )
+            notify_users = ", ".join([f"[~accountId:{cloud_ids[u]}]" for u in cc_list])
             self._comment = "Added involved users: " + notify_users
 
             # contributors fields will replace the involved field
@@ -527,13 +528,13 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
                 project_key=self.ps_module.bts_key, field_name="Contributors"
             ).first():
                 self._query["fields"][contr_field_obj.field_id] = [
-                    {"accountId": Profile.kerberos_to_cloud_id(un)} for un in cc_list
+                    {"accountId": cloud_ids[un]} for un in cc_list
                 ]
             elif inv_field_obj := JiraProjectFields.objects.filter(
                 project_key=self.ps_module.bts_key, field_name="Involved"
             ).first():
                 self._query["fields"][inv_field_obj.field_id] = [
-                    {"accountId": Profile.kerberos_to_cloud_id(un)} for un in cc_list
+                    {"accountId": cloud_ids[un]} for un in cc_list
                 ]
             else:
                 # At the time of writing this, all Jira projects have these fields.
