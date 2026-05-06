@@ -29,6 +29,7 @@ from osidb.mixins import (
 )
 from osidb.models.fields import CVEIDField, PURLField
 from osidb.query_sets import CustomQuerySetUpdatedDt
+from osidb.validators import validate_cme_id
 
 from .abstract import CVSS, Impact
 from .flaw.flaw import Flaw
@@ -230,6 +231,12 @@ class Affect(
 
     purl = PURLField()
     subpackage_purls = fields.ArrayField(PURLField(), default=list, blank=True)
+
+    cme_ids = fields.ArrayField(
+        base_field=models.CharField(max_length=20, validators=[validate_cme_id]),
+        default=list,
+        blank=True,
+    )
 
     impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 

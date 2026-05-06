@@ -8023,6 +8023,14 @@ paths:
         explode: false
         style: form
       - in: query
+        name: cme_ids
+        schema:
+          type: string
+      - in: query
+        name: cme_ids__isempty
+        schema:
+          type: boolean
+      - in: query
         name: created_dt
         schema:
           type: string
@@ -14031,6 +14039,11 @@ components:
           type: array
           items:
             type: string
+        cme_ids:
+          type: array
+          items:
+            type: string
+            maxLength: 20
         not_affected_justification:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
@@ -14144,6 +14157,12 @@ components:
           type: array
           items:
             type: string
+        cme_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 20
         not_affected_justification:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
@@ -14407,6 +14426,12 @@ components:
           type: array
           items:
             type: string
+        cme_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 20
         not_affected_justification:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
@@ -14476,6 +14501,12 @@ components:
           type: array
           items:
             type: string
+        cme_ids:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 20
         not_affected_justification:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'

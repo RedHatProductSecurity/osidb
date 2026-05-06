@@ -1450,6 +1450,8 @@ class AffectFilter(
     subpackage_purls = PURLFilter(field_name="subpackage_purls")
     subpackage_purls__in = PURLInFilter(field_name="subpackage_purls")
     subpackage_purls__isempty = IsEmptyArrayFilter(field_name="subpackage_purls")
+    cme_ids = CharFilter(field_name="cme_ids", lookup_expr="contains")
+    cme_ids__isempty = IsEmptyArrayFilter(field_name="cme_ids")
 
     class Meta:
         model = Affect

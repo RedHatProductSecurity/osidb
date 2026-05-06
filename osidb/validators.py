@@ -15,6 +15,7 @@ from django.utils import timezone
 CVE_RE_STR = re.compile(r"CVE-(?:1999|2\d{3})-(?!0{4})(?:0\d{3}|[1-9]\d{3,})")
 # TODO CWE syntax is a lot more complicated so this captures only the basic ones
 CWE_RE_STR = re.compile(r"CWE-[1-9]\d*", flags=re.IGNORECASE)
+CME_RE_STR = re.compile(r"CME-\d{3,4}")
 
 
 def restrict_regex(regex):
@@ -30,6 +31,11 @@ def validate_cve_id(value: str):
 def validate_cwe_id(value: str):
     """check cwe_id"""
     RegexValidator(restrict_regex(CWE_RE_STR), "CWE IDs is not well formated.")(value)
+
+
+def validate_cme_id(value: str):
+    """check cme_id"""
+    RegexValidator(restrict_regex(CME_RE_STR), "Malformed CME ID.")(value)
 
 
 def check_cvss(cvss_str, CVSS=CVSS3):

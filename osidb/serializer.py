@@ -1316,6 +1316,7 @@ class AffectSerializer(
                 "cvss_scores",
                 "purl",
                 "subpackage_purls",
+                "cme_ids",
                 "not_affected_justification",
                 "delegated_not_affected_justification",
                 "resolved_dt",
