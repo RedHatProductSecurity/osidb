@@ -10,6 +10,7 @@ Open Security Issue Database
 * [Setup](#setup)
 * [Usage](#usage)
 * [Contributing](#contributing)
+* [AI Assistant Rules](#ai-assistant-rules)
 * [Status](#status)
 
 ## Introduction
@@ -90,6 +91,42 @@ If you are interested in joining us please start by reading
 [contributing](docs/developer/CONTRIBUTING.md) guidelines.
 
 All the developer facing documentation can be found [here](docs/developer).
+
+## AI Assistant Rules
+
+This repository ships AI assistant rules that help LLM-powered tools understand project conventions
+such as how to run tests, the container-based development workflow, and more.
+
+### Available rules
+
+| Rule | Cursor | Claude Code | Topic |
+|---|---|---|---|
+| `testing` | [`.cursor/rules/testing.mdc`](.cursor/rules/testing.mdc) | [`.claude/rules/testing.md`](.claude/rules/testing.md) | How to run tests (tox environments, `make testrunner.*` targets, podman exec pattern) |
+
+### Supported tools
+
+The rules are currently available for:
+
+* **[Cursor](https://www.cursor.com/)** — rules in `.cursor/rules/` are picked up automatically.
+* **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** — rules are stored in `.claude/rules/` and can be synced from the Cursor format using [rulesync](https://github.com/ianhomer/rulesync).
+
+### Synchronizing rules between tools
+
+Use [rulesync](https://github.com/ianhomer/rulesync) to keep rules in sync across different AI tools:
+
+```bash
+# Sync rules from Cursor to Claude Code
+rulesync --from cursor --to claudecode
+
+# Sync rules from Claude Code back to Cursor
+rulesync --from claudecode --to cursor
+```
+
+### Contributing rules
+
+Contributions of new rules and support for additional LLM tools are very welcome.
+If you add a rule for a tool not yet listed above (e.g. GitHub Copilot, Windsurf, Aider, etc.),
+please open a pull request and update this section accordingly.
 
 ## Status
 
