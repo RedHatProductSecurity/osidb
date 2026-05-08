@@ -159,15 +159,13 @@ class CheckParser:
         """
         attribute to literal value equality check
 
-        currently only supports string attributes
-        which values do not contain any spaces
+        supports string attributes including those with spaces in values
         """
         if check_desc.count("_is_") == 1:
             attr, value = check_desc.split("_is_")
             attr = self.sanitize_attribute(attr)
 
             if hasattr(self.model, attr):
-                doc = f"check that {self.model.__name__} attribute {attr} has a value equal to {value}"
 
                 def choices_field(model, name):
                     """
@@ -184,6 +182,11 @@ class CheckParser:
                     or attr in self.TEXT_CHOICES_PROPERTIES
                 ):
                     value = value.upper()
+                else:
+                    # For non-choices fields, restore spaces that were replaced with underscores
+                    value = value.replace("_", " ")
+
+                doc = f"check that {self.model.__name__} attribute {attr} has a value equal to {value}"
 
                 def compare_element(instance):
                     field = getattr(instance, attr)

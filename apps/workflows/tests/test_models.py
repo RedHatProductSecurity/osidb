@@ -24,6 +24,7 @@ from osidb.tests.factories import (
     FlawReferenceFactory,
     PackageFactory,
     PsModuleFactory,
+    PsProductFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
 )
@@ -346,6 +347,39 @@ class TestCheck:
             affect.tracker = tracker
             affect.save(raise_validation_error=False)
             assert check(flaw)
+
+    def test_equals_with_spaces(self):
+        """
+        test that equality checks work correctly for values containing spaces
+        (regression test for OSIDB-4956)
+        """
+        ps_product = PsProductFactory(
+            short_name="rhel", name="Red Hat Enterprise Linux"
+        )
+        ps_module = PsModuleFactory(
+            bts_name="bugzilla", name="rhel-8", ps_product=ps_product
+        )
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module, name="rhel-8.10.0"
+        )
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            ps_component="kpatch",
+            ps_update_stream=ps_update_stream.name,
+        )
+
+        check = Check("PS product is Red Hat Enterprise Linux", cls=Affect)
+
+        assert check.name == "PS product is Red Hat Enterprise Linux"
+        assert (
+            check.description
+            == "check that Affect attribute ps_product has a value equal to Red Hat Enterprise Linux"
+        )
+
+        # The check should pass when ps_product matches
+        assert check(affect), f"Check failed: {check.name}"
 
 
 class TestCondition:
