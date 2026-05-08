@@ -992,6 +992,112 @@ class TestSLOPolicy:
                 == accepted
             )
 
+        @pytest.mark.parametrize(
+            "true_case, false_case",
+            [
+                ("Red Hat Enterprise Linux", "Red_Hat_Enterprise_Linux"),
+                ("Red_Hat_Enterprise_Linux", "Red Hat Enterprise Linux"),
+                ("Red_Hat Enterprise_Linux", "Red Hat_Enterprise Linux"),
+                ("Red Hat_Enterprise_Linux", "Red_Hat_Enterprise_Linux"),
+            ],
+        )
+        def test_policy_with_spaces(self, true_case, false_case):
+            """
+            Test the SLA policy with multi-word product name
+            (regression test for OSIDB-4956)
+
+            This mirrors and actually policy from ps-constants with spaces in the value:
+            """
+            policy_desc = {
+                "name": "testCase",
+                "description": "Magical test case",
+                "conditions": {
+                    "affect": [
+                        f"PS product is {true_case}",
+                        "PS component is magic",
+                    ],
+                },
+                "slo": None,  # Exclusion policy - no SLO applies
+            }
+
+            policy = SLOPolicy.create_from_description(policy_desc)
+
+            ps_product = PsProductFactory(short_name="rhel", name=true_case)
+            ps_module = PsModuleFactory(bts_name="bugzilla", ps_product=ps_product)
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+            flaw = FlawFactory(embargoed=False)
+
+            # Test 1: Affect that SHOULD match the policy (Magic on RHEL)
+            magic_affect = AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=ps_module.name,
+                ps_component="magic",
+                ps_update_stream=ps_update_stream.name,
+                impact=Impact.MODERATE,
+            )
+            magic_tracker = TrackerFactory(
+                affects=[magic_affect],
+                embargoed=flaw.embargoed,
+                ps_update_stream=ps_update_stream.name,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+            )
+
+            # Should accept because both conditions match
+            assert policy.accepts(
+                TemporalContext(flaw=flaw, affect=magic_affect, tracker=magic_tracker)
+            ), f"Ps product is {true_case} should match component"
+
+            # Test 2: Affect that should NOT match (different component)
+            other_affect = AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=ps_module.name,
+                ps_component="kernel",
+                ps_update_stream=ps_update_stream.name,
+                impact=Impact.MODERATE,
+            )
+            other_tracker = TrackerFactory(
+                affects=[other_affect],
+                embargoed=flaw.embargoed,
+                ps_update_stream=ps_update_stream.name,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+            )
+
+            # Should NOT accept because component doesn't match
+            assert not policy.accepts(
+                TemporalContext(flaw=flaw, affect=other_affect, tracker=other_tracker)
+            ), "Magic policy should not match non-magic components"
+
+            # Test 3: Affect on different product (magic but not RHEL)
+            other_product = PsProductFactory(short_name="fedora", name=false_case)
+            other_ps_module = PsModuleFactory(
+                bts_name="bugzilla", ps_product=other_product
+            )
+            other_ps_update_stream = PsUpdateStreamFactory(ps_module=other_ps_module)
+            fedora_affect = AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=other_ps_module.name,
+                ps_component="magic",  # Same component
+                ps_update_stream=other_ps_update_stream.name,
+                impact=Impact.MODERATE,
+            )
+            fedora_tracker = TrackerFactory(
+                affects=[fedora_affect],
+                embargoed=flaw.embargoed,
+                ps_update_stream=other_ps_update_stream.name,
+                type=Tracker.BTS2TYPE[other_ps_module.bts_name],
+            )
+
+            # Should NOT accept because product doesn't match
+            assert not policy.accepts(
+                TemporalContext(flaw=flaw, affect=fedora_affect, tracker=fedora_tracker)
+            ), "Magic policy should not match kpatch on non-RHEL products"
+
     class TestContext:
         """
         test SLOPolicy context determination
