@@ -1,7 +1,5 @@
 import json
 import re
-from copy import deepcopy
-from pathlib import Path
 
 import pytest
 from django.conf import settings
@@ -249,72 +247,6 @@ def bypass_rls(db, request):
     if "enable_rls" in request.keywords:
         return
     set_user_acls(settings.ALL_GROUPS)
-
-
-_NEWCLI_FIXTURE_DIR = Path(__file__).resolve().parent / "osidb" / "tests" / "fixtures"
-
-
-def _load_newcli_json_fixture(filename: str) -> dict:
-    path = _NEWCLI_FIXTURE_DIR / filename
-    with path.open(encoding="utf-8") as f:
-        return json.load(f)
-
-
-@pytest.fixture
-def newcli_urllib3_hummingbird1_json():
-    """
-    Pretty-printed sample of ``newcli -s urllib3 --include hummingbird-1 --json``.
-
-    Source: ``osidb/tests/fixtures/newcli_urllib3_hummingbird1.json`` (multiple ``deps`` for
-    multi-affect tests).
-    """
-    return deepcopy(_load_newcli_json_fixture("newcli_urllib3_hummingbird1.json"))
-
-
-@pytest.fixture
-def newcli_openssl_hummingbird1_json():
-    """
-    Pretty-printed sample of ``newcli -s openssl --include hummingbird-1 --json`` (openssl /
-    cargo dependency shape; single ``deps`` entry).
-
-    Source: ``osidb/tests/fixtures/newcli_openssl_hummingbird1.json``.
-    """
-    return deepcopy(_load_newcli_json_fixture("newcli_openssl_hummingbird1.json"))
-
-
-@pytest.fixture
-def newcli_openssl_multi_builds_json():
-    """
-    Fixture with multiple ``builds`` entries across different streams, including one genuine
-    duplicate (rhel-9.8.z / openssl appears twice with different NVRs — same ps_update_stream
-    and ps_component, so the second must be skipped as already existing).
-
-    Layout:
-    - builds[0]: hummingbird-1 / openssl            → unique
-    - builds[1]: rhel-9.8.z   / openssl (3.5.1-7)  → unique  (first encounter)
-    - builds[2]: rhel-9.8.z   / openssl (3.5.5-1)  → duplicate of builds[1] → skipped_existing
-    - builds[3]: rhel-8.8.0.z / openssl (1.1.1k)   → unique
-    - deps[0]:   hummingbird-1 / bootc              → unique
-    - deps[1]:   hummingbird-1 / chunkah            → unique
-
-    Expected on first sync: created=5, skipped=0, skipped_existing=1.
-
-    Source: ``osidb/tests/fixtures/newcli_openssl_multi_builds.json``.
-    """
-    return deepcopy(_load_newcli_json_fixture("newcli_openssl_multi_builds.json"))
-
-
-@pytest.fixture
-def newcli_ostree_hummingbird1_json():
-    """
-    Pretty-printed sample of ``newcli -s ostree --include hummingbird-1 --json``.
-
-    Contains one ``builds`` entry (ostree, the searched component) and one ``deps`` entry
-    (bootc, which bundles ostree as a cargo dependency).
-
-    Source: ``osidb/tests/fixtures/newcli_ostree_hummingbird1.json``.
-    """
-    return deepcopy(_load_newcli_json_fixture("newcli_ostree_hummingbird1.json"))
 
 
 @pytest.fixture
