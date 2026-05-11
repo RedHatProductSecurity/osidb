@@ -1,6 +1,7 @@
 import pytest
 from django.core.exceptions import ValidationError
 
+from osidb.constants import SERVICES_PRODUCTS
 from osidb.models import Affect, Impact, Tracker
 from osidb.tests.factories import (
     AffectCVSSFactory,
@@ -10,6 +11,7 @@ from osidb.tests.factories import (
     PsProductFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
+    default_rpm_purl_for_ps_component,
 )
 
 pytestmark = pytest.mark.unit
@@ -78,6 +80,7 @@ class TestAffect:
             resolution=resolution,
             ps_component="component-10",
             ps_update_stream=ps_update_stream.name,
+            purl=default_rpm_purl_for_ps_component("component-10"),
             acl_read=flaw.acl_read,
             acl_write=flaw.acl_write,
         )
@@ -118,7 +121,7 @@ class TestAffect:
         ],
     )
     def test_ps_component_from_purl(self, purl, ps_component):
-        affect = AffectFactory(purl=purl, ps_component=None)
+        affect = AffectFactory(purl=purl, ps_component="")
 
         assert affect.ps_component == ps_component
 
@@ -204,26 +207,11 @@ class TestAffect:
         )
         affect.delete()
 
-    @pytest.mark.parametrize(
-        "business_unit,purl,should_raise,expected_error",
-        [
-            # Middleware products require PURL for new affects
-            ("Core Middleware", None, True, "must specify a PURL"),
-            ("Core Middleware", "", True, "must specify a PURL"),
-            ("Core Middleware", "pkg:rpm/redhat/example@1.0", False, None),
-            # Non-middleware products don't require PURL
-            ("RHEL", None, False, None),
-            ("RHEL", "", False, None),
-            ("RHEL", "pkg:rpm/redhat/example@1.0", False, None),
-        ],
-    )
-    def test_validate_purl_middleware_new_affects(
-        self, business_unit, purl, should_raise, expected_error, monkeypatch
-    ):
-        """Test PURL validation for new affects on middleware products"""
-        monkeypatch.setenv("OSIDB_AFFECTS_REQUIRE_PURL_FOR_MIDDLEWARE", "true")
-
-        ps_product = PsProductFactory(business_unit=business_unit)
+    def test_validate_purl_existence(self):
+        """
+        Test that non-community, non-services products require a PURL
+        """
+        ps_product = PsProductFactory(business_unit="RHEL")
         ps_module = PsModuleFactory(ps_product=ps_product)
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory()
@@ -232,85 +220,53 @@ class TestAffect:
             flaw=flaw,
             ps_update_stream=ps_update_stream.name,
             ps_component="example",
-            purl=purl,
             acl_read=flaw.acl_read,
             acl_write=flaw.acl_write,
         )
 
-        if should_raise:
-            with pytest.raises(ValidationError) as exc_info:
-                affect.save()
-            assert expected_error in str(exc_info.value)
-        else:
+        with pytest.raises(ValidationError) as exc_info:
             affect.save()
 
-    @pytest.mark.parametrize(
-        "business_unit,initial_purl,updated_purl,should_raise,expected_error",
-        [
-            # Middleware product: removing PURL should raise error
-            (
-                "Core Middleware",
-                "pkg:rpm/redhat/example@1.0",
-                None,
-                True,
-                "cannot have its PURL removed",
-            ),
-            (
-                "Core Middleware",
-                "pkg:rpm/redhat/example@1.0",
-                "",
-                True,
-                "cannot have its PURL removed",
-            ),
-            # Middleware product: keeping PURL should be fine
-            (
-                "Core Middleware",
-                "pkg:rpm/redhat/example@1.0",
-                "pkg:rpm/redhat/example@2.0",
-                False,
-                None,
-            ),
-            # Middleware product: adding PURL to existing affect should be fine
-            ("Core Middleware", "", "pkg:rpm/redhat/example@1.0", False, None),
-            # Non-middleware product: removing PURL should be fine
-            ("RHEL", "pkg:rpm/redhat/example@1.0", None, False, None),
-            ("RHEL", "pkg:rpm/redhat/example@1.0", "", False, None),
-        ],
-    )
-    def test_validate_purl_middleware_existing_affects(
-        self,
-        business_unit,
-        initial_purl,
-        updated_purl,
-        should_raise,
-        expected_error,
-        monkeypatch,
-    ):
-        """Test PURL validation for existing affects on middleware products"""
-        monkeypatch.setenv("OSIDB_AFFECTS_REQUIRE_PURL_FOR_MIDDLEWARE", "true")
+        assert "is missing a PURL." in str(exc_info.value)
+        assert str(affect.uuid) in str(exc_info.value)
 
-        ps_product = PsProductFactory(business_unit=business_unit)
+    def test_validate_purl_existence_skipped_for_community_product(self):
+        """
+        Test that PURLs are not required for community affects.
+        """
+        ps_product = PsProductFactory(business_unit="Community")
         ps_module = PsModuleFactory(ps_product=ps_product)
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory()
 
-        affect = AffectFactory.build(
+        affect = Affect(
             flaw=flaw,
             ps_update_stream=ps_update_stream.name,
             ps_component="example",
-            purl=initial_purl,
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
         )
-        # Simulate existing affect by saving without the validation
-        affect.save(raise_validation_error=False)
 
-        affect.purl = updated_purl or ""
+        affect.save()
 
-        if should_raise:
-            with pytest.raises(ValidationError) as exc_info:
-                affect.save()
-            assert expected_error in str(exc_info.value)
-        else:
-            affect.save()
+    def test_validate_purl_existence_skipped_for_services_product(self):
+        """
+        Test that PURLs are not required for service affects.
+        """
+        ps_product = PsProductFactory(short_name=SERVICES_PRODUCTS[0])
+        ps_module = PsModuleFactory(ps_product=ps_product)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory()
+
+        affect = Affect(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="example",
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
+        )
+
+        affect.save()
 
     def test_validate_cvss_not_affected_fails_with_cvss(self):
         """Test that NOTAFFECTED affects with CVSS scores fail validation"""
@@ -361,5 +317,6 @@ class TestAffect:
             with pytest.raises(ValidationError) as exc_info:
                 affect.save()
             assert "does not match user-provided ps_component" in str(exc_info.value)
+            assert str(affect.uuid) in str(exc_info.value)
         else:
             affect.save()

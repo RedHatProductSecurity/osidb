@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+- Add validation to require PURLs (OSIDB-4810)
+
+## [5.10.3] - 2026-05-06
+### Fixed
+- Include builds during affect auto-creation (OSIDB-4965)
+
+## [5.10.2] - 2026-05-05
+### Added
+- Add is_hummingbird flag for new SLA policy (OSIDB-4884)
+
+## [5.10.1] - 2026-05-05
+### Fixed
+- Fix PURL schema validation being triggered on reads (OSIDB-4961)
+
+## [5.10.0] - 2026-05-04
+### Added
 - Add schema validation to PURLs (OSIDB-4910)
 - Affect(s) can be automatically created and assigned to Flaw(s) for
   specific products (OSIDB-4878)

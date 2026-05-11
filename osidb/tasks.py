@@ -60,27 +60,35 @@ def _run_newcli_deps_json(flaw_component: str) -> dict[str, Any]:
     return json.loads(result.stdout or "{}")
 
 
-def _sync_affects_from_newcli_deps(
+def _sync_affects_from_newcli_payload(
     flaw: Flaw, payload: dict[str, Any]
 ) -> dict[str, int]:
+    """Process both ``builds`` and ``deps`` entries from a newcli JSON payload.
+
+    ``builds`` contains the directly-searched component (e.g. ostree itself),
+    while ``deps`` contains packages that bundle it as a dependency (e.g. bootc).
+    Both result in new affects on the flaw.
+    """
+    builds = payload.get("builds") or []
     deps = payload.get("deps") or []
+    entries = list(builds) + list(deps)
     created = 0
     skipped = 0
     skipped_existing = 0
 
     with transaction.atomic():
-        for dep in deps:
-            if not isinstance(dep, dict):
+        for entry in entries:
+            if not isinstance(entry, dict):
                 skipped += 1
                 continue
-            ps_update_stream = dep.get("ps_update_stream") or dep.get("ps_module")
-            purls = dep.get("purls") or []
+            ps_update_stream = entry.get("ps_update_stream") or entry.get("ps_module")
+            purls = entry.get("purls") or []
             purl_str = purls[0] if purls else None
 
             if not ps_update_stream or not purl_str:
                 logger.warning(
-                    "Skipping newcli dep missing ps_update_stream or purls: %s",
-                    dep.get("build_nvr"),
+                    "Skipping newcli entry missing ps_update_stream or purls: %s",
+                    entry.get("build_nvr"),
                 )
                 skipped += 1
                 continue
@@ -232,7 +240,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
     totals: dict[str, int] = {"created": 0, "skipped": 0, "skipped_existing": 0}
     for flaw_component in components:
         payload = _run_newcli_deps_json(flaw_component)
-        stats = _sync_affects_from_newcli_deps(flaw, payload)
+        stats = _sync_affects_from_newcli_payload(flaw, payload)
         for key in totals:
             totals[key] += stats[key]
     logger.info(

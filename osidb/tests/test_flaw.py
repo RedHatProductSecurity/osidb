@@ -37,6 +37,7 @@ from osidb.tests.factories import (
     PsUpdateStreamFactory,
     SpecialConsiderationPackageFactory,
     TrackerFactory,
+    default_rpm_purl_for_ps_component,
 )
 
 pytestmark = pytest.mark.unit
@@ -132,6 +133,7 @@ class TestFlaw:
             impact=Impact.NOVALUE,
             acl_read=self.acl_read,
             acl_write=self.acl_write,
+            purl=default_rpm_purl_for_ps_component("fake_component"),
         )
         affect2.save()
         tracker1 = TrackerFactory(
@@ -2212,6 +2214,8 @@ class TestFlawValidators:
             impact=Impact.LOW,
             flaw=flaw,
         )
+        if affect.ps_component and not affect.purl:
+            affect.purl = default_rpm_purl_for_ps_component(affect.ps_component)
         affect.save(raise_validation_error=False)
         # Initially there shouldn't be any alerts
         assert not affect.valid_alerts.filter(
@@ -2303,6 +2307,8 @@ class TestFlawValidators:
             ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect.ps_update_stream = ps_update_stream.name
             affect.impact = Impact.LOW
+        elif affect.ps_component and not affect.purl:
+            affect.purl = default_rpm_purl_for_ps_component(affect.ps_component)
 
         if should_raise:
             with pytest.raises(

@@ -1,6 +1,6 @@
 [project]
 name = "osidb"
-version = "5.9.0"
+version = "5.10.3"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "backoff>=1.11.1",
@@ -69,7 +69,7 @@ dev = [
     "pytest-django>=4.9.0",
     "pytest-recording>=0.13.2",
     "pytest-spec>=4.0.0",
-    "pytest-sugar>=0.9.6",
+    "pytest-sugar>=1.0.0",
     "pytest-xdist>=3.5.0",
     "python-dotenv>=1.2.2",
     "tox>=4.28.1",

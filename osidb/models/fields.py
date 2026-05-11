@@ -64,15 +64,20 @@ class CVEIDField(models.CharField):
         return name, path, args, kwargs
 
 
-def validate_purl(purl: PackageURL) -> None:
+def validate_purl(purl: PackageURL, *, instance: Optional[models.Model] = None) -> None:
     """Validate a PackageURL against its type-specific schema rules."""
     errors = purl.validate()
     if len(errors) > 0:
+        if instance and callable(getattr(instance, "context_string", None)):
+            raise ValidationError([instance.context_string(str(e)) for e in errors])
         raise ValidationError(errors)
 
 
 def to_purl(
-    value: Optional[str | PackageURL], validate: bool = True
+    value: Optional[str | PackageURL],
+    validate: bool = True,
+    *,
+    instance: Optional[models.Model] = None,
 ) -> Optional[PackageURL]:
     if value is None or value == "":
         # in case of PURL being blank we return None as well in order
@@ -85,10 +90,14 @@ def to_purl(
         try:
             purl = PackageURL.from_string(value)
         except ValueError as e:
-            raise ValidationError(f"Invalid PURL: {e}")
+            error_string = f"Invalid PURL: {e}"
+            if instance and callable(getattr(instance, "context_string", None)):
+                error_string = instance.context_string(error_string)
+
+            raise ValidationError(error_string)
 
     if validate:
-        validate_purl(purl)
+        validate_purl(purl, instance=instance)
 
     return purl
 
@@ -103,7 +112,15 @@ class PURLDescriptor(DeferredAttribute):
         self, instance: Optional[models.Model], value: Optional[str | PackageURL]
     ) -> None:
         if instance:
-            instance.__dict__[self.field.name] = to_purl(value)
+            # Validation is intentionally skipped here because __set__ is
+            # called both on explicit assignment *and* by Django's Model.__init__
+            # when populating an instance from a database row.  Validating on
+            # read would break any row whose purl was valid when written but
+            # fails a schema rule added later.  Write-path validation is
+            # enforced by get_prep_value, which runs on every INSERT/UPDATE.
+            instance.__dict__[self.field.name] = to_purl(
+                value, validate=False, instance=instance
+            )
 
 
 class PURLField(models.CharField):

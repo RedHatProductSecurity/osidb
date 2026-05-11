@@ -22,6 +22,9 @@ from osidb.sync_manager import (
     BZSyncManager,
     JiraTaskSyncManager,
 )
+from osidb.tests.factories import (
+    default_rpm_purl_for_ps_component,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -179,6 +182,8 @@ class TestE2E:
 
         # 3) create affects
         affects_data = []
+        comp = ps_module.default_component
+        purl = default_rpm_purl_for_ps_component(comp)
         for stream in ps_update_streams:
             affects_data.append(
                 {
@@ -186,7 +191,8 @@ class TestE2E:
                     "affectedness": "AFFECTED",
                     "resolution": "DELEGATED",
                     "ps_update_stream": stream.name,
-                    "ps_component": ps_module.default_component,
+                    "ps_component": comp,
+                    "purl": purl,
                     "impact": "CRITICAL",
                     "embargoed": embargoed,
                 }
@@ -232,9 +238,7 @@ class TestE2E:
 
         # 5) create trackers
         for stream in ps_update_streams:
-            affect = affect = Affect.objects.get(
-                flaw=flaw, ps_update_stream=stream.name
-            )
+            affect = Affect.objects.get(flaw=flaw, ps_update_stream=stream.name)
             tracker_data = {
                 "affects": [affect.uuid],
                 "embargoed": flaw.embargoed,
@@ -689,6 +693,7 @@ class TestE2E:
         enable_bz_async_sync,
         enable_jira_task_async_sync,
         enable_jira_tracker_sync,
+        jira_email,
         jira_token,
         monkeypatch,
         test_api_uri,
@@ -717,6 +722,7 @@ class TestE2E:
             flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
@@ -764,6 +770,7 @@ class TestE2E:
             embargoed_flaw_data,
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
             HTTP_JIRA_API_KEY=jira_token,
         )
 
