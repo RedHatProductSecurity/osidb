@@ -259,6 +259,7 @@ class TestPURLField:
             PURLTestModel(purl="not-a-valid-purl")
 
         assert "Invalid PURL" in str(exc_info.value)
+        assert "Test " in str(exc_info.value)
 
     @isolate_apps("tests")
     def test_purl_normalization(self, db):

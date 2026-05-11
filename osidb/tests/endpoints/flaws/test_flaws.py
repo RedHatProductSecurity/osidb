@@ -35,6 +35,7 @@ from osidb.tests.factories import (
     PsModuleFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
+    default_rpm_purl_for_ps_component,
 )
 
 pytestmark = pytest.mark.unit
@@ -438,6 +439,7 @@ class TestEndpointsFlaws:
 
         with freeze_time(future_dt):
             affect.ps_component = "foo"
+            affect.purl = default_rpm_purl_for_ps_component("foo")
             affect.save()
         assert affect.updated_dt == future_dt.astimezone(timezone.utc)
 
@@ -463,6 +465,7 @@ class TestEndpointsFlaws:
         for affect in [affect1, affect2]:
             with freeze_time(future_dt):
                 affect.ps_component = "foo"
+                affect.purl = default_rpm_purl_for_ps_component("foo")
                 affect.save()
             assert affect.updated_dt == future_dt.astimezone(timezone.utc)
 
@@ -544,6 +547,7 @@ class TestEndpointsFlaws:
 
         with freeze_time(past_dt):
             affect.ps_component = "foo"
+            affect.purl = default_rpm_purl_for_ps_component("foo")
             affect.save()
         assert affect.updated_dt == past_dt.astimezone(timezone.utc)
 
@@ -1743,6 +1747,7 @@ class TestEndpointsFlaws:
                 "resolution": "",
                 "ps_update_stream": ps_update_stream.name,
                 "ps_component": "kernel",
+                "purl": default_rpm_purl_for_ps_component("kernel"),
                 "impact": "MODERATE",
                 "embargoed": True,
             }

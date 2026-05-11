@@ -30,6 +30,7 @@ from osidb.tests.factories import (
     PsUpdateStreamFactory,
     SnippetFactory,
     TrackerFactory,
+    default_rpm_purl_for_ps_component,
 )
 
 pytestmark = pytest.mark.integration
@@ -724,6 +725,7 @@ class TestBBSyncIntegration:
             "flaw": flaw.uuid,
             "ps_update_stream": "rhel-8.1",
             "ps_component": "kernel",
+            "purl": default_rpm_purl_for_ps_component("kernel"),
             "affectedness": "AFFECTED",
             "resolution": "DELEGATED",
             "embargoed": False,
@@ -795,6 +797,7 @@ class TestBBSyncIntegration:
             "flaw": flaw.uuid,
             "ps_update_stream": "rhel-8.1",
             "ps_component": "kernel",
+            "purl": default_rpm_purl_for_ps_component("kernel"),
             "resolution": "WONTFIX",
             "embargoed": False,
             "updated_dt": affect.updated_dt,

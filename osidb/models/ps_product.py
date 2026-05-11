@@ -2,6 +2,8 @@ import uuid
 
 from django.db import models
 
+from osidb.constants import SERVICES_PRODUCTS
+
 
 class PsProduct(models.Model):
     # internal primary key
@@ -26,3 +28,7 @@ class PsProduct(models.Model):
     @property
     def is_middleware(self) -> bool:
         return self.business_unit == "Core Middleware"
+
+    @property
+    def is_service(self) -> bool:
+        return self.short_name in SERVICES_PRODUCTS

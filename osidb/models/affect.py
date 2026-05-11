@@ -307,6 +307,13 @@ class Affect(
         # Store as list of label names
         self.labels = [label.name for label in matching_labels]
 
+    def context_string(self, msg):
+        affect_id = self.uuid
+        ps_update_stream = self.ps_update_stream or "None"
+        ps_component = self.ps_component or "None"
+
+        return f"Affect ({affect_id}) for {ps_update_stream}/{ps_component} {msg}"
+
     def save(self, *args, **kwargs):
         if self.purl and not self.ps_component:
             try:
@@ -620,14 +627,10 @@ class Affect(
         Validate that wontreport resolution only can be used for
         products associated with services.
         """
-        from osidb.constants import SERVICES_PRODUCTS
 
         if self.resolution == Affect.AffectResolution.WONTREPORT:
             ps_module = PsModule.objects.filter(name=self.ps_module).first()
-            if (
-                not ps_module
-                or ps_module.ps_product.short_name not in SERVICES_PRODUCTS
-            ):
+            if not ps_module or not ps_module.ps_product.is_service:
                 raise ValidationError(
                     f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as WONTREPORT, "
                     f"which can only be used for service products."
@@ -702,49 +705,35 @@ class Affect(
                 ps_component_from_purl = self.ps_component_from_purl(True)
             except ValueError as exc:
                 raise ValidationError(
-                    f"Affect ({self.uuid}) for {self.ps_update_stream} has "
-                    f"an invalid purl '{self.purl}': {exc}."
+                    self.context_string(f"has an invalid purl '{self.purl}': {exc}.")
                 )
 
             if self.ps_component and self.ps_component != ps_component_from_purl:
                 raise ValidationError(
-                    f"Extrapolated ps_component ({ps_component_from_purl}) "
-                    f"from PURL ({self.purl}) "
-                    f"does not match user-provided ps_component ({self.ps_component}).",
+                    self.context_string(
+                        f"Extrapolated ps_component ({ps_component_from_purl}) "
+                        f"from PURL ({self.purl}) "
+                        f"does not match user-provided ps_component ({self.ps_component}).",
+                    )
                 )
 
     @validator
-    def _validate_purl_middleware(self, **kwargs):
+    def _validate_purl_existence(self, **kwargs):
         """
-        Validate that new affects related to middleware products have a PURL.
-        Also disallows removing PURL from existing middleware affects.
+        Validate that a PURL exists for affects. This does not include
+        affects for services or community affects.
         """
-        if not AffectSettings().require_purl_for_middleware:
-            return
 
         ps_module = PsModule.objects.filter(name=self.ps_module).first()
         if not ps_module:
             return
 
-        if not ps_module.is_middleware:
+        ps_product = ps_module.ps_product
+        if ps_product.is_community or ps_product.is_service:
             return
 
-        # New affect without PURL
-        if self._state.adding and not self.purl:
-            raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} "
-                "belongs to a middleware product and must specify a PURL."
-            )
-
-        # Removing PURL from existing affect
-        old_affect = (
-            Affect.objects.get(uuid=self.uuid) if not self._state.adding else None
-        )
-        if old_affect and old_affect.purl and not self.purl:
-            raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} "
-                "belongs to a middleware product and cannot have its PURL removed."
-            )
+        if not self.purl:
+            raise ValidationError(self.context_string("is missing a PURL."))
 
     @validator
     def _validate_not_affected_justification(self, **kwargs):
