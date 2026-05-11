@@ -68,6 +68,7 @@ class CheckParser:
         return self._parse_string(check_desc)
 
     def _parse_string(self, check_desc):
+        original_check_desc = check_desc
         check_desc = check_desc.replace(" ", "_")
         # enable more human-readable negation
         if check_desc.startswith("is_not_"):
@@ -84,7 +85,10 @@ class CheckParser:
             self.desc2equals,
             self.desc2in,
         ]:
-            result = func(check_desc)
+            if func == self.desc2equals:
+                result = func(check_desc, original_check_desc)
+            else:
+                result = func(check_desc)
             if result is not None:
                 return result
 
@@ -155,7 +159,12 @@ class CheckParser:
 
                 return (doc, has_element)
 
-    def desc2equals(self, check_desc):
+    def get_original_value(self, value_after_underscore, original_value):
+        total_chars = len(value_after_underscore) * -1
+        original_value = original_value[total_chars:]
+        return original_value
+
+    def desc2equals(self, check_desc, original_value=None):
         """
         attribute to literal value equality check
 
@@ -182,9 +191,8 @@ class CheckParser:
                     or attr in self.TEXT_CHOICES_PROPERTIES
                 ):
                     value = value.upper()
-                else:
-                    # For non-choices fields, restore spaces that were replaced with underscores
-                    value = value.replace("_", " ")
+                elif original_value:
+                    value = self.get_original_value(value, original_value)
 
                 doc = f"check that {self.model.__name__} attribute {attr} has a value equal to {value}"
 
