@@ -107,6 +107,7 @@ def get_flaw_with_related_objects():
         "references",
         "labels",
         "alerts",
+        "upstream_data",
         # Affects and their related objects
         "affects__cvss_scores",
         "affects__tracker",

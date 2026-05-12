@@ -300,6 +300,7 @@ SPECTACULAR_SETTINGS = {
         "FlawReferenceType": "osidb.models.flaw.reference.FlawReference.FlawReferenceType",
         "TrackerType": "osidb.models.Tracker.TrackerType",
         "FlawLabelType": "osidb.models.flaw.label.FlawLabel.FlawLabelType",
+        "UpstreamDataSource": "osidb.models.flaw.upstream.UpstreamData.Source",
     },
     "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
     "COMPONENT_SPLIT_REQUEST": True,
