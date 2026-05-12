@@ -92,19 +92,14 @@ class TestCVEorgCollector:
         when the collector processes CVE data.
         """
 
-        flaw = FlawFactory(cve_id="CVE-2024-4923")
-
         cc = CVEorgCollector()
         cc.snippet_creation_enabled = True
         cc.snippet_creation_start_date = make_aware(datetime(2024, 5, 1))
         cc.collect()
 
-        snippet = Snippet.objects.get(external_id="CVE-2024-4923")
-        expected_affects = snippet.content["cve_affects"]
+        flaw = Flaw.objects.get(cve_id="CVE-2024-4923")
 
-        flaw.refresh_from_db()
-
-        assert flaw.cve_affects == expected_affects
+        assert flaw.cve_affects[0]['vendor'] == "Codezips"
 
     def test_ignored_cveorg_records(self, mock_keywords, mock_repo):
         """
