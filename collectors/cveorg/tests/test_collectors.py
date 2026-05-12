@@ -84,6 +84,28 @@ class TestCVEorgCollector:
             f"Expected: {expected_description}\nGot: {flaw.mitre_cve_description}"
         )
 
+    def test_update_cve_affects_for_existing_flaw(
+        self, mock_keywords, mock_repo
+    ):
+        """
+        Test that cve_affects is populated
+        when the collector processes CVE data.
+        """
+
+        flaw = FlawFactory(cve_id="CVE-2024-4923")
+        assert flaw.cve_affects == None
+
+        cc = CVEorgCollector()
+        cc.snippet_creation_enabled = True
+        cc.snippet_creation_start_date = make_aware(datetime(2024, 5, 1))
+        cc.collect()
+
+        snippet = Snippet.objects.get(external_id="CVE-2024-4923")
+
+        flaw.refresh_from_db()
+
+        assert flaw.cve_affects != None
+
     def test_ignored_cveorg_records(self, mock_keywords, mock_repo):
         """
         Test that snippets and flaws are not created when they do not comply with rules.
