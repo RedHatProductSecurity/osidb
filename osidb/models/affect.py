@@ -841,6 +841,81 @@ class Affect(
             name=self.ps_module, ps_product__business_unit="Community"
         ).exists()
 
+    def auto_resolve(self, *, flaw_has_high_cvss_score: bool | None = None) -> None:
+        """
+        Automatically determine affectedness and resolution based on PsUpdateStream,
+        PsModule, PsProduct, impact, and flaw CVSS data. Conditions are evaluated in
+        order; the first matching condition wins. Does not call save().
+
+        If the stream or module is not found in the DB, sets NEW/NOVALUE (unknown state).
+
+        Pass ``flaw_has_high_cvss_score`` to avoid a per-affect DB query when resolving
+        multiple affects for the same flaw.
+        """
+        try:
+            ps_update_stream_obj = PsUpdateStream.objects.get(
+                name=self.ps_update_stream
+            )
+        except PsUpdateStream.DoesNotExist:
+            self.affectedness = self.AffectAffectedness.NEW
+            self.resolution = self.AffectResolution.NOVALUE
+            return
+
+        ps_module_obj = ps_update_stream_obj.ps_module
+        if ps_module_obj is None:
+            self.affectedness = self.AffectAffectedness.NEW
+            self.resolution = self.AffectResolution.NOVALUE
+            return
+
+        self.affectedness = self.AffectAffectedness.AFFECTED
+        is_community = ps_module_obj.ps_product.is_community
+        impact = self.aggregated_impact
+
+        # AFFECTED/OOSS — LOW/MODERATE and stream not in full support scope
+        if impact in (Impact.LOW, Impact.MODERATE):
+            if is_community:
+                is_full_support = (
+                    ps_update_stream_obj.is_moderate or ps_update_stream_obj.is_default
+                )
+            else:
+                is_full_support = ps_update_stream_obj.is_moderate
+            if not is_full_support:
+                self.resolution = self.AffectResolution.OOSS
+                return
+
+        # AFFECTED/WONTFIX — no tracker streams defined for this impact level
+        if impact in (Impact.IMPORTANT, Impact.CRITICAL):
+            tracker_streams = ps_module_obj.default_ps_update_streams.all()
+        elif impact in (Impact.LOW, Impact.MODERATE):
+            tracker_streams = ps_module_obj.moderate_ps_update_streams.all()
+            if not tracker_streams.exists():
+                tracker_streams = ps_module_obj.unacked_ps_update_stream.all()
+            if not tracker_streams.exists() and is_community:
+                tracker_streams = ps_module_obj.default_ps_update_streams.all()
+        else:
+            tracker_streams = None
+
+        if tracker_streams is not None and not tracker_streams.exists():
+            self.resolution = self.AffectResolution.WONTFIX
+            return
+
+        # AFFECTED/DEFER — low severity or moderate without high CVSS (non-community)
+        if not is_community:
+            if impact == Impact.LOW:
+                self.resolution = self.AffectResolution.DEFER
+                return
+            has_high_cvss = (
+                flaw_has_high_cvss_score
+                if flaw_has_high_cvss_score is not None
+                else self.flaw.has_high_cvss_score
+            )
+            if impact == Impact.MODERATE and not has_high_cvss:
+                self.resolution = self.AffectResolution.DEFER
+                return
+
+        # AFFECTED/DELEGATED — fallback
+        self.resolution = self.AffectResolution.DELEGATED
+
     def is_hummingbird(self) -> bool:
         """
         check and return whether the given affect is targeting HUM project

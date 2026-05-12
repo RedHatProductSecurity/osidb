@@ -40,6 +40,7 @@ def _sync_affects_from_results(flaw: Flaw, results: list) -> dict[str, int]:
     created = 0
     skipped = 0
     skipped_existing = 0
+    flaw_has_high_cvss_score = flaw.has_high_cvss_score
 
     with transaction.atomic():
         for result in results:
@@ -74,10 +75,9 @@ def _sync_affects_from_results(flaw: Flaw, results: list) -> dict[str, int]:
                 purl=purl_str,
                 acl_read=flaw.acl_read,
                 acl_write=flaw.acl_write,
-                affectedness=Affect.AffectAffectedness.AFFECTED,
-                resolution=Affect.AffectResolution.DELEGATED,
                 impact=flaw.impact,
             )
+            affect.auto_resolve(flaw_has_high_cvss_score=flaw_has_high_cvss_score)
             affect.save(raise_validation_error=False)
             created += 1
 

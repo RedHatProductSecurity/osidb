@@ -2824,3 +2824,56 @@ class TestFlawValidators:
                 affectedness=Affect.AffectAffectedness.NOTAFFECTED,
                 not_affected_justification="",
             )
+
+
+@pytest.mark.enable_signals
+class TestHasHighCvssScore:
+    def test_v3_score_above_threshold(self):
+        flaw = FlawFactory()
+        FlawCVSSFactory(
+            flaw=flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",  # score 7.5
+        )
+        assert flaw.has_high_cvss_score is True
+
+    def test_v3_score_below_threshold(self):
+        flaw = FlawFactory()
+        FlawCVSSFactory(
+            flaw=flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            vector="CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:N/A:N",  # score 3.5
+        )
+        assert flaw.has_high_cvss_score is False
+
+    def test_no_cvss_scores(self):
+        flaw = FlawFactory()
+        assert flaw.has_high_cvss_score is False
+
+    def test_v2_score_only_not_counted(self):
+        flaw = FlawFactory()
+        FlawCVSSFactory(
+            flaw=flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION2,
+            vector="AV:N/AC:L/Au:N/C:C/I:C/A:C",  # score 10.0
+        )
+        assert flaw.has_high_cvss_score is False
+
+    def test_multiple_v3_scores_one_high(self):
+        flaw = FlawFactory()
+        FlawCVSSFactory(
+            flaw=flaw,
+            issuer=FlawCVSS.CVSSIssuer.NIST,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",  # score 7.5
+        )
+        FlawCVSSFactory(
+            flaw=flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            vector="CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:N/A:N",  # score 3.5
+        )
+        assert flaw.has_high_cvss_score is True
