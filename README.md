@@ -54,6 +54,7 @@ Data models, validations, serializers, API, and other vital parts are defined th
 You can find more details [here](osidb/README.md).
 Additional functionality is implemented by specialized [apps](apps/).
 
+* [ace](apps/ace/) - Affect Creation Engine
 * [bbsync](apps/bbsync/) Bugzilla Backwards Synchronization
 * [exploits](apps/exploits/)
 * [workflows](apps/workflows/) - Open Security Issue Manager

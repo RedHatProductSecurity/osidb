@@ -62,23 +62,14 @@ RUN uv sync --frozen --no-dev && \
     rm -f /opt/app-root/src/pyproject.toml && \ 
     rm -f /opt/app-root/src/uv.lock
 
-# Optional: GitLab HTTPS clone URL for the newtopia-cli monorepo; when set, install in-repo
-# deptopia_client first, then newtopia_cli (PyPI has no deptopia_client).
-# Optional: branch, tag, or commit for both installs (omit for the remote default branch).
-ARG NEWCLI_REPO_URL=""
-ARG NEWCLI_EXPERIMENTAL_BRANCH=""
-RUN if [ -n "$NEWCLI_REPO_URL" ]; then \
-        if [ -n "$NEWCLI_EXPERIMENTAL_BRANCH" ]; then \
-            uv pip install --no-cache --python "$UV_PROJECT_ENVIRONMENT/bin/python" \
-                "git+${NEWCLI_REPO_URL}@${NEWCLI_EXPERIMENTAL_BRANCH}#subdirectory=python/deptopia-client" && \
-            uv pip install --no-cache --python "$UV_PROJECT_ENVIRONMENT/bin/python" \
-                "git+${NEWCLI_REPO_URL}@${NEWCLI_EXPERIMENTAL_BRANCH}#egg=newtopia_cli&subdirectory=python/newtopia_cli"; \
-        else \
-            uv pip install --no-cache --python "$UV_PROJECT_ENVIRONMENT/bin/python" \
-                "git+${NEWCLI_REPO_URL}#subdirectory=python/deptopia-client" && \
-            uv pip install --no-cache --python "$UV_PROJECT_ENVIRONMENT/bin/python" \
-                "git+${NEWCLI_REPO_URL}#egg=newtopia_cli&subdirectory=python/newtopia_cli"; \
-        fi; \
+# Optional: install lib-newtopia from the internal Nexus repository to enable automatic
+# affect creation (ACE). Pass the Nexus simple-index URL via PRODSEC_PYPI_INDEX_URL;
+# if not set the package is not installed and ACE runs as a no-op.
+ARG PRODSEC_PYPI_INDEX_URL=""
+RUN if [ -n "$PRODSEC_PYPI_INDEX_URL" ]; then \
+        uv pip install --no-cache --python "$UV_PROJECT_ENVIRONMENT/bin/python" \
+            --extra-index-url "$PRODSEC_PYPI_INDEX_URL" \
+            lib-newtopia; \
     fi
 
 # Copy the project into the image

@@ -37,6 +37,7 @@ READONLY_MODE: bool = get_env("OSIDB_READONLY_MODE", default="False", is_bool=Tr
 
 # Application definition
 INSTALLED_APPS = [
+    "apps.ace",
     "apps.bbsync",
     "apps.exploits",
     "apps.sla",
