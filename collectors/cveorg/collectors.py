@@ -471,7 +471,7 @@ class CVEorgCollector(Collector):
             return data["containers"]["cna"].get("title", "From CVEorg collector")
 
         def get_affected(data: dict) -> dict:
-            return data["containers"]["cna"].get("affected")
+            return data["containers"]["cna"].get("affected") or []
 
         def get_unembargo_dt(data: dict) -> Union[str, None]:
             if published := data["cveMetadata"].get("datePublished"):
