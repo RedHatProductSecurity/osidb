@@ -84,7 +84,7 @@ class TestCVEorgCollector:
             f"Expected: {expected_description}\nGot: {flaw.mitre_cve_description}"
         )
 
-    def test_update_cve_affects_for_existing_flaw(
+    def test_update_cve_affects_get_populated(
         self, mock_keywords, mock_repo
     ):
         """
@@ -93,7 +93,6 @@ class TestCVEorgCollector:
         """
 
         flaw = FlawFactory(cve_id="CVE-2024-4923")
-        assert flaw.cve_affects == None
 
         cc = CVEorgCollector()
         cc.snippet_creation_enabled = True
@@ -101,10 +100,11 @@ class TestCVEorgCollector:
         cc.collect()
 
         snippet = Snippet.objects.get(external_id="CVE-2024-4923")
+        expected_affects = snippet.content["cve_affects"]
 
         flaw.refresh_from_db()
 
-        assert flaw.cve_affects != None
+        assert flaw.cve_affects == expected_affects
 
     def test_ignored_cveorg_records(self, mock_keywords, mock_repo):
         """
