@@ -100,6 +100,8 @@ class TestCVEorgCollector:
         flaw = Flaw.objects.get(cve_id="CVE-2024-4923")
 
         assert flaw.cve_affects[0]['vendor'] == "Codezips"
+        assert flaw.cve_affects[0]['product'] == "E-Commerce Site"
+        assert flaw.cve_affects[0]['versions'][0]['version'] == "1.0"
 
     def test_ignored_cveorg_records(self, mock_keywords, mock_repo):
         """
