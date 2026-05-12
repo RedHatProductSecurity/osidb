@@ -488,6 +488,6 @@ class CVEorgCollector(Collector):
             "references": get_refs(content),
             "source": Snippet.Source.CVEORG,
             "title": get_title(content),
-            "affected": get_affected(content),
+            "cve_affects": get_affected(content),
             "unembargo_dt": get_unembargo_dt(content),
         }
