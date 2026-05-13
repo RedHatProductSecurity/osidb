@@ -84,9 +84,7 @@ class TestCVEorgCollector:
             f"Expected: {expected_description}\nGot: {flaw.mitre_cve_description}"
         )
 
-    def test_update_cve_affects_get_populated(
-        self, mock_keywords, mock_repo
-    ):
+    def test_update_cve_affects_get_populated(self, mock_keywords, mock_repo):
         """
         Test that cve_affects is populated
         when the collector processes CVE data.
@@ -99,9 +97,9 @@ class TestCVEorgCollector:
 
         flaw = Flaw.objects.get(cve_id="CVE-2024-4923")
 
-        assert flaw.cve_affects[0]['vendor'] == "Codezips"
-        assert flaw.cve_affects[0]['product'] == "E-Commerce Site"
-        assert flaw.cve_affects[0]['versions'][0]['version'] == "1.0"
+        assert flaw.cve_affects[0]["vendor"] == "Codezips"
+        assert flaw.cve_affects[0]["product"] == "E-Commerce Site"
+        assert flaw.cve_affects[0]["versions"][0]["version"] == "1.0"
 
     def test_ignored_cveorg_records(self, mock_keywords, mock_repo):
         """
