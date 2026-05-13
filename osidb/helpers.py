@@ -483,15 +483,16 @@ def get_jira_cloud_id(kerberos_id: str) -> str:
     email = f"{kerberos_id}@redhat.com"
     try:
         connector = JiraConnector()
-        # filter for exact email match
-        users = [
-            u
-            for u in connector.jira_conn.search_users(query=email)
-            if u.emailAddress == email
-        ]
+        users = list(connector.jira_conn.search_users(query=email))
     except Exception:
         logger.error(f"Failed to fetch Jira cloud ID for {kerberos_id}")
         raise JiraUserMappingException(f"Unable to connect to Jira for {kerberos_id}")
+    if len(users) == 1:
+        return users[0].accountId
+
+    # Mutiple results
+    users = [u for u in users if u.emailAddress == email]
+
     if not users:
         raise JiraUserMappingException(f"No Jira User found for {kerberos_id}")
     return users[0].accountId
