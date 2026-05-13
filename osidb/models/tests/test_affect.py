@@ -320,3 +320,218 @@ class TestAffect:
             assert str(affect.uuid) in str(exc_info.value)
         else:
             affect.save()
+
+
+@pytest.mark.enable_signals
+class TestAutoResolve:
+    # ── unknown stream / no module ───────────────────────────────────────────
+
+    def test_unknown_stream_sets_new_novalue(self):
+        flaw = FlawFactory(impact=Impact.IMPORTANT)
+        affect = AffectFactory.build(
+            flaw=flaw,
+            ps_update_stream="does-not-exist",
+            impact=Impact.IMPORTANT,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.NEW
+        assert affect.resolution == Affect.AffectResolution.NOVALUE
+
+    def test_stream_without_module_sets_new_novalue(self, ps_update_stream_no_module):
+        flaw = FlawFactory(impact=Impact.IMPORTANT)
+        affect = AffectFactory.build(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream_no_module.name,
+            impact=Impact.IMPORTANT,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.NEW
+        assert affect.resolution == Affect.AffectResolution.NOVALUE
+
+    # ── AFFECTED/OOSS ────────────────────────────────────────────────────────
+
+    @pytest.mark.parametrize("impact", [Impact.LOW, Impact.MODERATE])
+    def test_ooss_low_moderate_impact_stream_not_moderate(
+        self, impact, ps_stream_not_moderate
+    ):
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=impact),
+            ps_update_stream=ps_stream_not_moderate.name,
+            impact=impact,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.OOSS
+
+    @pytest.mark.parametrize("impact", [Impact.IMPORTANT, Impact.CRITICAL])
+    def test_no_ooss_for_high_impact(self, impact, ps_stream_with_default):
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=impact),
+            ps_update_stream=ps_stream_with_default.name,
+            impact=impact,
+        )
+        affect.auto_resolve()
+        assert affect.resolution != Affect.AffectResolution.OOSS
+
+    def test_no_ooss_community_stream_is_default(
+        self, community_ps_stream_default_only
+    ):
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.LOW),
+            ps_update_stream=community_ps_stream_default_only.name,
+            impact=Impact.LOW,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution != Affect.AffectResolution.OOSS
+
+    def test_ooss_community_stream_neither_default_nor_moderate(
+        self, community_ps_stream_not_moderate
+    ):
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.LOW),
+            ps_update_stream=community_ps_stream_not_moderate.name,
+            impact=Impact.LOW,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.OOSS
+
+    # ── AFFECTED/WONTFIX ─────────────────────────────────────────────────────
+
+    @pytest.mark.parametrize("impact", [Impact.IMPORTANT, Impact.CRITICAL])
+    def test_wontfix_high_impact_no_default_streams(
+        self, impact, ps_stream_moderate_no_default
+    ):
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=impact),
+            ps_update_stream=ps_stream_moderate_no_default.name,
+            impact=impact,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.WONTFIX
+
+    def test_wontfix_low_impact_no_moderate_or_unacked_streams(
+        self, ps_stream_moderate_no_tracker_streams
+    ):
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.LOW),
+            ps_update_stream=ps_stream_moderate_no_tracker_streams.name,
+            impact=Impact.LOW,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.WONTFIX
+
+    def test_no_wontfix_important_impact_has_default_streams(
+        self, ps_stream_with_default
+    ):
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.IMPORTANT),
+            ps_update_stream=ps_stream_with_default.name,
+            impact=Impact.IMPORTANT,
+        )
+        affect.auto_resolve()
+        assert affect.resolution != Affect.AffectResolution.WONTFIX
+
+    # ── AFFECTED/DEFER ───────────────────────────────────────────────────────
+
+    def test_defer_low_impact_non_community(self, ps_stream_with_moderate_tracker):
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.LOW),
+            ps_update_stream=ps_stream_with_moderate_tracker.name,
+            impact=Impact.LOW,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DEFER
+
+    @pytest.mark.parametrize(
+        "cvss_vector",
+        [
+            None,  # no CVSS scores
+            "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:N/A:N",  # score 3.5
+        ],
+    )
+    def test_defer_moderate_impact_low_or_no_cvss(
+        self, cvss_vector, ps_stream_with_moderate_tracker, flaw_with_cvss
+    ):
+        flaw = flaw_with_cvss(Impact.MODERATE, cvss_vector)
+        affect = AffectFactory.build(
+            flaw=flaw,
+            ps_update_stream=ps_stream_with_moderate_tracker.name,
+            impact=Impact.MODERATE,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DEFER
+
+    def test_no_defer_moderate_impact_high_cvss(
+        self, ps_stream_with_moderate_tracker, flaw_with_cvss
+    ):
+        flaw = flaw_with_cvss(
+            Impact.MODERATE, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+        )
+        affect = AffectFactory.build(
+            flaw=flaw,
+            ps_update_stream=ps_stream_with_moderate_tracker.name,
+            impact=Impact.MODERATE,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution != Affect.AffectResolution.DEFER
+
+    def test_no_defer_low_impact_community(self, community_ps_stream_with_tracker):
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.LOW),
+            ps_update_stream=community_ps_stream_with_tracker.name,
+            impact=Impact.LOW,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution != Affect.AffectResolution.DEFER
+
+    # ── AFFECTED/DELEGATED ───────────────────────────────────────────────────
+
+    @pytest.mark.parametrize(
+        "impact", [Impact.IMPORTANT, Impact.CRITICAL, Impact.NOVALUE]
+    )
+    def test_delegated_high_or_novalue_impact_has_default_streams(
+        self, impact, ps_stream_with_default
+    ):
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=impact),
+            ps_update_stream=ps_stream_with_default.name,
+            impact=impact,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DELEGATED
+
+    def test_delegated_moderate_impact_high_cvss(
+        self, ps_stream_with_moderate_tracker, flaw_with_cvss
+    ):
+        flaw = flaw_with_cvss(
+            Impact.MODERATE, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+        )
+        affect = AffectFactory.build(
+            flaw=flaw,
+            ps_update_stream=ps_stream_with_moderate_tracker.name,
+            impact=Impact.MODERATE,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DELEGATED
+
+    def test_delegated_community_low_impact_with_default_streams(
+        self, community_ps_stream_with_tracker
+    ):
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.LOW),
+            ps_update_stream=community_ps_stream_with_tracker.name,
+            impact=Impact.LOW,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DELEGATED
