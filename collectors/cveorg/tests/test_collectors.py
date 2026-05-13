@@ -84,7 +84,6 @@ class TestCVEorgCollector:
             f"Expected: {expected_description}\nGot: {flaw.mitre_cve_description}"
         )
 
-    @pytest.mark.vcr
     def test_update_cve_affects_get_populated(self, mock_keywords, mock_repo):
         """
         Test that cve_affects is populated
