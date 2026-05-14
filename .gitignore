@@ -3,6 +3,7 @@
 bzimport_requests_cache.sqlite
 .cache
 celerybeat-schedule
+CLAUDE.md
 cons-requirements.*
 .coverage
 coverage.xml
