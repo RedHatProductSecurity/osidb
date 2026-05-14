@@ -21,21 +21,22 @@ class TestFlawLabelsCollection:
         """Check collector is capable of pull data from gitlab"""
         flaw_labels = fetch_flaw_labels(flaw_labels_url)
 
-        assert len(flaw_labels) == 2
-        (context_based, product_family) = flaw_labels
+        assert len(flaw_labels) == 3
+        (context_based, product_family, bu_labels) = flaw_labels
 
-        assert len(context_based) == 3
+        assert len(context_based) == 9
         assert len(product_family) == 13
         assert len(product_family["special-handling"]["ps_components"]) == 6
+        assert len(bu_labels) == 4
 
     @pytest.mark.default_cassette(
         "TestFlawLabelsCollection.test_fetch_flaw_labels.yaml"
     )
     @pytest.mark.vcr
     def test_sync_flaw_labels(self, flaw_labels_url):
-        (context_based, product_family) = fetch_flaw_labels(flaw_labels_url)
+        (context_based, product_family, bu_labels) = fetch_flaw_labels(flaw_labels_url)
 
-        sync_flaw_labels(context_based, product_family)
+        sync_flaw_labels(context_based, product_family, bu_labels)
 
         assert FlawLabel.objects.filter(
             type=FlawLabel.FlawLabelType.CONTEXT_BASED
@@ -43,6 +44,10 @@ class TestFlawLabelsCollection:
         assert FlawLabel.objects.filter(
             type=FlawLabel.FlawLabelType.PRODUCT_FAMILY
         ).count() == len(product_family)
+        assert FlawLabel.objects.filter(type=FlawLabel.FlawLabelType.BU).count() == len(
+            bu_labels
+        )
 
         self.check_model_fields(FlawLabel, context_based)
         self.check_model_fields(FlawLabel, product_family)
+        self.check_model_fields(FlawLabel, bu_labels)

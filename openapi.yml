@@ -15614,6 +15614,7 @@ components:
       - alias
       - context_based
       - product_family
+      - bu
       type: string
     FlawPackageVersion:
       type: object
