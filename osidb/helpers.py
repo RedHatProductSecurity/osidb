@@ -470,3 +470,29 @@ def get_jira_api_email(request: Request) -> str:
         jira_api_email = f"{user.username}@redhat.com"
 
     return jira_api_email
+
+
+def get_jira_cloud_id(kerberos_id: str) -> str:
+    """
+    fetches the Atlassian Cloud ID for a given Kerberos ID by querying
+    the Jira Cloud API using the user's email.
+    """
+    from collectors.jiraffe.core import JiraConnector
+    from osidb.exceptions import JiraUserMappingException
+
+    email = f"{kerberos_id}@redhat.com"
+    try:
+        connector = JiraConnector()
+        users = list(connector.jira_conn.search_users(query=email))
+    except Exception:
+        logger.error(f"Failed to fetch Jira cloud ID for {kerberos_id}")
+        raise JiraUserMappingException(f"Unable to connect to Jira for {kerberos_id}")
+    if len(users) == 1:
+        return users[0].accountId
+
+    # Mutiple results
+    users = [u for u in users if u.emailAddress == email]
+
+    if not users:
+        raise JiraUserMappingException(f"No Jira User found for {kerberos_id}")
+    return users[0].accountId

@@ -25,7 +25,6 @@ from osidb.models import (
     FlawReference,
     FlawSource,
     Impact,
-    JiraUserMapping,
     NotAffectedJustification,
     Package,
     PackageVer,
@@ -890,14 +889,3 @@ class SpecialConsiderationPackageFactory(factory.django.DjangoModelFactory):
 
     def __new__(cls, *args, **kwargs) -> SpecialConsiderationPackage:
         return super().__new__(*args, **kwargs)
-
-
-class JiraUserMappingFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = JiraUserMapping
-
-    associate_kerberos_id = factory.sequence(lambda n: f"user{n}")
-    associate_uuid = factory.LazyFunction(uuid.uuid4)
-    atlassian_cloud_id = factory.sequence(lambda n: f"cloud-id-{n}")
-    is_employed = True
-    name = factory.Faker("name")

@@ -35,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Improve resilience, error-reporting and performance of /bulk create
   affects endpoint (OSIDB-4748)
+- Replace JiraUserMapping with direct Jira API user lookup and cache in Profile model(OSIDB-4865)
+
 
 ## [5.9.0] - 2026-04-09
 ### Fixed
