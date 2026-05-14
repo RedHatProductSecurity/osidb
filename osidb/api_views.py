@@ -1352,6 +1352,18 @@ class AffectView(
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    @staticmethod
+    def _actor(user) -> str:
+        return getattr(user, "email", "") or getattr(user, "username", "")
+
+    def perform_create(self, serializer):
+        actor = self._actor(self.request.user)
+        serializer.save(created_by=actor, updated_by=actor)
+
+    def perform_update(self, serializer):
+        actor = self._actor(self.request.user)
+        serializer.save(updated_by=actor)
+
     @extend_schema(
         request=AffectBulkPutSerializer(many=True),
         responses=AffectBulkPostPutResponseSerializer,
@@ -1403,10 +1415,11 @@ class AffectView(
             )
 
         # Second, save the updated affects to the database, but not sync with BZ.
+        actor = self._actor(request.user)
         ret = []
         for serializer in validated_serializers:
             # Make the serializer skip the sync for each affect
-            serializer.save(skip_bz_sync=True)
+            serializer.save(skip_bz_sync=True, updated_by=actor)
             ret.append(serializer.data)
 
         # Third, proxy the update to Bugzilla
@@ -1479,6 +1492,9 @@ class AffectView(
             try:
                 instance = Affect(**validated_data)
                 instance.uuid = uuid4()
+                actor = self._actor(request.user)
+                instance.created_by = actor
+                instance.updated_by = actor
                 _prepare_affect_for_bulk(instance, flaw, ps_update_stream_map)
             except ValidationError as e:
                 error_detail = (

@@ -1,3 +1,4 @@
+import importlib.metadata
 from typing import Any
 
 from celery.utils.log import get_task_logger
@@ -31,7 +32,24 @@ def _query_newtopia(flaw_component: str, ps_modules: list[str]) -> list:
     return nq.search([flaw_component], strict=True).filter(products=ps_modules).all()
 
 
-def _sync_affects_from_results(flaw: Flaw, results: list) -> dict[str, int]:
+def _ace_tool_name() -> str:
+    try:
+        osidb_version = importlib.metadata.version("osidb")
+    except importlib.metadata.PackageNotFoundError:
+        osidb_version = "unknown"
+    try:
+        newtopia_version = importlib.metadata.version("lib-newtopia")
+        return f"osidb {osidb_version} (lib-newtopia {newtopia_version})"
+    except importlib.metadata.PackageNotFoundError:
+        return f"osidb {osidb_version}"
+
+
+def _sync_affects_from_results(
+    flaw: Flaw,
+    results: list,
+    flaw_component: str = "",
+    ps_modules: list[str] | None = None,
+) -> dict[str, int]:
     """Create affects on ``flaw`` for each entry in ``results``.
 
     Each entry is a ``NewcliBuildResult`` or ``NewcliDepResult`` from lib_newtopia.
@@ -41,6 +59,7 @@ def _sync_affects_from_results(flaw: Flaw, results: list) -> dict[str, int]:
     skipped = 0
     skipped_existing = 0
     flaw_has_high_cvss_score = flaw.has_high_cvss_score
+    tool_name = _ace_tool_name()
 
     with transaction.atomic():
         for result in results:
@@ -76,6 +95,19 @@ def _sync_affects_from_results(flaw: Flaw, results: list) -> dict[str, int]:
                 acl_read=flaw.acl_read,
                 acl_write=flaw.acl_write,
                 impact=flaw.impact,
+                created_by="AffectCreationEngine",
+                updated_by="AffectCreationEngine",
+                assist_meta={
+                    "tool_name": tool_name,
+                    "tool_input": (
+                        f"NewtopiaQuerier().search([{flaw_component!r}], strict=True)"
+                        f".filter(products={ps_modules!r}).all()"
+                    ),
+                    "tool_output": repr(result),
+                    "tool_trigger": (
+                        f"flaw.components updated (component: {flaw_component!r})"
+                    ),
+                },
             )
             affect.auto_resolve(flaw_has_high_cvss_score=flaw_has_high_cvss_score)
             affect.save(raise_validation_error=False)
@@ -125,7 +157,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
 
     for flaw_component in components:
         results = _query_newtopia(flaw_component, ps_modules)
-        stats = _sync_affects_from_results(flaw, results)
+        stats = _sync_affects_from_results(flaw, results, flaw_component, ps_modules)
         for key in totals:
             totals[key] += stats[key]
 
