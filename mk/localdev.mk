@@ -9,6 +9,12 @@
 .PHONY : start-local
 start-local: check-venv generate_local_pg_tls_cert compose-up restart_django_foreground
 
+.PHONY : start-local-bg
+start-local-bg: check-venv generate_local_pg_tls_cert compose-up
+	@echo ">Django is running in the background in osidb-service"
+	@echo ">Use 'make restart_django_foreground' to attach to it"
+	@echo ">Use 'make stop-local' to stop containers"
+
 .PHONY : start-local-gunicorn
 start-local-gunicorn: check-venv generate_local_pg_tls_cert compose-up start_gunicorn_fg
 
