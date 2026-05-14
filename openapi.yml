@@ -8023,6 +8023,27 @@ paths:
         explode: false
         style: form
       - in: query
+        name: amended
+        schema:
+          type: boolean
+      - in: query
+        name: created_by
+        schema:
+          type: string
+      - in: query
+        name: created_by__icontains
+        schema:
+          type: string
+      - in: query
+        name: created_by__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: created_dt
         schema:
           type: string
@@ -8740,6 +8761,10 @@ paths:
           wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
           keys from meta_attr. Omit this parameter to not include meta_attr fields
           at all. '
+      - in: query
+        name: is_tool_created
+        schema:
+          type: boolean
       - name: limit
         required: false
         in: query
@@ -8760,6 +8785,7 @@ paths:
             type: string
             enum:
             - -affectedness
+            - -created_by
             - -created_dt
             - -cve_id
             - -cvss_scores__comment
@@ -8798,9 +8824,11 @@ paths:
             - -tracker__type
             - -tracker__updated_dt
             - -tracker__uuid
+            - -updated_by
             - -updated_dt
             - -uuid
             - affectedness
+            - created_by
             - created_dt
             - cve_id
             - cvss_scores__comment
@@ -8839,6 +8867,7 @@ paths:
             - tracker__type
             - tracker__updated_dt
             - tracker__uuid
+            - updated_by
             - updated_dt
             - uuid
         description: |+
@@ -9130,6 +9159,23 @@ paths:
           - EMBARGOED
           - INTERNAL
           - PUBLIC
+      - in: query
+        name: updated_by
+        schema:
+          type: string
+      - in: query
+        name: updated_by__icontains
+        schema:
+          type: string
+      - in: query
+        name: updated_by__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: updated_dt
         schema:
@@ -14050,6 +14096,14 @@ components:
           items:
             type: string
           readOnly: true
+        created_by:
+          type: string
+          readOnly: true
+        updated_by:
+          type: string
+          readOnly: true
+        assist_meta:
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -14076,6 +14130,7 @@ components:
             it is used to detect mit-air collisions.
       required:
       - alerts
+      - created_by
       - created_dt
       - cve_id
       - cvss_scores
@@ -14089,6 +14144,7 @@ components:
       - ps_update_stream
       - resolved_dt
       - tracker
+      - updated_by
       - updated_dt
       - uuid
       - visibility
@@ -14148,6 +14204,8 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        assist_meta:
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -14411,6 +14469,8 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        assist_meta:
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -14480,6 +14540,8 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        assist_meta:
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
