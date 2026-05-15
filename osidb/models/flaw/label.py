@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models
 from django.db.models import Q
 
-from apps.workflows.workflow import WorkflowModel
 from osidb.mixins import TrackingMixin, TrackingMixinManager
 from osidb.models import Affect, Flaw
 from osidb.query_sets import CustomQuerySetUpdatedDt
@@ -184,7 +183,6 @@ class FlawCollaborator(TrackingMixin):
 
     def save(self, *args, **kwargs):
         try:
-            self._validate_workflow_state()
             super().save(*args, **kwargs)
         except IntegrityError as e:
             ex_msg = str(e)
@@ -192,22 +190,6 @@ class FlawCollaborator(TrackingMixin):
                 raise ValidationError(
                     {"label": f"Label '{self.label}' already exists."}
                 )
-
-    def _validate_workflow_state(self):
-        """Flaw labels can only be added in the pre-secondary assessment state, but can be updated in any state"""
-        if self.type == FlawLabel.FlawLabelType.ALIAS:
-            return
-
-        # Only restrict creation, not updates
-        if self._state.adding and (
-            self.flaw.workflow_state
-            != WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
-        ):
-            raise ValidationError(
-                {
-                    "flaw": "Flaw must be in pre-secondary assessment state to add new labels."
-                }
-            )
 
     def _validate_label(self):
         """Validate the label"""

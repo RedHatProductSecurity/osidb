@@ -160,7 +160,7 @@ class TestFlawCollaborator:
         assert FlawCollaborator.objects.count() == 1
 
     def test_workflow_state_restrictions_for_labels(self):
-        """Test that labels can only be created in PRE_SECONDARY_ASSESSMENT but can be updated in any state"""
+        """Test that labels can be created and updated in any workflow state"""
         label = FlawLabel.objects.create(
             name="test_label", type=FlawLabel.FlawLabelType.CONTEXT_BASED
         )
@@ -184,17 +184,13 @@ class TestFlawCollaborator:
         flaw.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
         flaw.save()
 
-        with pytest.raises(ValidationError) as e:
-            FlawCollaborator.objects.create(
-                flaw=flaw,
-                label=other_label.name,
-                state=FlawCollaborator.FlawCollaboratorState.NEW,
-                type=FlawLabel.FlawLabelType.CONTEXT_BASED,
-            )
-        assert (
-            "Flaw must be in pre-secondary assessment state to add new labels."
-            in str(e)
+        collaborator2 = FlawCollaborator.objects.create(
+            flaw=flaw,
+            label=other_label.name,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
         )
+        assert collaborator2.pk is not None
 
         collaborator.state = FlawCollaborator.FlawCollaboratorState.DONE
         collaborator.contributor = "test-user"
