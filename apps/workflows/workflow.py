@@ -183,7 +183,7 @@ class WorkflowModel(models.Model):
         DONE = "DONE"
         REJECTED = "REJECTED"
 
-    workflow_name = models.CharField(max_length=50, blank=True, default="DEFAULT")
+    workflow_name = models.CharField(max_length=50, blank=True)
     workflow_state = models.CharField(
         choices=WorkflowState.choices,
         max_length=24,
