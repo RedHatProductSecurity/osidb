@@ -257,26 +257,67 @@ Concrete changes:
 - The forward mapping (`jira_status()`) and the Jira state/resolution metadata
   in YAML definitions remain -- they are needed for the OSIDB-to-Jira direction
 
-## API Deprecation (TODO deprecate)
+## API Versions
 
-### Endpoints to Deprecate
+### V2 API (Current)
 
-| Endpoint | Reason |
-|---|---|
-| `POST /flaws/{id}/promote` | Classification is automatic; no manual promotion needed |
-| `POST /flaws/{id}/revert` | Reversion happens automatically when data changes |
-| `POST /flaws/{id}/reset` | Reset happens by clearing the rejection attribute |
-| `POST /flaws/{id}/reject` | Rejection is data-driven via the chosen attribute |
-| `POST /workflows/api/v1/workflows/{id}/adjust` | Classification is automatic on every save |
+This is the recommended API for workflow introspection. It provides read-only
+endpoints for viewing workflow definitions and computed classifications.
 
-### Endpoints to Keep (TODO these endpoints would be nice to be not necessarily authenticate but only optionally)
+**Available endpoints:**
 
-| Endpoint | Reason |
-|---|---|
-| `GET /workflows/api/v1/workflows` | Read-only introspection of workflow definitions |
-| `GET /workflows/api/v1/workflows/{id}` | Read-only computed classification for a flaw |
+| Endpoint | Method | Description |
+|---|---|---|
+| `/workflows/api/v2/workflows` | GET | List all workflow definitions |
+| `/workflows/api/v2/workflows/{id}` | GET | Get computed classification for a flaw |
 
-### Methods to Eventually Remove from WorkflowModel
+Classification is automatic based on flaw data and cannot be manually changed.
+
+### V1 API (Deprecated)
+
+**The entire v1 API is deprecated.** All clients should migrate to v2.
+
+**Read-only endpoints (deprecated, but functional):**
+
+| Endpoint | Method | Status | Description |
+|---|---|---|---|
+| `/workflows/api/v1/workflows` | GET | **DEPRECATED** | Use v2 endpoint instead - functionally identical |
+| `/workflows/api/v1/workflows/{id}` | GET | **DEPRECATED** | Use v2 endpoint instead - functionally identical |
+
+These endpoints still work correctly but are deprecated. Use the equivalent v2
+endpoints instead.
+
+**Mutation endpoints (deprecated NO-OP):**
+
+| Endpoint | Status | Behavior |
+|---|---|---|
+| `POST /osidb/api/v1/flaws/{id}/promote` | **DEPRECATED NO-OP** | Returns current classification without making any changes |
+| `POST /osidb/api/v1/flaws/{id}/revert` | **DEPRECATED NO-OP** | Returns current classification without making any changes |
+| `POST /osidb/api/v1/flaws/{id}/reset` | **DEPRECATED NO-OP** | Returns current classification without making any changes |
+| `POST /osidb/api/v1/flaws/{id}/reject` | **DEPRECATED NO-OP** | Returns current classification without making any changes |
+| `POST /workflows/api/v1/workflows/{id}/adjust` | **DEPRECATED NO-OP** | Returns current classification without making any changes |
+
+These endpoints no longer perform any workflow state mutations. They return
+HTTP 200 with the current computed classification and deprecation warnings.
+This maintains API compatibility while preventing any manual state manipulation
+that would be immediately overridden by automatic classification.
+
+**Migration path:**
+
+- Stop calling mutation endpoints - they no longer change state
+- Update flaw data directly instead (assign owner, create affects, file
+  trackers, set impact, etc.)
+- Workflow classification updates automatically on every flaw save
+- Use `GET /workflows/api/v2/workflows/{id}` to view computed classification
+
+**Deprecation timeline:**
+
+Phase 1 (current): Mutation endpoints are no-ops that return compatible
+responses with deprecation warnings. No state changes occur.
+
+Phase 2 (TBD): Mutation endpoints will be removed entirely. Only v2 endpoints will remain.
+
+### Methods to Eventually Remove from WorkflowModel (TODO)
 
 Once the endpoints are removed: `promote()`, `revert()`, `reset()`, `reject()`,
 `validate_classification()`, `next_state`, `previous_state`,

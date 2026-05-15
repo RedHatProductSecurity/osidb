@@ -137,7 +137,11 @@ class ClassificationWorkflowSerializer(ClassificationSerializer, WorkflowSeriali
 
 
 class RejectSerializer(serializers.Serializer):
-    """Task rejection serializer"""
+    """
+    Task rejection serializer (DEPRECATED)
+
+    Used by the deprecated reject endpoint. Will be removed when the endpoint is removed.
+    """
 
     reason = serializers.CharField()
 
