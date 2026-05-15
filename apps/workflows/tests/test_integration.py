@@ -216,7 +216,7 @@ class TestRestApi(object):
         assert response.status_code == 200
 
     def test_adjust(self, auth_client, test_api_uri):
-        """test refreshing/adjusting a flaw state through API"""
+        """test that adjust endpoint is now a NO-OP that returns current classification"""
         state_new = {
             "name": WorkflowModel.WorkflowState.NEW,
             "requirements": [],
@@ -243,7 +243,7 @@ class TestRestApi(object):
         workflow_framework = WorkflowFramework()
         workflow_framework.register_workflow(workflow_main)
 
-        flaw = FlawFactory()
+        flaw = FlawFactory(task_key="TASK-123")  # Required for workflow classification
         AffectFactory(flaw=flaw)
         flaw.cwe_id = ""
         flaw.save(raise_validation_error=False)
@@ -253,6 +253,7 @@ class TestRestApi(object):
         flaw.cwe_id = "CWE-1"
         flaw.save(raise_validation_error=False)
 
+        # Adjust endpoint is now a NO-OP - it returns current state without recalculation
         response = auth_client().post(
             f"{test_api_uri}/workflows/{flaw.uuid}/adjust",
             data={},
@@ -262,9 +263,13 @@ class TestRestApi(object):
 
         json_body = response.json()
         assert str(flaw.uuid) == json_body["flaw"]
+        # Endpoint is NO-OP, returns current state (NEW) not recalculated state (TRIAGE)
         assert (
-            WorkflowModel.WorkflowState.TRIAGE == json_body["classification"]["state"]
+            WorkflowModel.WorkflowState.NEW == json_body["classification"]["state"]
         )
+        # Verify deprecation warning is present
+        assert json_body.get("deprecated") is True
+        assert "deprecation_message" in json_body
 
     def test_classification(self, auth_client, test_api_uri):
         state_new = {

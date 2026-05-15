@@ -20,6 +20,8 @@ from .views import workflows as graph_workflows
 logger = logging.getLogger(__name__)
 
 urlpatterns = [
+    # TODO
+    # why authenticated
     path("", index.as_view()),
     path("healthy", healthy.as_view()),
     # V1 API (deprecated mutation endpoints)

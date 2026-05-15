@@ -802,9 +802,10 @@ class TestWorkflowFramework:
 class TestFlaw:
     @pytest.mark.enable_signals
     def test_init(self):
-        """test that flaw gets workflow:state assigned on creation"""
+        """test that flaw without task_key has empty workflow fields"""
         flaw = FlawFactory()
-        assert flaw.workflow_name
+        # Flaws without task_key should have empty workflow fields
+        assert flaw.workflow_name == ""
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NOVALUE
 
     @pytest.mark.enable_signals

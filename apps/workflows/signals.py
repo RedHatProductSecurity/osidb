@@ -10,6 +10,7 @@ def auto_adjust_classification(sender, instance, **kwargs):
         # Classify only if there is a task associated, otherwise the state is
         # and should be an empty value
         if instance.task_key and not all(
+            # TODO
             [instance.workflow_name, instance.workflow_state]
         ):
             instance.adjust_classification(save=False)

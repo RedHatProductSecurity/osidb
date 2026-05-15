@@ -33,6 +33,7 @@ class JiraTaskSyncMixin(models.Model):
 
         # check taskman conditions are met
         # and eventually perform the sync
+        # TODO is set to zero on prod
         if JIRA_TASKMAN_AUTO_SYNC_FLAW and jira_token is not None:
             self.tasksync(
                 *args,

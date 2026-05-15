@@ -1,5 +1,4 @@
 import pytest
-from django.conf import settings
 
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.models import State, Workflow
@@ -7,7 +6,6 @@ from apps.workflows.serializers import WorkflowSerializer
 from apps.workflows.urls import urlpatterns
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.osv.collectors import OSVCollector
-from osidb.core import set_user_acls
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -176,7 +174,8 @@ class TestEndpoints(object):
         workflow_framework.register_workflow(workflow)
 
         flaw = FlawFactory.build(
-            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+            task_key="TASK-123",  # Required for workflow classification
         )
         flaw.adjust_classification(save=False)
         flaw.save(raise_validation_error=False)
