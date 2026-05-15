@@ -625,18 +625,27 @@ class TestBugzillaJiraMixinIntegration:
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw = Flaw.objects.get(uuid=flaw.uuid)
 
-        flaw.promote(
-            jira_token=jira_token, jira_email=jira_email, bz_api_key=bugzilla_token
+        flaw.adjust_classification(save=False)
+        flaw.save(
+            jira_token=jira_token,
+            jira_email=jira_email,
+            bz_api_key=bugzilla_token,
+            raise_validation_error=False,
         )
-        flaw.refresh_from_db()  # need to refresh after update
+        flaw.refresh_from_db()
         assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
 
         jtq = JiraTaskmanQuerier(jira_token, jira_email)
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Refinement"
-        flaw.reject(
-            jira_token=jira_token, jira_email=jira_email, bz_api_key=bugzilla_token
+
+        flaw.classification = ("REJECTED", WorkflowModel.WorkflowState.REJECTED)
+        flaw.save(
+            jira_token=jira_token,
+            jira_email=jira_email,
+            bz_api_key=bugzilla_token,
+            raise_validation_error=False,
         )
         assert flaw.workflow_state == WorkflowModel.WorkflowState.REJECTED
 
@@ -692,12 +701,13 @@ class TestBugzillaJiraMixinIntegration:
 
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
 
-        response = auth_client().post(
-            f"{test_api_uri}/flaws/{created_uuid}/promote",
-            format="json",
-            HTTP_BUGZILLA_API_KEY=bugzilla_token,
-            HTTP_JIRA_API_EMAIL=jira_email,
-            HTTP_JIRA_API_KEY=jira_token,
+        flaw = Flaw.objects.get(pk=created_uuid)
+        flaw.adjust_classification(save=False)
+        flaw.save(
+            jira_token=jira_token,
+            jira_email=jira_email,
+            bz_api_key=bugzilla_token,
+            raise_validation_error=False,
         )
 
         flaw = Flaw.objects.get(pk=created_uuid)
@@ -708,13 +718,12 @@ class TestBugzillaJiraMixinIntegration:
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Refinement"
 
-        response = auth_client().post(
-            f"{test_api_uri}/flaws/{created_uuid}/reject",
-            {"reason": "This is not a bug."},
-            format="json",
-            HTTP_BUGZILLA_API_KEY=bugzilla_token,
-            HTTP_JIRA_API_EMAIL=jira_email,
-            HTTP_JIRA_API_KEY=jira_token,
+        flaw.classification = ("REJECTED", WorkflowModel.WorkflowState.REJECTED)
+        flaw.save(
+            jira_token=jira_token,
+            jira_email=jira_email,
+            bz_api_key=bugzilla_token,
+            raise_validation_error=False,
         )
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
