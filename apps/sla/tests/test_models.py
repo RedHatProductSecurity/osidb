@@ -943,8 +943,12 @@ class TestSLOPolicy:
             [
                 ("in", "kpatch", True),
                 ("in", "coffee", False),
+                ("in", "red hat", True),
+                ("in", "red_hat", False),
                 ("not in", "kpatch", False),
                 ("not in", "coffee", True),
+                ("not in", "red hat", False),
+                ("not in", "red_hat", True),
             ],
         )
         def test_in_condition(self, operator, component, accepted):
@@ -956,7 +960,14 @@ class TestSLOPolicy:
                 "description": "Test for the in/not in operator",
                 "conditions": {
                     "affect": [
-                        {f"PS component {operator}": ["kpatch", "kmatch", "kcatch"]}
+                        {
+                            f"PS component {operator}": [
+                                "kpatch",
+                                "kmatch",
+                                "kcatch",
+                                "red hat",
+                            ]
+                        }
                     ],
                 },
                 "slo": {
@@ -991,6 +1002,112 @@ class TestSLOPolicy:
                 )
                 == accepted
             )
+
+        @pytest.mark.parametrize(
+            "operator, accepted",
+            [
+                ("is", True),
+                ("is not", False),
+            ],
+        )
+        @pytest.mark.parametrize(
+            "valid_case, invalid_case",
+            [
+                ("Red Hat Enterprise Linux", "Red_Hat_Enterprise_Linux"),
+                ("Red_Hat_Enterprise_Linux", "Red Hat Enterprise Linux"),
+                ("Red_Hat Enterprise_Linux", "Red Hat_Enterprise Linux"),
+                ("Red Hat_Enterprise_Linux", "Red_Hat_Enterprise_Linux"),
+            ],
+        )
+        def test_policy_with_spaces(self, operator, accepted, valid_case, invalid_case):
+            """
+            Test the SLA policy with multi-word product name
+            (regression test for OSIDB-4956)
+            """
+            policy_desc = {
+                "name": "testCase",
+                "description": "Magical test case",
+                "conditions": {
+                    "affect": [
+                        f"PS product {operator} {valid_case}",
+                    ],
+                },
+                "slo": None,  # Exclusion policy - no SLO applies
+            }
+
+            policy = SLOPolicy.create_from_description(policy_desc)
+
+            ps_product = PsProductFactory(short_name="valid", name=valid_case)
+            ps_module = PsModuleFactory(bts_name="bugzilla", ps_product=ps_product)
+            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+            flaw = FlawFactory(embargoed=False)
+
+            # Test 1: Affect that SHOULD match the policy (Magic on RHEL)
+            valid_affect = AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=ps_module.name,
+                ps_component="magic",
+                ps_update_stream=ps_update_stream.name,
+                impact=Impact.MODERATE,
+            )
+            valid_tracker = TrackerFactory(
+                affects=[valid_affect],
+                embargoed=flaw.embargoed,
+                ps_update_stream=ps_update_stream.name,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+            )
+
+            # # Should accept because condition match
+            assert (
+                policy.accepts(
+                    TemporalContext(
+                        flaw=flaw, affect=valid_affect, tracker=valid_tracker
+                    )
+                )
+                is accepted
+            ), f"Ps product is {valid_case} should match component"
+
+            # Test 2: Affect that should NOT match (different component)
+            invalid_ps_product = PsProductFactory(
+                short_name="invalid", name=invalid_case
+            )
+            invalid_ps_module = PsModuleFactory(
+                bts_name="bugzilla", ps_product=invalid_ps_product
+            )
+            invalid_ps_update_stream = PsUpdateStreamFactory(
+                ps_module=invalid_ps_module
+            )
+
+            invalid_flaw = FlawFactory(embargoed=False)
+            invalid_affect = AffectFactory(
+                flaw=invalid_flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=invalid_ps_module.name,
+                ps_component="kernel",
+                ps_update_stream=invalid_ps_update_stream.name,
+                impact=Impact.MODERATE,
+            )
+            invalid_tracker = TrackerFactory(
+                affects=[invalid_affect],
+                embargoed=invalid_flaw.embargoed,
+                ps_update_stream=invalid_ps_update_stream.name,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+            )
+
+            # Should NOT accept because component doesn't match
+            assert (
+                policy.accepts(
+                    TemporalContext(
+                        flaw=invalid_flaw,
+                        affect=invalid_affect,
+                        tracker=invalid_tracker,
+                    )
+                )
+                is not accepted
+            ), f"Ps product is {valid_case} should not match component {invalid_case}"
 
     class TestContext:
         """
