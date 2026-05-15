@@ -1357,17 +1357,51 @@ class TestTrackerSuggestions:
         )
         res = response.json()
 
-        assert len(res["streams_components"]) == 2
+        assert len(res["streams_components"]) == expected_total
         available_streams = [
-            stream["ps_update_stream"]
-            for stream in res["streams_components"]
-            if stream["offer"]
+            stream["ps_update_stream"] for stream in res["streams_components"]
         ]
 
-        # Check expectations
-        assert len(available_streams) == expected_total
         assert (stream1.name in available_streams) == expected_stream_1
         assert (stream2.name in available_streams) == expected_stream_2
+
+    def test_no_null_offers_in_suggestions(self, auth_client, test_app_api_uri):
+        """
+        Test that streams_components never contains entries with a null offer
+        """
+        flaw = FlawFactory(embargoed=False, impact=Impact.CRITICAL)
+        ps_module = PsModuleFactory()
+
+        active_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            default_to_ps_module=ps_module,
+        )
+        inactive_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=None,
+        )
+
+        for stream in [active_stream, inactive_stream]:
+            AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_component="component",
+                ps_update_stream=stream.name,
+            )
+
+        headers = {"HTTP_JiraAuthentication": "SECRET"}
+        response = auth_client().post(
+            f"{test_app_api_uri}/file",
+            data={"flaw_uuids": [flaw.uuid]},
+            format="json",
+            **headers,
+        )
+        res = response.json()
+
+        assert len(res["streams_components"]) == 1
+        assert all(stream["offer"] is not None for stream in res["streams_components"])
 
 
 class TestDefaultHandler:

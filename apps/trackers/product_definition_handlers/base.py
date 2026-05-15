@@ -24,7 +24,7 @@ class ProductDefinitionRules:
         impact: Impact,
         ps_update_stream: PsUpdateStream,
         exclude_existing_trackers=False,
-    ):
+    ) -> dict | None:
         # Only generate offers for active streams
         if not ps_update_stream.is_active:
             return None
