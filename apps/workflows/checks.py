@@ -85,7 +85,7 @@ class CheckParser:
             self.desc2equals,
             self.desc2in,
         ]:
-            if func == self.desc2equals:
+            if func in [self.desc2equals, self.desc2not_equals]:
                 result = func(check_desc, original_check_desc)
             else:
                 result = func(check_desc)
@@ -202,7 +202,7 @@ class CheckParser:
 
                 return (doc, compare_element)
 
-    def desc2not_equals(self, check_desc):
+    def desc2not_equals(self, check_desc, original_value=None):
         """
         negative attribute to literal value comparison check
 
@@ -212,7 +212,7 @@ class CheckParser:
         if check_desc.count("_not_is_") == 1:
             check_desc = check_desc.replace("_not_is_", "_is_")
 
-            result = self.desc2equals(check_desc)
+            result = self.desc2equals(check_desc, original_value)
 
             if result is not None:
                 doc, func = result
