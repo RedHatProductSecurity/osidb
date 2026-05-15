@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+- Added developer documentation
+- Added make 'start-local-bg' target
+### Fixed
+- Fixed double error raise problem in sync_manager.
+
+## Unreleased
+### Added
 - Add validation to require PURLs (OSIDB-4810)
 
 ## [5.10.3] - 2026-05-06
