@@ -722,6 +722,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         "references",
         "labels",
         "alerts",
+        "upstream_data",
     )
     _AFFECTS_PREFETCH_RELATED = (
         "affects",
@@ -745,6 +746,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         "references": ("references",),
         "labels": ("labels",),
         "alerts": ("alerts",),
+        "upstream_data": ("upstream_data",),
         # "affects" and "trackers" handled explicitly below because they are more nuanced.
     }
 
@@ -869,6 +871,7 @@ class FlawV1View(FlawView):
         "package_versions",
         "references",
         "labels",
+        "upstream_data",
     ).all()
     filterset_class = FlawV1Filter
 

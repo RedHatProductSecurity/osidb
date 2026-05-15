@@ -45,6 +45,7 @@ from osidb.models import (
     Profile,
     PsUpdateStream,
     Tracker,
+    UpstreamData,
 )
 from osidb.models.affect import NotAffectedJustification
 from osidb.sync_manager import SyncManager
@@ -2000,6 +2001,38 @@ class FlawReferencePutSerializer(FlawReferenceSerializer):
     pass
 
 
+class UpstreamDataSerializer(
+    ACLMixinSerializer,
+    AlertMixinSerializer,
+    IncludeExcludeFieldsMixin,
+    TrackingMixinSerializer,
+):
+    """Serializer for OSV/collector upstream metadata attached to a flaw (read-only via API)."""
+
+    upstream_purls = serializers.JSONField(read_only=True)
+    upstream_descriptions = serializers.ListField(
+        child=serializers.CharField(), read_only=True
+    )
+    upstream_severities = serializers.JSONField(read_only=True)
+    source = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = UpstreamData
+        fields = (
+            [
+                "uuid",
+                "flaw",
+                "upstream_purls",
+                "upstream_descriptions",
+                "upstream_severities",
+                "source",
+            ]
+            + ACLMixinSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+        )
+
+
 class FlawCVSSSerializer(
     AbstractCVSSSerializer,
     JiraAPIKeyMixin,
@@ -2200,6 +2233,7 @@ class FlawSerializer(
     references = FlawReferenceSerializer(many=True, read_only=True)
     cvss_scores = FlawCVSSSerializer(many=True, read_only=True)
     package_versions = PackageSerializer(many=True, read_only=True)
+    upstream_data = UpstreamDataSerializer(many=True, read_only=True)
 
     requires_cve_description = serializers.SerializerMethodField()
     selected_cve_description = serializers.ReadOnlyField()
@@ -2277,6 +2311,7 @@ class FlawSerializer(
                 "major_incident_state",
                 "major_incident_start_dt",
                 "nist_cvss_validation",
+                "upstream_data",
                 "affects",
                 "comments",
                 "meta_attr",

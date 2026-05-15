@@ -35,6 +35,7 @@ from osidb.tests.factories import (
     PsModuleFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
+    UpstreamDataFactory,
     default_rpm_purl_for_ps_component,
 )
 
@@ -118,6 +119,62 @@ class TestEndpointsFlaws:
         response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["cvss_scores"]) == 1
+
+    def test_get_flaw_with_upstream_data(self, auth_client, test_api_uri):
+        """retrieve specific flaw with upstream_data from endpoint"""
+        flaw = FlawFactory()
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["upstream_data"] == []
+
+        upstream = UpstreamDataFactory(
+            flaw=flaw,
+            source="OSV",
+            upstream_purls=[{"purl": "pkg:npm/example", "ranges": []}],
+            upstream_descriptions=["First line", "Second line"],
+            upstream_severities=[{"schema": "cvss_v3", "score": "8.1"}],
+        )
+
+        response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["upstream_data"]) == 1
+        item = response.data["upstream_data"][0]
+        assert item["uuid"] == str(upstream.uuid)
+        assert str(item["flaw"]) == str(flaw.uuid)
+        assert item["source"] == "OSV"
+        assert item["upstream_purls"] == [{"purl": "pkg:npm/example", "ranges": []}]
+        assert item["upstream_descriptions"] == ["First line", "Second line"]
+        assert item["upstream_severities"] == [{"schema": "cvss_v3", "score": "8.1"}]
+
+    def test_list_flaws_include_fields_upstream_data(
+        self, auth_client, test_api_v2_uri
+    ):
+        """list flaws with include_fields prefetches only upstream_data when requested"""
+        flaw = FlawFactory()
+        UpstreamDataFactory(flaw=flaw, source="OSV")
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/flaws?include_fields=uuid,upstream_data"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["count"] == 1
+        row = body["results"][0]
+        assert set(row.keys()) == {"uuid", "upstream_data"}
+        assert len(row["upstream_data"]) == 1
+        assert row["upstream_data"][0]["source"] == "OSV"
+
+    def test_get_flaw_exclude_fields_upstream_data(self, auth_client, test_api_uri):
+        """exclude_fields omits upstream_data from a single-flaw response"""
+        flaw = FlawFactory()
+        UpstreamDataFactory(flaw=flaw)
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws/{flaw.uuid}?exclude_fields=upstream_data"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert "upstream_data" not in response.data
 
     def test_get_flaw(self, auth_client, test_api_uri):
         """retrieve specific flaw from endpoint"""

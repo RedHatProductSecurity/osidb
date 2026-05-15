@@ -1,9 +1,11 @@
+import copy
 import json
 import re
+from collections.abc import Callable
 from decimal import Decimal
 from io import BytesIO
 from time import sleep
-from typing import Union
+from typing import Any, Union
 from zipfile import ZipFile
 
 import requests
@@ -20,10 +22,58 @@ from collectors.framework.models import Collector
 from collectors.osv.constants import OSV_START_DATE
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
-from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
+from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet, UpstreamData
 from osidb.validators import CVE_RE_STR
 
 logger = get_task_logger(__name__)
+
+
+def _osv_upstream_purl_dedupe_key(item: Any) -> str | None:
+    """Stable id for get_upstream_purls entries: {\"purl\", \"ranges\", \"versions\"}."""
+    if isinstance(item, dict) and item.get("purl"):
+        return str(item["purl"])
+    return None
+
+
+def _osv_upstream_description_dedupe_key(item: Any) -> str | None:
+    """FlawSerializer upstream_descriptions uses ArrayField(TextField)."""
+    if not isinstance(item, str):
+        return None
+    stripped = item.strip()
+    return stripped or None
+
+
+def _osv_upstream_severity_dedupe_key(item: Any) -> str:
+    """JSON-shaped entries from get_upstream_severities; compare by canonical JSON."""
+    return json.dumps(item, sort_keys=True, default=str)
+
+
+def _merge_osv_upstream_lists(
+    existing: list[Any],
+    additions: list[Any],
+    dedupe_key: Callable[[Any], Any],
+) -> list[Any]:
+    """Append additions onto existing, skipping rows whose dedupe_key already appeared."""
+    out = list(existing)
+    seen: set[Any] = set()
+    for row in out:
+        k = dedupe_key(row)
+        if k is not None:
+            seen.add(k)
+    for row in additions:
+        k = dedupe_key(row)
+        if k is None or k in seen:
+            continue
+        seen.add(k)
+        out.append(row)
+    return out
+
+
+_OSV_UPSTREAM_MERGE_SPECS: tuple[tuple[str, Callable[[Any], Any]], ...] = (
+    ("upstream_purls", _osv_upstream_purl_dedupe_key),
+    ("upstream_descriptions", _osv_upstream_description_dedupe_key),
+    ("upstream_severities", _osv_upstream_severity_dedupe_key),
+)
 
 
 class OSVCollectorException(Exception):
@@ -188,6 +238,23 @@ class OSVCollector(Collector):
         logger.info("OSV sync was successful.")
         return msg
 
+    def _append_osv_upstream_to_flaw(self, flaw: Flaw, content: dict) -> None:
+        """Append OSV-derived upstream_* lists onto UpstreamData (deduped per field)."""
+        upstream = UpstreamData.objects.ensure_for_flaw(flaw, source="OSV")
+
+        changed = False
+        for field, key_fn in _OSV_UPSTREAM_MERGE_SPECS:
+            additions = list(content.get(field) or [])
+            if not additions:
+                continue
+            prior = list(getattr(upstream, field) or [])
+            merged = _merge_osv_upstream_lists(prior, additions, key_fn)
+            if merged != prior:
+                setattr(upstream, field, merged)
+                changed = True
+        if changed:
+            upstream.save(raise_validation_error=False)
+
     def save_snippet_and_flaw(
         self, osv_id: str, cve_ids: list[str], content: dict
     ) -> tuple[list[str], list[str]]:
@@ -225,7 +292,7 @@ class OSVCollector(Collector):
         else:
             for cve_id in cve_ids:
                 # Snippet is created only if a flaw with the given CVE iD already exists
-                if not Flaw.objects.filter(cve_id=cve_id):
+                if not Flaw.objects.filter(cve_id=cve_id).exists():
                     continue
                 snippet_content = content.copy()
                 snippet_content["cve_id"] = cve_id
@@ -243,6 +310,14 @@ class OSVCollector(Collector):
                     snippet.convert_snippet_to_flaw(
                         jira_token=JIRA_AUTH_TOKEN, jira_email=JIRA_EMAIL
                     )
+
+                    # The idea is to add upstream info for newly collected OSV vulns
+                    flaw = (
+                        Flaw.objects.select_for_update().filter(cve_id=cve_id).first()
+                    )
+
+                    if flaw:
+                        self._append_osv_upstream_to_flaw(flaw, snippet_content)
 
         return created_snippets, created_flaws
 
@@ -326,15 +401,108 @@ class OSVCollector(Collector):
 
             return cvss_data, highest_impact
 
+        def get_upstream_purls(
+            data: dict,
+        ) -> list[dict[str, Any]]:
+            # https://ossf.github.io/osv-schema/#affected-fields
+
+            affected = data.get("affected", [])
+            affected_data = []
+
+            for affect in affected:
+                package = affect.get("package") or {}
+                upstream_purl = package.get("purl", None)
+
+                # Skip filling in the field if there is no purl
+                if not upstream_purl:
+                    continue
+
+                # https://ossf.github.io/osv-schema/#affectedranges-field
+                ranges = copy.deepcopy(affect.get("ranges", []))
+
+                # https://ossf.github.io/osv-schema/#affectedversions-field
+                val = affect.get("versions", [])
+                versions = list(val) if val else []
+
+                affected_data.append(
+                    {
+                        "purl": upstream_purl,
+                        "ranges": ranges,
+                        "versions": versions,
+                    }
+                )
+
+            return affected_data
+
+        def get_upstream_severities(data: dict) -> list[Any]:
+            # https://ossf.github.io/osv-schema/#severity-field
+            # https://ossf.github.io/osv-schema/#affectedseverity-field
+
+            # https://ossf.github.io/osv-schema/#database_specific-field
+            # https://ossf.github.io/osv-schema/#affecteddatabase_specific-field
+
+            severities = []
+
+            severity_field = {}
+            # Severities are set either at the vulnerability level or the
+            # affected level. Databases might also have their own specific
+            # severity fields under database_specific; that is independent of
+            # whether the standard severity array is present or empty.
+            severity = data.get("severity") or []
+            if severity:
+                severity_field["severity"] = copy.deepcopy(severity)
+
+            if db_specific := data.get("database_specific", None):
+                if db_severity := db_specific.get("severity", None):
+                    severity_field["db_severity"] = copy.deepcopy(db_severity)
+
+            if not severity:
+                # If top-level severity isn't set, check specific affected severities
+                affected = data.get("affected", [])
+                affect_severities = []
+
+                for affect in affected:
+                    affect_severity_field = {}
+
+                    if affect_severity := affect.get("severity", []):
+                        affect_severity_field["affect_severity"] = copy.deepcopy(
+                            affect_severity
+                        )
+
+                    if affect_db_specific := affect.get("database_specific", None):
+                        if affect_db_severity := affect_db_specific.get(
+                            "severity", None
+                        ):
+                            affect_severity_field["affect_db_severity"] = copy.deepcopy(
+                                affect_db_severity
+                            )
+
+                    if affect_severity_field:
+                        affect_severities.append(affect_severity_field)
+
+                # Add affected severities to the list
+                if affect_severities:
+                    severities.append(affect_severities)
+
+            # Add top-level severities to the list
+            if severity_field:
+                severities.append(severity_field)
+
+            return severities
+
         cvss_scores, impact = get_cvss_and_impact(osv_vuln)
+        comment_zero = get_comment_zero(osv_vuln)
         content = {
-            "comment_zero": get_comment_zero(osv_vuln),
+            "comment_zero": comment_zero,
             "title": get_title(osv_vuln),
             "cvss_scores": cvss_scores,
             "impact": impact,
             "references": get_refs(osv_vuln),
             "source": Snippet.Source.OSV,
             "unembargo_dt": osv_vuln.get("published"),
+            "upstream_purls": get_upstream_purls(osv_vuln),
+            "upstream_descriptions": [comment_zero] if comment_zero else [],
+            "upstream_severities": get_upstream_severities(osv_vuln),
             # Unused fields that we may extract additional data from later.
             "osv_id": osv_id,
             "osv_affected": osv_vuln.get("affected"),
