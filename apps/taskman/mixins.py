@@ -7,7 +7,7 @@ class JiraTaskSyncMixin(models.Model):
     """
     mixin for syncing the model to the Jira
     this mixin does not perform validation thus it should be
-    inherited after other mixins that performs it to ensire data
+    inherited after other mixins that performs it to ensure data
     correctedness before syncing it
     """
 
