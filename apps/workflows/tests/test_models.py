@@ -886,9 +886,10 @@ class TestWorkflowFramework:
 class TestFlaw:
     @pytest.mark.enable_signals
     def test_init(self):
-        """test that flaw gets workflow:state assigned on creation"""
+        """test that flaw without task_key has empty workflow fields"""
         flaw = FlawFactory()
-        assert flaw.workflow_name
+        # Flaws without task_key should have empty workflow fields
+        assert flaw.workflow_name == ""
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NOVALUE
 
     @pytest.mark.enable_signals
@@ -954,7 +955,8 @@ class TestFlaw:
         workflow_framework.register_workflow(workflow)
 
         flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+            task_key="TASK-123",  # Required for workflow classification
         )
         AffectFactory(flaw=flaw)
         flaw.adjust_classification()
@@ -969,12 +971,14 @@ class TestFlaw:
     @pytest.mark.enable_signals
     def test_adjust_no_change(self):
         """test that adjusting classification has no effect without flaw modification"""
-        flaw = FlawFactory(
-            workflow_state=WorkflowModel.WorkflowState.NEW
-        )  # random flaw
+        # Flaw without task_key should have empty workflow fields
+        flaw = FlawFactory()
         classification = flaw.classification
         flaw.adjust_classification()
         assert classification == flaw.classification
+        # Verify workflow fields remain empty without task_key
+        assert flaw.workflow_name == ""
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.NOVALUE
 
     @pytest.mark.enable_signals
     def test_promote(self):
