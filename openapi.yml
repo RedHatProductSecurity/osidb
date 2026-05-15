@@ -15486,15 +15486,10 @@ components:
           maxLength: 255
         type:
           allOf:
-          - $ref: '#/components/schemas/FlawCollaboratorPostTypeEnum'
+          - $ref: '#/components/schemas/FlawLabelType'
           default: context_based
       required:
       - label
-    FlawCollaboratorPostTypeEnum:
-      enum:
-      - alias
-      - context_based
-      type: string
     FlawCollaboratorRequest:
       type: object
       description: FlawCollaborator serializer

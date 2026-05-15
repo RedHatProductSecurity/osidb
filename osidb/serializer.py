@@ -2105,7 +2105,11 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
 
         label = FlawLabel.objects.get(name=validated_data.get("label"))
 
-        if label.type != FlawLabel.FlawLabelType.CONTEXT_BASED:
+        if label.type not in [
+            FlawLabel.FlawLabelType.CONTEXT_BASED,
+            FlawLabel.FlawLabelType.PRODUCT_FAMILY,
+            FlawLabel.FlawLabelType.BU,
+        ]:
             raise serializers.ValidationError(
                 {
                     "label": f"Only context-based and alias labels can be manually added to flaws. '{label.name}' is a product-based label."
@@ -2138,6 +2142,14 @@ class FlawCollaboratorPostSerializer(FlawCollaboratorSerializer):
             (
                 FlawLabel.FlawLabelType.CONTEXT_BASED,
                 FlawLabel.FlawLabelType.CONTEXT_BASED.label,
+            ),
+            (
+                FlawLabel.FlawLabelType.PRODUCT_FAMILY,
+                FlawLabel.FlawLabelType.PRODUCT_FAMILY.label,
+            ),
+            (
+                FlawLabel.FlawLabelType.BU,
+                FlawLabel.FlawLabelType.BU.label,
             ),
         ],
         required=False,
