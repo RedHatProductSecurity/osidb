@@ -183,7 +183,7 @@ class WorkflowModel(models.Model):
         DONE = "DONE"
         REJECTED = "REJECTED"
 
-    workflow_name = models.CharField(max_length=50, blank=True, default="DEFAULT")
+    workflow_name = models.CharField(max_length=50, blank=True)
     workflow_state = models.CharField(
         choices=WorkflowState.choices,
         max_length=24,
@@ -295,6 +295,11 @@ class WorkflowModel(models.Model):
 
         workflow model is by default saved on change which can be turned off by argument
         """
+        # Only classify if there is a task associated, otherwise workflow fields
+        # should remain empty
+        if not self.task_key:
+            return
+
         classification = self.classify()
 
         if classification == self.classification:

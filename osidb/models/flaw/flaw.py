@@ -22,7 +22,11 @@ from apps.taskman.constants import (
     TRANSITION_REQUIRED_FIELDS,
 )
 from apps.taskman.mixins import JiraTaskSyncMixin
-from apps.workflows.workflow import WorkflowModel, WorkflowModelManager
+from apps.workflows.workflow import (
+    WorkflowFramework,
+    WorkflowModel,
+    WorkflowModelManager,
+)
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from osidb.helpers import deprecate_field
@@ -1155,9 +1159,11 @@ class Flaw(
         # creation
         if not self.task_key:
             self.task_key = jtq.create_or_update_task(self)
+            self.workflow_name = WorkflowFramework().classify(self, state=False).name
             self.workflow_state = WorkflowModel.WorkflowState.NEW
             Flaw.objects.filter(uuid=self.uuid).update(
                 task_key=self.task_key,
+                workflow_name=self.workflow_name,
                 workflow_state=self.workflow_state,
             )
         else:
