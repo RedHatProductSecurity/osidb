@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timezone
+from unittest.mock import patch
 
 import pytest
 from jira.exceptions import JIRAError
@@ -135,6 +136,39 @@ class TestOSVCollector:
         osvc.snippet_creation_enabled = True
         osvc.snippet_creation_start_date = datetime(2024, 1, 1, tzinfo=timezone.utc)
         osvc.collect(osv_id="GHSA-3hwm-922r-47hw")
+
+        assert Snippet.objects.count() == 0
+        assert Flaw.objects.count() == 0
+
+    @patch.object(OSVCollector, "fetch_osv_vuln_by_id")
+    def test_ignore_osv_record_without_details(self, mock_fetch_osv_vuln_by_id):
+        """
+        Test that OSV record without details and withdrawn is ignored.
+        """
+        json_response = {
+            "schema_version": "1.7.5",
+            "id": "example-id-a361-b4d3",
+            "published": "2025-11-25T20:28:26.189245Z",
+            "modified": "2026-04-21T08:01:08.171596Z",
+            "withdrawn": "2026-04-21T08:01:08.171596Z",
+            "aliases": ["django-example-57833", "example-57833"],
+            "upstream": ["example-2025-57833"],
+            "references": [
+                {
+                    "type": "WEB",
+                    "url": "https://advisory.echohq.com/cve/CVE-2025-57833",
+                },
+                {
+                    "type": "WEB",
+                    "url": "https://github.com/advisories/GHSA-6w2r-r2m5-xq5w",
+                },
+            ],
+        }
+        mock_fetch_osv_vuln_by_id.return_value = json_response
+        osvc = OSVCollector()
+        osvc.snippet_creation_enabled = True
+        osvc.snippet_creation_start_date = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        osvc.collect(osv_id="GO-2023-1494")
 
         assert Snippet.objects.count() == 0
         assert Flaw.objects.count() == 0

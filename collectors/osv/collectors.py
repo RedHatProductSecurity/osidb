@@ -17,7 +17,7 @@ from django.utils.dateparse import parse_datetime
 from apps.taskman.constants import JIRA_AUTH_TOKEN, JIRA_EMAIL
 from collectors.constants import SNIPPET_CREATION_ENABLED
 from collectors.framework.models import Collector
-from collectors.osv.constants import OSV_START_DATE
+from collectors.osv.constants import IGNORABLE_REFERENCES, OSV_START_DATE
 from collectors.utils import convert_cvss_score_to_impact, handle_urls
 from osidb.core import set_user_acls
 from osidb.models import Flaw, FlawCVSS, FlawReference, Snippet
@@ -130,8 +130,16 @@ class OSVCollector(Collector):
         if osv_id is not None:
             # Surface an exception when collecting an individual OSV vulnerability
             osv_vuln = self.fetch_osv_vuln_by_id(osv_id)
-            osv_id, cve_ids, content = self.extract_content(osv_vuln)
+
+            # Check if should ignore before extraction
+            should_ignore, reason = self.should_ignore_osv_record(osv_vuln)
+            if should_ignore:
+                msg = f"Ignoring OSV {osv_id}: {reason}"
+                logger.info(msg)
+                return msg
+
             try:
+                osv_id, cve_ids, content = self.extract_content(osv_vuln)
                 with transaction.atomic():
                     self.save_snippet_and_flaw(osv_id, cve_ids, content)
             except Exception as exc:
@@ -146,6 +154,14 @@ class OSVCollector(Collector):
             logger.info(f"Fetching and processing data for {ecosystem} OSV ecosystem")
             try:
                 for osv_vuln in self.fetch_osv_vulns_for_ecosystem(ecosystem):
+                    # Check if should ignore before extraction
+                    should_ignore, reason = self.should_ignore_osv_record(osv_vuln)
+                    if should_ignore:
+                        logger.info(
+                            f"Ignoring OSV {osv_vuln.get('id', 'unknown')}: {reason}"
+                        )
+                        continue
+
                     try:
                         osv_id, cve_ids, content = self.extract_content(osv_vuln)
                     except Exception as exc:
@@ -342,3 +358,36 @@ class OSVCollector(Collector):
         }
 
         return osv_id, cve_ids, content
+
+    def has_reference_to_ignore(self, osv_vuln: dict) -> bool:
+        for ref_to_ignore in IGNORABLE_REFERENCES:
+            for osv_reference in osv_vuln.get("references", [{}]):
+                if ref_to_ignore in osv_reference.get("url", ""):
+                    return True
+        return False
+
+    def is_withdrawn(self, osv_vuln: dict) -> bool:
+        return "withdrawn" in osv_vuln
+
+    def can_be_ignored(self, osv_vuln: dict) -> bool:
+        """Check if OSV record can be ignored during collection.
+
+        Records are ignored if they are withdrawn AND contain references
+        from specific sources (see IGNORABLE_REFERENCES).
+        """
+        return self.is_withdrawn(osv_vuln) and self.has_reference_to_ignore(osv_vuln)
+
+    def should_ignore_osv_record(self, osv_vuln: dict) -> tuple[bool, str]:
+        """
+        Determine if an OSV record should be skipped during collection.
+
+        Returns:
+            tuple[bool, str]: (should_ignore, reason)
+        """
+        if self.can_be_ignored(osv_vuln) and not osv_vuln.get("details", False):
+            return (
+                True,
+                f"withdrawn ({osv_vuln.get('withdrawn')}) with ignorable references and no details",
+            )
+
+        return False, ""
