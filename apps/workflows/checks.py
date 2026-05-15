@@ -159,12 +159,14 @@ class CheckParser:
 
                 return (doc, has_element)
 
-    def get_original_value(self, value_after_underscore, original_value):
-        total_chars = len(value_after_underscore) * -1
-        original_value = original_value[total_chars:]
-        return original_value
+    def get_original_check_description(
+        self, check_desc_after_underscore, original_check_desc
+    ):
+        total_chars = len(check_desc_after_underscore) * -1
+        original_check_desc = original_check_desc[total_chars:]
+        return original_check_desc
 
-    def desc2equals(self, check_desc, original_value=None):
+    def desc2equals(self, check_desc, original_check_desc=None):
         """
         attribute to literal value equality check
 
@@ -191,8 +193,10 @@ class CheckParser:
                     or attr in self.TEXT_CHOICES_PROPERTIES
                 ):
                     value = value.upper()
-                elif original_value:
-                    value = self.get_original_value(value, original_value)
+                elif original_check_desc:
+                    value = self.get_original_check_description(
+                        value, original_check_desc
+                    )
 
                 doc = f"check that {self.model.__name__} attribute {attr} has a value equal to {value}"
 
@@ -202,7 +206,7 @@ class CheckParser:
 
                 return (doc, compare_element)
 
-    def desc2not_equals(self, check_desc, original_value=None):
+    def desc2not_equals(self, check_desc, original_check_desc=None):
         """
         negative attribute to literal value comparison check
 
@@ -212,7 +216,7 @@ class CheckParser:
         if check_desc.count("_not_is_") == 1:
             check_desc = check_desc.replace("_not_is_", "_is_")
 
-            result = self.desc2equals(check_desc, original_value)
+            result = self.desc2equals(check_desc, original_check_desc)
 
             if result is not None:
                 doc, func = result
