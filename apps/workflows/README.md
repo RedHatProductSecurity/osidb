@@ -102,37 +102,15 @@ cumulative requirements correctly.
 
 ### Signal-Driven Classification
 
-Classification runs on every flaw save via a Django `pre_save` signal in
-`apps/workflows/signals.py`.
+Classification runs on every flaw save via a Django `pre_save` signal.
+The signal calls `adjust_classification(save=False)` which computes `classify()`
+and stores the result on the instance before it reaches the database.
 
-**Current behavior (broken):** (TODO fix) The signal only classifies when `task_key` is
-set AND both `workflow_name` and `workflow_state` are empty:
+The `task_key` guard ensures that only flaws with a Jira task are classified.
+Flaws without a task (legacy flaws) keep empty workflow fields.
 
-```python
-if instance.task_key and not all([instance.workflow_name, instance.workflow_state]):
-    instance.adjust_classification(save=False)
-```
-
-This means classification runs only once (on initial assignment) and never
-again. All subsequent state changes require manual API calls.
-
-**Correct behavior:** The signal must reclassify on every save:
-
-```python
-if instance.task_key:
-    instance.adjust_classification(save=False)
-```
-
-The `task_key` guard remains: flaws without a Jira task have no meaningful
-classification (their workflow fields stay empty -- this excludes legacy flaws).
-But once a task exists, classification is recomputed on every save, reflecting
-whatever data changed.
-
-### The `adjust_classification()` Method
-
-`WorkflowModel.adjust_classification()` calls `classify()`, compares the result
-to the stored classification, and updates if different. This is the correct
-implementation -- it delegates to the pure function and stores the result.
+The `task_key` guard ensures that only flaws with a Jira task are classified.
+Flaws without a task (legacy flaws) keep empty workflow fields.
 
 ### Idempotency
 
@@ -187,11 +165,6 @@ deeper analysis of the processing phases and team input.
 ## REJECTED Workflow Redesign (TODO redesign)
 
 ### The Problem
-
-Currently, rejection is a manual API action (`POST /flaws/{id}/reject`). The
-`reject()` method directly sets `workflow_name = "REJECTED"` and
-`workflow_state = "REJECTED"` with no underlying data feature. This violates
-the core principle: classification is action-driven, not data-driven.
 
 The REJECTED workflow has `conditions: []` (empty) and `priority: 0` (lower
 than DEFAULT's 1). This means `classify()` never selects it -- the REJECTED
@@ -257,29 +230,37 @@ Concrete changes:
 - The forward mapping (`jira_status()`) and the Jira state/resolution metadata
   in YAML definitions remain -- they are needed for the OSIDB-to-Jira direction
 
-## API Deprecation (TODO deprecate)
+## API
+The deprecated mutation endpoints (`promote`, `revert`, `reset`, `reject`,
+`adjust`) remain authenticated for backwards compatibility but are no-ops.
 
-### Endpoints to Deprecate
+### Endpoints
 
-| Endpoint | Reason |
-|---|---|
-| `POST /flaws/{id}/promote` | Classification is automatic; no manual promotion needed |
-| `POST /flaws/{id}/revert` | Reversion happens automatically when data changes |
-| `POST /flaws/{id}/reset` | Reset happens by clearing the rejection attribute |
-| `POST /flaws/{id}/reject` | Rejection is data-driven via the chosen attribute |
-| `POST /workflows/api/v1/workflows/{id}/adjust` | Classification is automatic on every save |
+| Endpoint | Method | Description |
+|---|---|---|
+| `/workflows/api/v1/workflows` | GET | List all workflow definitions |
+| `/workflows/api/v1/workflows/{id}` | GET | Get computed classification for a flaw |
+| `/workflows/api/v1/workflows/{id}/adjust` | POST | **Deprecated** no-op, returns current classification |
+| `/workflows/api/v1/graph/workflows` | GET | Visual (Mermaid) diagram of all workflows |
+| `/workflows/api/v1/graph/workflows/{id}` | GET | Visual diagram with flaw classification highlighted |
 
-### Endpoints to Keep (TODO these endpoints would be nice to be not necessarily authenticate but only optionally)
+Classification is automatic based on flaw data and cannot be manually changed.
 
-| Endpoint | Reason |
-|---|---|
-| `GET /workflows/api/v1/workflows` | Read-only introspection of workflow definitions |
-| `GET /workflows/api/v1/workflows/{id}` | Read-only computed classification for a flaw |
+### Graph Endpoints
 
-### Methods to Eventually Remove from WorkflowModel
+The graph endpoints render an HTML page with Mermaid flowchart diagrams of
+workflow states. The plain `/graph/workflows` shows all workflow definitions.
+The `/graph/workflows/{id}` variant classifies a specific flaw and highlights
+states with color: blue for the classified state, green for accepting, red for
+non-accepting.
 
-Once the endpoints are removed: `promote()`, `revert()`, `reset()`, `reject()`,
-`validate_classification()`, `next_state`, `previous_state`,
-`_nth_relative_state()`.
+### Deprecated Mutation Endpoints
 
-The `classify()` and `adjust_classification()` methods remain.
+The mutation endpoints (`promote`, `revert`, `reset`, `reject`) live under
+`/osidb/api/v1/flaws/{id}/` in the main OSIDB URL configuration, not the
+workflows app. The `adjust` endpoint (`/workflows/api/v1/workflows/{id}/adjust`)
+is in the workflows app. All are no-ops that return the current classification
+with deprecation warnings and will be removed in a future version.
+
+To change workflow state, update flaw data directly.
+Classification updates automatically on every flaw save.

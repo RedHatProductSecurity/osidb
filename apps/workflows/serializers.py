@@ -136,11 +136,6 @@ class ClassificationWorkflowSerializer(ClassificationSerializer, WorkflowSeriali
     states = ClassificationStateSerializer(many=True)
 
 
-class RejectSerializer(serializers.Serializer):
-    """Task rejection serializer"""
-
-    reason = serializers.CharField()
-
 
 @extend_schema_serializer(deprecate_fields=["group_key", "team_id"])
 class WorkflowModelSerializer(serializers.ModelSerializer):
