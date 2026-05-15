@@ -943,8 +943,12 @@ class TestSLOPolicy:
             [
                 ("in", "kpatch", True),
                 ("in", "coffee", False),
+                ("in", "red hat", True),
+                ("in", "red_hat", False),
                 ("not in", "kpatch", False),
                 ("not in", "coffee", True),
+                ("not in", "red hat", False),
+                ("not in", "red_hat", True),
             ],
         )
         def test_in_condition(self, operator, component, accepted):
@@ -956,7 +960,14 @@ class TestSLOPolicy:
                 "description": "Test for the in/not in operator",
                 "conditions": {
                     "affect": [
-                        {f"PS component {operator}": ["kpatch", "kmatch", "kcatch"]}
+                        {
+                            f"PS component {operator}": [
+                                "kpatch",
+                                "kmatch",
+                                "kcatch",
+                                "red hat",
+                            ]
+                        }
                     ],
                 },
                 "slo": {
