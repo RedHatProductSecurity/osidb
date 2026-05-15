@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 from django.conf import settings
 
-from apps.workflows.constants import WORKFLOWS_API_VERSION
+from apps.workflows.constants import WORKFLOWS_API_VERSION_V1
 from apps.workflows.workflow import WorkflowFramework
 from osidb.core import generate_acls
 from osidb.helpers import get_env
@@ -81,7 +81,7 @@ def test_scheme_host_osidb():
 
 @pytest.fixture
 def api_version():
-    return WORKFLOWS_API_VERSION
+    return WORKFLOWS_API_VERSION_V1
 
 
 @pytest.fixture
