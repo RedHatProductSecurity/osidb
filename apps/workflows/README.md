@@ -316,11 +316,3 @@ Phase 1 (current): Mutation endpoints are no-ops that return compatible
 responses with deprecation warnings. No state changes occur.
 
 Phase 2 (TBD): Mutation endpoints will be removed entirely. Only v2 endpoints will remain.
-
-### Methods to Eventually Remove from WorkflowModel (TODO)
-
-Once the endpoints are removed: `promote()`, `revert()`, `reset()`, `reject()`,
-`validate_classification()`, `next_state`, `previous_state`,
-`_nth_relative_state()`.
-
-The `classify()` and `adjust_classification()` methods remain.
