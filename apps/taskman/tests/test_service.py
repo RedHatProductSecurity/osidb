@@ -27,15 +27,13 @@ class TestTaskmanService(object):
         # Remove randomness to reuse VCR every possible time
         user, _ = User.objects.get_or_create(username="concosta")
         Profile.objects.filter(user=user).update(atlassian_cloud_id="test=cloud-id")
-        flaw = FlawFactory(
-            embargoed=False,
-            workflow_state=WorkflowModel.WorkflowState.NEW,
-        )
+        flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
         taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
         assert response1 == "OSIM-14332"
+        flaw.adjust_classification(save=False)
 
         old_title = flaw.title
         new_title = f"{old_title} edited title"
