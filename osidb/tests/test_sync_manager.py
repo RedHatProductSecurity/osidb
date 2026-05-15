@@ -368,7 +368,6 @@ class TestBZTrackerDownloadManagerFailed(TestCase):
         BZTrackerDownloadManager.failed(
             tracker.external_system_id,
             test_exception,
-            permanent=True,
             reraise=False,
         )
 
@@ -377,7 +376,8 @@ class TestBZTrackerDownloadManagerFailed(TestCase):
             name=BZTrackerDownloadManager.__name__,
             sync_id=tracker.external_system_id,
         )
-        assert manager.permanently_failed is True
+        # This is a temporary failure, not permanent (matches sync_task line 622)
+        assert manager.permanently_failed is False
         assert "Flaws do not exist" in manager.last_failed_reason
 
     @freeze_time(datetime(2025, 6, 24))
