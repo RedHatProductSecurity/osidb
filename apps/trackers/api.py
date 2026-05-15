@@ -198,6 +198,9 @@ class TrackerFileSuggestionView(TrackerFileSuggestionV1View):
                 exclude_existing_trackers=exclude_existing_trackers,
             )
 
+            if offer is None:
+                continue
+
             targets[key] = {
                 "affect": affect,
                 "ps_update_stream": affect.ps_update_stream,

@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic affectedness and resolution determination based on product
   definitions (OSIDB-4938)
 
+### Fixed
+- Exclude streams with no offer from tracker suggestions response (OSIDB-4977)
+
 ## [5.10.3] - 2026-05-06
 ### Fixed
 - Include builds during affect auto-creation (OSIDB-4965)
