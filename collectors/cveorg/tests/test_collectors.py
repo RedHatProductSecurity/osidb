@@ -84,6 +84,23 @@ class TestCVEorgCollector:
             f"Expected: {expected_description}\nGot: {flaw.mitre_cve_description}"
         )
 
+    def test_update_cve_affects_get_populated(self, mock_keywords, mock_repo):
+        """
+        Test that cve_affects is populated
+        when the collector processes CVE data.
+        """
+
+        cc = CVEorgCollector()
+        cc.snippet_creation_enabled = True
+        cc.snippet_creation_start_date = make_aware(datetime(2024, 5, 1))
+        cc.collect()
+
+        flaw = Flaw.objects.get(cve_id="CVE-2024-4923")
+
+        assert flaw.cve_affected_block[0]["vendor"] == "Codezips"
+        assert flaw.cve_affected_block[0]["product"] == "E-Commerce Site"
+        assert flaw.cve_affected_block[0]["versions"][0]["version"] == "1.0"
+
     def test_ignored_cveorg_records(self, mock_keywords, mock_repo):
         """
         Test that snippets and flaws are not created when they do not comply with rules.

@@ -248,6 +248,9 @@ class Flaw(
     # from cveorg collector
     mitre_cve_description = models.TextField(blank=True)
 
+    # from cveorg collector
+    cve_affected_block = models.JSONField(default=dict, blank=True)
+
     requires_cve_description = deprecate_field(
         models.CharField(
             choices=FlawRequiresCVEDescription.choices, max_length=20, blank=True
