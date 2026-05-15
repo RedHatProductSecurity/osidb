@@ -106,9 +106,13 @@ ERRATA_COLLECTOR_ENABLED=1
 JIRA_TASK_COLLECTOR_ENABLED=1
 JIRA_TRACKER_COLLECTOR_ENABLED=1
 JIRA_METADATA_COLLECTOR_ENABLED=1
+# Fetches Jira user mapping data to map associate UUIDs to Kerberos IDs and Atlassian Cloud IDs
+JIRA_USER_MAPPING_COLLECTOR_ENABLED=0
 CVEORG_COLLECTOR_ENABLED=1
 NVD_COLLECTOR_ENABLED=1
 OSV_COLLECTOR_ENABLED=1
+# Fetches EPSS (Exploit Prediction Scoring System) data to provide exploitation probability scores for CVEs
+EPSS_COLLECTOR_ENABLED=0
 
 # If set, it will append the tracker accuracy feedback form at the end of the description when creating Jira trackers
 TRACKER_FEEDBACK_FORM_URL="https://foo.bar"
