@@ -441,6 +441,7 @@ class Flaw(
         ).exists()
 
     @validator
+    # TODO
     def _validate_rh_products_in_affects(self, **kwargs):
         """
         Returns True if a flaw has RH products in its affects list, False otherwise.
@@ -524,6 +525,7 @@ class Flaw(
                 "NIST CVSSv3 and RH CVSSv3 scores assigned.",
             )
 
+    # TODO state-based
     @validator
     def _validate_impact_and_cve_description(self, **kwargs):
         """
@@ -540,6 +542,7 @@ class Flaw(
                 **kwargs,
             )
 
+    # TODO state-based
     @validator
     def _validate_rh_cvss3_and_impact(self, **kwargs):
         """
@@ -567,6 +570,7 @@ class Flaw(
                     **kwargs,
                 )
 
+    # TODO state-based
     @validator
     def _validate_nonempty_source(self, **kwargs):
         """
@@ -578,6 +582,7 @@ class Flaw(
         if not self.source:
             raise ValidationError("Source value is required.")
 
+    # TODO workflow-based
     @validator
     def _validate_embargoed_source(self, **kwargs):
         """
@@ -603,6 +608,7 @@ class Flaw(
                     f"Flaw is embargoed but contains public source: {self.source}"
                 )
 
+    # TODO state-based
     @validator
     def _validate_reported_date(self, **kwargs):
         """
@@ -611,6 +617,7 @@ class Flaw(
         if self.reported_dt is None:
             raise ValidationError("Flaw has an empty reported_dt")
 
+    # TODO workflow-based
     @validator
     def _validate_public_unembargo_date(self, **kwargs):
         """
@@ -645,6 +652,7 @@ class Flaw(
                 "Flaw still embargoed but unembargo date is in the past."
             )
 
+    # TODO
     @validator
     def _validate_cvss3(self, **kwargs):
         """
@@ -663,6 +671,7 @@ class Flaw(
                 **kwargs,
             )
 
+    # TODO potential workflow
     @validator
     def _validate_major_incident_fields(self, **kwargs):
         """
@@ -706,6 +715,7 @@ class Flaw(
                 **kwargs,
             )
 
+    # TODO potential workflow
     @validator
     def _validate_exploits_kev_fields(self, **kwargs):
         """
@@ -743,6 +753,7 @@ class Flaw(
         if not old_flaw.embargoed and self.is_embargoed:
             raise ValidationError("Embargoing a public flaw is futile")
 
+    # TODO state-based
     @validator
     def _validate_flaw_without_affect(self, **kwargs):
         """
@@ -763,6 +774,7 @@ class Flaw(
                 **kwargs,
             )
 
+    # TODO state-based
     @validator
     def _validate_nonempty_components(self, **kwargs):
         """
