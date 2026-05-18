@@ -216,7 +216,7 @@ Start the whole container compose (recommended):
 $ make start-local
 ```
 
-As a convenience, the process can also be started in the background with.
+Start the whole container compose in the background:
 
 ```bash
 $ make start-local-bg
