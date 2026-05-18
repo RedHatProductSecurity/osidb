@@ -201,7 +201,6 @@ class TestSyncManagerFailed(TestCase):
 
     @freeze_time(datetime(2025, 6, 24))
     def test_failed_with_reraise_true_raises_exception(self):
-        """Test that failed() with reraise=True (default) raises the exception"""
         flaw = FlawFactory(embargoed=False)
 
         SyncManager.objects.create(name=SyncManager.__name__, sync_id=flaw.uuid)
@@ -218,7 +217,6 @@ class TestSyncManagerFailed(TestCase):
 
     @freeze_time(datetime(2025, 6, 24))
     def test_failed_with_reraise_false_does_not_raise(self):
-        """Test that failed() with reraise=False does not raise the exception"""
         flaw = FlawFactory(embargoed=False)
 
         SyncManager.objects.create(name=SyncManager.__name__, sync_id=flaw.uuid)
@@ -236,7 +234,6 @@ class TestSyncManagerFailed(TestCase):
 
     @freeze_time(datetime(2025, 6, 24))
     def test_failed_default_reraise_raises_exception(self):
-        """Test that failed() without reraise parameter (default) raises the exception"""
         flaw = FlawFactory(embargoed=False)
 
         SyncManager.objects.create(name=SyncManager.__name__, sync_id=flaw.uuid)
@@ -248,7 +245,6 @@ class TestSyncManagerFailed(TestCase):
 
     @freeze_time(datetime(2025, 6, 24))
     def test_failed_records_error_reason(self):
-        """Test that failed() records the exception message"""
         flaw = FlawFactory(embargoed=False)
 
         SyncManager.objects.create(name=SyncManager.__name__, sync_id=flaw.uuid)
@@ -264,7 +260,6 @@ class TestSyncManagerFailed(TestCase):
 
     @freeze_time(datetime(2025, 6, 24))
     def test_failed_permanent_sets_flag(self):
-        """Test that permanent failures set the permanently_failed flag"""
         flaw = FlawFactory(embargoed=False)
 
         SyncManager.objects.create(name=SyncManager.__name__, sync_id=flaw.uuid)
@@ -280,7 +275,6 @@ class TestSyncManagerFailed(TestCase):
 
     @freeze_time(datetime(2025, 6, 24))
     def test_failed_updates_consecutive_failures(self):
-        """Test that consecutive failures counter is incremented"""
         flaw = FlawFactory(embargoed=False)
 
         manager = SyncManager.objects.create(
@@ -297,7 +291,6 @@ class TestSyncManagerFailed(TestCase):
 
     @freeze_time(datetime(2025, 6, 24))
     def test_failed_becomes_permanent_after_max_failures(self):
-        """Test that sync becomes permanently failed when already at max consecutive failures"""
         flaw = FlawFactory(embargoed=False)
 
         # Set to the threshold (MAX_CONSECUTIVE_FAILURES is 5)
@@ -317,7 +310,6 @@ class TestSyncManagerFailed(TestCase):
 
     @freeze_time(datetime(2025, 6, 24))
     def test_failed_with_multiline_exception_message(self):
-        """Test that exception messages are stripped of extra whitespace"""
         flaw = FlawFactory(embargoed=False)
 
         SyncManager.objects.create(name=SyncManager.__name__, sync_id=flaw.uuid)
@@ -341,7 +333,6 @@ class TestBZTrackerDownloadManagerFailed(TestCase):
 
     @freeze_time(datetime(2025, 6, 24))
     def test_missing_flaws_failure_does_not_reraise(self):
-        """Test that missing flaws error doesn't reraise exception"""
         flaw = FlawFactory(embargoed=False)
         affect = AffectFactory(
             flaw=flaw,
@@ -382,7 +373,6 @@ class TestBZTrackerDownloadManagerFailed(TestCase):
 
     @freeze_time(datetime(2025, 6, 24))
     def test_missing_affects_failure_does_not_reraise(self):
-        """Test that missing affects error doesn't reraise exception"""
         flaw = FlawFactory(embargoed=False)
         affect = AffectFactory(
             flaw=flaw,
@@ -420,7 +410,6 @@ class TestBZTrackerDownloadManagerFailed(TestCase):
 
     @freeze_time(datetime(2025, 6, 24))
     def test_no_affects_found_failure_does_not_reraise(self):
-        """Test that 'no affects found' error doesn't reraise exception"""
         flaw = FlawFactory(embargoed=False)
         affect = AffectFactory(
             flaw=flaw,
@@ -456,7 +445,6 @@ class TestBZTrackerDownloadManagerFailed(TestCase):
 
     @freeze_time(datetime(2025, 6, 24))
     def test_unexpected_error_still_reraises_by_default(self):
-        """Test that unexpected errors still reraise when reraise is not specified"""
         flaw = FlawFactory(embargoed=False)
         affect = AffectFactory(
             flaw=flaw,
@@ -487,7 +475,6 @@ class TestBZTrackerDownloadManagerFailed(TestCase):
 
     @freeze_time(datetime(2025, 6, 24))
     def test_reraise_false_does_not_raise(self):
-        """Test that reraise=False prevents exceptions from being raised"""
         flaw = FlawFactory(embargoed=False)
         affect = AffectFactory(
             flaw=flaw,
