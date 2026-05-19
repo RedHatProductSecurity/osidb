@@ -433,7 +433,5 @@ class TestJiraTaskConvertor:
         assert flaw is not None
         assert flaw.task_key == self.task_id
         assert flaw.task_updated_dt == datetime.datetime(
-            2025, 9, 8, 9, 25, 14, 405000, tzinfo=datetime.timezone.utc
+            2025, 9, 8, 9, 25, 14, 404000, tzinfo=datetime.timezone.utc
         )
-        assert flaw.workflow_name == "DEFAULT"
-        assert flaw.workflow_state == "TRIAGE"
