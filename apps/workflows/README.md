@@ -30,11 +30,10 @@ This principle has three consequences:
 
 ### What classification is NOT
 
-Classification is not a user action. There is no "promote button" in the
-correct design. A user changes flaw data (assigns an owner, sets an impact,
-creates affects, files trackers), and the framework automatically recognizes
-that the flaw has reached the next state. The workflow framework observes data;
-it does not create it.
+Classification is not a user action. A user changes flaw data (assigns an
+owner, sets an impact, creates affects, files trackers, ...), and the framework
+automatically recognizes that the flaw has reached the next state. The workflow
+framework observes data; it does not create it.
 
 ## Architecture
 
@@ -88,15 +87,7 @@ impossible to "skip over" an unsatisfied state.
 
 If a requirement that was fulfilled in a prior state becomes unfulfilled (e.g.
 owner is cleared), the flaw automatically regresses to the last state whose
-requirements are still fully met. No manual "revert" is needed.
-
-**Current bug in `validate_classification()`:** (TODO fix) The
-`Workflow.validate_classification()` method, used by the manual `promote()` and
-`revert()` methods, only checks the target state's own requirements. It does
-not check the requirements of all preceding states. This allows manual promote
-to bypass cumulative requirements. The bug becomes irrelevant once
-classification is fully automatic, because `classify()` already implements
-cumulative requirements correctly.
+requirements are still fully met. No manual action is needed.
 
 ## Automatic Classification
 
@@ -105,9 +96,6 @@ cumulative requirements correctly.
 Classification runs on every flaw save via a Django `pre_save` signal.
 The signal calls `adjust_classification(save=False)` which computes `classify()`
 and stores the result on the instance before it reaches the database.
-
-The `task_key` guard ensures that only flaws with a Jira task are classified.
-Flaws without a task (legacy flaws) keep empty workflow fields.
 
 The `task_key` guard ensures that only flaws with a Jira task are classified.
 Flaws without a task (legacy flaws) keep empty workflow fields.

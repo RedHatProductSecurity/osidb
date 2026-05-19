@@ -203,19 +203,17 @@ class TestEndpoints(object):
         assert body["deprecated"] is True
         assert "deprecation_message" in body
 
-        # Endpoint returns CURRENT stored classification
-        # Note: The flaw stays at MAJOR_INCIDENT because auto-classification signal
-        # only runs when workflow fields are empty (current "broken" behavior)
-        # Once auto-classification on every save is implemented, this would be DEFAULT
+        # Auto-classification reclassified the flaw from MAJOR_INCIDENT to DEFAULT
+        # because major_incident_state no longer satisfies the MAJOR_INCIDENT conditions
         assert body["classification"] == {
-            "workflow": "MAJOR_INCIDENT",
+            "workflow": "DEFAULT",
             "state": "DONE",
         }
 
         # Verify NO changes were made by the endpoint
         flaw_reloaded = Flaw.objects.get(pk=flaw.pk)
         assert flaw_reloaded.classification == {
-            "workflow": "MAJOR_INCIDENT",
+            "workflow": "DEFAULT",
             "state": "DONE",
         }
 
@@ -329,13 +327,12 @@ class TestEndpoints(object):
         # Endpoint returns current state unchanged
         assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
 
-        # Change flaw data - save() currently does NOT trigger auto-classification
-        # (that's the "broken" behavior that will be fixed when we enable signals on every save)
+        # Change flaw data - auto-classification advances the state
         flaw = Flaw.objects.get(pk=flaw.pk)
         flaw.cwe_id = "CWE-1"
         flaw.save()
 
-        # Call NO-OP promote endpoint - still returns current state (NEW)
+        # Call NO-OP promote endpoint - returns auto-classified state
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
@@ -345,15 +342,17 @@ class TestEndpoints(object):
         assert response.status_code == 200
         body = response.json()
         assert body["deprecated"] is True
-        # State stays NEW (save() doesn't trigger auto-classification yet)
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+        assert (
+            body["classification"]["state"]
+            == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        )
 
-        # Change flaw data again
+        # Change flaw data again - state advances further
         flaw = Flaw.objects.get(pk=flaw.pk)
         flaw.cve_description = "valid cve_description"
         flaw.save()
 
-        # Call NO-OP promote endpoint - still returns NEW
+        # Call NO-OP promote endpoint - returns DONE
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
@@ -363,10 +362,9 @@ class TestEndpoints(object):
         assert response.status_code == 200
         body = response.json()
         assert body["deprecated"] is True
-        # State still NEW (no auto-classification on save yet)
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
-        # Call NO-OP promote endpoint again - always returns 200 (no validation)
+        # Call NO-OP promote endpoint again - always returns 200
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
@@ -376,8 +374,7 @@ class TestEndpoints(object):
         assert response.status_code == 200
         body = response.json()
         assert body["deprecated"] is True
-        # No validation errors - just returns current state (NEW)
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
     @pytest.mark.enable_signals
     def test_revert_endpoint(
@@ -589,7 +586,8 @@ class TestEndpoints(object):
         assert body["classification"]["workflow"] == "DEFAULT"
         assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
-        # Test 2: Call NO-OP reset from REJECTED workflow - returns current state
+        # Test 2: Auto-classification overrides manually-set REJECTED workflow
+        # (REJECTED is unreachable via classify() — see REJECTED Workflow TODO)
         flaw = FlawFactory(
             cwe_id="CWE-1",
             cve_description="valid cve_description",
@@ -599,8 +597,8 @@ class TestEndpoints(object):
         )
         AffectFactory(flaw=flaw)
 
-        assert flaw.classification["workflow"] == "REJECTED"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.REJECTED
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
 
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reset",
@@ -610,9 +608,8 @@ class TestEndpoints(object):
         assert response.status_code == 200
         body = response.json()
         assert body["deprecated"] is True
-        # Returns current state unchanged (REJECTED, not reset to DEFAULT/NEW)
-        assert body["classification"]["workflow"] == "REJECTED"
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.REJECTED
+        assert body["classification"]["workflow"] == "DEFAULT"
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
         # Test 3: Call NO-OP reset from NEW state - returns current state
         flaw = FlawFactory(
