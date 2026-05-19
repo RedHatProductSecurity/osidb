@@ -95,19 +95,6 @@ class WorkflowFramework:
             if workflow.accepts(instance):
                 return (workflow, workflow.classify(instance)) if state else workflow
 
-    def jira_to_state(self, jira_state, jira_resolution):
-        """
-        Given the current Jira state and resolution, find the correponding workflow state
-        """
-        for workflow in self.workflows:
-            for state in workflow.states:
-                if (
-                    state.jira_state == jira_state
-                    and state.jira_resolution == jira_resolution
-                ):
-                    return workflow.name, state.name
-        return None, None
-
     def jira_status(self, instance):
         """
         Given a instance, return expected jira status and resolution
