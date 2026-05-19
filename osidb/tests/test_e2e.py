@@ -19,6 +19,7 @@ from collectors.jiraffe.collectors import (
 )
 from osidb.models import Affect, Flaw, Profile, PsUpdateStream, Snippet, Tracker
 from osidb.sync_manager import (
+    ACLHistorySyncManager,
     BZSyncManager,
     JiraTaskSyncManager,
 )
@@ -349,6 +350,8 @@ class TestE2E:
                     HTTP_JIRA_API_KEY=jira_token,
                 )
                 assert response.status_code == 200
+                # Sync ACL history for flaw after unembargo
+                ACLHistorySyncManager.sync_task(str(flaw.uuid), "osidb.flaw")
 
         client_or_auth_client = client if not flaw.is_internal else auth_client()
         response = client_or_auth_client.get(

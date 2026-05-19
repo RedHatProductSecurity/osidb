@@ -16,6 +16,7 @@ from osidb.models import (
     Package,
     Tracker,
 )
+from osidb.sync_manager import ACLHistorySyncManager
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,
@@ -182,6 +183,14 @@ class TestEndpointsFlawsUnembargo:
                 instance.is_embargoed
                 for instance in chain(*[model.objects.all() for model in models])
             )
+
+            # sync audit ACLs for all instances
+            for model in models[:-1]:
+                for instance in model.objects.all():
+                    model_label = (
+                        f"{instance._meta.app_label}.{instance._meta.model_name}"
+                    )
+                    ACLHistorySyncManager.sync_task(str(instance.uuid), model_label)
 
             for model in models[:-1]:
                 for instance in model.objects.all():

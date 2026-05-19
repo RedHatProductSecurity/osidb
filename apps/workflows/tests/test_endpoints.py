@@ -18,6 +18,7 @@ from osidb.models import (
     FlawReference,
     Tracker,
 )
+from osidb.sync_manager import ACLHistorySyncManager
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -830,6 +831,12 @@ class TestFlawDraft:
             assert r.is_public
         assert flaw.snippets.count() == 1
         assert flaw.snippets.first().is_internal
+
+        # run ACL sync tasks for all instances
+        for model in self.models_list:
+            for instance in model.objects.all():
+                model_label = f"{instance._meta.app_label}.{instance._meta.model_name}"
+                ACLHistorySyncManager.sync_task(str(instance.uuid), model_label)
 
         # also check that the audit history has public ACLs
         for model in self.models_list:

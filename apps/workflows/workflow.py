@@ -14,6 +14,7 @@ import yaml
 from django.db import models
 
 from osidb.helpers import deprecate_field
+from osidb.sync_manager import ACLHistorySyncManager
 
 from .constants import WORKFLOW_DIR
 from .exceptions import (
@@ -410,7 +411,7 @@ class WorkflowModel(models.Model):
             self.set_public()
             # updates ACLs of all related objects except for snippets
             self.set_public_nested()
-            self.set_history_public()
+            ACLHistorySyncManager.schedule(self)
 
         if save:
             self.save()

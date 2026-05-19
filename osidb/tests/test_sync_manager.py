@@ -1,12 +1,15 @@
 from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock
 
+import pghistory
 import pytest
 from celery.exceptions import Ignore
+from django.apps import apps
 from django.test import TestCase
 from freezegun import freeze_time
 
 from osidb.sync_manager import (
+    ACLHistorySyncManager,
     JiraTaskDownloadManager,
     JiraTaskSyncManager,
     JiraTaskTransitionManager,
@@ -185,3 +188,63 @@ class TestSyncManager(TestCase):
             download_manager.check_conflicting_sync_managers(
                 flaw.task_key, Mock(), [JiraTaskTransitionManager, JiraTaskSyncManager]
             )
+
+
+@pytest.mark.django_db(transaction=True)
+class TestACLSyncManager:
+    def test_acl_history_sync_manager_schedule(
+        self, internal_read_groups, internal_write_groups
+    ):
+        """Test that ACLHistorySyncManager cascades ACLs from internal to public"""
+        unembargo_dt = datetime.now(timezone.utc) - timedelta(seconds=1)
+        flaw = FlawFactory(
+            acl_read=internal_read_groups,
+            acl_write=internal_write_groups,
+            unembargo_dt=unembargo_dt,
+        )
+        assert flaw.is_internal
+
+        flaw.description = "This is a serious vulnerability"
+        flaw.save(raise_validation_error=False)
+        initial_events = pghistory.models.Events.objects.tracks(flaw).all()
+        assert len(initial_events) > 0
+
+        for event in initial_events:
+            audit_model = apps.get_model(event.pgh_model)
+            audit_entry = audit_model.objects.get(pgh_id=event.pgh_id)
+            assert audit_entry.acl_read == internal_read_groups
+            assert audit_entry.acl_write == internal_write_groups
+
+        flaw.set_public()
+        flaw.save()
+
+        assert flaw.is_public
+
+        ACLHistorySyncManager.schedule(flaw)
+
+        # verify sync manager
+        sync_manager = ACLHistorySyncManager.objects.get(
+            name=ACLHistorySyncManager.__name__, sync_id=str(flaw.uuid)
+        )
+        assert sync_manager is not None
+        assert sync_manager.last_scheduled_dt is not None
+
+        model_label = f"{flaw._meta.app_label}.{flaw._meta.model_name}"
+        ACLHistorySyncManager.sync_task(str(flaw.uuid), model_label)
+
+        # check sync manager finished
+        sync_manager.refresh_from_db()
+        assert sync_manager.last_finished_dt is not None
+        assert sync_manager.last_consecutive_failures == 0
+
+        # check history events are public
+        updated_events = pghistory.models.Events.objects.tracks(flaw).all()
+        assert len(updated_events) > 0
+
+        for event in updated_events:
+            audit_model = apps.get_model(event.pgh_model)
+            audit_entry = audit_model.objects.get(pgh_id=event.pgh_id)
+            assert audit_entry.acl_read == flaw.acl_read
+            assert audit_entry.acl_write == flaw.acl_write
+            assert audit_entry.acl_read != internal_read_groups
+            assert audit_entry.acl_write != internal_write_groups

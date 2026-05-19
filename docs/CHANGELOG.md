@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic affectedness and resolution determination based on product
   definitions (OSIDB-4938)
 - Added `bu_labels` label type (OSIDB-4982)
+- Add sync manager for separating history ACLs changes from models ACLs changes (OSIDB-4992)
 
 ## [5.10.3] - 2026-05-06
 ### Fixed

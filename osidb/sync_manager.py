@@ -4,8 +4,10 @@ from datetime import timedelta
 from typing import Any, Iterator, Optional, Type
 
 import pghistory
+import pgtrigger
 from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
+from django.apps import apps
 from django.conf import settings
 from django.db import models, transaction
 from django.db.models import F, Q
@@ -14,6 +16,7 @@ from rhubarb.tasks import LockableTaskWithArgs
 
 from config.celery import app
 from osidb.core import set_user_acls
+from osidb.mixins import ACLMixin
 
 logger = get_task_logger(__name__)
 
@@ -1061,3 +1064,92 @@ class JiraTrackerDownloadManager(SyncManager):
             JiraTrackerDownloadManager.failed(tracker_id, e)
         else:
             JiraTrackerDownloadManager.finished(tracker_id)
+
+
+class ACLHistorySyncManager(SyncManager):
+    """
+    Sync manager class for cascading ACL changes from model instances to their
+    corresponding pghistory audit entries. This allows ACL updates to happen
+    asynchronously without blocking users during operations like publicizing models.
+    """
+
+    class Meta:
+        proxy = True
+
+    @classmethod
+    def schedule(cls, instance, *args, **kwargs):
+        """
+        Schedule sync_task to cascade ACLs from a model instance to its history.
+
+        :param instance: Model instance that inherits from ACLMixin
+        """
+        if not isinstance(instance, ACLMixin):
+            raise ValueError(
+                f"Instance must inherit from ACLMixin, got {type(instance).__name__}"
+            )
+
+        # Use the instance's UUID as the sync_id and store model info in kwargs
+        sync_id = str(instance.uuid)
+        model_label = f"{instance._meta.app_label}.{instance._meta.model_name}"
+
+        # Call parent schedule with the model label for retrieval later
+        super().schedule(
+            sync_id,
+            *args,
+            model_label=model_label,
+            **kwargs,
+        )
+
+    @staticmethod
+    @app.task(name="sync_manager.acl_history_sync", bind=True)
+    def sync_task(task, sync_id, model_label, **kwargs):
+        """
+        Cascade ACL changes from a model instance to its pghistory audit entries.
+        """
+        set_user_acls(settings.ALL_GROUPS)
+        ACLHistorySyncManager.started(sync_id, task)
+
+        try:
+            with pghistory_context(
+                action="acl_history_sync",
+                celery_task_id=getattr(getattr(task, "request", None), "id", None),
+            ):
+                # retrieve the instance
+                model_class = apps.get_model(model_label)
+                instance = model_class.objects.get(uuid=sync_id)
+
+                # Parse audit model name from source model
+                # e.g. `osidb.flaw` becames `osidb.flawaudit`
+                app_label, model_name = model_label.split(".")
+                audit_model_name = f"{model_name}audit"
+                pgh_model_label = f"{app_label}.{audit_model_name}"
+
+                try:
+                    audit_model = apps.get_model(pgh_model_label)
+                except LookupError:
+                    e = (
+                        f"ACLHistorySyncManager {sync_id}: "
+                        f"Audit model {pgh_model_label} not found, skipping"
+                    )
+                    logger.warning(e)
+                    ACLHistorySyncManager.failed(sync_id, e)
+                    return
+
+                pgtrigger_label = audit_model._meta.label
+                with pgtrigger.ignore(f"{pgtrigger_label}:append_only"):
+                    updated_count = audit_model.objects.filter(
+                        pgh_obj_id=instance.uuid
+                    ).update(
+                        acl_read=instance.acl_read,
+                        acl_write=instance.acl_write,
+                    )
+
+                logger.info(
+                    f"ACLHistorySyncManager {sync_id}: "
+                    f"Updated {updated_count} {pgtrigger_label} entries"
+                )
+
+        except Exception as e:
+            ACLHistorySyncManager.failed(sync_id, e)
+        else:
+            ACLHistorySyncManager.finished(sync_id)

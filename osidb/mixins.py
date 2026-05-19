@@ -5,8 +5,6 @@ from functools import cached_property
 from itertools import batched, chain
 
 import pghistory
-import pgtrigger
-from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -611,22 +609,6 @@ class ACLMixin(models.Model):
                     + ("embargoed" if self.flaw.is_embargoed else "public")
                 )
 
-    def set_history_public(self):
-        """
-        set the history to public
-        """
-        refs = pghistory.models.Events.objects.tracks(self).all()
-        for ref in refs:
-            model_audit = apps.get_model(ref.pgh_model).objects.filter(
-                pgh_id=ref.pgh_id
-            )
-
-            with pgtrigger.ignore(f"{ref.pgh_model}:append_only"):
-                model_audit.update(
-                    acl_read=list(self.acls_public_read),
-                    acl_write=list(self.acls_public_write),
-                )
-
     def unembargo(self):
         """
         unembargo the whole instance context internally
@@ -634,6 +616,8 @@ class ACLMixin(models.Model):
         in the Bugzilla world a lot of OSIDB entities are actually parts
         of the flaw bug and we will update them by a single query afterwards
         """
+        from osidb.sync_manager import ACLHistorySyncManager
+
         # Since ACLMixin is used across related classes, each must be permitted to implement their own
         # visibility logic. Bailing out allows for unique visibility handling across such classes
         isnt_embargoed = not self.is_embargoed
@@ -643,7 +627,6 @@ class ACLMixin(models.Model):
 
         # unembargo
         self.set_public()
-        self.set_history_public()
 
         kwargs = {}
         if issubclass(type(self), AlertMixin):
@@ -656,6 +639,7 @@ class ACLMixin(models.Model):
             kwargs["auto_timestamps"] = False
 
         self.save(**kwargs)
+        ACLHistorySyncManager.schedule(self)
 
         # chain all the related instances in reverse relationships (o2m, m2m)
         # as we only care for the ACLs which are unified
@@ -690,6 +674,7 @@ class ACLMixin(models.Model):
         chunked queryset updates to minimize database queries and avoid storing
         model instances in memory.
         """
+        from osidb.sync_manager import ACLHistorySyncManager
         objects_to_update = defaultdict(set)  # {ModelClass: {pk, ...}}
 
         visited = set()
@@ -723,7 +708,7 @@ class ACLMixin(models.Model):
                 model_class.objects.filter(pk__in=pk_chunk).update(**update_kwargs)
 
             for pk in object_ids:
-                model_class(pk=pk).set_history_public()
+                ACLHistorySyncManager.schedule(model_class(pk=pk))
 
     def _collect_objects_for_public_update(self, objects_to_update, visited):
         """
