@@ -23,7 +23,6 @@ from apps.taskman.constants import (
 )
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.workflow import (
-    WorkflowFramework,
     WorkflowModel,
     WorkflowModelManager,
 )
@@ -1159,8 +1158,7 @@ class Flaw(
         # creation
         if not self.task_key:
             self.task_key = jtq.create_or_update_task(self)
-            self.workflow_name = WorkflowFramework().classify(self, state=False).name
-            self.workflow_state = WorkflowModel.WorkflowState.NEW
+            self.adjust_classification(save=False)
             Flaw.objects.filter(uuid=self.uuid).update(
                 task_key=self.task_key,
                 workflow_name=self.workflow_name,
