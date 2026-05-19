@@ -620,11 +620,14 @@ class TestBugzillaJiraMixinIntegration:
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         assert flaw.bz_id
         assert flaw.task_key
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
+        # Flaw gets classified into TRIAGE immediately because it has a title
+        # and adjust_classification is called when the Jira task is created
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
 
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw = Flaw.objects.get(uuid=flaw.uuid)
 
+        # Flaw remains in TRIAGE
         flaw.adjust_classification(save=False)
         flaw.save(
             jira_token=jira_token,
@@ -697,11 +700,14 @@ class TestBugzillaJiraMixinIntegration:
         ps_module = PsModuleFactory(name="ps-module-0")
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         assert flaw.task_key
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
+        # Flaw gets classified into TRIAGE immediately because it has a title
+        # and adjust_classification is called when the Jira task is created
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
 
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
 
         flaw = Flaw.objects.get(pk=created_uuid)
+        # Flaw remains in TRIAGE
         flaw.adjust_classification(save=False)
         flaw.save(
             jira_token=jira_token,
