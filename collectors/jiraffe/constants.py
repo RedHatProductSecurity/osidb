@@ -31,12 +31,6 @@ JIRA_METADATA_COLLECTOR_ENABLED = get_env(
     "JIRA_METADATA_COLLECTOR_ENABLED", default="True", is_bool=True
 )
 
-TASK_CHANGELOG_FIELD_MAPPING = {
-    "status": ["workflow_name", "workflow_state"],
-    "resolution": ["workflow_name", "workflow_state"],
-}
-
-
 class JiraTrackerCollectorSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="JIRA_TRACKER_COLLECTOR_")
 

@@ -84,7 +84,9 @@ class TestJiraTaskCollector:
 
         # refresh instance
         flaw = Flaw.objects.get(uuid=flaw.uuid)
-        assert flaw.workflow_state == "TRIAGE"
+        # collector no longer maps Jira status to workflow state
+        # workflow_state stays as set by tasksync (_create_or_update_task)
+        assert flaw.workflow_state == "NEW"
 
     @pytest.mark.vcr
     def test_update_only_changed_fields(self, enable_jira_task_sync, jira_token):
@@ -95,10 +97,11 @@ class TestJiraTaskCollector:
         flaw = FlawFactory(uuid=uuid, embargoed=False, impact=Impact.IMPORTANT)
         AffectFactory(flaw=flaw)
 
-        # download related task
+        # download related task — collector links task but does not set workflow state
+        # (classification happens via pre_save signal, which is muted in tests)
         collector.collect("OSIM-22679")
         flaw.refresh_from_db()
-        assert flaw.workflow_state == "NEW"
+        assert flaw.workflow_state == ""
 
         # change relevant fields but do not forward this change to Jira
         new_values = {
