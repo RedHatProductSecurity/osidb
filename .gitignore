@@ -37,3 +37,12 @@ osidb_data_backup_dump*
 .DS_Store
 # pyright local configuration file
 pyrightconfig.json
+
+# Emacs backup and autosave files
+*~
+\#*\#
+.\#*
+
+# Claude Code local state
+.claude/
+CLAUDE.md
