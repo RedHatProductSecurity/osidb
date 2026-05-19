@@ -182,6 +182,11 @@ CELERY_BEAT_SCHEDULE = {
             "expires": 240,
         },
     },
+    "fix_acl_inconsistencies": {
+        "task": "osidb.tasks.fix_acl_inconsistencies",
+        # Run every Saturday at 2:00 AM
+        "schedule": crontab(hour=2, minute=0, day_of_week=6),
+    },
 }
 
 # There are multiple possible memory leaks in Celery. To work around these issues it is

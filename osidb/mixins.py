@@ -675,6 +675,7 @@ class ACLMixin(models.Model):
         model instances in memory.
         """
         from osidb.sync_manager import ACLHistorySyncManager
+
         objects_to_update = defaultdict(set)  # {ModelClass: {pk, ...}}
 
         visited = set()
