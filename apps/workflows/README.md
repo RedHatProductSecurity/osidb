@@ -191,44 +191,16 @@ Once the data attribute is chosen:
    `resolution is rejected`)
 3. Existing REJECTED flaws must be migrated to have the attribute set
 
-## Jira Decoupling
+## Jira Integration
 
-### The Cyclic Dependency
+The data flow between OSIDB and Jira is strictly one-directional for workflow classification:
 
-The current data flow between OSIDB and Jira is bidirectional for workflow
-state:
+**OSIDB to Jira:** When classification changes, it gets transitioned to the
+Jira task using the forward mapping. The Jira state/resolution metadata in YAML workflow
+definitions specifies the mapping.
 
-**OSIDB to Jira (correct):** When `workflow_state` changes, `tasksync()`
-transitions the Jira task via `JiraTaskmanQuerier.transition_task()`, using the
-forward mapping from `flaw.jira_status()`. This is the desired direction.
-
-**Jira to OSIDB (incorrect):** (TODO remove) The jiraffe collector
-(`collectors/jiraffe/convertors.py`, `JiraTaskConvertor._normalize()`) reads
-Jira's status and resolution, calls `WorkflowFramework().jira_to_state()` to
-reverse-map them, and writes `workflow_name` and `workflow_state` back to the
-flaw. This creates a cycle: OSIDB sets Jira status based on workflow state, and
-the collector overwrites workflow state based on Jira status.
-
-If Jira status and OSIDB state ever diverge (e.g. someone manually changes the
-Jira issue), the collector forces OSIDB to match Jira -- overriding the
-data-driven classification.
-
-### The Fix: One-Directional Flow
-
-The data flow must be strictly **OSIDB to Jira, never the reverse**:
-
-- OSIDB computes `workflow:state` from flaw data
-- OSIDB tells Jira what status/resolution to be in (via `transition_task()`)
-- The jiraffe collector must **not** map Jira status/resolution back to
-  workflow fields
-
-Concrete changes:
-
-- Remove the `jira_to_state()` call and `workflow_state`/`workflow_name` from
-  `JiraTaskConvertor._normalize()` in `collectors/jiraffe/convertors.py`
-- Deprecate `WorkflowFramework.jira_to_state()`
-- The forward mapping (`jira_status()`) and the Jira state/resolution metadata
-  in YAML definitions remain -- they are needed for the OSIDB-to-Jira direction
+**Jira to OSIDB:** Only task metadata updates from Jira. It does
+not map Jira status/resolution back to workflow fields.
 
 ## API
 The deprecated mutation endpoints (`promote`, `revert`, `reset`, `reject`,
