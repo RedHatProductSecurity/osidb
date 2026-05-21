@@ -1250,6 +1250,9 @@ class AffectSerializer(
     tracker = serializers.SerializerMethodField(allow_null=True)
     meta_attr = serializers.SerializerMethodField()
     cvss_scores = AffectCVSSSerializer(many=True, read_only=True)
+    created_by = serializers.CharField(read_only=True)
+    updated_by = serializers.CharField(read_only=True)
+    assist_meta = serializers.JSONField(allow_null=True, required=False, default=None)
     # at least one of ps_component or purl is required
     ps_component = serializers.CharField(
         max_length=255, allow_blank=True, allow_null=True, required=False, default=""
@@ -1320,6 +1323,9 @@ class AffectSerializer(
                 "delegated_not_affected_justification",
                 "resolved_dt",
                 "labels",
+                "created_by",
+                "updated_by",
+                "assist_meta",
             ]
             + ACLMixinSerializer.Meta.fields
             + AlertMixinSerializer.Meta.fields

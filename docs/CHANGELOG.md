@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic affectedness and resolution determination based on product
   definitions (OSIDB-4938)
 - Added `bu_labels` label type (OSIDB-4982)
+- Auditing and tracking of tool-assisted and auto-created affects (OSIDB-4951, OSIDB-4978)
 
 ### Fixed
 - Exclude streams with no offer from tracker suggestions response (OSIDB-4977)

@@ -246,6 +246,16 @@ class Affect(
     # Stored as list of label names: ["label1", "label2", ...]
     labels = models.JSONField(default=list, blank=True)
 
+    # Who originally created this affect (user email, username, or system identifier)
+    created_by = models.CharField(blank=True)
+
+    # Who last updated this affect
+    updated_by = models.CharField(blank=True)
+
+    # Tool-assistance metadata; None means no tool involvement.
+    # Expected keys: tool_name, tool_input, tool_output, tool_trigger
+    assist_meta = models.JSONField(null=True, blank=True, default=None)
+
     # A Flaw can have many Affects
     flaw = models.ForeignKey(Flaw, on_delete=models.CASCADE, related_name="affects")
 

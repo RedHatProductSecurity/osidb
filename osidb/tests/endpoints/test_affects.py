@@ -608,6 +608,12 @@ class TestEndpointsAffectsBulk:
             del received_aff["updated_dt"]
             del received_aff["resolved_dt"]
             del received_aff["alerts"]
+            # creator fields are set from the authenticated user on bulk_post
+            # and differ from factory-created affects which have these empty
+            del received_aff["created_by"]
+            del received_aff["updated_by"]
+            del requested_aff["created_by"]
+            del requested_aff["updated_by"]
             # For shorter debugging output
             assert sorted(received_aff.keys()) == sorted(requested_aff.keys())
             assert received_aff == requested_aff
@@ -1799,3 +1805,164 @@ class TestEndpointsAffectsCVSSScoresV2:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "Only Red Hat CVSS scores can be edited" in response.json()["issuer"]
         assert AffectCVSS.objects.count() == 1
+
+
+class TestAffectCreatorFields:
+    """Tests for created_by, updated_by, assist_meta fields and related filters."""
+
+    def test_create_sets_created_by_and_updated_by(self, auth_client, test_api_v2_uri):
+        """POST /affects sets created_by and updated_by to the authenticated user."""
+        flaw = FlawFactory(embargoed=False)
+        ps_update_stream = PsUpdateStreamFactory()
+        data = {
+            "flaw": str(flaw.uuid),
+            "affectedness": Affect.AffectAffectedness.NEW,
+            "resolution": Affect.AffectResolution.NOVALUE,
+            "ps_update_stream": ps_update_stream.name,
+            "ps_component": "curl",
+            "purl": default_rpm_purl_for_ps_component("curl"),
+            "embargoed": False,
+        }
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects",
+            data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        body = response.json()
+        assert body["created_by"] != ""
+        assert body["updated_by"] == body["created_by"]
+
+    def test_update_changes_updated_by_not_created_by(
+        self, auth_client, test_api_v2_uri
+    ):
+        """PUT /affects/{uuid} updates updated_by but never changes created_by."""
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw, created_by="original@example.com")
+        affect.updated_by = "original@example.com"
+        affect.save()
+
+        response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
+        body = response.json()
+
+        response = auth_client().put(
+            f"{test_api_v2_uri}/affects/{affect.uuid}",
+            {**body, "affectedness": "AFFECTED", "resolution": "DELEGATED"},
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        updated_body = response.json()
+        assert updated_body["created_by"] == "original@example.com"
+        assert updated_body["updated_by"] != updated_body["created_by"]
+
+    def test_created_by_is_read_only(self, auth_client, test_api_v2_uri):
+        """Submitting created_by in the request body is silently ignored."""
+        flaw = FlawFactory(embargoed=False)
+        ps_update_stream = PsUpdateStreamFactory()
+        data = {
+            "flaw": str(flaw.uuid),
+            "affectedness": Affect.AffectAffectedness.NEW,
+            "resolution": Affect.AffectResolution.NOVALUE,
+            "ps_update_stream": ps_update_stream.name,
+            "ps_component": "curl",
+            "purl": default_rpm_purl_for_ps_component("curl"),
+            "embargoed": False,
+            "created_by": "hacker@evil.com",
+            "updated_by": "hacker@evil.com",
+        }
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects",
+            data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        body = response.json()
+        assert body["created_by"] != "hacker@evil.com"
+        assert body["updated_by"] != "hacker@evil.com"
+
+    def test_assist_meta_is_writable(self, auth_client, test_api_v2_uri):
+        """assist_meta can be set by API clients on create and update."""
+        flaw = FlawFactory(embargoed=False)
+        ps_update_stream = PsUpdateStreamFactory()
+        assist_meta = {
+            "tool_name": "newcli 3.0.1",
+            "tool_input": "newcli -s openssl --include hummingbird-1",
+            "tool_output": "...",
+            "tool_trigger": "manual",
+        }
+        data = {
+            "flaw": str(flaw.uuid),
+            "affectedness": Affect.AffectAffectedness.NEW,
+            "resolution": Affect.AffectResolution.NOVALUE,
+            "ps_update_stream": ps_update_stream.name,
+            "ps_component": "curl",
+            "purl": default_rpm_purl_for_ps_component("curl"),
+            "embargoed": False,
+            "assist_meta": assist_meta,
+        }
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects",
+            data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        body = response.json()
+        assert body["assist_meta"] == assist_meta
+
+    def test_filter_created_by(self, auth_client, test_api_v2_uri):
+        """GET /affects?created_by=X returns only affects with that creator."""
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw, created_by="ace@system")
+        AffectFactory(flaw=flaw, created_by="user@example.com")
+
+        response = auth_client().get(f"{test_api_v2_uri}/affects?created_by=ace@system")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == 1
+        assert response.json()["results"][0]["created_by"] == "ace@system"
+
+    def test_filter_is_tool_created(self, auth_client, test_api_v2_uri):
+        """GET /affects?is_tool_created=true returns affects with non-null assist_meta."""
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(
+            flaw=flaw,
+            assist_meta={
+                "tool_name": "osidb 5.0",
+                "tool_input": "...",
+                "tool_output": "...",
+                "tool_trigger": "...",
+            },
+        )
+        AffectFactory(flaw=flaw, assist_meta=None)
+
+        response = auth_client().get(f"{test_api_v2_uri}/affects?is_tool_created=true")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == 1
+
+    def test_filter_amended(self, auth_client, test_api_v2_uri):
+        """GET /affects?amended=true/false filters on whether created_by != updated_by."""
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(
+            flaw=flaw, created_by="AffectCreationEngine", updated_by="user@example.com"
+        )
+        AffectFactory(
+            flaw=flaw,
+            created_by="AffectCreationEngine",
+            updated_by="AffectCreationEngine",
+        )
+
+        response = auth_client().get(f"{test_api_v2_uri}/affects?amended=true")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == 1
+        result = response.json()["results"][0]
+        assert result["created_by"] != result["updated_by"]
+
+        response = auth_client().get(f"{test_api_v2_uri}/affects?amended=false")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == 1
+        result = response.json()["results"][0]
+        assert result["created_by"] == result["updated_by"]
