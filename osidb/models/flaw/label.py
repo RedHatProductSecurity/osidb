@@ -33,9 +33,10 @@ class FlawLabelManager(models.Manager):
 class FlawLabel(models.Model):
     class FlawLabelType(models.TextChoices):
         ALIAS = "alias"
+        BU = "bu"
         CONTEXT_BASED = "context_based"
         PRODUCT_FAMILY = "product_family"
-        BU = "bu"
+        WORKFLOW = "workflow"
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -182,6 +183,11 @@ class FlawCollaborator(TrackingMixin):
         super().create(*args, **kwargs)
 
     def save(self, *args, **kwargs):
+        # Workflow labels are always "done" and "relevant" - they're binary flags
+        if self.type == FlawLabel.FlawLabelType.WORKFLOW:
+            self.state = FlawCollaborator.FlawCollaboratorState.DONE
+            self.relevant = True
+
         try:
             super().save(*args, **kwargs)
         except IntegrityError as e:
@@ -193,8 +199,11 @@ class FlawCollaborator(TrackingMixin):
 
     def _validate_label(self):
         """Validate the label"""
-        # Alias labels don't have to be an existing FlawLabel
-        if self.type == FlawLabel.FlawLabelType.ALIAS:
+        # Alias and workflow labels don't need pre-registration
+        if self.type in (
+            FlawLabel.FlawLabelType.ALIAS,
+            FlawLabel.FlawLabelType.WORKFLOW,
+        ):
             return
 
         if not FlawLabel.objects.filter(name=self.label).exists():
