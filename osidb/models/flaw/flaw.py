@@ -944,6 +944,12 @@ class Flaw(
                     f"but only 1 is allowed."
                 )
 
+    def has_label(self, label):
+        """
+        check if the flaw has a label with the given name
+        """
+        return self.labels.filter(label=label).exists()
+
     @property
     def is_placeholder(self):
         """
