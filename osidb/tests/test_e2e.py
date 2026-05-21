@@ -430,14 +430,14 @@ class TestE2E:
             {
                 "name": "DEFAULT",
                 "description": "random description",
-                "priority": 1,
+                "priority": 0,
                 "conditions": [],
                 "states": [state_new, state_triage, state_sec, state_done],
             }
         )
 
         state_reject = {
-            "name": WorkflowModel.WorkflowState.REJECTED,
+            "name": WorkflowModel.WorkflowState.DONE,
             "requirements": [],
             "jira_state": "Closed",
             "jira_resolution": "Won't Do",
@@ -446,8 +446,8 @@ class TestE2E:
             {
                 "name": "REJECTED",
                 "description": "random description",
-                "priority": 0,
-                "conditions": [],
+                "priority": 1,
+                "conditions": ["has label rejected"],
                 "states": [state_reject],
             }
         )
@@ -609,14 +609,24 @@ class TestE2E:
         flaw2._create_or_update_task(jira_token)
         assert flaw2.is_internal
 
-        # 6.1) Test rejecting collected flaw
-        # Rejection through data attributes is pending redesign (TODO).
-        # For now, directly set the workflow state to REJECTED.
-        flaw2.workflow_name = "REJECTED"
-        flaw2.workflow_state = WorkflowModel.WorkflowState.REJECTED
+        # 6.1) Test rejecting collected flaw via rejected workflow label
+        from osidb.models import FlawCollaborator
+
+        FlawCollaborator.objects.create(
+            flaw=flaw2, label="rejected", type="workflow", contributor="test_user"
+        )
+        flaw2.adjust_classification(save=False)
         flaw2.save(raise_validation_error=False)
         flaw2._create_or_update_task(jira_token)
+        assert flaw2.workflow_name == "REJECTED"
+        assert flaw2.workflow_state == WorkflowModel.WorkflowState.DONE
         assert flaw2.is_internal
+
+        # 6.1.1) Verify rejected flaw stays internal after ACL adjustment
+        flaw2.adjust_acls(save=False)
+        assert flaw2.is_internal, (
+            "Rejected flaws should stay internal even in DONE state"
+        )
 
         # 6.2) Test access control
         response = client.get(
@@ -628,7 +638,8 @@ class TestE2E:
         )
         assert response.status_code == 200
         body = response.json()
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.REJECTED
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
+        assert body["classification"]["workflow"] == "REJECTED"
 
     @pytest.mark.vcr
     @freeze_time(tzdatetime(2024, 8, 6))

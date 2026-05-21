@@ -564,7 +564,7 @@ class TestBugzillaJiraMixinIntegration:
         )
 
         state_reject = {
-            "name": WorkflowModel.WorkflowState.REJECTED,
+            "name": WorkflowModel.WorkflowState.DONE,
             "requirements": [],
             "jira_state": "Closed",
             "jira_resolution": "Won't Do",
@@ -573,8 +573,8 @@ class TestBugzillaJiraMixinIntegration:
             {
                 "name": "REJECTED",
                 "description": "a two step workflow",
-                "priority": 0,
-                "conditions": [],
+                "priority": 1,
+                "conditions": ["has label rejected"],
                 "states": [state_reject],
             }
         )
@@ -643,14 +643,20 @@ class TestBugzillaJiraMixinIntegration:
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Refinement"
 
-        flaw.classification = ("REJECTED", WorkflowModel.WorkflowState.REJECTED)
+        from osidb.models import FlawCollaborator
+
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
+        )
+        flaw.adjust_classification(save=False)
         flaw.save(
             jira_token=jira_token,
             jira_email=jira_email,
             bz_api_key=bugzilla_token,
             raise_validation_error=False,
         )
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.REJECTED
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.DONE
+        assert flaw.workflow_name == "REJECTED"
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Closed"
@@ -724,7 +730,12 @@ class TestBugzillaJiraMixinIntegration:
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Refinement"
 
-        flaw.classification = ("REJECTED", WorkflowModel.WorkflowState.REJECTED)
+        from osidb.models import FlawCollaborator
+
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
+        )
+        flaw.adjust_classification(save=False)
         flaw.save(
             jira_token=jira_token,
             jira_email=jira_email,
