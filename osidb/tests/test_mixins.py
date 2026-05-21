@@ -785,6 +785,7 @@ class TestMultiMixinIntegration:
         jira_token,
         jira_email,
         test_api_v2_uri,
+        set_hvac_test_env_vars,
     ):
         """Tests that validations will block for Trackers with all sync enabled"""
         flaw = FlawFactory(embargoed=False)
@@ -878,6 +879,7 @@ class TestMultiMixinIntegration:
         jira_token,
         monkeypatch,
         test_api_v2_uri,
+        set_hvac_test_env_vars,
     ):
         """Test that bugzilla Tracker endpoint only recreates alerts when needed"""
         validation_counter = {}
@@ -1138,6 +1140,7 @@ class TestMultiMixinIntegration:
         jira_token,
         test_api_v2_uri,
         monkeypatch,
+        set_hvac_test_env_vars,
     ):
         """Test that Affect endpoint only recreates alerts when needed"""
         validation_counter = {}
@@ -1240,6 +1243,7 @@ class TestMultiMixinIntegration:
         jira_token,
         monkeypatch,
         test_api_uri,
+        set_hvac_test_env_vars,
     ):
         """Test that Flaw endpoint only recreates alerts when needed"""
         validation_counter = {}
