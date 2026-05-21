@@ -105,7 +105,7 @@ class TestJiraTaskCollector:
 
         # change relevant fields but do not forward this change to Jira
         new_values = {
-            "workflow_state": "REJECTED",
+            "workflow_state": "DONE",
             "workflow_name": "REJECTED",
             "owner": "skynet",
         }

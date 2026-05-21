@@ -150,34 +150,80 @@ The following requirements should be restored to PRE_SECONDARY_ASSESSMENT:
 Further enrichment of requirements across all states is planned but requires
 deeper analysis of the processing phases and team input.
 
-## REJECTED Workflow Redesign (TODO redesign)
+## REJECTED Workflow
 
-### The Problem
+The REJECTED workflow handles flaws that have been rejected during triage. It
+is driven by a **workflow label**: when a `FlawCollaborator` with
+`label="rejected"` and `type="workflow"` exists on a flaw, `classify()` selects
+the REJECTED workflow.
 
-The REJECTED workflow has `conditions: []` (empty) and `priority: 0` (lower
-than DEFAULT's 1). This means `classify()` never selects it -- the REJECTED
-state is unreachable through automatic classification.
+### Label-Driven Classification
 
-### The Solution
+Workflow labels drive classification through parameterized method checks.
+The `Flaw.has_label(label)` method checks for the presence of a workflow label.
+The REJECTED workflow YAML uses the readable parameterized syntax:
 
-Rejection must be driven by a flaw data attribute. When this attribute is set,
-the REJECTED workflow's conditions match and -- because REJECTED must then have
-higher priority than DEFAULT -- the flaw is automatically classified into the
-REJECTED workflow. When the attribute is cleared, the flaw falls back to
-DEFAULT.
+```yaml
+name: REJECTED
+priority: 1
+conditions:
+  - has label rejected
+states:
+  - name: DONE
+    jira_state: Closed
+    jira_resolution: Won't Do
+    requirements: []
+```
 
-The specific data attribute is **TBD** pending team discussion. Options under
-consideration include a dedicated `resolution` field (mirroring Jira's concept,
-extensible to values like DUPLICATE, OUT_OF_SCOPE) or using flaw labels.
+The check `has label rejected` is parsed (spaces converted to underscores) and
+interpreted as a call to `has_label("rejected")`.
 
-### Required YAML Changes
+Because REJECTED has priority 1 (higher than DEFAULT's 0), it is evaluated
+first. When a "rejected" workflow label exists, the flaw is classified into
+REJECTED/DONE. When the label is removed, the condition fails and the flaw
+falls back to DEFAULT, where it is classified normally based on its data.
 
-Once the data attribute is chosen:
+**Parameterized Check Syntax:**
 
-1. REJECTED workflow priority must be raised above DEFAULT (e.g. 2 > 1)
-2. A condition must be added referencing the chosen attribute (e.g.
-   `resolution is rejected`)
-3. Existing REJECTED flaws must be migrated to have the attribute set
+Workflow checks support parameterized methods with a human-readable syntax.
+Spaces are converted to underscores during parsing, then the check is split on
+the last underscore to extract the method name and parameter.
+
+Examples:
+- `has label approved` → `has_label("approved")`
+- `has label escalated` → `has_label("escalated")`
+- `has component kernel` → `has_component("kernel")`
+
+Negative checks are also supported using the `not` prefix:
+- `not has label rejected` → `not has_label("rejected")`
+- `not has component systemd` → `not has_component("systemd")`
+
+Any method accepting `self` + one parameter can be used this way.
+
+### WORKFLOW Label Type
+
+The `FlawLabel.FlawLabelType.WORKFLOW` type was introduced for labels that
+drive workflow classification. Unlike context-based labels, WORKFLOW labels:
+
+- Do not require pre-registration in the `FlawLabel` table
+- Can be added in any workflow state (no PRE_SECONDARY_ASSESSMENT restriction)
+
+This type is designed to be reusable for future workflow-driving labels beyond
+rejection (e.g., approval labels).
+
+### Fixed State Set
+
+All workflows share a fixed set of states defined in `WorkflowState`. The
+REJECTED workflow uses the DONE state (not a separate REJECTED state) because
+DONE represents "fully processed" -- a rejected flaw has been fully processed
+by the act of rejecting it. The Jira resolution distinguishes rejection
+("Won't Do") from completion ("Done").
+
+### ACL Handling
+
+Rejected flaws with internal ACLs are **not** promoted to public even though
+their workflow state is DONE. The `adjust_acls` method checks
+`workflow_name != "REJECTED"` to prevent this.
 
 ## Jira Integration
 
