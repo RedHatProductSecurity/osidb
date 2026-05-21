@@ -740,7 +740,7 @@ class TestWorkflowFramework:
         )
 
         state_not_affected = {
-            "name": WorkflowModel.WorkflowState.REJECTED,
+            "name": WorkflowModel.WorkflowState.DONE,
             "requirements": [],
             "jira_state": "Done",
             "jira_resolution": "Won't Do",
@@ -895,3 +895,55 @@ class TestFlaw:
         # Verify workflow fields remain empty without task_key
         assert flaw.workflow_name == ""
         assert flaw.workflow_state == WorkflowModel.WorkflowState.NOVALUE
+
+    @pytest.mark.enable_signals
+    def test_rejected_label_classifies_to_rejected_workflow(self):
+        """test that adding a rejected workflow label classifies flaw into REJECTED workflow using parameterized check"""
+        flaw = FlawFactory(task_key="TASK-456")
+        AffectFactory(flaw=flaw)
+        flaw.adjust_classification()
+
+        assert flaw.classification["workflow"] == "DEFAULT"
+
+        # Add rejected label - workflow uses has_label_rejected parameterized check
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
+        )
+        flaw.adjust_classification()
+
+        assert flaw.classification["workflow"] == "REJECTED"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
+
+    @pytest.mark.enable_signals
+    def test_removing_rejected_label_falls_back_to_default(self):
+        """test that removing the rejected label causes fallback to DEFAULT workflow"""
+        flaw = FlawFactory(task_key="TASK-789")
+        AffectFactory(flaw=flaw)
+
+        workflow_label = FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
+        )
+        flaw.adjust_classification()
+        assert flaw.classification["workflow"] == "REJECTED"
+
+        workflow_label.delete()
+        flaw.adjust_classification()
+        assert flaw.classification["workflow"] == "DEFAULT"
+
+    def test_has_label_method(self):
+        """test the has_label method on Flaw"""
+        flaw = FlawFactory()
+        assert not flaw.has_label("rejected")
+        assert not flaw.has_label("approved")
+
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
+        )
+        assert flaw.has_label("rejected")
+        assert not flaw.has_label("approved")
+
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="approved", type="workflow", contributor="test_user"
+        )
+        assert flaw.has_label("rejected")
+        assert flaw.has_label("approved")
