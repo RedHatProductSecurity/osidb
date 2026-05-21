@@ -24,6 +24,7 @@ __all__ = (
     "FlawCVSS",
     "FlawLabel",
     "FlawReference",
+    "UpstreamData",
     "FlawSource",
     "Impact",
     "NotAffectedJustification",
@@ -47,5 +48,6 @@ from .flaw.cvss import FlawCVSS
 from .flaw.flaw import Flaw
 from .flaw.label import FlawCollaborator, FlawLabel
 from .flaw.reference import FlawReference
+from .flaw.upstream import UpstreamData
 from .package_versions import Package, PackageVer
 from .tracker import Tracker
