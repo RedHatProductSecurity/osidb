@@ -1,10 +1,12 @@
 import pytest
 
+from apps.workflows.checks import CheckParser
 from apps.workflows.models import Check, Condition, State, Workflow
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from osidb.models import (
     Affect,
     Flaw,
+    FlawCollaborator,
     FlawCVSS,
     FlawReference,
     FlawSource,
@@ -25,6 +27,79 @@ from osidb.tests.factories import (
 )
 
 pytestmark = pytest.mark.unit
+
+
+class TestCheckParser:
+    """Test CheckParser functionality"""
+
+    def test_parameterized_method_check(self):
+        """test that parameterized method checks work correctly"""
+        parser = CheckParser()
+
+        # Test has_label_rejected
+        doc, check_func = parser.parse("has_label_rejected")
+        assert "has_label" in doc
+        assert "rejected" in doc
+
+        flaw = FlawFactory()
+        assert not check_func(flaw)
+
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
+        )
+        assert check_func(flaw)
+
+    def test_parameterized_method_multiple_labels(self):
+        """test parameterized checks with different labels"""
+        parser = CheckParser()
+
+        _, check_rejected = parser.parse("has_label_rejected")
+        _, check_approved = parser.parse("has_label_approved")
+
+        flaw = FlawFactory()
+        assert not check_rejected(flaw)
+        assert not check_approved(flaw)
+
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
+        )
+        assert check_rejected(flaw)
+        assert not check_approved(flaw)
+
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="approved", type="workflow", contributor="test_user"
+        )
+        assert check_rejected(flaw)
+        assert check_approved(flaw)
+
+    def test_parameterized_vs_property_precedence(self):
+        """test that exact property matches take precedence over parameterized"""
+        parser = CheckParser()
+
+        # This should match the property, not be parsed as parameterized
+        # (assuming there's a property that could match this pattern)
+        doc, _ = parser.parse("has_owner")
+        # Should be the has_ non-empty check, not parameterized
+        assert "has a value set" in doc
+
+    def test_negative_parameterized_method(self):
+        """test negative parameterized method checks"""
+        parser = CheckParser()
+
+        doc, check_func = parser.parse("not_has_label_rejected")
+        assert "negative of:" in doc
+        assert "has_label" in doc
+        assert "rejected" in doc
+
+        flaw = FlawFactory()
+        # Flaw has no rejected label, so not_has_label_rejected should be True
+        assert check_func(flaw)
+
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
+        )
+        # Now flaw has rejected label, so not_has_label_rejected should be False
+        assert not check_func(flaw)
 
 
 def assert_state_equals(current, expected):
