@@ -15643,8 +15643,9 @@ components:
     FlawCollaboratorPostTypeEnum:
       enum:
       - alias
-      - context_based
       - bu
+      - context_based
+      - workflow
       type: string
     FlawCollaboratorRequest:
       type: object
@@ -15763,9 +15764,10 @@ components:
     FlawLabelType:
       enum:
       - alias
+      - bu
       - context_based
       - product_family
-      - bu
+      - workflow
       type: string
     FlawPackageVersion:
       type: object
