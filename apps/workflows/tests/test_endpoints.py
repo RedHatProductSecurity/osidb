@@ -541,7 +541,7 @@ class TestEndpoints(object):
 
         # Create rejected workflow
         state_rejected = {
-            "name": WorkflowModel.WorkflowState.REJECTED,
+            "name": WorkflowModel.WorkflowState.DONE,
             "requirements": [],
             "jira_state": "Closed",
             "jira_resolution": "Won't Do",
@@ -551,8 +551,8 @@ class TestEndpoints(object):
             {
                 "name": "REJECTED",
                 "description": "rejected workflow",
-                "priority": 0,
-                "conditions": [],
+                "priority": 1,
+                "conditions": ["has label rejected"],
                 "states": [state_rejected],
             }
         )
@@ -586,14 +586,13 @@ class TestEndpoints(object):
         assert body["classification"]["workflow"] == "DEFAULT"
         assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
-        # Test 2: Auto-classification overrides manually-set REJECTED workflow
-        # (REJECTED is unreachable via classify() — see REJECTED Workflow TODO)
+        # Test 2: Auto-classification assigns non-rejected flaw to DEFAULT
         flaw = FlawFactory(
             cwe_id="CWE-1",
             cve_description="valid cve_description",
             task_key="OSIM-124",
-            workflow_state=WorkflowModel.WorkflowState.REJECTED,
-            workflow_name="REJECTED",
+            workflow_state=WorkflowModel.WorkflowState.DONE,
+            workflow_name="DEFAULT",
         )
         AffectFactory(flaw=flaw)
 
@@ -687,7 +686,7 @@ class TestEndpoints(object):
             }
         )
         state_reject = {
-            "name": WorkflowModel.WorkflowState.REJECTED,
+            "name": WorkflowModel.WorkflowState.DONE,
             "requirements": [],
             "jira_state": "Closed",
             "jira_resolution": "Won't Do",
@@ -696,8 +695,8 @@ class TestEndpoints(object):
             {
                 "name": "REJECTED",
                 "description": "random description",
-                "priority": 0,
-                "conditions": [],
+                "priority": 1,
+                "conditions": ["has label rejected"],
                 "states": [state_reject],
             }
         )

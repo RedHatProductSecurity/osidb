@@ -234,7 +234,6 @@ class TestGenerateBasics:
             (WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT, "vulnerability"),
             (WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT, "vulnerability"),
             (WorkflowModel.WorkflowState.DONE, "vulnerability"),
-            (WorkflowModel.WorkflowState.REJECTED, "vulnerability-draft"),
         ],
     )
     @pytest.mark.parametrize("has_meta_attr", [True, False])
@@ -242,8 +241,8 @@ class TestGenerateBasics:
         self, workflow_state, result, has_meta_attr
     ):
         """
-        Test that component is set to "vulnerability-draft" in NEW and REJECTED
-        workflow states and to "vulnerability" in other states when the flaw
+        Test that component is set to "vulnerability-draft" in NEW
+        workflow state and to "vulnerability" in other states when the flaw
         hasn't been synced to bugzilla yet or when its component was previously
         set to "vulnerability-draft".
         """
@@ -261,6 +260,29 @@ class TestGenerateBasics:
         bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["component"] == result
 
+    @pytest.mark.parametrize("has_meta_attr", [True, False])
+    def test_generate_component_rejected_workflow(self, has_meta_attr):
+        """
+        Test that component is set to "vulnerability-draft" for flaws in the
+        REJECTED workflow when the flaw hasn't been synced to bugzilla yet or
+        when its component was previously set to "vulnerability-draft".
+        """
+        if has_meta_attr:
+            flaw = FlawFactory(
+                workflow_state=WorkflowModel.WorkflowState.DONE,
+                workflow_name="REJECTED",
+                meta_attr={"bz_id": "123", "bz_component": "vulnerability-draft"},
+            )
+        else:
+            flaw = FlawFactory(
+                workflow_state=WorkflowModel.WorkflowState.DONE,
+                workflow_name="REJECTED",
+                meta_attr={},
+            )
+
+        bbq = FlawBugzillaQueryBuilder(flaw)
+        assert bbq.query["component"] == "vulnerability-draft"
+
     @pytest.mark.parametrize(
         "workflow_state",
         [
@@ -270,7 +292,6 @@ class TestGenerateBasics:
             WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT,
             WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
             WorkflowModel.WorkflowState.DONE,
-            WorkflowModel.WorkflowState.REJECTED,
         ],
     )
     def test_generate_component_after_bz_sync_with_regular_component(
