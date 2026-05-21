@@ -2020,6 +2020,47 @@ class TestEndpointsFlaws:
         assert fetched_affect_ids == affect_ids
         assert fetched_tracker_ids == tracker_ids
 
+    @pytest.mark.enable_signals
+    def test_list_flaws_orphaned_tracker_ids(
+        self, auth_client, test_api_uri, refresh_v1_view, transactional_db
+    ):
+        """
+        Orphaned trackers (no affects) should not appear in v1 flaw endpoint
+        when filtering by tracker_ids.
+        """
+
+        flaw = FlawFactory()
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            ps_module=ps_module.name,
+            ps_update_stream=ps_update_stream.name,
+        )
+        # created orphaned tracker no affects linked
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.is_embargoed,
+            type=Tracker.TrackerType.BUGZILLA,
+            ps_update_stream=ps_update_stream.name,
+        )
+
+        # Populate materialized view with the affect
+        refresh_v1_view()
+
+        # Close tracker first, then delete the affect to make tracker orphaned
+        # but affect_v1 view may still have stale data
+        tracker.status = "Closed"
+        tracker.save(raise_validation_error=False)
+        affect.delete()
+
+        response = auth_client().get(
+            f"/osidb/api/v1/flaws?tracker_ids={tracker.external_system_id}"
+        )
+        assert response.status_code == 200
+        assert response.json()["count"] == 0
+
     def test_flaw_history(self, auth_client, test_api_v2_uri):
         """ """
 
