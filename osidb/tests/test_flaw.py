@@ -1925,8 +1925,8 @@ class TestFlawValidators:
 
     def test_no_component(self):
         """
-        test that a flaw in NOVALUE, NEW, or REJECTED state can have empty components
-        but flaws in other states cannot
+        test that a flaw in NOVALUE or NEW state or in the REJECTED workflow
+        can have empty components but flaws in other states cannot
 
         also test that legacy flaws (NOVALUE without a task) cannot have
         their existing components cleared
@@ -1934,11 +1934,19 @@ class TestFlawValidators:
         for state in (
             WorkflowModel.WorkflowState.NOVALUE,
             WorkflowModel.WorkflowState.NEW,
-            WorkflowModel.WorkflowState.REJECTED,
         ):
             flaw = FlawFactory(components=[], workflow_state=state)
             assert flaw.save() is None
             assert flaw.components == []
+
+        # rejected flaws can also have empty components
+        flaw = FlawFactory(
+            components=[],
+            workflow_state=WorkflowModel.WorkflowState.DONE,
+            workflow_name="REJECTED",
+        )
+        assert flaw.save() is None
+        assert flaw.components == []
 
         # flaw in NOVALUE state cannot have components cleared (to prevent tampering with legacy Flaws)
         flaw_legacy = FlawFactory(

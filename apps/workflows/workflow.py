@@ -141,7 +141,6 @@ class WorkflowModel(models.Model):
         PRE_SECONDARY_ASSESSMENT = "PRE_SECONDARY_ASSESSMENT"
         SECONDARY_ASSESSMENT = "SECONDARY_ASSESSMENT"
         DONE = "DONE"
-        REJECTED = "REJECTED"
 
     workflow_name = models.CharField(max_length=50, blank=True)
     workflow_state = models.CharField(
@@ -234,13 +233,18 @@ class WorkflowModel(models.Model):
         # a flaw can have internal ACLs before the triage is
         # completed or if it was rejected during the triage
 
-        public_stages = [
+        public_workflows = ["DEFAULT"]
+        public_states = [
             WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT,
             WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
             WorkflowModel.WorkflowState.DONE,
         ]
 
-        if self.is_internal and self.workflow_state in public_stages:
+        if (
+            self.is_internal
+            and self.workflow_name in public_workflows
+            and self.workflow_state in public_states
+        ):
             self.set_public()
             # updates ACLs of all related objects except for snippets
             self.set_public_nested()

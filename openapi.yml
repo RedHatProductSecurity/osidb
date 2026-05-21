@@ -1348,7 +1348,6 @@ paths:
             - DONE
             - NEW
             - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
             - SECONDARY_ASSESSMENT
             - TRIAGE
         description: |+
@@ -3975,7 +3974,6 @@ paths:
             - DONE
             - NEW
             - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
             - SECONDARY_ASSESSMENT
             - TRIAGE
         description: |+
@@ -3994,7 +3992,6 @@ paths:
             - DONE
             - NEW
             - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
             - SECONDARY_ASSESSMENT
             - TRIAGE
         description: |+
@@ -8705,7 +8702,6 @@ paths:
             - DONE
             - NEW
             - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
             - SECONDARY_ASSESSMENT
             - TRIAGE
         description: |+
@@ -11795,7 +11791,6 @@ paths:
             - DONE
             - NEW
             - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
             - SECONDARY_ASSESSMENT
             - TRIAGE
         description: |+
@@ -11814,7 +11809,6 @@ paths:
             - DONE
             - NEW
             - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
             - SECONDARY_ASSESSMENT
             - TRIAGE
         description: |+
@@ -15144,7 +15138,6 @@ components:
               - PRE_SECONDARY_ASSESSMENT
               - SECONDARY_ASSESSMENT
               - DONE
-              - REJECTED
           readOnly: true
         group_key:
           type: string
@@ -16089,7 +16082,6 @@ components:
               - PRE_SECONDARY_ASSESSMENT
               - SECONDARY_ASSESSMENT
               - DONE
-              - REJECTED
           readOnly: true
         group_key:
           type: string
@@ -16612,7 +16604,6 @@ components:
               - PRE_SECONDARY_ASSESSMENT
               - SECONDARY_ASSESSMENT
               - DONE
-              - REJECTED
           readOnly: true
         group_key:
           type: string

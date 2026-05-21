@@ -1,7 +1,7 @@
 ---
 name: DEFAULT
 description: Default vulnerability workflow.
-priority: 1
+priority: 0
 conditions: []
 states:
   - name: NEW
