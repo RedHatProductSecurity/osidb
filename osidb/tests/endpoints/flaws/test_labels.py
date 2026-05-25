@@ -87,9 +87,11 @@ class TestEndpointsFlawsLabels:
             {"label": "test_product", "state": "NEW", "contributor": "skynet"},
         )
 
-        assert response.status_code == status.HTTP_201_CREATED
-        assert response.json()["label"] == "test_product"
-        assert response.json()["type"] == FlawLabel.FlawLabelType.PRODUCT_FAMILY
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert (
+            response.json()["label"]
+            == "Only context-based and alias labels can be manually added to flaws. 'test_product' is a product-based label."
+        )
 
     def test_update_label(self, auth_client, test_api_uri):
         flaw = Flaw.objects.first()

@@ -2107,7 +2107,6 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
 
         if label.type not in [
             FlawLabel.FlawLabelType.CONTEXT_BASED,
-            FlawLabel.FlawLabelType.PRODUCT_FAMILY,
             FlawLabel.FlawLabelType.BU,
         ]:
             raise serializers.ValidationError(
@@ -2136,16 +2135,13 @@ class FlawCollaboratorPostSerializer(FlawCollaboratorSerializer):
     # timestamp but we need to make the field mandatory otherwise.
 
     # Override type field to exclude PRODUCT_FAMILY since users cannot manually set it
+    # BU type labels can be manually added
     type = serializers.ChoiceField(
         choices=[
             (FlawLabel.FlawLabelType.ALIAS, FlawLabel.FlawLabelType.ALIAS.label),
             (
                 FlawLabel.FlawLabelType.CONTEXT_BASED,
                 FlawLabel.FlawLabelType.CONTEXT_BASED.label,
-            ),
-            (
-                FlawLabel.FlawLabelType.PRODUCT_FAMILY,
-                FlawLabel.FlawLabelType.PRODUCT_FAMILY.label,
             ),
             (
                 FlawLabel.FlawLabelType.BU,
