@@ -15,10 +15,7 @@ from django.db import models
 from osidb.helpers import deprecate_field
 
 from .constants import WORKFLOW_DIR
-from .exceptions import (
-    MissingStateException,
-    WorkflowDefinitionError,
-)
+from .exceptions import WorkflowDefinitionError
 from .helpers import singleton
 from .models import Workflow
 
@@ -97,17 +94,10 @@ class WorkflowFramework:
 
     def jira_status(self, instance):
         """
-        Given a instance, return expected jira status and resolution
+        Given an instance, return expected jira status and resolution
         """
-        for workflow in self.workflows:
-            if workflow.name == instance.workflow_name:
-                for state in workflow.states:
-                    if state.name == instance.workflow_state:
-                        return state.jira_state, state.jira_resolution
-
-        raise MissingStateException(
-            f"Combination of workflow ({instance.workflow_name}) and state ({instance.workflow_state}) was not found in WorkflowFramework."
-        )
+        _, state = self.classify(instance)
+        return state.jira_state, state.jira_resolution
 
 
 class WorkflowModelManager(models.Manager):
