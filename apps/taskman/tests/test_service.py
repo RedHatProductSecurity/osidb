@@ -48,10 +48,10 @@ class TestTaskmanService(object):
         assert response2 is None
 
         assert flaw.workflow_state in (
+            WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT,
             WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
             WorkflowModel.WorkflowState.DONE,
         )
-        flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
         flaw.save(raise_validation_error=False)
         response3 = taskman.create_or_update_task(flaw=flaw)
         assert response3 is None

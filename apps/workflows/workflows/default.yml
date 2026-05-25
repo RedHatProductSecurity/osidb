@@ -6,17 +6,15 @@ conditions: []
 states:
   - name: NEW
     description: >
-      A new ticket arrived from incoming queue without any validation
-      or analysis performed yet.
+      A new flaw arrived into the queue.
     jira_state: New
     jira_resolution: null
     requirements: []
 
   - name: TRIAGE
     description: >
-      Queue captain has taken a ticket off the incoming queue and will
-      evaluate if it should be rejected or qualified for further steps in
-      the workflow.
+      Queue captain has taken the flaw off the incoming queue and will evaluate
+      whether it should be rejected or analysed further.
     jira_state: Refinement
     jira_resolution: null
     requirements:
@@ -24,31 +22,29 @@ states:
 
   - name: PRE_SECONDARY_ASSESSMENT
     description: >
-      Task qualified for further work and has initial data filled, triage
-      trackers have been filled.
+      A flaw was qualified for further work. It has the initial data filled
+      and the affectedness was assessed. The trackers can be filed.
     jira_state: To Do
     jira_resolution: null
     requirements:
-      # - has affects
+      - has affects
+      - has components
+      - has impact
+      - has reported_dt
       - has source
       - has title
 
   - name: SECONDARY_ASSESSMENT
-    description: An analyst assigned the task to themselves.
+    description: The trackers were filed. The flaw is ready for the review.
     jira_state: In Progress
     jira_resolution: null
     requirements:
-      - has owner
+      - has trackers
 
   - name: DONE
     description: >
-      Task is done. We commonly expect that a CVE will be 
-      published, but it is not a requirement.
+      A flaw was approved and is considered done.
     jira_state: Closed
     jira_resolution: Done
     requirements:
-      - condition: OR
-        requirements:
-          - has trackers
-          - impact is low
-          - impact is moderate
+      - has label approved
