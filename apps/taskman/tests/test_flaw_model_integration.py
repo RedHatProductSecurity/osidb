@@ -275,7 +275,8 @@ class TestFlawModelIntegration(object):
                 "title": f"{flaw.title} appended test title",
                 "comment_zero": flaw.comment_zero,
                 "impact": flaw.impact,
-                "source": "",  # empty source should fail validations
+                "source": flaw.source,
+                "unembargo_dt": None,
                 "embargoed": False,
                 "updated_dt": flaw.updated_dt,
             },
@@ -284,7 +285,7 @@ class TestFlawModelIntegration(object):
             HTTP_JIRA_API_KEY=jira_token,
             HTTP_JIRA_API_EMAIL=jira_email,
         )
-        assert "Source value is required" in str(response.content)
+        assert "Non-embargoed flaw has an empty unembargo_dt" in str(response.content)
         assert response.status_code == 400
         assert not flaw.task_key
 
