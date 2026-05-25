@@ -1388,13 +1388,6 @@ class TestFlawValidators:
         flaw.save()
         assert flaw.requires_cve_description == Flaw.FlawRequiresCVEDescription.NOVALUE
 
-    def test_no_source(self):
-        """
-        test that flaw cannot have an empty source
-        """
-        with pytest.raises(ValidationError, match="Source value is required"):
-            FlawFactory(source=None)
-
     @pytest.mark.parametrize(
         "source",
         [FlawSource.INTERNET, FlawSource.TWITTER],
@@ -1492,22 +1485,6 @@ class TestFlawValidators:
         with pytest.raises(ValidationError) as e:
             AffectFactory(flaw=flaw, ps_update_stream="invalid-stream")
         assert "is not a valid ps_update_stream" in str(e)
-
-    def test_validate_reported_date_empty(self):
-        """
-        test that the ValidationError is raised when the flaw has an empty reported_dt
-        """
-        with pytest.raises(ValidationError) as e:
-            FlawFactory(reported_dt=None)
-        assert "Flaw has an empty reported_dt" in str(e)
-
-    def test_validate_reported_date_non_empty(self):
-        """
-        test that the ValidationError is not raised when the flaw the reported_dt provided
-        """
-        # whenever we save the flaw which the factory does automatically the validations are run
-        # and if there is an exception the test will fail so creating the flaw is enough to test it
-        FlawFactory()
 
     @pytest.mark.parametrize(
         "embargoed,unembargo_date,error_str",
@@ -1904,66 +1881,6 @@ class TestFlawValidators:
 
         # exclude collectors from restriction
         flaw.save(raise_validation_error=False)
-
-    def test_validate_flaw_without_affect(self):
-        """
-        test that flaws without affect raises an error-level alert on editing
-        """
-        flaw1 = FlawFactory()
-        AffectFactory(flaw=flaw1)
-        assert flaw1.save() is None
-
-        flaw2 = FlawFactory(workflow_state=WorkflowModel.WorkflowState.TRIAGE)
-        assert flaw2.save() is None
-        assert flaw2.valid_alerts.filter(name="_validate_flaw_without_affect").exists()
-
-        # Flaws in the 'new' state can be edited without any affects, but
-        # an alert is raised
-        flaw3 = FlawFactory(workflow_state=WorkflowModel.WorkflowState.NEW)
-        assert flaw3.save() is None
-        assert flaw3.valid_alerts.filter(name="_validate_flaw_without_affect").exists()
-
-    def test_no_component(self):
-        """
-        test that a flaw in NOVALUE or NEW state or in the REJECTED workflow
-        can have empty components but flaws in other states cannot
-
-        also test that legacy flaws (NOVALUE without a task) cannot have
-        their existing components cleared
-        """
-        for state in (
-            WorkflowModel.WorkflowState.NOVALUE,
-            WorkflowModel.WorkflowState.NEW,
-        ):
-            flaw = FlawFactory(components=[], workflow_state=state)
-            assert flaw.save() is None
-            assert flaw.components == []
-
-        # rejected flaws can also have empty components
-        flaw = FlawFactory(
-            components=[],
-            workflow_state=WorkflowModel.WorkflowState.DONE,
-            workflow_name="REJECTED",
-        )
-        assert flaw.save() is None
-        assert flaw.components == []
-
-        # flaw in NOVALUE state cannot have components cleared (to prevent tampering with legacy Flaws)
-        flaw_legacy = FlawFactory(
-            components=["kernel"],
-            workflow_state=WorkflowModel.WorkflowState.NOVALUE,
-        )
-        flaw_legacy.components = []
-        with pytest.raises(
-            ValidationError,
-            match="Components cannot be cleared on a flaw without a task",
-        ):
-            flaw_legacy.save()
-
-        with pytest.raises(ValidationError, match="Components value is required"):
-            FlawFactory(
-                components=[], workflow_state=WorkflowModel.WorkflowState.TRIAGE
-            )
 
     @pytest.mark.parametrize(
         "start_impact,new_impact,tracker_statuses,should_raise",

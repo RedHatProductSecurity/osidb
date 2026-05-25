@@ -139,17 +139,6 @@ Model validations belong in `osidb/models/` validators and are enforced on
 every save regardless of workflow state. Workflow requirements belong in YAML
 and gate state progression.
 
-### Planned Restorations (TODO restore)
-
-The following requirements should be restored to PRE_SECONDARY_ASSESSMENT:
-
-- `has affects` -- a flaw cannot progress past triage without at least one
-  affect identifying which products are impacted
-- `has impact` -- impact assessment is a core triage output
-
-Further enrichment of requirements across all states is planned but requires
-deeper analysis of the processing phases and team input.
-
 ## REJECTED Workflow
 
 The REJECTED workflow handles flaws that have been rejected during triage. It

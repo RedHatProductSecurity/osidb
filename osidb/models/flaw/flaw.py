@@ -571,17 +571,6 @@ class Flaw(
                 )
 
     @validator
-    def _validate_nonempty_source(self, **kwargs):
-        """
-        checks that the source is not empty
-
-        we cannot enforce this by model definition
-        as the old flaws may have no source
-        """
-        if not self.source:
-            raise ValidationError("Source value is required.")
-
-    @validator
     def _validate_embargoed_source(self, **kwargs):
         """
         Checks that the source is private if the Flaw is embargoed.
@@ -605,14 +594,6 @@ class Flaw(
                 raise ValidationError(
                     f"Flaw is embargoed but contains public source: {self.source}"
                 )
-
-    @validator
-    def _validate_reported_date(self, **kwargs):
-        """
-        Checks that the flaw has non-empty reported_dt
-        """
-        if self.reported_dt is None:
-            raise ValidationError("Flaw has an empty reported_dt")
 
     @validator
     def _validate_public_unembargo_date(self, **kwargs):
@@ -745,63 +726,6 @@ class Flaw(
         old_flaw = Flaw.objects.get(pk=self.pk)
         if not old_flaw.embargoed and self.is_embargoed:
             raise ValidationError("Embargoing a public flaw is futile")
-
-    @validator
-    def _validate_flaw_without_affect(self, **kwargs):
-        """
-        Check if flaw have at least one affect
-        """
-        from osidb.models import Affect
-
-        # Skip validation at creation allowing to draft a Flaw
-        if self._state.adding:
-            return
-
-        if not Affect.objects.filter(flaw=self).exists():
-            # When a flaw without afects is saved, issue an alert
-            self.alert(
-                "_validate_flaw_without_affect",
-                "Flaw does not contain any affects.",
-                alert_type=Alert.AlertType.ERROR,
-                **kwargs,
-            )
-
-    @validator
-    def _validate_nonempty_components(self, **kwargs):
-        """
-        check that the component list is not empty
-
-        we cannot enforce this by model definition
-        as the old flaws may have no components
-
-        flaws in NOVALUE or NEW workflow state or in the REJECTED
-        workflow are exempt as components may not yet be known at the
-        time of creation and flaws can be rejected without them
-
-        however clearing existing components on legacy flaws
-        (NOVALUE state without a Jira task) is not allowed
-        """
-        if (
-            self.workflow_state
-            in (
-                WorkflowModel.WorkflowState.NOVALUE,
-                WorkflowModel.WorkflowState.NEW,
-            )
-            or self.workflow_name == "REJECTED"
-        ):
-            if (
-                self.workflow_state == WorkflowModel.WorkflowState.NOVALUE
-                and not self.components
-                and not self._state.adding
-            ):
-                old_flaw = Flaw.objects.get(uuid=self.uuid)
-                if old_flaw.components:
-                    raise ValidationError(
-                        "Components cannot be cleared on a flaw without a task."
-                    )
-            return
-        if not self.components:
-            raise ValidationError("Components value is required.")
 
     @validator
     def _validate_unsupported_impact_change(self, **kwargs):

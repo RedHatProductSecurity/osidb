@@ -886,8 +886,6 @@ class TestBBSyncIntegration:
             "cve_id": "CVE-2021-0773",
             "title": "Foo",
             "comment_zero": "test",
-            "reported_dt": "2022-11-22T15:55:22.830Z",
-            "unembargo_dt": "2000-1-1T22:03:26.065Z",
             "embargoed": False,
         }
         response = auth_client().post(
@@ -897,7 +895,7 @@ class TestBBSyncIntegration:
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
         )
         assert response.status_code == 400
-        assert "Source value is required" in str(response.content)
+        assert "Non-embargoed flaw has an empty unembargo_dt" in str(response.content)
 
     def test_flaw_update_multi_cve_restricted(self, auth_client, test_api_v2_uri):
         """
