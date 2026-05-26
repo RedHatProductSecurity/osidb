@@ -91,7 +91,7 @@ class TestQuerySetRegression:
             )
             assert response.status_code == 200
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 58), (True, 58)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 59), (True, 59)])
     def test_empty_flaw(self, auth_client, test_api_v2_uri, embargoed, query_count):
         flaw = FlawFactory(
             embargoed=embargoed,
@@ -102,7 +102,7 @@ class TestQuerySetRegression:
             response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 60), (True, 60)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 61), (True, 61)])
     def test_flaw_with_affects(
         self, auth_client, test_api_v2_uri, embargoed, query_count
     ):
@@ -123,7 +123,7 @@ class TestQuerySetRegression:
             response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 61), (True, 61)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 62), (True, 62)])
     def test_flaw_with_affects_history(
         self, auth_client, test_api_v2_uri, embargoed, query_count
     ):

@@ -25,12 +25,16 @@ def fetch_flaw_labels(url):
 
     try:
         labels = yaml.safe_load(response.text)
-        return (labels["context_based_labels"], labels["product_family_labels"])
+        return (
+            labels["context_based_labels"],
+            labels["product_family_labels"],
+            labels["bu_labels"],
+        )
     except yaml.YAMLError as e:
         logger.error("Error parsing YAML", exc_info=e)
 
 
-def sync_flaw_labels(context_based: dict, product_family: dict):
+def sync_flaw_labels(context_based: dict, product_family: dict, bu_labels: dict):
     """
     clean and re-create Flaw labels from given data
     """
@@ -62,6 +66,20 @@ def sync_flaw_labels(context_based: dict, product_family: dict):
             FlawLabel(
                 name=flaw_label,
                 type=FlawLabel.FlawLabelType.PRODUCT_FAMILY,
+                **filtered_data,
+            )
+        )
+
+    for flaw_label, filters in bu_labels.items():
+        filtered_data = {
+            key: ensure_list(value)
+            for key, value in filters.items()
+            if key in flaw_label_fields
+        }
+        flaw_labels.append(
+            FlawLabel(
+                name=flaw_label,
+                type=FlawLabel.FlawLabelType.BU,
                 **filtered_data,
             )
         )

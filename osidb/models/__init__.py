@@ -1,7 +1,6 @@
 from .abstract import CVSS, ComparableTextChoices, Impact
 from .fields import CVEIDField
 from .flaw import FlawSource
-from .jira_user_mapping import JiraUserMapping
 from .profile import Profile
 from .ps_constants import SpecialConsiderationPackage
 from .ps_contact import PsContact
@@ -25,9 +24,9 @@ __all__ = (
     "FlawCVSS",
     "FlawLabel",
     "FlawReference",
+    "UpstreamData",
     "FlawSource",
     "Impact",
-    "JiraUserMapping",
     "NotAffectedJustification",
     "Package",
     "PackageVer",
@@ -49,5 +48,6 @@ from .flaw.cvss import FlawCVSS
 from .flaw.flaw import Flaw
 from .flaw.label import FlawCollaborator, FlawLabel
 from .flaw.reference import FlawReference
+from .flaw.upstream import UpstreamData
 from .package_versions import Package, PackageVer
 from .tracker import Tracker

@@ -36,6 +36,7 @@ class FlawLabel(models.Model):
         ALIAS = "alias"
         CONTEXT_BASED = "context_based"
         PRODUCT_FAMILY = "product_family"
+        BU = "bu"
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

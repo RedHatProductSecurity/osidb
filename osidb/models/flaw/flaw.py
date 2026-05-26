@@ -430,6 +430,16 @@ class Flaw(
                 **kwargs,
             )
 
+    @property
+    def has_high_cvss_score(self) -> bool:
+        """Whether any CVSSv3 score on this flaw is >= 7.0."""
+        from .cvss import FlawCVSS
+
+        return self.cvss_scores.filter(
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            score__gte=Decimal("7.0"),
+        ).exists()
+
     @validator
     def _validate_rh_products_in_affects(self, **kwargs):
         """

@@ -1432,6 +1432,8 @@ class AffectFilter(
         field_name="visibility", choices=ACLMixinVisibility.choices
     )
     tracker__embargoed = BooleanFilter(field_name="tracker__embargoed")
+    is_tool_created = BooleanFilter(method="filter_is_tool_created")
+    amended = BooleanFilter(method="filter_amended")
     tracker__visibility = ChoiceFilter(
         field_name="tracker__visibility", choices=ACLMixinVisibility.choices
     )
@@ -1521,6 +1523,8 @@ class AffectFilter(
             "cvss_scores__vector": ["exact"],
             "purl": ["exact"],
             "subpackage_purls": ["exact"],
+            "created_by": ["exact", "icontains"],
+            "updated_by": ["exact", "icontains"],
         }
 
     order_fields = [
@@ -1530,6 +1534,15 @@ class AffectFilter(
         "tracker__embargoed",
     ] + list(Meta.fields.keys())
     order = DistinctOrderingFilter(fields=order_fields)
+
+    def filter_is_tool_created(self, queryset, name, value):
+        q = Q(assist_meta__isnull=False)
+        return queryset.filter(q) if value else queryset.exclude(q)
+
+    def filter_amended(self, queryset, name, value):
+        """True: created_by != updated_by (creator is not the last editor)."""
+        q = ~Q(updated_by=models.F("created_by"))
+        return queryset.filter(q) if value else queryset.exclude(q)
 
 
 class TrackerFilter(
