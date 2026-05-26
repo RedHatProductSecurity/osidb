@@ -75,6 +75,10 @@ class TestDefaultWorkflow:
     """
     Test the DEFAULT workflow end-to-end, walking a flaw through all states
     and verifying that requirements gate each transition correctly.
+
+    Child model operations (creating affects, linking trackers, creating labels)
+    should automatically trigger flaw reclassification via signals — no explicit
+    flaw.save() needed after them.
     """
 
     @pytest.mark.enable_signals
@@ -128,21 +132,17 @@ class TestDefaultWorkflow:
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == WS.TRIAGE
 
-        # still missing affects — add one to advance
+        # still missing affects — creating one triggers reclassification via signal
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.NEW,
             resolution=Affect.AffectResolution.NOVALUE,
         )
-        flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == WS.PRE_SECONDARY_ASSESSMENT
 
         # --- PRE_SECONDARY_ASSESSMENT → SECONDARY_ASSESSMENT: requires trackers ---
 
-        # without a tracker the flaw stays in PRE_SECONDARY_ASSESSMENT
-        assert flaw.workflow_state == WS.PRE_SECONDARY_ASSESSMENT
-
-        # file a tracker for the affect
+        # file a tracker and link it to the affect — signal triggers reclassification
         tracker = TrackerFactory.build(
             embargoed=False,
             ps_update_stream=affect.ps_update_stream,
@@ -150,20 +150,17 @@ class TestDefaultWorkflow:
         tracker.save()
         affect.tracker = tracker
         affect.save(raise_validation_error=False)
-        flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == WS.SECONDARY_ASSESSMENT
 
         # --- SECONDARY_ASSESSMENT → DONE: requires label approved ---
 
-        assert flaw.workflow_state == WS.SECONDARY_ASSESSMENT
-
+        # creating the label triggers reclassification via signal
         FlawCollaborator.objects.create(
             flaw=flaw,
             label="approved",
             type=FlawLabel.FlawLabelType.WORKFLOW,
             contributor="reviewer@redhat.com",
         )
-        flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == WS.DONE
         assert flaw.workflow_name == "DEFAULT"
 
@@ -217,6 +214,45 @@ class TestDefaultWorkflow:
         flaw.components = ["kernel"]
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == WS.PRE_SECONDARY_ASSESSMENT
+
+    @pytest.mark.enable_signals
+    def test_label_removal_triggers_regression(self):
+        """
+        Verify that deleting an "approved" label triggers reclassification
+        and the flaw regresses from DONE.
+        """
+        WS = WorkflowModel.WorkflowState
+
+        # build a flaw all the way to DONE
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-3",
+            owner="analyst@redhat.com",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        tracker = TrackerFactory.build(
+            embargoed=False,
+            ps_update_stream=affect.ps_update_stream,
+        )
+        tracker.save()
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
+        collaborator = FlawCollaborator.objects.create(
+            flaw=flaw,
+            label="approved",
+            type=FlawLabel.FlawLabelType.WORKFLOW,
+            contributor="reviewer@redhat.com",
+        )
+        assert flaw.workflow_state == WS.DONE
+
+        # remove the approved label — should regress
+        collaborator.delete()
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == WS.SECONDARY_ASSESSMENT
 
     @pytest.mark.enable_signals
     def test_no_classification_without_task_key(self):
