@@ -470,7 +470,7 @@ class CVEorgCollector(Collector):
         def get_title(data: dict) -> str:
             return data["containers"]["cna"].get("title", "From CVEorg collector")
 
-        def get_affected(data: dict) -> dict:
+        def get_affected(data: dict) -> list:
             return data["containers"]["cna"].get("affected") or []
 
         def get_unembargo_dt(data: dict) -> Union[str, None]:
