@@ -7,5 +7,4 @@ from apps.workflows.workflow import WorkflowModel
 @receiver(pre_save)
 def auto_adjust_classification(sender, instance, **kwargs):
     if issubclass(sender, WorkflowModel):
-        if instance.task_key:
-            instance.adjust_classification(save=False)
+        instance.adjust_classification(save=False)
