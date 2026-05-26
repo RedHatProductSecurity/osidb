@@ -38,17 +38,18 @@ def flaw_labels_collector(collector_obj) -> None:
 
     # Fetch raw yaml data from GitLab
     logger.info(f"Fetching Flaw labels from '{FLAW_LABELS_URL}'")
-    (context_based, product_family) = fetch_flaw_labels(FLAW_LABELS_URL)
+    (context_based, product_family, bu_labels) = fetch_flaw_labels(FLAW_LABELS_URL)
 
     logger.info(
         (
             f"Fetched {len(context_based)} Context Based labels "
-            f"and {len(product_family)} Product Family labels"
+            f"and {len(product_family)} Product Family labels "
+            f"and {len(bu_labels)} BU labels"
         )
     )
 
     # Sync all flaw labels in a single transaction
-    sync_flaw_labels(context_based, product_family)
+    sync_flaw_labels(context_based, product_family, bu_labels)
 
     collector_obj.store(updated_until_dt=timezone.now())
     logger.info("Flaw labels sync was successful.")

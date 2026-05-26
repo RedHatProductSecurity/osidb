@@ -45,6 +45,7 @@ from osidb.models import (
     Profile,
     PsUpdateStream,
     Tracker,
+    UpstreamData,
 )
 from osidb.models.affect import NotAffectedJustification
 from osidb.sync_manager import SyncManager
@@ -1250,6 +1251,9 @@ class AffectSerializer(
     tracker = serializers.SerializerMethodField(allow_null=True)
     meta_attr = serializers.SerializerMethodField()
     cvss_scores = AffectCVSSSerializer(many=True, read_only=True)
+    created_by = serializers.CharField(read_only=True)
+    updated_by = serializers.CharField(read_only=True)
+    assist_meta = serializers.JSONField(allow_null=True, required=False, default=None)
     # at least one of ps_component or purl is required
     ps_component = serializers.CharField(
         max_length=255, allow_blank=True, allow_null=True, required=False, default=""
@@ -1320,6 +1324,9 @@ class AffectSerializer(
                 "delegated_not_affected_justification",
                 "resolved_dt",
                 "labels",
+                "created_by",
+                "updated_by",
+                "assist_meta",
             ]
             + ACLMixinSerializer.Meta.fields
             + AlertMixinSerializer.Meta.fields
@@ -2000,6 +2007,32 @@ class FlawReferencePutSerializer(FlawReferenceSerializer):
     pass
 
 
+class UpstreamDataSerializer(
+    ACLMixinSerializer,
+    AlertMixinSerializer,
+    IncludeExcludeFieldsMixin,
+    TrackingMixinSerializer,
+):
+    """Serializer for OSV/collector upstream metadata attached to a flaw (read-only via API)."""
+
+    upstream_purls = serializers.JSONField(read_only=True)
+    source = serializers.ChoiceField(choices=UpstreamData.Source, read_only=True)
+
+    class Meta:
+        model = UpstreamData
+        fields = (
+            [
+                "uuid",
+                "flaw",
+                "upstream_purls",
+                "source",
+            ]
+            + ACLMixinSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
+            + TrackingMixinSerializer.Meta.fields
+        )
+
+
 class FlawCVSSSerializer(
     AbstractCVSSSerializer,
     JiraAPIKeyMixin,
@@ -2200,6 +2233,7 @@ class FlawSerializer(
     references = FlawReferenceSerializer(many=True, read_only=True)
     cvss_scores = FlawCVSSSerializer(many=True, read_only=True)
     package_versions = PackageSerializer(many=True, read_only=True)
+    upstream_data = UpstreamDataSerializer(many=True, read_only=True)
 
     requires_cve_description = serializers.SerializerMethodField()
     selected_cve_description = serializers.ReadOnlyField()
@@ -2277,6 +2311,7 @@ class FlawSerializer(
                 "major_incident_state",
                 "major_incident_start_dt",
                 "nist_cvss_validation",
+                "upstream_data",
                 "affects",
                 "comments",
                 "meta_attr",

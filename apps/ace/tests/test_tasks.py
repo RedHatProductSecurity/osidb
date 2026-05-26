@@ -170,6 +170,42 @@ def test_sync_no_op_when_lib_newtopia_missing(monkeypatch):
     assert flaw.affects.count() == 0
 
 
+def test_sync_sets_created_by_and_updated_by(
+    monkeypatch, ace_enabled, urllib3_results, mock_querier
+):
+    """ACE-created affects must have created_by and updated_by set to AffectCreationEngine."""
+    flaw = FlawFactory(components=["urllib3"])
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"urllib3": urllib3_results})
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    for affect in flaw.affects.all():
+        assert affect.created_by == "AffectCreationEngine"
+        assert affect.updated_by == "AffectCreationEngine"
+
+
+def test_sync_sets_assist_meta(monkeypatch, ace_enabled, urllib3_results, mock_querier):
+    """ACE-created affects must have assist_meta populated with expected keys."""
+    flaw = FlawFactory(components=["urllib3"])
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"urllib3": urllib3_results})
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    for affect in flaw.affects.all():
+        meta = affect.assist_meta
+        assert isinstance(meta, dict)
+        assert "tool_name" in meta
+        assert "tool_input" in meta
+        assert "tool_output" in meta
+        assert "tool_trigger" in meta
+        assert "urllib3" in meta["tool_input"]
+        assert "urllib3" in meta["tool_trigger"]
+
+
 def test_sync_respects_ps_modules_setting(monkeypatch, ace_enabled, urllib3_results):
     monkeypatch.setenv(
         "OSIDB_AFFECTS_AUTO_CREATE_PS_MODULES",

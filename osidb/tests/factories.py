@@ -25,7 +25,6 @@ from osidb.models import (
     FlawReference,
     FlawSource,
     Impact,
-    JiraUserMapping,
     NotAffectedJustification,
     Package,
     PackageVer,
@@ -36,6 +35,7 @@ from osidb.models import (
     Snippet,
     SpecialConsiderationPackage,
     Tracker,
+    UpstreamData,
 )
 from osidb.models.affect import (
     AFFECTEDNESS_UNRESOLVED_RESOLUTIONS,
@@ -363,6 +363,31 @@ class FlawCommentFactory(factory.django.DjangoModelFactory):
     text = "some comment text"
 
     flaw = factory.SubFactory(FlawFactory)
+
+
+class UpstreamDataFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = UpstreamData
+
+    created_dt = factory.Faker("date_time", tzinfo=UTC)
+    updated_dt = factory.Faker("date_time", tzinfo=UTC)
+
+    acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
+    acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
+
+    flaw = factory.SubFactory(FlawFactory)
+    source = UpstreamData.Source.OSV
+    upstream_purls = factory.LazyFunction(
+        lambda: [
+            {
+                "purl": "pkg:npm/example",
+                "name": "example",
+                "ecosystem": "npm",
+                "ranges": [],
+                "versions": [],
+            }
+        ]
+    )
 
 
 class FlawAcknowledgmentFactory(factory.django.DjangoModelFactory):
@@ -890,14 +915,3 @@ class SpecialConsiderationPackageFactory(factory.django.DjangoModelFactory):
 
     def __new__(cls, *args, **kwargs) -> SpecialConsiderationPackage:
         return super().__new__(*args, **kwargs)
-
-
-class JiraUserMappingFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = JiraUserMapping
-
-    associate_kerberos_id = factory.sequence(lambda n: f"user{n}")
-    associate_uuid = factory.LazyFunction(uuid.uuid4)
-    atlassian_cloud_id = factory.sequence(lambda n: f"cloud-id-{n}")
-    is_employed = True
-    name = factory.Faker("name")

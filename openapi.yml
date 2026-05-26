@@ -8023,6 +8023,27 @@ paths:
         explode: false
         style: form
       - in: query
+        name: amended
+        schema:
+          type: boolean
+      - in: query
+        name: created_by
+        schema:
+          type: string
+      - in: query
+        name: created_by__icontains
+        schema:
+          type: string
+      - in: query
+        name: created_by__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: created_dt
         schema:
           type: string
@@ -8740,6 +8761,10 @@ paths:
           wildcards eg. `include_meta_attr=*,related_model.*` for retrieving all the
           keys from meta_attr. Omit this parameter to not include meta_attr fields
           at all. '
+      - in: query
+        name: is_tool_created
+        schema:
+          type: boolean
       - name: limit
         required: false
         in: query
@@ -8760,6 +8785,7 @@ paths:
             type: string
             enum:
             - -affectedness
+            - -created_by
             - -created_dt
             - -cve_id
             - -cvss_scores__comment
@@ -8798,9 +8824,11 @@ paths:
             - -tracker__type
             - -tracker__updated_dt
             - -tracker__uuid
+            - -updated_by
             - -updated_dt
             - -uuid
             - affectedness
+            - created_by
             - created_dt
             - cve_id
             - cvss_scores__comment
@@ -8839,6 +8867,7 @@ paths:
             - tracker__type
             - tracker__updated_dt
             - tracker__uuid
+            - updated_by
             - updated_dt
             - uuid
         description: |+
@@ -9130,6 +9159,23 @@ paths:
           - EMBARGOED
           - INTERNAL
           - PUBLIC
+      - in: query
+        name: updated_by
+        schema:
+          type: string
+      - in: query
+        name: updated_by__icontains
+        schema:
+          type: string
+      - in: query
+        name: updated_by__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: updated_dt
         schema:
@@ -14050,6 +14096,14 @@ components:
           items:
             type: string
           readOnly: true
+        created_by:
+          type: string
+          readOnly: true
+        updated_by:
+          type: string
+          readOnly: true
+        assist_meta:
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -14076,6 +14130,7 @@ components:
             it is used to detect mit-air collisions.
       required:
       - alerts
+      - created_by
       - created_dt
       - cve_id
       - cvss_scores
@@ -14089,6 +14144,7 @@ components:
       - ps_update_stream
       - resolved_dt
       - tracker
+      - updated_by
       - updated_dt
       - uuid
       - visibility
@@ -14148,6 +14204,8 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        assist_meta:
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -14411,6 +14469,8 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        assist_meta:
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -14480,6 +14540,8 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        assist_meta:
+          nullable: true
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -14927,6 +14989,11 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        upstream_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpstreamData'
+          readOnly: true
         affects:
           type: array
           items:
@@ -15039,6 +15106,7 @@ components:
       - title
       - trackers
       - updated_dt
+      - upstream_data
       - uuid
       - visibility
     FlawAcknowledgment:
@@ -15614,6 +15682,7 @@ components:
       - alias
       - context_based
       - product_family
+      - bu
       type: string
     FlawPackageVersion:
       type: object
@@ -15848,6 +15917,11 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        upstream_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpstreamData'
+          readOnly: true
         affects:
           type: array
           items:
@@ -15960,6 +16034,7 @@ components:
       - title
       - trackers
       - updated_dt
+      - upstream_data
       - uuid
       - visibility
     FlawReference:
@@ -16355,6 +16430,11 @@ components:
           oneOf:
           - $ref: '#/components/schemas/NistCvssValidationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        upstream_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpstreamData'
+          readOnly: true
         affects:
           type: array
           items:
@@ -16467,6 +16547,7 @@ components:
       - title
       - trackers
       - updated_dt
+      - upstream_data
       - uuid
       - visibility
     FlawV1ReportData:
@@ -17873,6 +17954,85 @@ components:
       - updated_dt
       - uuid
       - visibility
+    UpstreamData:
+      type: object
+      description: Serializer for OSV/collector upstream metadata attached to a flaw
+        (read-only via API).
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        flaw:
+          type: string
+          format: uuid
+        upstream_purls:
+          readOnly: true
+        source:
+          allOf:
+          - $ref: '#/components/schemas/UpstreamDataSourceEnum'
+          readOnly: true
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          description: The visibility level of the resource based on ACL read groups.
+          readOnly: true
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - alerts
+      - created_dt
+      - embargoed
+      - flaw
+      - source
+      - updated_dt
+      - upstream_purls
+      - uuid
+      - visibility
+    UpstreamDataRequest:
+      type: object
+      description: Serializer for OSV/collector upstream metadata attached to a flaw
+        (read-only via API).
+      properties:
+        flaw:
+          type: string
+          format: uuid
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - embargoed
+      - flaw
+      - updated_dt
+    UpstreamDataSourceEnum:
+      enum:
+      - OSV
+      - CVEORG
+      type: string
     User:
       type: object
       properties:

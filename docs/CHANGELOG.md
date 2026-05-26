@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Add validation to require PURLs (OSIDB-4810)
+- Automatic affectedness and resolution determination based on product
+  definitions (OSIDB-4938)
+- Added `bu_labels` label type (OSIDB-4982)
+- Auditing and tracking of tool-assisted and auto-created affects (OSIDB-4951, OSIDB-4978)
+- Add UpstreamData model with upstream purl field and collection (OSIDB-4923)
+
+### Fixed
+- Exclude streams with no offer from tracker suggestions response (OSIDB-4977)
 
 ## [5.10.3] - 2026-05-06
 ### Fixed
@@ -33,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Improve resilience, error-reporting and performance of /bulk create
   affects endpoint (OSIDB-4748)
+- Replace JiraUserMapping with direct Jira API user lookup and cache in Profile model(OSIDB-4865)
+
 
 ## [5.9.0] - 2026-04-09
 ### Fixed
