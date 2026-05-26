@@ -242,7 +242,7 @@ class CheckParser:
                 )
 
                 def has_element(instance):
-                    EMPTY_VALUES = [None, ""]
+                    EMPTY_VALUES = [None, "", []]
                     field = getattr(instance, attr)
 
                     if isinstance(field, models.manager.BaseManager):
