@@ -28,6 +28,9 @@ ct creation (OSIDB-4952)
 ### Added
 - Scope lib-newtopia queries by ecosystem derived from upstream PURLs (OSIDB-4966)
 - Add comment_zero in the description of community trackers (OSIDB-4776)
+orkflow
+- introduce workflow labels
+>>>>>>> c20c2ea8 (add CHANGELOG records for noticeable changes)
 
 ### Changed
 - align existing workflows with workflow framework concepts
@@ -71,6 +74,11 @@ ction to prevent them from auto-committing outside the request transaction (OSID
 >>>>>>> 5d0b2638 (Fix changelog file)
  tracker endpoints when filtering by tracker_ids(OSIDB-4927)
 >>>>>>> f2e75683 (Update version to 5.12.0)
+
+### Removed
+- deprecate workflow manipulation endpoints
+- disconnect OSIDB workflow:state from the Jira
+- stop classifying legacy flaws
 
 ## [5.11.1] - 2026-06-10
 ### Fixed
