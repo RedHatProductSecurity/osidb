@@ -250,6 +250,13 @@ The deprecated mutation endpoints (`promote`, `revert`, `reset`, `reject`,
 | `/workflows/api/v1/graph/workflows` | GET | Visual (Mermaid) diagram of all workflows |
 | `/workflows/api/v1/graph/workflows/{id}` | GET | Visual diagram with flaw classification highlighted |
 
+The classification endpoint (`/workflows/{id}`) accepts an optional
+`?verbose=true` query parameter. When set, the response includes all workflow
+definitions with per-workflow, per-state, and per-requirement `accepts`
+booleans showing the classification reasoning. Each accepting workflow also
+contains a `classified_state` field naming the state the flaw is classified in
+(or `null` for non-selected workflows).
+
 Classification is automatic based on flaw data and cannot be manually changed.
 
 ### Graph Endpoints
