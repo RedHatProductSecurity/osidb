@@ -1324,49 +1324,6 @@ class TestFlawValidators:
 
         assert alerted if should_alert_after else not alerted
 
-    @pytest.mark.parametrize(
-        "impact,cve_description,should_alert,alert",
-        [
-            (Impact.MODERATE, "", True, "impact_without_cve_description"),
-            (Impact.IMPORTANT, "", True, "impact_without_cve_description"),
-            (Impact.CRITICAL, "", True, "impact_without_cve_description"),
-            # everything below is correct
-            (Impact.LOW, "", False, None),
-            (Impact.LOW, "cve_description", False, None),
-            (Impact.MODERATE, "cve_description", False, None),
-            (Impact.IMPORTANT, "cve_description", False, None),
-            (Impact.CRITICAL, "cve_description", False, None),
-        ],
-    )
-    def test_validate_impact_and_cve_description(
-        self, impact, cve_description, should_alert, alert
-    ):
-        """
-        Tests that if impact has MODERATE, IMPORTANT or CRITICAL value set,
-        then cve_description must not be missing.
-        """
-        flaw = FlawFactory(
-            impact=impact,
-            cve_description=cve_description,
-            # fields below are set to avoid any alerts
-            embargoed=False,
-            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
-        )
-        FlawCVSSFactory(
-            flaw=flaw,
-            version=FlawCVSS.CVSSVersion.VERSION3,
-            issuer=FlawCVSS.CVSSIssuer.REDHAT,
-            vector="CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
-        )
-        AffectFactory(flaw=flaw)
-        flaw.save()
-
-        if should_alert:
-            assert flaw.valid_alerts.count() == 1
-            assert flaw.valid_alerts.filter(name=alert).exists()
-        else:
-            assert not flaw.valid_alerts.exists()
-
     def test_deprecated_cve_description_validation_no_longer_enforced(self):
         """
         Test that deprecated CVE description validation is no longer enforced.
