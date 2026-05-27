@@ -121,6 +121,7 @@ class TestDefaultWorkflow:
         assert flaw.workflow_state == WS.TRIAGE
 
         flaw.impact = Impact.MODERATE
+        flaw.cve_description = "A vulnerability in the kernel"
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == WS.TRIAGE
 
@@ -253,6 +254,46 @@ class TestDefaultWorkflow:
         collaborator.delete()
         flaw.refresh_from_db()
         assert flaw.workflow_state == WS.SECONDARY_ASSESSMENT
+
+    @pytest.mark.enable_signals
+    def test_cve_description_or_low_impact(self):
+        """
+        Verify the OR condition: PRE_SECONDARY_ASSESSMENT requires either
+        LOW impact or a non-empty cve_description. A MODERATE-impact flaw
+        without cve_description stays in TRIAGE; adding the description
+        or switching to LOW impact advances it.
+        """
+        WS = WorkflowModel.WorkflowState
+
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-OR",
+            owner="analyst@redhat.com",
+            impact=Impact.MODERATE,
+            cve_description="",
+        )
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.TRIAGE
+
+        # adding cve_description satisfies the OR condition
+        flaw.cve_description = "A vulnerability in the kernel"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.PRE_SECONDARY_ASSESSMENT
+
+        # removing cve_description regresses back to TRIAGE
+        flaw.cve_description = ""
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.TRIAGE
+
+        # switching to LOW impact also satisfies the OR condition
+        flaw.impact = Impact.LOW
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.PRE_SECONDARY_ASSESSMENT
 
     @pytest.mark.enable_signals
     def test_no_classification_without_task_key(self):
