@@ -73,6 +73,8 @@ bz_api_key_header = OpenApiParameter(
 class index(RudimentaryUserPathLoggingMixin, APIView):
     """index API endpoint"""
 
+    permission_classes = [AllowAny]
+
     def get(self, request, *args, **kwargs):
         """index API endpoint listing available API endpoints"""
         logger.info("getting index")
@@ -242,6 +244,8 @@ class RejectWorkflow(DeprecatedWorkflowMixin, RudimentaryUserPathLoggingMixin, A
 class classification(RudimentaryUserPathLoggingMixin, APIView):
     """workflow classification API endpoint"""
 
+    permission_classes = [AllowAny]
+
     @extend_schema(
         parameters=[
             OpenApiParameter(
@@ -290,6 +294,8 @@ class classification(RudimentaryUserPathLoggingMixin, APIView):
 
 class workflows(RudimentaryUserPathLoggingMixin, APIView):
     """workflow info API endpoint"""
+
+    permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
         """workflow info API endpoint"""

@@ -37,9 +37,9 @@ class TestEndpoints(object):
         assert body["index"] == [f"/{url.pattern}" for url in urlpatterns]
 
     def test_index_no_auth(self, client, test_scheme_host):
-        """test authenticated index API endpoint without authenticating"""
+        """test unauthenticated index API endpoint"""
         response = client.get(f"{test_scheme_host}/")
-        assert response.status_code == 401
+        assert response.status_code == 200
 
     # workflows/healthy
     def test_health(self, client, test_scheme_host):
@@ -57,9 +57,9 @@ class TestEndpoints(object):
         assert body["workflows"] == workflows
 
     def test_workflows_no_auth(self, client, test_api_uri):
-        """test authenticated workflows API endpoint without authenticating"""
+        """test unauthenticated workflows API endpoint"""
         response = client.get(f"{test_api_uri}/workflows")
-        assert response.status_code == 401
+        assert response.status_code == 200
 
     def test_workflows_cve(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint"""
@@ -102,10 +102,10 @@ class TestEndpoints(object):
         assert response.status_code == 404
 
     def test_workflows_uuid_no_auth(self, client, test_api_uri):
-        """test authenticated workflow classification API endpoint without authenticating"""
-        flaw = FlawFactory()
+        """test unauthenticated workflow classification API endpoint"""
+        flaw = FlawFactory(embargoed=False)
         response = client.get(f"{test_api_uri}/workflows/{flaw.uuid}")
-        assert response.status_code == 401
+        assert response.status_code == 200
 
     # workflows/{flaw}/adjust
     @pytest.mark.enable_signals

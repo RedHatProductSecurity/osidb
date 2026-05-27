@@ -13904,6 +13904,7 @@ paths:
       - workflows
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -13929,6 +13930,7 @@ paths:
       - workflows
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -13974,6 +13976,7 @@ paths:
       - workflows
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:

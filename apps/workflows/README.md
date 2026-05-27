@@ -225,7 +225,18 @@ definitions specifies the mapping.
 **Jira to OSIDB:** Only task metadata updates from Jira. It does
 not map Jira status/resolution back to workflow fields.
 
+> The `task_key` guard ensures that only flaws with a Jira task are classified.
+> Flaws without a task (legacy flaws) keep empty workflow fields.
+
 ## API
+
+### Authentication
+
+All workflow API and graph endpoints are publicly accessible (unauthenticated).
+Workflow definitions are not sensitive and classification visibility is governed
+by flaw-level ACLs enforced at the database level -- if a flaw is embargoed,
+an unauthenticated request simply cannot retrieve it.
+
 The deprecated mutation endpoints (`promote`, `revert`, `reset`, `reject`,
 `adjust`) remain authenticated for backwards compatibility but are no-ops.
 
