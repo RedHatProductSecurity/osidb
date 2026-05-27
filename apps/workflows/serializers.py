@@ -25,6 +25,7 @@ class ConditionSerializer(serializers.Serializer):
     def to_representation(self, instance):
         if isinstance(instance, Condition):
             return {
+                "name": instance.name,
                 "condition": instance.condition,
                 "requirements": [
                     (
@@ -122,11 +123,52 @@ class ClassificationSerializer(serializers.Serializer):
 class ClassificationCheckSerializer(ClassificationSerializer, CheckSerializer):
     """Check serializer with classification"""
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        accepts = data.pop("accepts", None)
+        return {"accepts": accepts, **data}
+
+
+class ClassificationConditionSerializer(ClassificationSerializer, ConditionSerializer):
+    """Condition serializer with classification"""
+
+    def to_representation(self, instance):
+        flaw = self.context.get("flaw")
+        accepts = None if not flaw else instance.accepts(flaw)
+        data = ConditionSerializer.to_representation(self, instance)
+        if isinstance(instance, Condition):
+            data["requirements"] = [
+                (
+                    ClassificationCheckSerializer(check, context=self.context).data
+                    if isinstance(check, Check)
+                    else ClassificationConditionSerializer(
+                        check, context=self.context
+                    ).data
+                )
+                for check in instance.checks
+            ]
+        return {"accepts": accepts, **data}
+
 
 class ClassificationStateSerializer(ClassificationSerializer, StateSerializer):
     """State serializer with classification"""
 
-    requirements = ClassificationCheckSerializer(many=True)
+    def to_representation(self, instance):
+        flaw = self.context.get("flaw")
+        return {
+            "accepts": None if not flaw else instance.accepts(flaw),
+            "name": instance.name,
+            "requirements": [
+                (
+                    ClassificationCheckSerializer(req, context=self.context).data
+                    if isinstance(req, Check)
+                    else ClassificationConditionSerializer(
+                        req, context=self.context
+                    ).data
+                )
+                for req in instance.requirements
+            ],
+        }
 
 
 class ClassificationWorkflowSerializer(ClassificationSerializer, WorkflowSerializer):
@@ -134,6 +176,13 @@ class ClassificationWorkflowSerializer(ClassificationSerializer, WorkflowSeriali
 
     conditions = ClassificationCheckSerializer(many=True)
     states = ClassificationStateSerializer(many=True)
+    classified_state = serializers.SerializerMethodField()
+
+    def get_classified_state(self, instance):
+        flaw = self.context.get("flaw")
+        if not flaw or not instance.accepts(flaw):
+            return None
+        return instance.classify(flaw).name
 
 
 
