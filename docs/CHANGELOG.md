@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Base auto-affect determination on upstream affected versions (OSIDB-5031)
 - Add support for relative datetime queries in API filters (OSIDB-5168)
 - Component mapping collector and pre-filter for ACE affect creation (OSIDB-4952)
+- document workflow framework
+- introduce EMBARGOED workflow
+- introduce workflow labels
+
+### Changed
+- align existing workflows with workflow framework concepts
+- auto-adjust workflow:state on Flaw.save
 
 ## [5.12.0] - 2026-06-25
 ### Added
@@ -25,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wrap external errors with affect context for bulk PUT endpoint (OSIDB-5038)
 - Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
 - Exclude orphaned trackers from v1 flaw and tracker endpoints when filtering by tracker_ids(OSIDB-4927)
+
+### Removed
+- deprecate workflow manipulation endpoints
+- disconnect OSIDB workflow:state from the Jira
+- stop classifying legacy flaws
 
 ## [5.11.1] - 2026-06-10
 ### Fixed
