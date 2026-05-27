@@ -1,75 +1,251 @@
 <!doctype html>
-<!-- this page is for development purposes only -->
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Workflows | graph/workflows</title>
+    <title>Workflows</title>
+    <style>
+      :root {
+        --green: #22c55e;
+        --green-bg: #dcfce7;
+        --red: #ef4444;
+        --red-bg: #fee2e2;
+        --gray: #6b7280;
+        --gray-bg: #f3f4f6;
+        --border: #e5e7eb;
+      }
+      * { box-sizing: border-box; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        margin: 0; padding: 2em;
+        color: #1f2937;
+        background: #fafafa;
+      }
+      .page-header {
+        margin-bottom: 2em;
+        padding-bottom: 1em;
+        border-bottom: 2px solid var(--border);
+      }
+      .page-header h1 { margin: 0 0 0.3em; font-size: 1.6em; }
+      .page-header p { margin: 0; color: var(--gray); }
+
+      .legend {
+        display: flex; gap: 1.5em;
+        margin-bottom: 2em;
+        font-size: 0.85em;
+        color: var(--gray);
+      }
+      .legend-item {
+        display: flex; align-items: center; gap: 0.4em;
+      }
+      .legend-dot {
+        width: 12px; height: 12px;
+        border-radius: 3px;
+        display: inline-block;
+      }
+      .legend-dot.blue { background: #3b82f6; }
+      .legend-dot.green { background: var(--green); }
+      .legend-dot.red { background: var(--red); }
+      .legend-dot.neutral { background: var(--gray-bg); border: 1px solid var(--border); }
+
+      .workflow {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 1.5em;
+        overflow: hidden;
+      }
+      .workflow-header {
+        padding: 1em 1.5em;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: baseline;
+        gap: 1em;
+      }
+      .workflow-header h2 {
+        margin: 0;
+        font-size: 1.2em;
+      }
+      .workflow-badge {
+        font-size: 0.75em;
+        padding: 0.15em 0.5em;
+        border-radius: 10px;
+        font-weight: 600;
+      }
+      .badge-priority {
+        background: var(--gray-bg);
+        color: var(--gray);
+      }
+      .badge-accepts {
+        background: var(--green-bg);
+        color: var(--green);
+      }
+      .badge-rejects {
+        background: var(--red-bg);
+        color: var(--red);
+      }
+
+      .workflow-body { padding: 1.5em; }
+
+      .section-label {
+        font-size: 0.7em;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--gray);
+        font-weight: 600;
+        margin-bottom: 0.5em;
+      }
+
+      .conditions {
+        display: flex; gap: 0.5em;
+        flex-wrap: wrap;
+        margin-bottom: 1.5em;
+      }
+      .condition-chip {
+        font-size: 0.85em;
+        padding: 0.3em 0.8em;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: var(--gray-bg);
+      }
+      .condition-chip.accepts {
+        background: var(--green-bg);
+        border-color: var(--green);
+        color: #166534;
+      }
+      .condition-chip.rejects {
+        background: var(--red-bg);
+        border-color: var(--red);
+        color: #991b1b;
+      }
+      .no-conditions {
+        font-size: 0.85em;
+        color: var(--gray);
+        font-style: italic;
+      }
+
+      .diagram { margin-top: 0.5em; }
+      .diagram pre {
+        margin: 0;
+        background: none;
+      }
+    </style>
   </head>
   <body>
+    <div class="page-header">
+      <h1>Workflow Definitions</h1>
+      <p>
+        Classification is a pure function of flaw data.
+        Workflows are evaluated by descending priority; the first which conditions match is selected.
+        Within a workflow, states are scanned in order; the flaw is classified in the last accepting state
+        not preceded by any non-accepting.
+      </p>
+    </div>
+
+    {% if workflows.0.accepts is not None %}
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot blue"></span> Classified state</span>
+      <span class="legend-item"><span class="legend-dot green"></span> Accepts flaw</span>
+      <span class="legend-item"><span class="legend-dot red"></span> Does not accept flaw</span>
+      <span class="legend-item"><span class="legend-dot neutral"></span> Not evaluated</span>
+    </div>
+    {% endif %}
+
     {% for workflow in workflows %}
-    <h1>
-        {% if workflow.accepts != null %}
-            {% if workflow.accepts %}
-                <span style="background-color:#00FF3F">
-            {% else %}
-                <span style="background-color:#FF1020">
-            {% endif %}
-        {% else %}
-            <span>
+    <div class="workflow">
+      <div class="workflow-header">
+        <h2>{{ workflow.name }}</h2>
+        <span class="workflow-badge badge-priority">priority {{ workflow.priority }}</span>
+        {% if workflow.accepts is not None %}
+          {% if workflow.accepts %}
+        <span class="workflow-badge badge-accepts">selected</span>
+          {% else %}
+        <span class="workflow-badge badge-rejects">not selected</span>
+          {% endif %}
         {% endif %}
-        {{ workflow.name }} {{ workflow.priority }}
-        </span>
-    </h1>
-      <table border="1">
-        <tr>
-          {% for condition in workflow.conditions %}
-              {% if condition.accepts != null %}
-                  {% if condition.accepts %}
-                      <td bgcolor="#00FF3F">
-                  {% else %}
-                      <td bgcolor="#FF1020">
-                  {% endif %}
-              {% else %}
-                <td>
-              {% endif %}
-              {{ condition.name }}
-              </td>
-          {% endfor %}
-        </tr>
-      </table>
-      <div class="mermaid">
-        flowchart LR
-        {% for state in workflow.states %}
-          subgraph {{ state.name }}
-            direction RL
-            {% for requirement in state.requirements %}
-                {{ state.name }}{{ forloop.counter }}[{{ requirement.name }}]
-                {% if requirement.accepts != null %}
-                    {% if requirement.accepts %}
-                        style {{ state.name }}{{ forloop.counter }} fill:#00FF3F
-                    {% else %}
-                        style {{ state.name }}{{ forloop.counter }} fill:#FF1020
-                    {% endif %}
-                {% endif %}
-            {% endfor %}
-            {% if state.accepts != null %}
-                {% if state.accepts %}
-                    style {{ state.name }} fill:#00FF3F
-                {% else %}
-                    style {{ state.name }} fill:#FF1020
-                {% endif %}
-            {% endif %}
-          end
-          {% with outer=forloop.counter|add:1 %}
-            {% for next in workflow.states %}
-              {% if outer == forloop.counter %}
-                {{ state.name }} --> {{ next.name }}
-              {% endif %}
-            {% endfor %}
-          {% endwith %}
-        {% endfor %}
       </div>
+
+      <div class="workflow-body">
+        <div class="section-label">Conditions</div>
+        {% if workflow.conditions %}
+        <div class="conditions">
+          {% for condition in workflow.conditions %}
+          <span class="condition-chip {% if condition.accepts is not None %}{% if condition.accepts %}accepts{% else %}rejects{% endif %}{% endif %}">
+            {{ condition.name }}
+          </span>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="conditions">
+          <span class="no-conditions">No conditions — this is the default fallback workflow</span>
+        </div>
+        {% endif %}
+
+        <div class="section-label">States</div>
+        <div class="diagram">
+          <pre class="mermaid">
+flowchart LR
+{% for state in workflow.states %}
+{% if state.requirements %}
+subgraph {{ state.name }}["{{ state.name }}"]
+direction RL
+{% for requirement in state.requirements %}
+{{ state.name }}_r{{ forloop.counter }}["{{ requirement.name }}"]
+{% if requirement.accepts is not None %}
+{% if requirement.accepts %}
+style {{ state.name }}_r{{ forloop.counter }} fill:#dcfce7,stroke:#22c55e,color:#166534
+{% else %}
+style {{ state.name }}_r{{ forloop.counter }} fill:#fee2e2,stroke:#ef4444,color:#991b1b
+{% endif %}
+{% endif %}
+{% endfor %}
+{% if state.accepts is not None %}
+{% if state.name == workflow.classified_state %}
+style {{ state.name }} fill:#dbeafe,stroke:#3b82f6,stroke-width:3px,color:#1e40af
+{% elif state.accepts %}
+style {{ state.name }} fill:#dcfce7,stroke:#22c55e,color:#166534
+{% else %}
+style {{ state.name }} fill:#fee2e2,stroke:#ef4444,color:#991b1b
+{% endif %}
+{% endif %}
+end
+{% else %}
+{{ state.name }}["{{ state.name }}"]
+{% if state.accepts is not None %}
+{% if state.name == workflow.classified_state %}
+style {{ state.name }} fill:#dbeafe,stroke:#3b82f6,stroke-width:3px,color:#1e40af
+{% elif state.accepts %}
+style {{ state.name }} fill:#dcfce7,stroke:#22c55e,color:#166534
+{% else %}
+style {{ state.name }} fill:#fee2e2,stroke:#ef4444,color:#991b1b
+{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% for state in workflow.states %}
+{% if not forloop.last %}
+{% with next_idx=forloop.counter %}
+{% for next in workflow.states %}
+{% if forloop.counter0 == next_idx %}
+{{ state.name }} --> {{ next.name }}
+{% endif %}
+{% endfor %}
+{% endwith %}
+{% endif %}
+{% endfor %}
+          </pre>
+        </div>
+      </div>
+    </div>
     {% endfor %}
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script>
+      mermaid.initialize({
+        startOnLoad: true,
+        securityLevel: 'strict',
+        theme: 'neutral',
+        flowchart: { padding: 15 },
+      });
+    </script>
   </body>
 </html>

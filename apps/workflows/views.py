@@ -4,52 +4,41 @@ Workflows views
 
 import logging
 
-from django.shortcuts import render
-from django.views.generic import ListView
+from django.views.generic import TemplateView
 
 from osidb.helpers import get_flaw_or_404
 
-from .models import Workflow
 from .serializers import ClassificationWorkflowSerializer, WorkflowSerializer
 from .workflow import WorkflowFramework
 
 logger = logging.getLogger(__name__)
 
 
-class workflows(ListView):
+class workflows(TemplateView):
     """graph workflow view"""
 
-    model = Workflow
     template_name = "graph.html"
 
-    def get(self, request, *args, **kwargs):
-        """HTTP get graph/workflows"""
-        logger.info("getting workflow graphs")
-        context = {
+    def get_context_data(self, **kwargs):
+        return {
             "workflows": WorkflowSerializer(
                 WorkflowFramework().workflows,
                 many=True,
             ).data,
         }
-        return render(request, "graph.html", context)
 
 
-class classification(ListView):
+class classification(TemplateView):
     """graph workflow view with flaw classification"""
 
-    model = Workflow
     template_name = "graph.html"
 
-    def get(self, request, *args, **kwargs):
-        """HTTP get graph/workflows/<str:pk>"""
-        pk = kwargs["pk"]
-        logger.info(f"getting workflow graphs with flaw {pk} classification")
-        flaw = get_flaw_or_404(pk)
-        context = {
+    def get_context_data(self, **kwargs):
+        flaw = get_flaw_or_404(kwargs["pk"])
+        return {
             "workflows": ClassificationWorkflowSerializer(
                 WorkflowFramework().workflows,
                 context={"flaw": flaw},
                 many=True,
             ).data,
         }
-        return render(request, "graph.html", context)
