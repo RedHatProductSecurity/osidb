@@ -94,6 +94,47 @@ class TestEndpoints(object):
         assert "classification" in body
         assert "workflows" in body
 
+    def test_workflows_uuid_verbose_accepts(self, auth_client, test_api_uri):
+        """test that verbose classification includes accepts on workflows, states, and requirements"""
+        flaw = FlawFactory(embargoed=False, task_key="TASK-VERBOSE")
+        response = auth_client().get(
+            f"{test_api_uri}/workflows/{flaw.uuid}?verbose=true"
+        )
+        assert response.status_code == 200
+        body = response.json()
+
+        selected_workflow = None
+        for wf in body["workflows"]:
+            assert "accepts" in wf, f"workflow {wf['name']} missing accepts"
+            assert isinstance(wf["accepts"], bool)
+            assert "classified_state" in wf
+
+            if wf["accepts"]:
+                selected_workflow = wf
+                assert wf["classified_state"] is not None
+            else:
+                assert wf["classified_state"] is None
+
+            for condition in wf.get("conditions", []):
+                assert "accepts" in condition
+                assert list(condition.keys())[0] == "accepts"
+
+            for state in wf["states"]:
+                assert "accepts" in state, f"state {state['name']} missing accepts"
+                assert isinstance(state["accepts"], bool)
+                assert list(state.keys())[0] == "accepts"
+
+                for req in state["requirements"]:
+                    assert "accepts" in req, (
+                        f"requirement {req['name']} missing accepts"
+                    )
+                    assert isinstance(req["accepts"], bool)
+                    assert list(req.keys())[0] == "accepts"
+
+        assert selected_workflow is not None
+        classified = selected_workflow["classified_state"]
+        assert classified == body["classification"]["state"]
+
     def test_workflows_uuid_non_existing(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint with non-exising flaw"""
         response = auth_client().get(
@@ -106,6 +147,36 @@ class TestEndpoints(object):
         flaw = FlawFactory(embargoed=False)
         response = client.get(f"{test_api_uri}/workflows/{flaw.uuid}")
         assert response.status_code == 200
+
+    # graph/workflows
+    def test_graph_workflows(self, auth_client, test_api_uri):
+        """test graph workflows endpoint renders all registered workflows"""
+        response = auth_client().get(f"{test_api_uri}/graph/workflows")
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "mermaid" in content
+        for workflow in WorkflowFramework().workflows:
+            assert workflow.name in content
+            for state in workflow.states:
+                assert state.name in content
+
+    def test_graph_workflows_no_auth(self, client, test_api_uri):
+        """test unauthenticated graph workflows endpoint"""
+        response = client.get(f"{test_api_uri}/graph/workflows")
+        assert response.status_code == 200
+
+    def test_graph_classification(self, auth_client, test_api_uri):
+        """test graph classification endpoint renders flaw classification"""
+        flaw = FlawFactory(embargoed=False, task_key="TASK-GRAPH")
+        response = auth_client().get(f"{test_api_uri}/graph/workflows/{flaw.uuid}")
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "mermaid" in content
+        # classification view renders a legend (absent in the plain workflow view)
+        assert "Classified state" in content
+        # flaw with no owner is classified in the NEW state
+        # and the template applies per-state Mermaid styling
+        assert "style NEW" in content
 
     # workflows/{flaw}/adjust
     @pytest.mark.enable_signals
