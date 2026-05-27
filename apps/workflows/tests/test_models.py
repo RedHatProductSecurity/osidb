@@ -727,6 +727,7 @@ class TestWorkflow:
         bypass_flaw.cwe_id = "CWE-1"
         assert_state_equals(workflow.classify(bypass_flaw), state_new)
 
+
 class TestWorkflowFramework:
     def test_classify_priority(self):
         """
