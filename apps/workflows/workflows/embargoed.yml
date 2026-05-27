@@ -1,0 +1,57 @@
+---
+name: EMBARGOED
+description: >
+  Embargoed vulnerability workflow. Applies to flaws with embargo ACLs.
+  The flaw must be unembargoed (made public) to reach DONE, at which
+  point it falls to the DEFAULT workflow for final classification.
+priority: 1
+conditions:
+  - is embargoed
+states:
+  - name: NEW
+    description: >
+      A new embargoed flaw arrived into the queue.
+    jira_state: New
+    jira_resolution: null
+    requirements: []
+
+  - name: TRIAGE
+    description: >
+      Queue captain has taken the flaw off the incoming queue and will evaluate
+      whether it should be rejected or analysed further.
+    jira_state: Refinement
+    jira_resolution: null
+    requirements:
+      - has owner
+
+  - name: PRE_SECONDARY_ASSESSMENT
+    description: >
+      A flaw was qualified for further work. It has the initial data filled
+      and the affectedness was assessed. The trackers can be filed.
+    jira_state: To Do
+    jira_resolution: null
+    requirements:
+      - has affects
+      - has components
+      - has impact
+      - has reported_dt
+      - has source
+      - has title
+
+  - name: SECONDARY_ASSESSMENT
+    description: The trackers were filed. The flaw is waiting for the unembargo.
+    jira_state: In Progress
+    jira_resolution: null
+    requirements:
+      - has trackers
+
+  - name: DONE
+    description: >
+      Reaching DONE requires the flaw to no longer be embargoed which makes it
+      effectively unreachable (due to conflicting workflow condition). This
+      serves as a gating mechanism making sure it eventually falls to DEFAULT
+      workflow and gets finalized the standard way when the embargo is lifted.
+    jira_state: Closed
+    jira_resolution: Done
+    requirements:
+      - is not embargoed
