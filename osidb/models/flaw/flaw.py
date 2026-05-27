@@ -528,22 +528,6 @@ class Flaw(
             )
 
     @validator
-    def _validate_impact_and_cve_description(self, **kwargs):
-        """
-        Checks that if impact has MODERATE, IMPORTANT or CRITICAL value set,
-        then cve_description must not be missing.
-        """
-        if (
-            self.impact in [Impact.MODERATE, Impact.IMPORTANT, Impact.CRITICAL]
-            and not self.cve_description
-        ):
-            self.alert(
-                "impact_without_cve_description",
-                f"cve_description cannot be missing if impact is {self.impact}.",
-                **kwargs,
-            )
-
-    @validator
     def _validate_rh_cvss3_and_impact(self, **kwargs):
         """
         Validate that flaw's RH CVSSv3 score and impact comply with the following:
