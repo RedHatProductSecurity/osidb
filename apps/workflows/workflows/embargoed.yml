@@ -37,6 +37,10 @@ states:
       - has reported_dt
       - has source
       - has title
+      - condition: OR
+        requirements:
+          - impact is low
+          - has cve_description
 
   - name: SECONDARY_ASSESSMENT
     description: The trackers were filed. The flaw is waiting for the unembargo.
