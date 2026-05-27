@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - move automatic visibility change handling specification into the workflow definitions
 - align workflow definition YAMLs with the Argus requirements (OSIDB-5050)
 
+### Removed
+- deprecate workflow manipulation endpoints
+- disconnect OSIDB workflow:state from the Jira
+- stop classifying legacy flaws
+
 ## [5.12.0] - 2026-06-25
 ### Added
 - Scope lib-newtopia queries by ecosystem derived from upstream PURLs (OSIDB-4966)
@@ -33,11 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wrap external errors with affect context for bulk PUT endpoint (OSIDB-5038)
 - Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
 - Exclude orphaned trackers from v1 flaw and tracker endpoints when filtering by tracker_ids(OSIDB-4927)
-
-### Removed
-- deprecate workflow manipulation endpoints
-- disconnect OSIDB workflow:state from the Jira
-- stop classifying legacy flaws
 
 ## [5.11.1] - 2026-06-10
 ### Fixed
