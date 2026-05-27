@@ -1008,7 +1008,7 @@ class TestFlaw:
     @pytest.mark.enable_signals
     def test_rejected_label_classifies_to_rejected_workflow(self):
         """test that adding a rejected workflow label classifies flaw into REJECTED workflow using parameterized check"""
-        flaw = FlawFactory(task_key="TASK-456")
+        flaw = FlawFactory(embargoed=False, task_key="TASK-456")
         AffectFactory(flaw=flaw)
         flaw.adjust_classification()
 
@@ -1026,7 +1026,7 @@ class TestFlaw:
     @pytest.mark.enable_signals
     def test_removing_rejected_label_falls_back_to_default(self):
         """test that removing the rejected label causes fallback to DEFAULT workflow"""
-        flaw = FlawFactory(task_key="TASK-789")
+        flaw = FlawFactory(embargoed=False, task_key="TASK-789")
         AffectFactory(flaw=flaw)
 
         workflow_label = FlawCollaborator.objects.create(
