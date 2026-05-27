@@ -2,7 +2,7 @@
 name: REJECTED
 description: >
   Rejected vulnerability workflow.
-priority: 1
+priority: 2
 conditions:
   - has label rejected
 states:
