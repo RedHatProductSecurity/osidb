@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auditing and tracking of tool-assisted and auto-created affects (OSIDB-4951, OSIDB-4978)
 - Add UpstreamData model with upstream purl field and collection (OSIDB-4923)
 
+### Changed
+- Allow adding labels to flaws in any workflow state, including DONE (OSIDB-4986)
+
 ### Fixed
 - Exclude streams with no offer from tracker suggestions response (OSIDB-4977)
 

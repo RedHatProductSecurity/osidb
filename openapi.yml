@@ -15562,6 +15562,7 @@ components:
       enum:
       - alias
       - context_based
+      - bu
       type: string
     FlawCollaboratorRequest:
       type: object
