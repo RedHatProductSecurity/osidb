@@ -185,6 +185,20 @@ class ClassificationWorkflowSerializer(ClassificationSerializer, WorkflowSeriali
         return instance.classify(flaw).name
 
 
+class ClassificationResultSerializer(serializers.Serializer):
+    """Serializer for the workflow:state classification result"""
+
+    workflow = serializers.CharField()
+    state = serializers.CharField()
+
+
+class ClassificationResponseSerializer(serializers.Serializer):
+    """Response serializer for the classification endpoint"""
+
+    flaw = serializers.UUIDField()
+    classification = ClassificationResultSerializer()
+    workflows = ClassificationWorkflowSerializer(many=True, required=False)
+
 
 @extend_schema_serializer(deprecate_fields=["group_key", "team_id"])
 class WorkflowModelSerializer(serializers.ModelSerializer):
