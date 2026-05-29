@@ -5,8 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-### Fixed
-- Fixed double error raise problem in sync_manager.
+
+## [5.11.0] - 2026-05-28
 ### Added
 - Add validation to require PURLs (OSIDB-4810)
 - Automatic affectedness and resolution determination based on product
@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `bu_labels` label type (OSIDB-4982)
 - Auditing and tracking of tool-assisted and auto-created affects (OSIDB-4951, OSIDB-4978)
 - Add UpstreamData model with upstream purl field and collection (OSIDB-4923)
+
+### Changed
+- Allow adding labels to flaws in any workflow state, including DONE (OSIDB-4986)
 
 ### Fixed
 - Exclude streams with no offer from tracker suggestions response (OSIDB-4977)
