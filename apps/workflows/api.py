@@ -15,6 +15,7 @@ from osidb.helpers import get_flaw_or_404
 
 from .helpers import str2bool
 from .serializers import (
+    ClassificationResponseSerializer,
     ClassificationWorkflowSerializer,
     WorkflowSerializer,
 )
@@ -258,6 +259,7 @@ class classification(RudimentaryUserPathLoggingMixin, APIView):
                 ),
             ),
         ],
+        responses={200: ClassificationResponseSerializer},
     )
     def get(self, request, pk):
         """
