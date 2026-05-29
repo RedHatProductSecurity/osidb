@@ -236,6 +236,8 @@ class FlawCollaborator(TrackingMixin):
         """Remove existing automation labels before applying a new one"""
         if self.type not in self.AUTOMATION_LABEL_TYPES:
             return
+        if not self._state.adding:
+            return
         # potential_rejection is additive, don't clear others
         if self.type == FlawLabel.FlawLabelType.POTENTIAL_REJECTION:
             return
