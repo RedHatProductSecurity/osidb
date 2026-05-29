@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models
 from django.db.models import Q
 
+from apps.workflows.workflow import WorkflowModel
 from osidb.mixins import TrackingMixin, TrackingMixinManager
 from osidb.models import Affect, Flaw
 from osidb.query_sets import CustomQuerySetUpdatedDt
@@ -171,6 +172,14 @@ class FlawCollaborator(TrackingMixin):
 
     objects = FlawCollaboratorManager.from_queryset(CustomQuerySetUpdatedDt)()
 
+    # Automation label types constant
+    AUTOMATION_LABEL_TYPES = {
+        FlawLabel.FlawLabelType.MANUAL_TRIAGE,
+        FlawLabel.FlawLabelType.AUTO_AFFECTS,
+        FlawLabel.FlawLabelType.AUTO_REJECTED,
+        FlawLabel.FlawLabelType.POTENTIAL_REJECTION,
+    }
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -189,6 +198,8 @@ class FlawCollaborator(TrackingMixin):
             self.relevant = True
 
         try:
+            self._validate_automation_prerequisites()
+            self._enforce_mutual_exclusivity()
             super().save(*args, **kwargs)
         except IntegrityError as e:
             ex_msg = str(e)
@@ -196,6 +207,46 @@ class FlawCollaborator(TrackingMixin):
                 raise ValidationError(
                     {"label": f"Label '{self.label}' already exists."}
                 )
+
+    def _validate_automation_prerequisites(self):
+        """Validate prerequisites before applying automation labels"""
+        if self.type not in self.AUTOMATION_LABEL_TYPES:
+            return
+        if not self._state.adding:
+            return
+        flaw = self.flaw
+        if not flaw.cve_id:
+            raise ValidationError(
+                {"flaw": "Flaw must have a CVE to apply automation labels."}
+            )
+        if not flaw.components:
+            raise ValidationError(
+                {"flaw": "Flaw must have components to apply automation labels."}
+            )
+        if flaw.workflow_state != WorkflowModel.WorkflowState.NEW:
+            raise ValidationError(
+                {"flaw": "Flaw must be in a NEW state to apply automation labels."}
+            )
+        if flaw.embargoed:
+            raise ValidationError(
+                {"flaw": "Automation labels cannot be applied to embargoed flaws."}
+            )
+
+    def _enforce_mutual_exclusivity(self):
+        """Remove existing automation labels before applying a new one"""
+        if self.type not in self.AUTOMATION_LABEL_TYPES:
+            return
+        # potential_rejection is additive, don't clear others
+        if self.type == FlawLabel.FlawLabelType.POTENTIAL_REJECTION:
+            return
+        FlawCollaborator.objects.filter(
+            flaw=self.flaw,
+            type__in=[
+                FlawLabel.FlawLabelType.MANUAL_TRIAGE,
+                FlawLabel.FlawLabelType.AUTO_AFFECTS,
+                FlawLabel.FlawLabelType.AUTO_REJECTED,
+            ],
+        ).delete()
 
     def _validate_label(self):
         """Validate the label"""

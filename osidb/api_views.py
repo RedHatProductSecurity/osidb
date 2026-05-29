@@ -65,6 +65,7 @@ from osidb.models import (
 )
 from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.cvss import FlawCVSS
+from osidb.models.flaw.label import FlawCollaborator
 from osidb.sync_manager import SyncManager
 
 from .constants import OSIDB_API_VERSION, PYPI_URL
@@ -1824,6 +1825,10 @@ class FlawLabelView(
         if instance.type == FlawLabel.FlawLabelType.PRODUCT_FAMILY:
             raise PermissionDenied(
                 {"label": "Product family labels cannot be deleted."}
+            )
+        if instance.type in FlawCollaborator.AUTOMATION_LABEL_TYPES:
+            raise PermissionDenied(
+                {"label": "Automation labels cannot be manually deleted."}
             )
         return super().destroy(request, *args, **kwargs)
 

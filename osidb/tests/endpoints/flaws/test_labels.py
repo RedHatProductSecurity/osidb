@@ -153,6 +153,44 @@ class TestEndpointsFlawsLabels:
         assert response.json()["label"] == "Product family labels cannot be deleted."
         assert FlawCollaborator.objects.count() == 1
 
+    def test_delete_automation_label(self, auth_client, test_api_uri):
+        """Test for user cannot delete automation label"""
+        flaw = Flaw.objects.first()
+        flaw.workflow_state = WorkflowModel.WorkflowState.NEW
+        flaw.save()
+        flaw_collaborator = FlawCollaborator.objects.create(
+            label="auto-affects",
+            flaw=flaw,
+            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            type=FlawLabel.FlawLabelType.AUTO_AFFECTS,
+        )
+        response = auth_client().delete(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{flaw_collaborator.uuid}"
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert (
+            response.json()["label"] == "Automation labels cannot be manually deleted."
+        )
+        assert FlawCollaborator.objects.count() == 1
+
+    def test_create_automation_label(self, auth_client, test_api_uri):
+        """Test for user cannot POST automation label"""
+        flaw = Flaw.objects.first()
+        FlawLabel.objects.get_or_create(
+            name="auto-affects",
+            defaults={"type": FlawLabel.FlawLabelType.AUTO_AFFECTS},
+        )
+        response = auth_client().post(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels",
+            {"label": "auto-affects", "state": "NEW", "contributor": "skynet"},
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert (
+            response.json()["label"]
+            == "Only context-based and alias labels can be manually added to flaws. 'auto-affects' is a automation label."
+        )
+
     def test_create_alias_label(self, auth_client, test_api_uri):
         """Test creating an alias label with free-form text (no pre-definition needed)"""
         flaw = Flaw.objects.first()

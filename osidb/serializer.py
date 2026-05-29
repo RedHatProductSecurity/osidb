@@ -2144,7 +2144,12 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
             return super().create(validated_data)
 
         label = FlawLabel.objects.get(name=validated_data.get("label"))
-
+        if label.type in FlawCollaborator.AUTOMATION_LABEL_TYPES:
+            raise serializers.ValidationError(
+                {
+                    "label": f"Only context-based and alias labels can be manually added to flaws. '{label.name}' is a automation label."
+                }
+            )
         if label.type not in [
             FlawLabel.FlawLabelType.CONTEXT_BASED,
             FlawLabel.FlawLabelType.BU,
