@@ -13982,17 +13982,19 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
+                allOf:
+                - $ref: '#/components/schemas/ClassificationResponse'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
           description: ''
   /workflows/api/v1/workflows/{id}/adjust:
     post:
@@ -14814,6 +14816,96 @@ components:
     BlankEnum:
       enum:
       - ''
+    ClassificationCheck:
+      type: object
+      description: Check serializer with classification
+      properties:
+        accepts:
+          type: string
+          readOnly: true
+        name:
+          type: string
+        description:
+          type: string
+      required:
+      - accepts
+      - description
+      - name
+    ClassificationResponse:
+      type: object
+      description: Response serializer for the classification endpoint
+      properties:
+        flaw:
+          type: string
+          format: uuid
+        classification:
+          $ref: '#/components/schemas/ClassificationResult'
+        workflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassificationWorkflow'
+      required:
+      - classification
+      - flaw
+    ClassificationResult:
+      type: object
+      description: Serializer for the workflow:state classification result
+      properties:
+        workflow:
+          type: string
+        state:
+          type: string
+      required:
+      - state
+      - workflow
+    ClassificationState:
+      type: object
+      description: State serializer with classification
+      properties:
+        accepts:
+          type: string
+          readOnly: true
+        name:
+          type: string
+        requirements:
+          type: array
+          items: {}
+      required:
+      - accepts
+      - name
+      - requirements
+    ClassificationWorkflow:
+      type: object
+      description: Workflow serializer with classification
+      properties:
+        accepts:
+          type: string
+          readOnly: true
+        name:
+          type: string
+        description:
+          type: string
+        priority:
+          type: integer
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassificationCheck'
+        states:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassificationState'
+        classified_state:
+          type: string
+          readOnly: true
+      required:
+      - accepts
+      - classified_state
+      - conditions
+      - description
+      - name
+      - priority
+      - states
     Comment:
       type: object
       description: FlawComment serializer for use by FlawSerializer
