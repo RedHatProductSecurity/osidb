@@ -9,7 +9,7 @@ import pghistory
 from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.db.models import JSONField, Q
 from django.utils import timezone
 from psqlextra.fields import HStoreField
@@ -1112,35 +1112,36 @@ class Flaw(
             return
 
         # switch of sync/async processing
-        if JIRA_TASKMAN_ASYNCHRONOUS_SYNC:
-            if update_task:
-                JiraTaskSyncManager.check_for_reschedules()
-                JiraTaskSyncManager.schedule(str(self.uuid))
+        with transaction.atomic():
+            if JIRA_TASKMAN_ASYNCHRONOUS_SYNC:
+                if update_task:
+                    JiraTaskSyncManager.check_for_reschedules()
+                    JiraTaskSyncManager.schedule(str(self.uuid))
 
-            if transition_task:
-                # workflow transition may result in ACL change
-                self.adjust_acls(save=False)
-                Flaw.objects.filter(uuid=self.uuid).update(
-                    acl_read=self.acl_read,
-                    acl_write=self.acl_write,
-                )
+                if transition_task:
+                    # workflow transition may result in ACL change
+                    self.adjust_acls(save=False)
+                    Flaw.objects.filter(uuid=self.uuid).update(
+                        acl_read=self.acl_read,
+                        acl_write=self.acl_write,
+                    )
 
-                JiraTaskTransitionManager.check_for_reschedules()
-                JiraTaskTransitionManager.schedule(str(self.uuid))
+                    JiraTaskTransitionManager.check_for_reschedules()
+                    JiraTaskTransitionManager.schedule(str(self.uuid))
 
-        else:
-            if update_task:
-                self._create_or_update_task(jira_token, jira_email)
+            else:
+                if update_task:
+                    self._create_or_update_task(jira_token, jira_email)
 
-            if transition_task:
-                # workflow transition may result in ACL change
-                self.adjust_acls(save=False)
-                Flaw.objects.filter(uuid=self.uuid).update(
-                    acl_read=self.acl_read,
-                    acl_write=self.acl_write,
-                )
+                if transition_task:
+                    # workflow transition may result in ACL change
+                    self.adjust_acls(save=False)
+                    Flaw.objects.filter(uuid=self.uuid).update(
+                        acl_read=self.acl_read,
+                        acl_write=self.acl_write,
+                    )
 
-                self._transition_task(jira_token, jira_email)
+                    self._transition_task(jira_token, jira_email)
 
     def _create_or_update_task(self, jira_token=None, jira_email=None):
         """
