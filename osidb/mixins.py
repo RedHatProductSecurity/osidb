@@ -641,44 +641,45 @@ class ACLMixin(models.Model):
         if isnt_embargoed or cant_unembargo:
             return
 
-        # unembargo
-        self.set_public()
-        self.set_history_public()
+        with transaction.atomic():
+            # unembargo
+            self.set_public()
+            self.set_history_public()
 
-        kwargs = {}
-        if issubclass(type(self), AlertMixin):
-            # suppress the validation errors as we expect that during
-            # the update the parent and child ACLs will not equal
-            kwargs["raise_validation_error"] = False
-        if issubclass(type(self), TrackingMixin):
-            # do not auto-update the updated_dt timestamp as the
-            # followup update would fail on a mid-air collision
-            kwargs["auto_timestamps"] = False
+            kwargs = {}
+            if issubclass(type(self), AlertMixin):
+                # suppress the validation errors as we expect that during
+                # the update the parent and child ACLs will not equal
+                kwargs["raise_validation_error"] = False
+            if issubclass(type(self), TrackingMixin):
+                # do not auto-update the updated_dt timestamp as the
+                # followup update would fail on a mid-air collision
+                kwargs["auto_timestamps"] = False
 
-        self.save(**kwargs)
+            self.save(**kwargs)
 
-        # chain all the related instances in reverse relationships (o2m, m2m)
-        # as we only care for the ACLs which are unified
-        for related_instance in chain.from_iterable(
-            getattr(self, name).all()
-            for name in [
-                related.related_name
-                for related in self._meta.related_objects
-                # only the models with ACLs are subject of this
-                if issubclass(related.related_model, ACLMixin)
-            ]
-        ):
-            # continue deeper into the related context
-            related_instance.unembargo()
+            # chain all the related instances in reverse relationships (o2m, m2m)
+            # as we only care for the ACLs which are unified
+            for related_instance in chain.from_iterable(
+                getattr(self, name).all()
+                for name in [
+                    related.related_name
+                    for related in self._meta.related_objects
+                    # only the models with ACLs are subject of this
+                    if issubclass(related.related_model, ACLMixin)
+                ]
+            ):
+                # continue deeper into the related context
+                related_instance.unembargo()
 
-        # chain related instances in forward relationships (m2o, o2o)
-        for field in self._meta.concrete_fields:
-            if isinstance(
-                field, (models.ForeignKey, models.OneToOneField)
-            ) and issubclass(field.related_model, ACLMixin):
-                related_instance = getattr(self, field.name)
-                if related_instance:
-                    related_instance.unembargo()
+            # chain related instances in forward relationships (m2o, o2o)
+            for field in self._meta.concrete_fields:
+                if isinstance(
+                    field, (models.ForeignKey, models.OneToOneField)
+                ) and issubclass(field.related_model, ACLMixin):
+                    related_instance = getattr(self, field.name)
+                    if related_instance:
+                        related_instance.unembargo()
 
     def set_public_nested(self, max_chunk_size=5000):
         """
