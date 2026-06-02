@@ -1,7 +1,4 @@
-import uuid
-
 import pytest
-from django.conf import settings
 
 from osidb.constants import OSIDB_API_VERSION, OSIDB_API_VERSION_NEXT
 from taskman.constants import TASKMAN_API_VERSION
@@ -46,24 +43,6 @@ def auto_enable_jira_task_sync(enable_jira_task_sync) -> None:
     the tests should be immune to what .env you build the testrunner with
     """
     pass
-
-
-@pytest.fixture
-def acl_read():
-    return [
-        uuid.uuid5(uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}")
-        for group in settings.PUBLIC_READ_GROUPS
-    ]
-
-
-@pytest.fixture
-def acl_write():
-    return [
-        uuid.uuid5(
-            uuid.NAMESPACE_URL,
-            f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
-        )
-    ]
 
 
 @pytest.fixture
