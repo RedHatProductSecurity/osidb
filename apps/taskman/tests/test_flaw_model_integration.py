@@ -74,7 +74,7 @@ class TestFlawModelIntegration(object):
         # flaws without task_key were created by collectors should not sync in jira
         assert sync_count == 1
 
-    def test_syncing(self, monkeypatch, acl_read, acl_write):
+    def test_syncing(self, monkeypatch, public_read_groups, public_write_groups):
         sync_count = 0
 
         def mock_create_or_update_task(self, flaw):
@@ -89,8 +89,8 @@ class TestFlawModelIntegration(object):
         flaw = Flaw(
             cve_id="CVE-2020-8004",
             title="CVE-2020-8004 kernel: some description",
-            acl_read=acl_read,
-            acl_write=acl_write,
+            acl_read=public_read_groups,
+            acl_write=public_write_groups,
             comment_zero="Comment zero",
             components=["component"],
             impact=Impact.LOW,
@@ -313,7 +313,12 @@ class TestFlawModelIntegration(object):
 
     @pytest.mark.vcr
     def test_token_validation(
-        self, monkeypatch, acl_read, acl_write, jira_token, jira_email
+        self,
+        monkeypatch,
+        public_read_groups,
+        public_write_groups,
+        jira_token,
+        jira_email,
     ):
         """
         Test that service is able validate user authentication and raise errors
@@ -325,8 +330,8 @@ class TestFlawModelIntegration(object):
         reported_dt = make_aware(datetime.now())
         flaw = Flaw(
             uuid=uuid1,
-            acl_read=acl_read,
-            acl_write=acl_write,
+            acl_read=public_read_groups,
+            acl_write=public_write_groups,
             cwe_id="CWE-1",
             impact="LOW",
             components=["kernel"],
@@ -344,8 +349,8 @@ class TestFlawModelIntegration(object):
 
         flaw = Flaw(
             uuid=uuid2,
-            acl_read=acl_read,
-            acl_write=acl_write,
+            acl_read=public_read_groups,
+            acl_write=public_write_groups,
             cwe_id="CWE-1",
             impact="LOW",
             components=["kernel"],
@@ -375,7 +380,11 @@ class TestFlawModelIntegration(object):
             flaw.save(jira_token=jira_token, jira_email=jira_email)
 
     def test_tasksync_conditions(
-        self, acl_read, acl_write, enable_jira_task_sync, monkeypatch
+        self,
+        public_read_groups,
+        public_write_groups,
+        enable_jira_task_sync,
+        monkeypatch,
     ):
         """
         test that tasksync conditional branching leands where it is supposed to
