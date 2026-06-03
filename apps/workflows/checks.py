@@ -74,6 +74,10 @@ class CheckParser:
         if check_desc.startswith("is_not_"):
             check_desc = "not_is_" + check_desc[7:]
         check_desc = check_desc.replace("_is_not_", "_not_is_")
+        if check_desc.startswith("has_not_"):
+            check_desc = "not_has_" + check_desc[8:]
+        # unlike is operator has can only be a part of a prefix
+        # so no need to make in the middle replacement
 
         for func in [
             self.desc2property,
