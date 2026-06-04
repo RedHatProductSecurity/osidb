@@ -476,7 +476,9 @@ class TestTrackerQueryBuilderDescription:
 
         affects = []
 
-        flaw = FlawFactory()
+        flaw = FlawFactory(
+            comment_zero="this is the community flaw description",
+        )
         embargoed = flaw.embargoed
 
         affects.append(
@@ -506,6 +508,7 @@ class TestTrackerQueryBuilderDescription:
             "Disclaimer: Community trackers are created by Red Hat Product Security team on a "
             "best effort basis. Package maintainers are required to ascertain if the flaw indeed "
             "affects their package, before starting the update process."
+            "\n\nthis is the community flaw description"
         )
 
     def test_jira_basic(self):

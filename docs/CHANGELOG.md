@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `bu_labels` label type (OSIDB-4982)
 - Auditing and tracking of tool-assisted and auto-created affects (OSIDB-4951, OSIDB-4978)
 - Add UpstreamData model with upstream purl field and collection (OSIDB-4923)
+- Add comment_zero in the description of community trackers (OSIDB-4776)
 
 ### Changed
 - Allow adding labels to flaws in any workflow state, including DONE (OSIDB-4986)
