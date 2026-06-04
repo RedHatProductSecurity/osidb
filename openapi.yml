@@ -1348,7 +1348,6 @@ paths:
             - DONE
             - NEW
             - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
             - SECONDARY_ASSESSMENT
             - TRIAGE
         description: |+
@@ -3975,7 +3974,6 @@ paths:
             - DONE
             - NEW
             - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
             - SECONDARY_ASSESSMENT
             - TRIAGE
         description: |+
@@ -3994,7 +3992,6 @@ paths:
             - DONE
             - NEW
             - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
             - SECONDARY_ASSESSMENT
             - TRIAGE
         description: |+
@@ -5765,8 +5762,12 @@ paths:
       description: |-
         workflow promotion API endpoint
 
-        try to adjust workflow classification of flaw to the next state available
-        return its workflow:state classification or errors if not possible to promote
+        DEPRECATED: Workflow classification is now automatic based on flaw data.
+        This endpoint no longer performs any action - it only returns the current
+        computed classification. This endpoint will be removed in a future version.
+
+        To change workflow state, update the flaw data directly (assign owner, create
+        affects, file trackers, etc.). Classification will update automatically.
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -5787,6 +5788,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -6219,9 +6221,13 @@ paths:
     post:
       operationId: osidb_api_v1_flaws_reject_create
       description: |-
-        workflow promotion API endpoint
+        workflow rejection API endpoint
 
-        try to reject a flaw / task
+        DEPRECATED: Workflow classification is now automatic based on flaw data.
+        This endpoint no longer performs any action - it only returns the current
+        computed classification. This endpoint will be removed in a future version.
+
+        Rejection is driven by a flaw data TODO.
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -6240,20 +6246,9 @@ paths:
         required: true
       tags:
       - osidb
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RejectRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/RejectRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/RejectRequest'
-        required: true
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -6277,9 +6272,13 @@ paths:
       description: |-
         Workflow reset API endpoint.
 
-        Try to adjust workflow classification of a Flaw to the initial state
-        of the default workflow, return its workflow:state classification or
-        errors if not possible to reset.
+        DEPRECATED: Workflow classification is now automatic based on flaw data.
+        This endpoint no longer performs any action - it only returns the current
+        computed classification. This endpoint will be removed in a future version.
+
+        Workflow state cannot be manually reset. Classification is determined by
+        the flaw's current data and will automatically reflect the appropriate
+        workflow and state.
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -6300,6 +6299,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -6323,9 +6323,13 @@ paths:
       description: |-
         Workflow revert API endpoint.
 
-        Try to adjust workflow classification of a Flaw to the previous state
-        available and return its workflow:state classification or errors if
-        not possible to revert.
+        DEPRECATED: Workflow classification is now automatic based on flaw data.
+        This endpoint no longer performs any action - it only returns the current
+        computed classification. This endpoint will be removed in a future version.
+
+        To change workflow state, update the flaw data directly. If requirements
+        for the current state are no longer met, classification will automatically
+        revert to the appropriate state.
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -6346,6 +6350,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -8697,7 +8702,6 @@ paths:
             - DONE
             - NEW
             - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
             - SECONDARY_ASSESSMENT
             - TRIAGE
         description: |+
@@ -11787,7 +11791,6 @@ paths:
             - DONE
             - NEW
             - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
             - SECONDARY_ASSESSMENT
             - TRIAGE
         description: |+
@@ -11806,7 +11809,6 @@ paths:
             - DONE
             - NEW
             - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
             - SECONDARY_ASSESSMENT
             - TRIAGE
         description: |+
@@ -13864,6 +13866,7 @@ paths:
       - workflows
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -13889,6 +13892,7 @@ paths:
       - workflows
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -13934,22 +13938,25 @@ paths:
       - workflows
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
+                allOf:
+                - $ref: '#/components/schemas/ClassificationResponse'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
           description: ''
   /workflows/api/v1/workflows/{id}/adjust:
     post:
@@ -13957,11 +13964,12 @@ paths:
       description: |-
         workflow adjustion API endpoint
 
-        adjust workflow classification of flaw identified by UUID or CVE
-        and return its workflow:state classification (new if changed and old otherwise)
+        DEPRECATED: Workflow classification is now automatic on every flaw save.
+        This endpoint no longer performs any action - it only returns the current
+        computed classification. This endpoint will be removed in a future version.
 
-        adjust operation is idempotent so when the classification
-        is already adjusted running it results in no operation
+        To change workflow state, update the flaw data directly (owner, affects,
+        trackers, etc.). Classification will update automatically.
       parameters:
       - in: path
         name: id
@@ -13972,6 +13980,7 @@ paths:
       - workflows
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -14769,6 +14778,96 @@ components:
     BlankEnum:
       enum:
       - ''
+    ClassificationCheck:
+      type: object
+      description: Check serializer with classification
+      properties:
+        accepts:
+          type: string
+          readOnly: true
+        name:
+          type: string
+        description:
+          type: string
+      required:
+      - accepts
+      - description
+      - name
+    ClassificationResponse:
+      type: object
+      description: Response serializer for the classification endpoint
+      properties:
+        flaw:
+          type: string
+          format: uuid
+        classification:
+          $ref: '#/components/schemas/ClassificationResult'
+        workflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassificationWorkflow'
+      required:
+      - classification
+      - flaw
+    ClassificationResult:
+      type: object
+      description: Serializer for the workflow:state classification result
+      properties:
+        workflow:
+          type: string
+        state:
+          type: string
+      required:
+      - state
+      - workflow
+    ClassificationState:
+      type: object
+      description: State serializer with classification
+      properties:
+        accepts:
+          type: string
+          readOnly: true
+        name:
+          type: string
+        requirements:
+          type: array
+          items: {}
+      required:
+      - accepts
+      - name
+      - requirements
+    ClassificationWorkflow:
+      type: object
+      description: Workflow serializer with classification
+      properties:
+        accepts:
+          type: string
+          readOnly: true
+        name:
+          type: string
+        description:
+          type: string
+        priority:
+          type: integer
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassificationCheck'
+        states:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassificationState'
+        classified_state:
+          type: string
+          readOnly: true
+      required:
+      - accepts
+      - classified_state
+      - conditions
+      - description
+      - name
+      - priority
+      - states
     Comment:
       type: object
       description: FlawComment serializer for use by FlawSerializer
@@ -15063,7 +15162,6 @@ components:
               - PRE_SECONDARY_ASSESSMENT
               - SECONDARY_ASSESSMENT
               - DONE
-              - REJECTED
           readOnly: true
         group_key:
           type: string
@@ -15561,8 +15659,9 @@ components:
     FlawCollaboratorPostTypeEnum:
       enum:
       - alias
-      - context_based
       - bu
+      - context_based
+      - workflow
       type: string
     FlawCollaboratorRequest:
       type: object
@@ -15681,9 +15780,10 @@ components:
     FlawLabelType:
       enum:
       - alias
+      - bu
       - context_based
       - product_family
-      - bu
+      - workflow
       type: string
     FlawPackageVersion:
       type: object
@@ -15992,7 +16092,6 @@ components:
               - PRE_SECONDARY_ASSESSMENT
               - SECONDARY_ASSESSMENT
               - DONE
-              - REJECTED
           readOnly: true
         group_key:
           type: string
@@ -16505,7 +16604,6 @@ components:
               - PRE_SECONDARY_ASSESSMENT
               - SECONDARY_ASSESSMENT
               - DONE
-              - REJECTED
           readOnly: true
         group_key:
           type: string
@@ -17404,15 +17502,6 @@ components:
       - eus
       - ps_update_stream
       - selected
-    RejectRequest:
-      type: object
-      description: Task rejection serializer
-      properties:
-        reason:
-          type: string
-          minLength: 1
-      required:
-      - reason
     ResolutionEnum:
       enum:
       - FIX

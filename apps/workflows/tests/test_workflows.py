@@ -5,6 +5,8 @@ workflow definitions validation tests
 import pytest
 
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
+from osidb.models import Affect, FlawCollaborator, FlawLabel, Impact
+from osidb.tests.factories import AffectFactory, FlawFactory, TrackerFactory
 
 pytestmark = pytest.mark.unit
 
@@ -67,3 +69,242 @@ class TestWorkflows:
         for workflow in workflows:
             for state in workflow.states:
                 assert state.name in WorkflowModel.WorkflowState.values
+
+
+class TestDefaultWorkflow:
+    """
+    Test the DEFAULT workflow end-to-end, walking a flaw through all states
+    and verifying that requirements gate each transition correctly.
+
+    Child model operations (creating affects, linking trackers, creating labels)
+    should automatically trigger flaw reclassification via signals — no explicit
+    flaw.save() needed after them.
+    """
+
+    @pytest.mark.enable_signals
+    def test_default_workflow_full_traversal(self):
+        """
+        Walk a flaw through NEW → TRIAGE → PRE_SECONDARY_ASSESSMENT →
+        SECONDARY_ASSESSMENT → DONE, verifying each requirement gates progression.
+
+        Note: title and comment_zero must be non-empty at creation time due to
+        Django's model-level blank=False constraint. These fields are tested
+        for regression in test_default_workflow_regression instead.
+        """
+        WS = WorkflowModel.WorkflowState
+
+        # Start with a minimal flaw — title/comment_zero required by Django,
+        # all other fields left empty to test as gates
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-1",
+            owner="",
+            source="",
+            impact="",
+            components=[],
+            reported_dt=None,
+        )
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state == WS.NEW
+
+        # --- NEW → TRIAGE: requires owner ---
+        flaw.owner = "analyst@redhat.com"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.TRIAGE
+
+        # --- TRIAGE → PRE_SECONDARY_ASSESSMENT: requires affects, impact,
+        #     source, components, reported_dt (title already set) ---
+
+        # add requirements one by one, verify flaw stays in TRIAGE until all present
+        flaw.source = "INTERNET"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.TRIAGE
+
+        flaw.impact = Impact.MODERATE
+        flaw.cve_description = "A vulnerability in the kernel"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.TRIAGE
+
+        flaw.components = ["kernel"]
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.TRIAGE
+
+        flaw.reported_dt = flaw.created_dt
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.TRIAGE
+
+        # still missing affects — creating one triggers reclassification via signal
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        assert flaw.workflow_state == WS.PRE_SECONDARY_ASSESSMENT
+
+        # --- PRE_SECONDARY_ASSESSMENT → SECONDARY_ASSESSMENT: requires trackers ---
+
+        # file a tracker and link it to the affect — signal triggers reclassification
+        tracker = TrackerFactory.build(
+            embargoed=False,
+            ps_update_stream=affect.ps_update_stream,
+        )
+        tracker.save()
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.SECONDARY_ASSESSMENT
+
+        # --- SECONDARY_ASSESSMENT → DONE: requires label approved ---
+
+        # creating the label triggers reclassification via signal
+        FlawCollaborator.objects.create(
+            flaw=flaw,
+            label="approved",
+            type=FlawLabel.FlawLabelType.WORKFLOW,
+            contributor="reviewer@redhat.com",
+        )
+        assert flaw.workflow_state == WS.DONE
+        assert flaw.workflow_name == "DEFAULT"
+
+    @pytest.mark.enable_signals
+    def test_default_workflow_regression(self):
+        """
+        Verify that removing a previously-satisfied requirement causes
+        the flaw to regress to the last valid state.
+        """
+        WS = WorkflowModel.WorkflowState
+
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-2",
+            owner="analyst@redhat.com",
+        )
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.PRE_SECONDARY_ASSESSMENT
+
+        # clear owner — should regress past TRIAGE back to NEW
+        flaw.owner = ""
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.NEW
+
+        # restore owner — should advance back to PRE_SECONDARY_ASSESSMENT
+        flaw.owner = "analyst@redhat.com"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.PRE_SECONDARY_ASSESSMENT
+
+        # clear source — should regress to TRIAGE
+        flaw.source = ""
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.TRIAGE
+
+        # restore source
+        flaw.source = "INTERNET"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.PRE_SECONDARY_ASSESSMENT
+
+        # clear components — should regress to TRIAGE
+        flaw.components = []
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.TRIAGE
+
+        # restore components
+        flaw.components = ["kernel"]
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.PRE_SECONDARY_ASSESSMENT
+
+    @pytest.mark.enable_signals
+    def test_label_removal_triggers_regression(self):
+        """
+        Verify that deleting an "approved" label triggers reclassification
+        and the flaw regresses from DONE.
+        """
+        WS = WorkflowModel.WorkflowState
+
+        # build a flaw all the way to DONE
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-3",
+            owner="analyst@redhat.com",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        tracker = TrackerFactory.build(
+            embargoed=False,
+            ps_update_stream=affect.ps_update_stream,
+        )
+        tracker.save()
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
+        collaborator = FlawCollaborator.objects.create(
+            flaw=flaw,
+            label="approved",
+            type=FlawLabel.FlawLabelType.WORKFLOW,
+            contributor="reviewer@redhat.com",
+        )
+        assert flaw.workflow_state == WS.DONE
+
+        # remove the approved label — should regress
+        collaborator.delete()
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == WS.SECONDARY_ASSESSMENT
+
+    @pytest.mark.enable_signals
+    def test_cve_description_or_low_impact(self):
+        """
+        Verify the OR condition: PRE_SECONDARY_ASSESSMENT requires either
+        LOW impact or a non-empty cve_description. A MODERATE-impact flaw
+        without cve_description stays in TRIAGE; adding the description
+        or switching to LOW impact advances it.
+        """
+        WS = WorkflowModel.WorkflowState
+
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-OR",
+            owner="analyst@redhat.com",
+            impact=Impact.MODERATE,
+            cve_description="",
+        )
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.TRIAGE
+
+        # adding cve_description satisfies the OR condition
+        flaw.cve_description = "A vulnerability in the kernel"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.PRE_SECONDARY_ASSESSMENT
+
+        # removing cve_description regresses back to TRIAGE
+        flaw.cve_description = ""
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.TRIAGE
+
+        # switching to LOW impact also satisfies the OR condition
+        flaw.impact = Impact.LOW
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == WS.PRE_SECONDARY_ASSESSMENT
+
+    @pytest.mark.enable_signals
+    def test_no_classification_without_task_key(self):
+        """
+        Verify that a flaw without task_key has empty workflow fields
+        regardless of how much data it has.
+        """
+        flaw = FlawFactory(embargoed=False, task_key="")
+        AffectFactory(flaw=flaw)
+        flaw.owner = "analyst@redhat.com"
+        flaw.save(raise_validation_error=False)
+
+        assert flaw.workflow_name == ""
+        assert flaw.workflow_state == ""

@@ -2132,8 +2132,15 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
         fields = ["uuid", "flaw", "label", "state", "contributor", "relevant", "type"]
 
     def create(self, validated_data):
-        if validated_data.get("type") == FlawLabel.FlawLabelType.ALIAS:
+        # Alias and workflow labels are always relevant
+        if validated_data.get("type") in (
+            FlawLabel.FlawLabelType.ALIAS,
+            FlawLabel.FlawLabelType.WORKFLOW,
+        ):
             validated_data["relevant"] = True
+            # Workflow labels are always in DONE state
+            if validated_data.get("type") == FlawLabel.FlawLabelType.WORKFLOW:
+                validated_data["state"] = FlawCollaborator.FlawCollaboratorState.DONE
             return super().create(validated_data)
 
         label = FlawLabel.objects.get(name=validated_data.get("label"))
@@ -2172,13 +2179,14 @@ class FlawCollaboratorPostSerializer(FlawCollaboratorSerializer):
     type = serializers.ChoiceField(
         choices=[
             (FlawLabel.FlawLabelType.ALIAS, FlawLabel.FlawLabelType.ALIAS.label),
+            (FlawLabel.FlawLabelType.BU, FlawLabel.FlawLabelType.BU.label),
             (
                 FlawLabel.FlawLabelType.CONTEXT_BASED,
                 FlawLabel.FlawLabelType.CONTEXT_BASED.label,
             ),
             (
-                FlawLabel.FlawLabelType.BU,
-                FlawLabel.FlawLabelType.BU.label,
+                FlawLabel.FlawLabelType.WORKFLOW,
+                FlawLabel.FlawLabelType.WORKFLOW.label,
             ),
         ],
         required=False,

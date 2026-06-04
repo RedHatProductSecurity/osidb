@@ -1,13 +1,14 @@
 ---
 name: REJECTED
 description: >
-  Reject vulnerability workflow.
-priority: 0
-conditions: []
+  Rejected vulnerability workflow.
+priority: 2
+conditions:
+  - has label rejected
 states:
-  - name: REJECTED
+  - name: DONE
     description: >
-      Task were rejected either by the queue captain or the analyst.
+      A flaw was rejected - there is nothing more to be done.
     jira_state: Closed
     jira_resolution: Won't Do
     requirements: []

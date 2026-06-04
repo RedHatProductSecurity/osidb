@@ -1114,7 +1114,7 @@ def flaw_available(request: Request, *args, **kwargs) -> Response:
 
     if (
         flaw.is_public
-        or flaw.workflow_state == WorkflowModel.WorkflowState.REJECTED
+        or flaw.workflow_name == "REJECTED"
         or flaw.workflow_state == WorkflowModel.WorkflowState.DONE
     ):
         return Response(status=HTTP_204_NO_CONTENT)

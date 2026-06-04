@@ -564,7 +564,7 @@ class TestBugzillaJiraMixinIntegration:
         )
 
         state_reject = {
-            "name": WorkflowModel.WorkflowState.REJECTED,
+            "name": WorkflowModel.WorkflowState.DONE,
             "requirements": [],
             "jira_state": "Closed",
             "jira_resolution": "Won't Do",
@@ -573,8 +573,8 @@ class TestBugzillaJiraMixinIntegration:
             {
                 "name": "REJECTED",
                 "description": "a two step workflow",
-                "priority": 0,
-                "conditions": [],
+                "priority": 1,
+                "conditions": ["has label rejected"],
                 "states": [state_reject],
             }
         )
@@ -620,25 +620,43 @@ class TestBugzillaJiraMixinIntegration:
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         assert flaw.bz_id
         assert flaw.task_key
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
+        # Flaw gets classified into TRIAGE immediately because it has a title
+        # and adjust_classification is called when the Jira task is created
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
 
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw = Flaw.objects.get(uuid=flaw.uuid)
 
-        flaw.promote(
-            jira_token=jira_token, jira_email=jira_email, bz_api_key=bugzilla_token
+        # Flaw remains in TRIAGE
+        flaw.adjust_classification(save=False)
+        flaw.save(
+            jira_token=jira_token,
+            jira_email=jira_email,
+            bz_api_key=bugzilla_token,
+            raise_validation_error=False,
         )
-        flaw.refresh_from_db()  # need to refresh after update
+        flaw.refresh_from_db()
         assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
 
         jtq = JiraTaskmanQuerier(jira_token, jira_email)
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Refinement"
-        flaw.reject(
-            jira_token=jira_token, jira_email=jira_email, bz_api_key=bugzilla_token
+
+        from osidb.models import FlawCollaborator
+
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
         )
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.REJECTED
+        flaw.adjust_classification(save=False)
+        flaw.save(
+            jira_token=jira_token,
+            jira_email=jira_email,
+            bz_api_key=bugzilla_token,
+            raise_validation_error=False,
+        )
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.DONE
+        assert flaw.workflow_name == "REJECTED"
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Closed"
@@ -688,16 +706,20 @@ class TestBugzillaJiraMixinIntegration:
         ps_module = PsModuleFactory(name="ps-module-0")
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         assert flaw.task_key
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.NEW
+        # Flaw gets classified into TRIAGE immediately because it has a title
+        # and adjust_classification is called when the Jira task is created
+        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
 
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
 
-        response = auth_client().post(
-            f"{test_api_uri}/flaws/{created_uuid}/promote",
-            format="json",
-            HTTP_BUGZILLA_API_KEY=bugzilla_token,
-            HTTP_JIRA_API_EMAIL=jira_email,
-            HTTP_JIRA_API_KEY=jira_token,
+        flaw = Flaw.objects.get(pk=created_uuid)
+        # Flaw remains in TRIAGE
+        flaw.adjust_classification(save=False)
+        flaw.save(
+            jira_token=jira_token,
+            jira_email=jira_email,
+            bz_api_key=bugzilla_token,
+            raise_validation_error=False,
         )
 
         flaw = Flaw.objects.get(pk=created_uuid)
@@ -708,13 +730,17 @@ class TestBugzillaJiraMixinIntegration:
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Refinement"
 
-        response = auth_client().post(
-            f"{test_api_uri}/flaws/{created_uuid}/reject",
-            {"reason": "This is not a bug."},
-            format="json",
-            HTTP_BUGZILLA_API_KEY=bugzilla_token,
-            HTTP_JIRA_API_EMAIL=jira_email,
-            HTTP_JIRA_API_KEY=jira_token,
+        from osidb.models import FlawCollaborator
+
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
+        )
+        flaw.adjust_classification(save=False)
+        flaw.save(
+            jira_token=jira_token,
+            jira_email=jira_email,
+            bz_api_key=bugzilla_token,
+            raise_validation_error=False,
         )
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
@@ -759,6 +785,7 @@ class TestMultiMixinIntegration:
         jira_token,
         jira_email,
         test_api_v2_uri,
+        set_hvac_test_env_vars,
     ):
         """Tests that validations will block for Trackers with all sync enabled"""
         flaw = FlawFactory(embargoed=False)
@@ -852,6 +879,7 @@ class TestMultiMixinIntegration:
         jira_token,
         monkeypatch,
         test_api_v2_uri,
+        set_hvac_test_env_vars,
     ):
         """Test that bugzilla Tracker endpoint only recreates alerts when needed"""
         validation_counter = {}
@@ -1112,6 +1140,7 @@ class TestMultiMixinIntegration:
         jira_token,
         test_api_v2_uri,
         monkeypatch,
+        set_hvac_test_env_vars,
     ):
         """Test that Affect endpoint only recreates alerts when needed"""
         validation_counter = {}
@@ -1214,6 +1243,7 @@ class TestMultiMixinIntegration:
         jira_token,
         monkeypatch,
         test_api_uri,
+        set_hvac_test_env_vars,
     ):
         """Test that Flaw endpoint only recreates alerts when needed"""
         validation_counter = {}

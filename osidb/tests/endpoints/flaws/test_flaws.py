@@ -2095,11 +2095,11 @@ class TestEndpointsFlaws:
         assert "pgh_diff" not in flaw_json["history"]
 
     @pytest.mark.parametrize(
-        "workflow_status",
+        "workflow_status,workflow_name",
         (
-            WorkflowModel.WorkflowState.NEW,
-            WorkflowModel.WorkflowState.REJECTED,
-            WorkflowModel.WorkflowState.DONE,
+            (WorkflowModel.WorkflowState.NEW, "DEFAULT"),
+            (WorkflowModel.WorkflowState.DONE, "REJECTED"),
+            (WorkflowModel.WorkflowState.DONE, "DEFAULT"),
         ),
     )
     @pytest.mark.parametrize(
@@ -2108,6 +2108,7 @@ class TestEndpointsFlaws:
     def test_flaw_available(
         self,
         workflow_status,
+        workflow_name,
         embargoed,
         internal,
         client,
@@ -2132,6 +2133,7 @@ class TestEndpointsFlaws:
         AffectFactory(flaw=flaw)
 
         flaw.workflow_state = workflow_status
+        flaw.workflow_name = workflow_name
         assert flaw.save() is None
 
         # response should return a state with no data
@@ -2140,7 +2142,7 @@ class TestEndpointsFlaws:
 
         if (
             flaw.is_public
-            or flaw.workflow_state == WorkflowModel.WorkflowState.REJECTED
+            or flaw.workflow_name == "REJECTED"
             or flaw.workflow_state == WorkflowModel.WorkflowState.DONE
         ):
             assert response.status_code == 204

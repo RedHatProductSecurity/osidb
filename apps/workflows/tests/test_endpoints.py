@@ -1,5 +1,4 @@
 import pytest
-from django.conf import settings
 
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.models import State, Workflow
@@ -7,7 +6,6 @@ from apps.workflows.serializers import WorkflowSerializer
 from apps.workflows.urls import urlpatterns
 from apps.workflows.workflow import WorkflowFramework, WorkflowModel
 from collectors.osv.collectors import OSVCollector
-from osidb.core import set_user_acls
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -39,9 +37,9 @@ class TestEndpoints(object):
         assert body["index"] == [f"/{url.pattern}" for url in urlpatterns]
 
     def test_index_no_auth(self, client, test_scheme_host):
-        """test authenticated index API endpoint without authenticating"""
+        """test unauthenticated index API endpoint"""
         response = client.get(f"{test_scheme_host}/")
-        assert response.status_code == 401
+        assert response.status_code == 200
 
     # workflows/healthy
     def test_health(self, client, test_scheme_host):
@@ -59,9 +57,9 @@ class TestEndpoints(object):
         assert body["workflows"] == workflows
 
     def test_workflows_no_auth(self, client, test_api_uri):
-        """test authenticated workflows API endpoint without authenticating"""
+        """test unauthenticated workflows API endpoint"""
         response = client.get(f"{test_api_uri}/workflows")
-        assert response.status_code == 401
+        assert response.status_code == 200
 
     def test_workflows_cve(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint"""
@@ -96,6 +94,47 @@ class TestEndpoints(object):
         assert "classification" in body
         assert "workflows" in body
 
+    def test_workflows_uuid_verbose_accepts(self, auth_client, test_api_uri):
+        """test that verbose classification includes accepts on workflows, states, and requirements"""
+        flaw = FlawFactory(embargoed=False, task_key="TASK-VERBOSE")
+        response = auth_client().get(
+            f"{test_api_uri}/workflows/{flaw.uuid}?verbose=true"
+        )
+        assert response.status_code == 200
+        body = response.json()
+
+        selected_workflow = None
+        for wf in body["workflows"]:
+            assert "accepts" in wf, f"workflow {wf['name']} missing accepts"
+            assert isinstance(wf["accepts"], bool)
+            assert "classified_state" in wf
+
+            if wf["accepts"]:
+                selected_workflow = wf
+                assert wf["classified_state"] is not None
+            else:
+                assert wf["classified_state"] is None
+
+            for condition in wf.get("conditions", []):
+                assert "accepts" in condition
+                assert list(condition.keys())[0] == "accepts"
+
+            for state in wf["states"]:
+                assert "accepts" in state, f"state {state['name']} missing accepts"
+                assert isinstance(state["accepts"], bool)
+                assert list(state.keys())[0] == "accepts"
+
+                for req in state["requirements"]:
+                    assert "accepts" in req, (
+                        f"requirement {req['name']} missing accepts"
+                    )
+                    assert isinstance(req["accepts"], bool)
+                    assert list(req.keys())[0] == "accepts"
+
+        assert selected_workflow is not None
+        classified = selected_workflow["classified_state"]
+        assert classified == body["classification"]["state"]
+
     def test_workflows_uuid_non_existing(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint with non-exising flaw"""
         response = auth_client().get(
@@ -104,15 +143,50 @@ class TestEndpoints(object):
         assert response.status_code == 404
 
     def test_workflows_uuid_no_auth(self, client, test_api_uri):
-        """test authenticated workflow classification API endpoint without authenticating"""
-        flaw = FlawFactory()
+        """test unauthenticated workflow classification API endpoint"""
+        flaw = FlawFactory(embargoed=False)
         response = client.get(f"{test_api_uri}/workflows/{flaw.uuid}")
-        assert response.status_code == 401
+        assert response.status_code == 200
+
+    # graph/workflows
+    def test_graph_workflows(self, auth_client, test_api_uri):
+        """test graph workflows endpoint renders all registered workflows"""
+        response = auth_client().get(f"{test_api_uri}/graph/workflows")
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "mermaid" in content
+        for workflow in WorkflowFramework().workflows:
+            assert workflow.name in content
+            for state in workflow.states:
+                assert state.name in content
+
+    def test_graph_workflows_no_auth(self, client, test_api_uri):
+        """test unauthenticated graph workflows endpoint"""
+        response = client.get(f"{test_api_uri}/graph/workflows")
+        assert response.status_code == 200
+
+    def test_graph_classification(self, auth_client, test_api_uri):
+        """test graph classification endpoint renders flaw classification"""
+        flaw = FlawFactory(embargoed=False, task_key="TASK-GRAPH")
+        response = auth_client().get(f"{test_api_uri}/graph/workflows/{flaw.uuid}")
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert "mermaid" in content
+        # classification view renders a legend (absent in the plain workflow view)
+        assert "Classified state" in content
+        # flaw with no owner is classified in the NEW state
+        # and the template applies per-state Mermaid styling
+        assert "style NEW" in content
 
     # workflows/{flaw}/adjust
     @pytest.mark.enable_signals
     def test_workflows_uuid_adjusting(self, auth_client, test_api_uri):
-        """test flaw classification adjustion after metadata change"""
+        """
+        Test adjust endpoint (DEPRECATED - NO-OP)
+
+        The /adjust endpoint is now deprecated and performs no action.
+        It returns the current stored classification without making any changes.
+        """
         workflow_framework = WorkflowFramework()
         state_new = State(
             {
@@ -171,7 +245,8 @@ class TestEndpoints(object):
         workflow_framework.register_workflow(workflow)
 
         flaw = FlawFactory.build(
-            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+            task_key="TASK-123",  # Required for workflow classification
         )
         flaw.adjust_classification(save=False)
         flaw.save(raise_validation_error=False)
@@ -185,19 +260,30 @@ class TestEndpoints(object):
         flaw.major_incident_state = Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED
         flaw.save()
 
+        # Call the deprecated NO-OP adjust endpoint
         response = auth_client().post(f"{test_api_uri}/workflows/{flaw.uuid}/adjust")
         assert response.status_code == 200
+
+        # Check deprecation warnings
+        assert "Warning" in response
+        assert "Deprecated" in response["Warning"]
+
         body = response.json()
         assert body["flaw"] == str(flaw.uuid)
         assert "classification" in body
+        assert body["deprecated"] is True
+        assert "deprecation_message" in body
+
+        # Auto-classification reclassified the flaw from MAJOR_INCIDENT to DEFAULT
+        # because major_incident_state no longer satisfies the MAJOR_INCIDENT conditions
         assert body["classification"] == {
             "workflow": "DEFAULT",
             "state": "DONE",
         }
 
-        # reload flaw DB
-        flaw = Flaw.objects.get(pk=flaw.pk)
-        assert flaw.classification == {
+        # Verify NO changes were made by the endpoint
+        flaw_reloaded = Flaw.objects.get(pk=flaw.pk)
+        assert flaw_reloaded.classification == {
             "workflow": "DEFAULT",
             "state": "DONE",
         }
@@ -241,7 +327,13 @@ class TestEndpoints(object):
         test_api_uri_osidb,
         set_hvac_test_env_vars,
     ):
-        """test flaw state promotion after data change"""
+        """
+        Test promote endpoint (DEPRECATED - NO-OP)
+
+        The /promote endpoint is now deprecated and performs no action.
+        It returns the current stored classification without making any changes.
+        Workflow state changes now happen automatically via signals when flaw data is saved.
+        """
 
         def mock(self, flaw):
             return None
@@ -290,20 +382,8 @@ class TestEndpoints(object):
         assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
         headers = {"HTTP_JIRA_API_KEY": "SECRET"}
-        response = auth_client().post(
-            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
-            data={},
-            format="json",
-            **headers,
-        )
-        assert response.status_code == 409
-        body = response.json()
-        assert "has cwe" in body["errors"]
 
-        flaw = Flaw.objects.get(pk=flaw.pk)
-        flaw.cwe_id = "CWE-1"
-        flaw.save()
-
+        # Call deprecated NO-OP promote endpoint - returns 200 with current state (NEW)
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
@@ -312,35 +392,60 @@ class TestEndpoints(object):
         )
         assert response.status_code == 200
         body = response.json()
+        # Check deprecation warnings
+        assert "Warning" in response
+        assert body["deprecated"] is True
+        # Endpoint returns current state unchanged
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+
+        # Change flaw data - auto-classification advances the state
+        flaw = Flaw.objects.get(pk=flaw.pk)
+        flaw.cwe_id = "CWE-1"
+        flaw.save()
+
+        # Call NO-OP promote endpoint - returns auto-classified state
+        response = auth_client().post(
+            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
+            data={},
+            format="json",
+            **headers,
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["deprecated"] is True
         assert (
             body["classification"]["state"]
             == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
         )
 
+        # Change flaw data again - state advances further
         flaw = Flaw.objects.get(pk=flaw.pk)
         flaw.cve_description = "valid cve_description"
         flaw.save()
 
+        # Call NO-OP promote endpoint - returns DONE
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
             format="json",
             **headers,
         )
-        flaw = Flaw.objects.get(pk=flaw.pk)
         assert response.status_code == 200
         body = response.json()
+        assert body["deprecated"] is True
         assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
+        # Call NO-OP promote endpoint again - always returns 200
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
             format="json",
             **headers,
         )
-        assert response.status_code == 409
+        assert response.status_code == 200
         body = response.json()
-        assert "already in the last state" in body["errors"]
+        assert body["deprecated"] is True
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
     @pytest.mark.enable_signals
     def test_revert_endpoint(
@@ -351,6 +456,13 @@ class TestEndpoints(object):
         test_api_uri_osidb,
         set_hvac_test_env_vars,
     ):
+        """
+        Test revert endpoint (DEPRECATED - NO-OP)
+
+        The /revert endpoint is now deprecated and performs no action.
+        It returns the current stored classification without making any changes.
+        """
+
         def mock(self, flaw):
             return None
 
@@ -404,7 +516,7 @@ class TestEndpoints(object):
         assert flaw.classification["workflow"] == "DEFAULT"
         assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
 
-        # Test successful revert from DONE to SECONDARY_ASSESSMENT
+        # Call deprecated NO-OP revert endpoint - returns current state (DONE)
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/revert",
             data={},
@@ -412,12 +524,12 @@ class TestEndpoints(object):
         )
         assert response.status_code == 200
         body = response.json()
-        assert (
-            body["classification"]["state"]
-            == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
-        )
+        assert "Warning" in response
+        assert body["deprecated"] is True
+        # Returns current state unchanged (DONE, not SECONDARY_ASSESSMENT)
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
-        # Test successful revert from SECONDARY_ASSESSMENT to NEW
+        # Call NO-OP revert again - still returns DONE
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/revert",
             data={},
@@ -425,17 +537,21 @@ class TestEndpoints(object):
         )
         assert response.status_code == 200
         body = response.json()
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+        assert body["deprecated"] is True
+        # Still DONE (not NEW) - no state changes from endpoint
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
-        # Test failure: trying to revert from initial state (NEW)
+        # Call NO-OP revert again - always returns 200 (not 409)
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/revert",
             data={},
             format="json",
         )
-        assert response.status_code == 409
+        assert response.status_code == 200
         body = response.json()
-        assert "already in the initial state" in body["errors"]
+        assert body["deprecated"] is True
+        # No validation errors - just returns current state
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
     @pytest.mark.enable_signals
     def test_reset_endpoint(
@@ -446,7 +562,12 @@ class TestEndpoints(object):
         test_api_uri_osidb,
         set_hvac_test_env_vars,
     ):
-        """test flaw state reset to default workflow"""
+        """
+        Test reset endpoint (DEPRECATED - NO-OP)
+
+        The /reset endpoint is now deprecated and performs no action.
+        It returns the current stored classification without making any changes.
+        """
 
         def mock(self, flaw):
             return None
@@ -491,7 +612,7 @@ class TestEndpoints(object):
 
         # Create rejected workflow
         state_rejected = {
-            "name": WorkflowModel.WorkflowState.REJECTED,
+            "name": WorkflowModel.WorkflowState.DONE,
             "requirements": [],
             "jira_state": "Closed",
             "jira_resolution": "Won't Do",
@@ -501,8 +622,8 @@ class TestEndpoints(object):
             {
                 "name": "REJECTED",
                 "description": "rejected workflow",
-                "priority": 0,
-                "conditions": [],
+                "priority": 1,
+                "conditions": ["has label rejected"],
                 "states": [state_rejected],
             }
         )
@@ -510,7 +631,7 @@ class TestEndpoints(object):
         workflow_framework.register_workflow(default_workflow)
         workflow_framework.register_workflow(reject_workflow)
 
-        # Test 1: Reset from DONE state in DEFAULT workflow
+        # Test 1: Call NO-OP reset from DONE state - returns current state (DONE)
         flaw = FlawFactory(
             cwe_id="CWE-1",
             cve_description="valid cve_description",
@@ -530,21 +651,24 @@ class TestEndpoints(object):
         )
         assert response.status_code == 200
         body = response.json()
+        assert "Warning" in response
+        assert body["deprecated"] is True
+        # Returns current state unchanged (DONE, not reset to NEW)
         assert body["classification"]["workflow"] == "DEFAULT"
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
-        # Test 2: Reset from REJECTED workflow
+        # Test 2: Auto-classification assigns non-rejected flaw to DEFAULT
         flaw = FlawFactory(
             cwe_id="CWE-1",
             cve_description="valid cve_description",
             task_key="OSIM-124",
-            workflow_state=WorkflowModel.WorkflowState.REJECTED,
-            workflow_name="REJECTED",
+            workflow_state=WorkflowModel.WorkflowState.DONE,
+            workflow_name="DEFAULT",
         )
         AffectFactory(flaw=flaw)
 
-        assert flaw.classification["workflow"] == "REJECTED"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.REJECTED
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
 
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reset",
@@ -553,10 +677,11 @@ class TestEndpoints(object):
         )
         assert response.status_code == 200
         body = response.json()
+        assert body["deprecated"] is True
         assert body["classification"]["workflow"] == "DEFAULT"
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
 
-        # Test 3: Reset from NEW state (already in initial state) - should still work
+        # Test 3: Call NO-OP reset from NEW state - returns current state
         flaw = FlawFactory(
             cwe_id="",
             cve_description="",
@@ -576,6 +701,8 @@ class TestEndpoints(object):
         )
         assert response.status_code == 200
         body = response.json()
+        assert body["deprecated"] is True
+        # Returns current state unchanged (already NEW)
         assert body["classification"]["workflow"] == "DEFAULT"
         assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
 
@@ -587,10 +714,19 @@ class TestEndpoints(object):
         test_api_uri_osidb,
         set_hvac_test_env_vars,
     ):
-        """test flaw state promotion after data change"""
+        """
+        Test reject endpoint (DEPRECATED - NO-OP)
 
+        The /reject endpoint is now deprecated and performs no action.
+        It returns the current stored classification without making any changes.
+        No Jira comment is created.
+        """
+
+        # This mock should never be called since endpoint is NO-OP
         def mock_create_comment(self, issue_key: str, body: str):
-            return
+            raise AssertionError(
+                "create_comment should not be called - endpoint is NO-OP"
+            )
 
         monkeypatch.setattr(JiraTaskmanQuerier, "create_comment", mock_create_comment)
 
@@ -621,7 +757,7 @@ class TestEndpoints(object):
             }
         )
         state_reject = {
-            "name": WorkflowModel.WorkflowState.REJECTED,
+            "name": WorkflowModel.WorkflowState.DONE,
             "requirements": [],
             "jira_state": "Closed",
             "jira_resolution": "Won't Do",
@@ -630,34 +766,23 @@ class TestEndpoints(object):
             {
                 "name": "REJECTED",
                 "description": "random description",
-                "priority": 0,
-                "conditions": [],
+                "priority": 1,
+                "conditions": ["has label rejected"],
                 "states": [state_reject],
             }
         )
         workflow_framework.register_workflow(workflow)
         workflow_framework.register_workflow(reject_workflow)
 
-        flaw = FlawFactory(cwe_id="")
+        flaw = FlawFactory(cwe_id="", task_key="OSIM-123")
         AffectFactory(flaw=flaw)
 
+        # Flaw has task_key, so it gets auto-classified to DEFAULT on creation
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NOVALUE
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
         headers = {"HTTP_JIRA_API_KEY": "SECRET"}
 
-        response = auth_client().post(
-            f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reject",
-            data={},
-            format="json",
-            **headers,
-        )
-        assert response.status_code == 400
-        # must reset ACLs to access Flaw
-        set_user_acls(settings.ALL_GROUPS)
-        flaw = Flaw.objects.get(pk=flaw.pk)
-        assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NOVALUE
-
+        # Test 1: Call without reason - NO-OP endpoint accepts any body
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reject",
             data={"reason": "This was a spam."},
@@ -668,8 +793,12 @@ class TestEndpoints(object):
         body = response.json()
 
         assert response.status_code == 200
-        assert body["classification"]["workflow"] == "REJECTED"
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.REJECTED
+        assert "Warning" in response
+        assert body["deprecated"] is True
+        # Returns current state unchanged (DEFAULT/NEW, not REJECTED)
+        # No Jira comment is created (mock would raise AssertionError if called)
+        assert body["classification"]["workflow"] == "DEFAULT"
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
 
 
 class TestFlawDraft:
@@ -710,7 +839,11 @@ class TestFlawDraft:
         internal_write_groups,
     ):
         """
-        test that ACLs are set to public when promoting a flaw draft
+        Test promote endpoint with ACLs (DEPRECATED - NO-OP)
+
+        The /promote endpoint is now deprecated and performs no action.
+        It returns the current stored classification without making any changes.
+        ACL changes are triggered by automatic classification via signals when flaw data is saved.
         """
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task
@@ -730,6 +863,7 @@ class TestFlawDraft:
         assert flaw.is_internal
 
         # set owner and components to comply with TRIAGE requirements
+        # This save() will trigger automatic classification via signals
         flaw.owner = "Alice"
         flaw.components.append("component")
         flaw.save(raise_validation_error=False)
@@ -757,7 +891,13 @@ class TestFlawDraft:
         assert flaw.affects.first().tracker is not None
         assert flaw.affects.first().tracker.is_internal
 
+        # Reload flaw to see current state
+        flaw = Flaw.objects.get(pk=flaw.pk)
+        current_workflow = flaw.classification["workflow"]
+        current_state = flaw.classification["state"]
+
         headers = {"HTTP_JIRA_API_KEY": jira_token}
+        # Call NO-OP promote endpoint - returns current state
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
@@ -766,35 +906,21 @@ class TestFlawDraft:
         )
         assert response.status_code == 200
         body = response.json()
-        assert body["classification"]["workflow"] == "DEFAULT"
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.TRIAGE
+        assert body["deprecated"] is True
+        # Returns whatever the current state is (not changed by this endpoint)
+        assert body["classification"]["workflow"] == current_workflow
+        assert body["classification"]["state"] == current_state
 
+        # Verify endpoint made no changes
         flaw = Flaw.objects.get(pk=flaw.pk)
-        assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.classification["workflow"] == current_workflow
+        assert flaw.classification["state"] == current_state
         assert flaw.task_key == "OSIM-123"
 
-        # check that a flaw and related objects (except for snippets)
-        # still have internal ACLs as we publish only after the triage
-        assert flaw.is_internal
-        assert flaw.affects.count() == 1
-        assert flaw.affects.first().is_internal
-        assert flaw.affects.first().tracker is not None
-        assert flaw.affects.first().tracker.is_internal
-        assert flaw.cvss_scores.count() == 1
-        assert flaw.cvss_scores.first().is_internal
-        assert flaw.references.count() == 5
-        for r in flaw.references.all():
-            assert r.is_internal
-        assert flaw.snippets.count() == 1
-        assert flaw.snippets.first().is_internal
+        # ACLs remain as they were (no workflow transition from endpoint)
+        # The flaw stays internal because no state change occurred
 
-        # also check that the audit history has internal ACLs
-        for model in self.models_list:
-            self.assert_audit_acls(model, internal_read_groups, internal_write_groups)
-
-        # one more promote to complete the triage
-        headers = {"HTTP_JIRA_API_KEY": jira_token}
+        # Call NO-OP promote again - still returns current state
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/promote",
             data={},
@@ -803,37 +929,10 @@ class TestFlawDraft:
         )
         assert response.status_code == 200
         body = response.json()
-        assert body["classification"]["workflow"] == "DEFAULT"
-        assert (
-            body["classification"]["state"]
-            == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
-        )
-
-        flaw = Flaw.objects.get(pk=flaw.pk)
-        assert flaw.classification["workflow"] == "DEFAULT"
-        assert (
-            flaw.classification["state"]
-            == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
-        )
-        assert flaw.task_key == "OSIM-123"
-
-        # check that a flaw and related objects (except for snippets) have public ACLs
-        assert flaw.is_public
-        assert flaw.affects.count() == 1
-        assert flaw.affects.first().is_public
-        assert flaw.affects.first().tracker is not None
-        assert flaw.affects.first().tracker.is_public
-        assert flaw.cvss_scores.count() == 1
-        assert flaw.cvss_scores.first().is_public
-        assert flaw.references.count() == 5
-        for r in flaw.references.all():
-            assert r.is_public
-        assert flaw.snippets.count() == 1
-        assert flaw.snippets.first().is_internal
-
-        # also check that the audit history has public ACLs
-        for model in self.models_list:
-            self.assert_audit_acls(model, public_read_groups, public_write_groups)
+        assert body["deprecated"] is True
+        # Still returns same state - endpoint makes no changes
+        assert body["classification"]["workflow"] == current_workflow
+        assert body["classification"]["state"] == current_state
 
     @pytest.mark.vcr
     def test_reject(
@@ -848,14 +947,21 @@ class TestFlawDraft:
         internal_write_groups,
     ):
         """
-        test that ACLs are still set to internal when rejecting a flaw draft
+        Test reject endpoint with ACLs (DEPRECATED - NO-OP)
+
+        The /reject endpoint is now deprecated and performs no action.
+        It returns the current stored classification without making any changes.
+        No Jira comment is created.
         """
         monkeypatch.setattr(
             JiraTaskmanQuerier, "create_or_update_task", self.mock_create_task
         )
 
+        # This mock should never be called since endpoint is NO-OP
         def mock_create_comment(self, issue_key: str, body: str):
-            return
+            raise AssertionError(
+                "create_comment should not be called - endpoint is NO-OP"
+            )
 
         monkeypatch.setattr(JiraTaskmanQuerier, "create_comment", mock_create_comment)
 
@@ -873,6 +979,7 @@ class TestFlawDraft:
         assert flaw.is_internal is True
 
         headers = {"HTTP_JIRA_API_KEY": jira_token}
+        # Call NO-OP reject endpoint - returns current state (empty workflow, NEW state)
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reject",
             data={"reason": "Not shipped."},
@@ -881,14 +988,19 @@ class TestFlawDraft:
         )
         assert response.status_code == 200
         body = response.json()
-        assert body["classification"]["workflow"] == "REJECTED"
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.REJECTED
+        assert body["deprecated"] is True
+        # Returns current state unchanged (not REJECTED)
+        # No Jira comment is created (mock would raise AssertionError if called)
+        assert body["classification"]["workflow"] == "DEFAULT"
+        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
 
+        # Verify endpoint made no changes to flaw in database
         flaw = Flaw.objects.get(pk=flaw.pk)
-        assert flaw.classification["workflow"] == "REJECTED"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.REJECTED
-        # check that a flaw still has internal ACLs
+        assert flaw.classification["workflow"] == "DEFAULT"
+        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        # ACLs remain internal (no state change means no ACL change)
         assert flaw.is_internal is True
 
+        # Audit ACLs remain internal (no workflow transition occurred)
         for model in self.models_list:
             self.assert_audit_acls(model, internal_read_groups, internal_write_groups)
