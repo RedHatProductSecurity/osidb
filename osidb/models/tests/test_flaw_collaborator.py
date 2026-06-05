@@ -189,98 +189,62 @@ class TestFlawCollaborator:
         )
         assert collaborator.pk is not None
 
-    def test_automation_label_prerequisite_no_cve(self):
-        """Test for automation label cannot be applied to flaw without a CVE"""
-        FlawLabel.objects.get_or_create(
-            name="auto-affects",
-            defaults={"type": FlawLabel.FlawLabelType.AUTO_AFFECTS},
-        )
-        flaw = FlawFactory(
-            embargoed=False,
-            cve_id=None,
-            workflow_state=WorkflowModel.WorkflowState.NEW,
-        )
-
-        with pytest.raises(ValidationError) as e:
-            FlawCollaborator.objects.create(
-                flaw=flaw,
-                label="auto-affects",
-                state=FlawCollaborator.FlawCollaboratorState.NEW,
-                type=FlawLabel.FlawLabelType.AUTO_AFFECTS,
-            )
-        assert "Flaw must have a CVE" in str(e)
-
     def test_automation_label_mutual_exclusivity(self):
         """Test for applying a new automation label which removes the existing one"""
-        FlawLabel.objects.get_or_create(
-            name="auto-affects",
-            defaults={"type": FlawLabel.FlawLabelType.AUTO_AFFECTS},
-        )
-        FlawLabel.objects.get_or_create(
-            name="auto-rejected",
-            defaults={"type": FlawLabel.FlawLabelType.AUTO_REJECTED},
-        )
-        flaw = FlawFactory(
-            embargoed=False,
-            workflow_state=WorkflowModel.WorkflowState.NEW,
-        )
-        AffectFactory(flaw=flaw)
+        flaw = FlawFactory(embargoed=False)
 
         FlawCollaborator.objects.create(
             flaw=flaw,
             label="auto-affects",
             state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.AUTO_AFFECTS,
+            type=FlawLabel.FlawLabelType.WORKFLOW,
         )
         assert FlawCollaborator.objects.filter(
-            flaw=flaw, type=FlawLabel.FlawLabelType.AUTO_AFFECTS
+            flaw=flaw,
+            type=FlawLabel.FlawLabelType.WORKFLOW,
+            label="auto-affects",
         ).exists()
 
         FlawCollaborator.objects.create(
             flaw=flaw,
             label="auto-rejected",
             state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.AUTO_REJECTED,
+            type=FlawLabel.FlawLabelType.WORKFLOW,
         )
         assert not FlawCollaborator.objects.filter(
-            flaw=flaw, type=FlawLabel.FlawLabelType.AUTO_AFFECTS
+            flaw=flaw,
+            type=FlawLabel.FlawLabelType.WORKFLOW,
+            label="auto-affects",
         ).exists()
         assert FlawCollaborator.objects.filter(
-            flaw=flaw, type=FlawLabel.FlawLabelType.AUTO_REJECTED
+            flaw=flaw,
+            type=FlawLabel.FlawLabelType.WORKFLOW,
+            label="auto-rejected",
         ).exists()
 
     def test_automation_label_potential_rejection_additive(self):
-        """Test for potential-rejection label does not remove other automation label"""
-        FlawLabel.objects.get_or_create(
-            name="auto-affects",
-            defaults={"type": FlawLabel.FlawLabelType.AUTO_AFFECTS},
-        )
-        FlawLabel.objects.get_or_create(
-            name="potential-rejection",
-            defaults={"type": FlawLabel.FlawLabelType.POTENTIAL_REJECTION},
-        )
-        flaw = FlawFactory(
-            embargoed=False,
-            workflow_state=WorkflowModel.WorkflowState.NEW,
-        )
-        AffectFactory(flaw=flaw)
+        """Test potential-rejection does not remove other automation labels"""
+        flaw = FlawFactory(embargoed=False)
 
         FlawCollaborator.objects.create(
             flaw=flaw,
             label="auto-affects",
             state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.AUTO_AFFECTS,
+            type=FlawLabel.FlawLabelType.WORKFLOW,
         )
         FlawCollaborator.objects.create(
             flaw=flaw,
             label="potential-rejection",
             state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.POTENTIAL_REJECTION,
+            type=FlawLabel.FlawLabelType.WORKFLOW,
         )
-
         assert FlawCollaborator.objects.filter(
-            flaw=flaw, type=FlawLabel.FlawLabelType.AUTO_AFFECTS
+            flaw=flaw,
+            type=FlawLabel.FlawLabelType.WORKFLOW,
+            label="auto-affects",
         ).exists()
         assert FlawCollaborator.objects.filter(
-            flaw=flaw, type=FlawLabel.FlawLabelType.POTENTIAL_REJECTION
+            flaw=flaw,
+            type=FlawLabel.FlawLabelType.WORKFLOW,
+            label="potential-rejection",
         ).exists()

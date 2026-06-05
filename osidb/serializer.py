@@ -2137,6 +2137,11 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
             FlawLabel.FlawLabelType.ALIAS,
             FlawLabel.FlawLabelType.WORKFLOW,
         ):
+            # Block manual creation of automation labels
+            if validated_data.get("label") in FlawCollaborator.AUTOMATION_LABEL_NAMES:
+                raise serializers.ValidationError(
+                    {"label": "Automation labels cannot be manually added."}
+                )
             validated_data["relevant"] = True
             # Workflow labels are always in DONE state
             if validated_data.get("type") == FlawLabel.FlawLabelType.WORKFLOW:
@@ -2144,12 +2149,6 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
             return super().create(validated_data)
 
         label = FlawLabel.objects.get(name=validated_data.get("label"))
-        if label.type in FlawCollaborator.AUTOMATION_LABEL_TYPES:
-            raise serializers.ValidationError(
-                {
-                    "label": f"Only context-based and alias labels can be manually added to flaws. '{label.name}' is a automation label."
-                }
-            )
         if label.type not in [
             FlawLabel.FlawLabelType.CONTEXT_BASED,
             FlawLabel.FlawLabelType.BU,

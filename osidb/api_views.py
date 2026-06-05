@@ -1826,7 +1826,10 @@ class FlawLabelView(
             raise PermissionDenied(
                 {"label": "Product family labels cannot be deleted."}
             )
-        if instance.type in FlawCollaborator.AUTOMATION_LABEL_TYPES:
+        if (
+            instance.type == FlawLabel.FlawLabelType.WORKFLOW
+            and instance.label in FlawCollaborator.AUTOMATION_LABEL_NAMES
+        ):
             raise PermissionDenied(
                 {"label": "Automation labels cannot be manually deleted."}
             )
