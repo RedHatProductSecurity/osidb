@@ -2,19 +2,23 @@ from os import getenv
 
 from osidb.helpers import get_execution_env
 
+# Get execution environment once
+execution_env = get_execution_env()
+
 bind = "0.0.0.0:8000"
 worker_class = "gthread"
-workers = 3
-threads = 10
 proc_name = "osidb"
 timeout = 300
 reuse_port = True
+
+# Worker and thread configuration
+workers = 3
+threads = 10
 
 errorlog = "-"
 
 # Set GUNICORN_FORWARDED_ALLOW_IPS environment variable to the HAProxy IP/subnet.
 # Examples: "10.0.1.12", "10.0.0.0/8", "127.0.0.1"
-execution_env = get_execution_env()
 if execution_env in ["stage", "prod", "uat"]:
     # Production environments: restrict to specific proxy IPs (configured via env var)
     # Default to localhost to force explicit configuration
@@ -30,7 +34,7 @@ worker_tmp_dir = "/dev/shm"
 if execution_env in ["stage", "prod", "ci"]:
     preload_app = True
     graceful_timeout = 800  # if a restart must happen then let it be graceful
-    keepalive = 60  # specifically this should be a value *smaller* then nginx setting
+    keepalive = 300  # Must be >= HAProxy's timeout to prevent race conditions (OSIDB-5005)
 else:
     # Support hot-reloading of Gunicorn / Django when files change in dev/local/shell
     reload = True

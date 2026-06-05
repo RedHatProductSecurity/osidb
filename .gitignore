@@ -42,7 +42,3 @@ pyrightconfig.json
 *~
 \#*\#
 .\#*
-
-# Claude Code local state
-.claude/
-CLAUDE.md
