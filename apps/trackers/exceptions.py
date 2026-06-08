@@ -47,6 +47,12 @@ class MissingTargetReleaseVersionError(BTSException):
     """
 
 
+class AmbiguousFieldNameError(BTSException):
+    """
+    exception class for multiple Jira fields sharing the same name in a project
+    """
+
+
 class MissingVulnerabilityIssueFieldError(BTSException):
     """
     exception class for missing field for the Vulnerability issuetype in the project

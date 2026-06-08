@@ -126,6 +126,8 @@ def update_flaw_fields(sender, instance, **kwargs):
 @receiver(post_save, sender=FlawCollaborator)
 @receiver(post_save, sender=FlawCVSS)
 def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
+    if isinstance(instance, Affect):
+        instance.flaw.refresh_from_db()
     instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
 
 
@@ -140,6 +142,7 @@ def update_local_updated_dt_tracker(sender, instance, **kwargs):
         for affect in instance.affects.all():
             flaws.add(affect.flaw)
     for flaw in list(flaws):
+        flaw.refresh_from_db()
         flaw.save(
             auto_timestamps=False,
             no_alerts=True,  # recreating alerts from nested entities can cause deadlocks
@@ -149,6 +152,7 @@ def update_local_updated_dt_tracker(sender, instance, **kwargs):
 
 @receiver(post_save, sender=AffectCVSS)
 def updated_local_updated_dt_affectcvss(sender, instance, **kwargs):
+    instance.affect.flaw.refresh_from_db()
     instance.affect.flaw.save(auto_timestamps=False, raise_validation_error=False)
 
 

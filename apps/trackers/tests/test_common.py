@@ -12,7 +12,7 @@ from apps.sla.tests.test_framework import load_policies
 from apps.trackers.bugzilla.query import TrackerBugzillaQueryBuilder
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
-    TrackerCreationError,
+    MissingVulnerabilityIssueFieldError,
 )
 from apps.trackers.jira.query import TrackerJiraQueryBuilder
 from apps.trackers.models import JiraProjectFields
@@ -1074,8 +1074,9 @@ sla:
         with patch(
             "apps.trackers.jira.query.JiraProjectFields.objects.filter"
         ) as mock_filter:
+            mock_filter.return_value.count.return_value = 0
             mock_filter.return_value.first.return_value = None
-            with pytest.raises(TrackerCreationError) as tce:
+            with pytest.raises(MissingVulnerabilityIssueFieldError) as exc:
                 TrackerJiraQueryBuilder(tracker).query
 
-            assert "missing the SLA Date field" in str(tce.value)
+            assert "SLA Date" in str(exc.value)

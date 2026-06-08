@@ -15,6 +15,11 @@ JIRA_INTERNAL_SECURITY_LEVEL_NAME = get_env(
 )
 TRACKER_FEEDBACK_FORM_URL = get_env("TRACKER_FEEDBACK_FORM_URL")
 
+# Override mapping for resolving ambiguous Jira field names per project.
+# Structure: {project_key: {field_name: field_id}}
+# Example: '{"OCPBUGS": {"CVE ID": "customfield_10667"}}'
+JIRA_FIELD_OVERRIDES = get_env("JIRA_FIELD_OVERRIDES", default="{}", is_json=True)
+
 # Translate fields as defined in product definitions to the actual Jira field
 PS_ADDITIONAL_FIELD_TO_JIRA = {
     "fixVersions": "fixVersions",

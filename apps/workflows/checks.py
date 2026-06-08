@@ -68,6 +68,7 @@ class CheckParser:
         return self._parse_string(check_desc)
 
     def _parse_string(self, check_desc):
+        original_check_desc = check_desc
         check_desc = check_desc.replace(" ", "_")
         # enable more human-readable negation
         if check_desc.startswith("is_not_"):
@@ -84,7 +85,7 @@ class CheckParser:
             self.desc2equals,
             self.desc2in,
         ]:
-            result = func(check_desc)
+            result = func(check_desc, original_check_desc=original_check_desc)
             if result is not None:
                 return result
 
@@ -109,7 +110,7 @@ class CheckParser:
             f"Unknown or incorrect check definition: {statement} {', '.join(values)}"
         )
 
-    def desc2property(self, check_desc):
+    def desc2property(self, check_desc, **kwargs):
         """native property check"""
         check_desc = self.sanitize_attribute(check_desc)
         if hasattr(self.model, check_desc):
@@ -121,7 +122,7 @@ class CheckParser:
 
             return (inspect.getdoc(func), get_element)
 
-    def desc2not_property(self, check_desc):
+    def desc2not_property(self, check_desc, **kwargs):
         """negative native property check"""
         if check_desc.startswith("not_"):
             attr = self.sanitize_attribute(check_desc[4:])
@@ -135,7 +136,7 @@ class CheckParser:
                     lambda instance: not func(instance),
                 )
 
-    def desc2non_empty(self, check_desc):
+    def desc2non_empty(self, check_desc, **kwargs):
         """attribute non-emptiness check"""
         if check_desc.startswith("has_"):
             attr = self.sanitize_attribute(check_desc[4:])
@@ -155,19 +156,29 @@ class CheckParser:
 
                 return (doc, has_element)
 
-    def desc2equals(self, check_desc):
+    def get_original_check_description(
+        self, check_desc_after_underscore, original_check_desc
+    ):
+        total_chars = len(check_desc_after_underscore) * -1
+        original_check_desc = original_check_desc[total_chars:]
+        return original_check_desc
+
+    def desc2equals(
+        self,
+        check_desc,
+        original_check_desc=None,
+        **kwargs,
+    ):
         """
         attribute to literal value equality check
 
-        currently only supports string attributes
-        which values do not contain any spaces
+        supports string attributes including those with spaces in values
         """
         if check_desc.count("_is_") == 1:
             attr, value = check_desc.split("_is_")
             attr = self.sanitize_attribute(attr)
 
             if hasattr(self.model, attr):
-                doc = f"check that {self.model.__name__} attribute {attr} has a value equal to {value}"
 
                 def choices_field(model, name):
                     """
@@ -184,6 +195,12 @@ class CheckParser:
                     or attr in self.TEXT_CHOICES_PROPERTIES
                 ):
                     value = value.upper()
+                elif original_check_desc:
+                    value = self.get_original_check_description(
+                        value, original_check_desc
+                    )
+
+                doc = f"check that {self.model.__name__} attribute {attr} has a value equal to {value}"
 
                 def compare_element(instance):
                     field = getattr(instance, attr)
@@ -191,17 +208,14 @@ class CheckParser:
 
                 return (doc, compare_element)
 
-    def desc2not_equals(self, check_desc):
-        """
-        negative attribute to literal value comparison check
-
-        currently only supports string attributes
-        which values do not contain any spaces
-        """
+    def desc2not_equals(self, check_desc, original_check_desc=None, **kwargs):
+        """negative attribute to literal value comparison check"""
         if check_desc.count("_not_is_") == 1:
             check_desc = check_desc.replace("_not_is_", "_is_")
 
-            result = self.desc2equals(check_desc)
+            result = self.desc2equals(
+                check_desc, original_check_desc=original_check_desc, **kwargs
+            )
 
             if result is not None:
                 doc, func = result
@@ -210,7 +224,7 @@ class CheckParser:
                     lambda instance: not func(instance),
                 )
 
-    def desc2in(self, statement, values):
+    def desc2in(self, statement, values, **kwargs):
         if statement.count("_in") == 1:
             attr = self.sanitize_attribute(statement[:-3])
 
@@ -223,7 +237,7 @@ class CheckParser:
 
                 return (doc, check_inclusion)
 
-    def desc2not_in(self, statement, values):
+    def desc2not_in(self, statement, values, **kwargs):
         if statement.count("_not_in") == 1:
             statement = statement.replace("_not_in", "_in")
             result = self.desc2in(statement, values)

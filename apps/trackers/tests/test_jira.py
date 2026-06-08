@@ -13,6 +13,7 @@ from django.utils.timezone import make_aware
 from apps.sla.models import SLAPolicy, SLOPolicy
 from apps.sla.tests.test_framework import load_policies
 from apps.trackers.exceptions import (
+    AmbiguousFieldNameError,
     ComponentUnavailableError,
     MissingEmbargoStatusError,
     MissingSecurityLevelError,
@@ -234,6 +235,48 @@ class TestOldTrackerJiraQueryBuilder:
                 query_builder = OldTrackerJiraQueryBuilder(tracker)
                 query_builder._query = {"fields": {}}
                 query_builder.generate_security()
+
+    def test_get_jira_field_ambiguous_raises(self, tracker_dummy):
+        JiraProjectFieldsFactory(
+            project_key="FOOPROJECT",
+            field_id="customfield_10994",
+            field_name="Corrective Measures",
+            allowed_values=[],
+        )
+        JiraProjectFieldsFactory(
+            project_key="FOOPROJECT",
+            field_id="customfield_11160",
+            field_name="Corrective Measures",
+            allowed_values=[],
+        )
+
+        query_builder = OldTrackerJiraQueryBuilder(tracker_dummy)
+        with pytest.raises(AmbiguousFieldNameError, match="ambiguous"):
+            query_builder.get_jira_field("Corrective Measures")
+
+    def test_get_jira_field_ambiguous_resolved_by_override(self, tracker_dummy):
+        from unittest.mock import patch
+
+        JiraProjectFieldsFactory(
+            project_key="FOOPROJECT",
+            field_id="customfield_10994",
+            field_name="Corrective Measures",
+            allowed_values=["val_a"],
+        )
+        JiraProjectFieldsFactory(
+            project_key="FOOPROJECT",
+            field_id="customfield_11160",
+            field_name="Corrective Measures",
+            allowed_values=["val_b"],
+        )
+
+        overrides = {"FOOPROJECT": {"Corrective Measures": "customfield_11160"}}
+        with patch("apps.trackers.jira.query.JIRA_FIELD_OVERRIDES", overrides):
+            query_builder = OldTrackerJiraQueryBuilder(tracker_dummy)
+            field = query_builder.get_jira_field("Corrective Measures")
+
+        assert field.field_id == "customfield_11160"
+        assert field.allowed_values == ["val_b"]
 
 
 @pytest.mark.parametrize(
