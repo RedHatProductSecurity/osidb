@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pghistory
 import pytest
 
@@ -87,6 +89,22 @@ class TestEndpointsAudit:
         assert "pgh_created_at" in body
         assert "pgh_label" in body
         assert "pgh_data" in body
+
+        response_filtered = auth_client().get(
+            f"{test_api_uri}/audit?pgh_slug={pgh_slug}&pgh_obj_id={body['pgh_obj_id']}"
+        )
+        assert response_filtered.status_code == 200
+        filtered_body = response_filtered.json()
+        assert filtered_body["count"] == 1
+        assert filtered_body["results"][0]["pgh_slug"] == pgh_slug
+
+        response_mismatch = auth_client().get(
+            f"{test_api_uri}/audit?pgh_slug={pgh_slug}&pgh_obj_id={uuid4()}"
+        )
+        assert response_mismatch.status_code == 200
+        mismatch_body = response_mismatch.json()
+        assert mismatch_body["count"] == 0
+        assert mismatch_body["results"] == []
 
     def test_audit_list_filter_by_pgh_obj_id(self, auth_client, test_api_uri):
         """GET /audit?pgh_obj_id=<uuid> returns only events for that object."""
