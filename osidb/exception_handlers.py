@@ -13,6 +13,7 @@ from rest_framework.views import set_rollback
 
 from apps.taskman.exceptions import JiraTaskErrorException
 from apps.trackers.exceptions import (
+    AmbiguousFieldNameError,
     ComponentUnavailableError,
     MissingJiraProjectMetadata,
     MissingSeverityError,
@@ -67,6 +68,7 @@ def exception_handler(exc, context):
         # Taskman
         JiraTaskErrorException,
         # Trackers
+        AmbiguousFieldNameError,
         ComponentUnavailableError,
         MissingJiraProjectMetadata,
         MissingSeverityError,

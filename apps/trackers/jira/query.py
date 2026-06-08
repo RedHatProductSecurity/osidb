@@ -14,6 +14,7 @@ from django.utils.timezone import make_aware
 from apps.sla.models import SLAPolicy, SLOPolicy
 from apps.trackers.common import TrackerQueryBuilder
 from apps.trackers.exceptions import (
+    AmbiguousFieldNameError,
     ComponentUnavailableError,
     MissingEmbargoStatusError,
     MissingJiraProjectMetadata,
@@ -35,6 +36,7 @@ from osidb.validators import CVE_RE_STR
 
 from .constants import (
     JIRA_EMBARGO_SECURITY_LEVEL_NAME,
+    JIRA_FIELD_OVERRIDES,
     JIRA_INTERNAL_SECURITY_LEVEL_NAME,
     PS_ADDITIONAL_FIELD_TO_JIRA,
     TrackersAppSettings,
@@ -163,6 +165,48 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         self._query = None
         self._comment = None
         self.settings = settings or TrackersAppSettings()
+
+    def get_jira_field(
+        self, field_name: str, required: bool = True
+    ) -> JiraProjectFields | None:
+        """
+        Look up a JiraProjectFields entry by field_name for the current project.
+
+        Handles ambiguity: if multiple fields share the same name, checks
+        JIRA_FIELD_OVERRIDES for a resolution; raises AmbiguousFieldNameError
+        if unresolved.
+
+        When required=True (default), raises MissingVulnerabilityIssueFieldError
+        if no field is found. When required=False, returns None instead.
+        """
+        fields = JiraProjectFields.objects.filter(
+            project_key=self.ps_module.bts_key, field_name=field_name
+        )
+        if fields.count() > 1:
+            override_field_id = JIRA_FIELD_OVERRIDES.get(
+                self.ps_module.bts_key, {}
+            ).get(field_name)
+            if override_field_id:
+                field = fields.filter(field_id=override_field_id).first()
+                if field is None:
+                    raise AmbiguousFieldNameError(
+                        f"Field '{field_name}' override field_id '{override_field_id}' "
+                        f"not found in project {self.ps_module.bts_key}."
+                    )
+                return field
+            field_ids = list(fields.values_list("field_id", flat=True))
+            raise AmbiguousFieldNameError(
+                f"Field '{field_name}' is ambiguous in project {self.ps_module.bts_key} "
+                f"— found field IDs: {', '.join(f"'{fid}'" for fid in field_ids)}. "
+                f"Set JIRA_FIELD_OVERRIDES to resolve."
+            )
+        field = fields.first()
+        if field is None and required:
+            raise MissingVulnerabilityIssueFieldError(
+                f"Field {field_name} not available for Vulnerability issuetype in "
+                f"Jira project {self.ps_module.bts_key}."
+            )
+        return field
 
     @cached_property
     def impact(self):
@@ -378,24 +422,22 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
 
         # check that Target start field is present
         # and eventually get its custom field ID
-        target_start = JiraProjectFields.objects.filter(
-            project_key=self.ps_module.bts_key, field_name="Target start"
-        )
+        target_start = self.get_jira_field("Target start", required=False)
 
         slo_context = SLOPolicy.classify(self.tracker)
         # the tracker may or may not be under SLO
         if slo_context.policy is not None:
             self._query["fields"]["duedate"] = slo_context.end.isoformat()
-            if target_start.exists():
-                self._query["fields"][target_start.first().field_id] = (
+            if target_start:
+                self._query["fields"][target_start.field_id] = (
                     slo_context.start.isoformat()
                 )
         else:
             # explicitly set the empty dates so they are cleared
             # out in case of falling out of SLO later on update
             self._query["fields"]["duedate"] = None
-            if target_start.exists():
-                self._query["fields"][target_start.first().field_id] = None
+            if target_start:
+                self._query["fields"][target_start.field_id] = None
 
     def generate_summary(self):
         """
@@ -411,12 +453,10 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         if not self.is_creating:
             return
 
-        versions = JiraProjectFields.objects.filter(
-            project_key=self.ps_module.bts_key, field_name="Affects versions"
-        )
+        versions_field = self.get_jira_field("Affects versions", required=False)
         # project may or may not support versions so it is optional
-        if versions.exists() and self.ps_update_stream.version:
-            self._query["fields"]["versions"] = [
+        if versions_field and self.ps_update_stream.version:
+            self._query["fields"][versions_field.field_id] = [
                 {"name": self.ps_update_stream.version}
             ]
 
@@ -524,16 +564,12 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
 
             # contributors fields will replace the involved field
             # but let us conditionally support both for smooth transition
-            if contr_field_obj := JiraProjectFields.objects.filter(
-                project_key=self.ps_module.bts_key, field_name="Contributors"
-            ).first():
-                self._query["fields"][contr_field_obj.field_id] = [
+            if contr_field := self.get_jira_field("Contributors", required=False):
+                self._query["fields"][contr_field.field_id] = [
                     {"accountId": cloud_ids[un]} for un in cc_list
                 ]
-            elif inv_field_obj := JiraProjectFields.objects.filter(
-                project_key=self.ps_module.bts_key, field_name="Involved"
-            ).first():
-                self._query["fields"][inv_field_obj.field_id] = [
+            elif inv_field := self.get_jira_field("Involved", required=False):
+                self._query["fields"][inv_field.field_id] = [
                     {"accountId": cloud_ids[un]} for un in cc_list
                 ]
             else:
@@ -753,22 +789,9 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
 
         return self.most_important_affect.flaw.source
 
-    def field_check_and_get_values_and_id(self, field_name):
-        field = JiraProjectFields.objects.filter(
-            project_key=self.ps_module.bts_key, field_name=field_name
-        ).first()
-        if field is None:
-            raise MissingVulnerabilityIssueFieldError(
-                f"Field {field_name} not available for Vulnerability issuetype in "
-                f"Jira project {self.ps_module.bts_key}."
-            )
-        allowed_values = field.allowed_values
-        field_id = field.field_id
-        return allowed_values, field_id
-
     def generate_severity(self):
         field_name = "Severity"
-        allowed_values, field_id = self.field_check_and_get_values_and_id(field_name)
+        field = self.get_jira_field(field_name)
 
         if self.impact is Impact.NOVALUE:
             raise TrackerCreationError(
@@ -776,49 +799,47 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             )
 
         severity = IMPACT_TO_JIRA_SEVERITY[self.impact]
-        if severity not in allowed_values:
+        if severity not in field.allowed_values:
             raise MissingSeverityError(
                 f"Jira project {self.ps_module.bts_key} does not have the {field_name} field value "
-                f"{severity}; allowed values are: {', '.join(allowed_values)}"
+                f"{severity}; allowed values are: {', '.join(field.allowed_values)}"
             )
-        self._query["fields"][field_id] = {"value": severity}
+        self._query["fields"][field.field_id] = {"value": severity}
 
     def generate_source(self):
         field_name = "Source"
-        allowed_values, field_id = self.field_check_and_get_values_and_id(field_name)
+        field = self.get_jira_field(field_name)
 
         flaw_source = self.most_important_source
         flaw_source_lower = flaw_source.lower()
         choice_found = FLAW_SOURCE_TO_JIRA_SOURCE.get(flaw_source)
-        if choice_found not in allowed_values:
+        if choice_found not in field.allowed_values:
             # The pairing table might be out of date, since Jira configuration is dynamic.
             choice_found = None
         if not choice_found:
             # Allow for future-proof pairing of values when they differ only in case.
-            for choice in allowed_values:
+            for choice in field.allowed_values:
                 if choice.lower() == flaw_source_lower:
                     choice_found = choice
                     break
         if not choice_found:
             raise MissingSourceError(
                 f"Jira project {self.ps_module.bts_key} does not have the {field_name} field value "
-                f"{flaw_source}; allowed values are: {', '.join(allowed_values)}"
+                f"{flaw_source}; allowed values are: {', '.join(field.allowed_values)}"
             )
-        self._query["fields"][field_id] = {"value": choice_found}
+        self._query["fields"][field.field_id] = {"value": choice_found}
 
     def generate_cve_id(self):
-        field_name = "CVE ID"
-        _, field_id = self.field_check_and_get_values_and_id(field_name)
+        field = self.get_jira_field("CVE ID")
 
         cve = self.most_important_cve
         if not cve:
             # This is for a placeholder flaw. Do not fill in the Jira field.
             return
-        self._query["fields"][field_id] = cve
+        self._query["fields"][field.field_id] = cve
 
     def generate_cvss_score(self):
-        field_name = "CVSS Score"
-        _, field_id = self.field_check_and_get_values_and_id(field_name)
+        field = self.get_jira_field("CVSS Score")
 
         cvss_score = self.most_important_cvss
 
@@ -827,20 +848,18 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
 
         result = f"{cvss_score.score} {cvss_score.vector}"
 
-        self._query["fields"][field_id] = result
+        self._query["fields"][field.field_id] = result
 
     def generate_cwe_id(self):
-        field_name = "CWE ID"
-        _, field_id = self.field_check_and_get_values_and_id(field_name)
+        field = self.get_jira_field("CWE ID")
 
         cwe_id = self.most_important_cwe
         if not cwe_id:
             return
-        self._query["fields"][field_id] = cwe_id
+        self._query["fields"][field.field_id] = cwe_id
 
     def generate_downstream_component(self):
-        field_name = "Downstream Component Name"
-        _, field_id = self.field_check_and_get_values_and_id(field_name)
+        field = self.get_jira_field("Downstream Component Name")
         component = self.most_important_affect.ps_component
         if (
             self.settings.prefer_purls
@@ -848,14 +867,13 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             and (purl := self.most_important_affect.purl)
         ):
             component = purl.to_string()
-        self._query["fields"][field_id] = component
+        self._query["fields"][field.field_id] = component
 
     def generate_upstream_component(self):
         # TODO: Every time the components change in the flaw, the trackers must be updated as well.
         #       - tracked in OSIDB-3323
 
-        field_name = "Upstream Affected Component"
-        _, field_id = self.field_check_and_get_values_and_id(field_name)
+        field = self.get_jira_field("Upstream Affected Component")
         components = set()
         # `flaw.components` is a list, it doesn't behave like a RelatedManager.
         component_lists = self.tracker.affects.values_list(
@@ -868,30 +886,30 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             return
         upstream_component = "; ".join(components)
 
-        self._query["fields"][field_id] = upstream_component
+        self._query["fields"][field.field_id] = upstream_component
 
     def generate_embargo_status(self):
         field_name = "Embargo Status"
-        allowed_values, field_id = self.field_check_and_get_values_and_id(field_name)
+        field = self.get_jira_field(field_name)
         choice_str = repr(self.tracker.is_embargoed)
-        if choice_str not in allowed_values:
+        if choice_str not in field.allowed_values:
             raise MissingEmbargoStatusError(
                 f"Jira project {self.ps_module.bts_key} does not have the {field_name} field value "
-                f"{choice_str}; allowed values are: {', '.join(allowed_values)}"
+                f"{choice_str}; allowed values are: {', '.join(field.allowed_values)}"
             )
 
         # Since this effectively controls access rights, do a separate check that
         # it is exactly as expected. Even an additional unexpected value might signify
         # an emergent bug in security-sensitive logic that requires investigation.
         expected_allowed_values = {"True", "False"}
-        if set(allowed_values) != expected_allowed_values:
+        if set(field.allowed_values) != expected_allowed_values:
             raise MissingEmbargoStatusError(
                 f"Jira project {self.ps_module.bts_key} has unexpected allowed states for the {field_name} field: "
-                f"{', '.join(allowed_values)}; expected {field_name} values are: {', '.join(expected_allowed_values)} "
+                f"{', '.join(field.allowed_values)}; expected {field_name} values are: {', '.join(expected_allowed_values)} "
                 f"(also investigate the types; expected are str, not bool)."
             )
 
-        self._query["fields"][field_id] = {"value": choice_str}
+        self._query["fields"][field.field_id] = {"value": choice_str}
 
     def generate_only_embargo_and_security_level(self):
         """
@@ -910,7 +928,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
 
     def generate_special_handling(self):
         field_name = "Special Handling"
-        allowed_values, field_id = self.field_check_and_get_values_and_id(field_name)
+        field = self.get_jira_field(field_name)
 
         expected_allowed_values = [
             MAJOR_INCIDENT,
@@ -918,12 +936,12 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
             KEV,
         ]
         missing_allowed_values = sorted(
-            set(expected_allowed_values) - set(allowed_values)
+            set(expected_allowed_values) - set(field.allowed_values)
         )
         if missing_allowed_values:
             raise MissingSpecialHandlingError(
                 f"Jira project {self.ps_module.bts_key} does not have the required {field_name} field values "
-                f"{', '.join(missing_allowed_values)}; allowed Jira Source values are: {', '.join(allowed_values)}"
+                f"{', '.join(missing_allowed_values)}; allowed Jira Source values are: {', '.join(field.allowed_values)}"
             )
 
         # To make the tracker's Special Handling informative, look across all related flaws.
@@ -956,7 +974,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         if choice_kev:
             multichoice_jira_field_value.append({"value": KEV})
 
-        self._query["fields"][field_id] = multichoice_jira_field_value
+        self._query["fields"][field.field_id] = multichoice_jira_field_value
 
     def generate_base(self):
         # NOTE: NOT calling super().generate_base() on purpose.
@@ -977,17 +995,7 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         if "nonstandard-sla" in self._query["fields"]["labels"]:
             return
 
-        sla_date_field = JiraProjectFields.objects.filter(
-            project_key=self.ps_module.bts_key, field_name="SLA Date"
-        ).first()
-
-        if not sla_date_field:
-            error_msg = (
-                f"Jira project {self.ps_module.bts_key} is missing the SLA Date field "
-                f"for Vulnerability issuetype. Tracker creation will fail."
-            )
-            logger.error(error_msg)
-            raise TrackerCreationError(error_msg)
+        sla_date_field = self.get_jira_field("SLA Date")
 
         if not self.tracker.external_system_id:
             # Workaround for when a new tracker is filed. At this point in the code it
@@ -1014,7 +1022,5 @@ class TrackerJiraQueryBuilder(OldTrackerJiraQueryBuilder):
         Generate query for Jira Update Stream field
         """
 
-        field_name = "Update Stream"
-        _, field_id = self.field_check_and_get_values_and_id(field_name)
-
-        self._query["fields"][field_id] = self.ps_update_stream.name
+        field = self.get_jira_field("Update Stream")
+        self._query["fields"][field.field_id] = self.ps_update_stream.name
