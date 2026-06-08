@@ -255,13 +255,14 @@ class SyncManager(models.Model):
         logger.info(f"{cls.__name__} {sync_id}: Sync finished successfully")
 
     @classmethod
-    def failed(cls, sync_id, exception, permanent=False):
+    def failed(cls, sync_id, exception, permanent=False, reraise=True):
         """
         This method has to be called when sync_task fails.
 
         :param sync_id: Unique ID for synchronized data object.
         :param exception: Exception which caused the failure.
         :param permanent: Set to True if problem cannot be solved by running sync_task later.
+        :param reraise: Set to False to log the failure without re-raising the exception.
         """
         manager = cls.objects.get(name=cls.__name__, sync_id=sync_id)
         manager.update_synced_links()
@@ -274,17 +275,21 @@ class SyncManager(models.Model):
         ):
             updated_permanently_failed = True
 
+        error_msg = str(exception).strip()
         SyncManager.objects.filter(name=cls.__name__, sync_id=sync_id).update(
             last_failed_dt=timezone.now(),
-            last_failed_reason=str(exception).strip(),
+            last_failed_reason=error_msg,
             last_consecutive_failures=updated_last_consecutive_failures,
             last_consecutive_reschedules=0,
             permanently_failed=updated_permanently_failed,
         )
-        logger.info(f"{cls.__name__} {sync_id}: Sync failed")
-        if updated_permanently_failed:
-            logger.info(f"{cls.__name__} {sync_id}: Sync failed permanently")
-        raise exception
+        failure_type = "permanently" if updated_permanently_failed else "temporarily"
+        logger.error(
+            f"{cls.__name__} {sync_id}: Sync failed {failure_type} "
+            f"({exception.__class__.__name__}: {error_msg})"
+        )
+        if reraise:
+            raise exception
 
     def revoke_sync_task(self, celery_task):
         """
@@ -620,17 +625,22 @@ class BZTrackerDownloadManager(SyncManager):
                         f"Flaws do not exist: {failed_flaws}, "
                         f"Affects do not exist: {failed_affects}"
                     ),
+                    reraise=False,
                 )
+                return
             elif failed_affects:
                 BZTrackerDownloadManager.failed(
                     tracker_id,
                     RuntimeError(f"Affects do not exist: {failed_affects}"),
                     permanent=True,
+                    reraise=False,
                 )
+                return
             elif not affects:
                 BZTrackerDownloadManager.failed(
-                    tracker_id, RuntimeError("No Affects found")
+                    tracker_id, RuntimeError("No Affects found"), reraise=False
                 )
+                return
         except Exception as e:
             BZTrackerDownloadManager.failed(tracker_id, e)
         else:

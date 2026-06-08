@@ -106,9 +106,11 @@ ERRATA_COLLECTOR_ENABLED=1
 JIRA_TASK_COLLECTOR_ENABLED=1
 JIRA_TRACKER_COLLECTOR_ENABLED=1
 JIRA_METADATA_COLLECTOR_ENABLED=1
+JIRA_USER_MAPPING_COLLECTOR_ENABLED=0
 CVEORG_COLLECTOR_ENABLED=1
 NVD_COLLECTOR_ENABLED=1
 OSV_COLLECTOR_ENABLED=1
+EPSS_COLLECTOR_ENABLED=0
 
 # If set, it will append the tracker accuracy feedback form at the end of the description when creating Jira trackers
 TRACKER_FEEDBACK_FORM_URL="https://foo.bar"
@@ -212,6 +214,12 @@ Start the whole container compose (recommended):
 
 ```bash
 $ make start-local
+```
+
+Start the whole container compose in the background:
+
+```bash
+$ make start-local-bg
 ```
 
 Optionally, also point browser to
