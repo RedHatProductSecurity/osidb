@@ -1338,6 +1338,15 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: flaw__workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: flaw__workflow_state
         schema:
           type: array
@@ -3404,6 +3413,7 @@ paths:
             - -unembargo_dt
             - -updated_dt
             - -uuid
+            - -workflow_name
             - -workflow_state
             - acknowledgments__affiliation
             - acknowledgments__created_dt
@@ -3445,6 +3455,7 @@ paths:
             - unembargo_dt
             - updated_dt
             - uuid
+            - workflow_name
             - workflow_state
         description: |+
           Ordering
@@ -3963,6 +3974,24 @@ paths:
           - EMBARGOED
           - INTERNAL
           - PUBLIC
+      - in: query
+        name: workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: workflow_name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: workflow_state
         schema:
@@ -8692,6 +8721,15 @@ paths:
           - INTERNAL
           - PUBLIC
       - in: query
+        name: flaw__workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: flaw__workflow_state
         schema:
           type: array
@@ -11201,6 +11239,7 @@ paths:
             - -unembargo_dt
             - -updated_dt
             - -uuid
+            - -workflow_name
             - -workflow_state
             - acknowledgments__affiliation
             - acknowledgments__created_dt
@@ -11262,6 +11301,7 @@ paths:
             - unembargo_dt
             - updated_dt
             - uuid
+            - workflow_name
             - workflow_state
         description: |+
           Ordering
@@ -11780,6 +11820,24 @@ paths:
           - EMBARGOED
           - INTERNAL
           - PUBLIC
+      - in: query
+        name: workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: workflow_name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
       - in: query
         name: workflow_state
         schema:
