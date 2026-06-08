@@ -836,6 +836,41 @@ class TestEndpointsFlaws:
         assert body["count"] == 1
         assert {flaw["cve_id"] for flaw in body["results"]} == {flaw3.cve_id}
 
+    def test_list_flaws_filter_by_workflow_name(self, auth_client, test_api_uri):
+        """test filtering flaws by workflow_name"""
+        response = auth_client().get(f"{test_api_uri}/flaws")
+        assert response.status_code == 200
+        assert response.json()["count"] == 0
+
+        FlawFactory(workflow_name="DEFAULT")
+        FlawFactory(workflow_name="DEFAULT")
+        FlawFactory(workflow_name="EMBARGOED")
+        FlawFactory(workflow_name="REJECTED")
+
+        response = auth_client().get(f"{test_api_uri}/flaws?workflow_name=DEFAULT")
+        assert response.status_code == 200
+        assert response.json()["count"] == 2
+
+        response = auth_client().get(f"{test_api_uri}/flaws?workflow_name=EMBARGOED")
+        assert response.status_code == 200
+        assert response.json()["count"] == 1
+
+        response = auth_client().get(f"{test_api_uri}/flaws?workflow_name=REJECTED")
+        assert response.status_code == 200
+        assert response.json()["count"] == 1
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?workflow_name=DEFAULT,EMBARGOED"
+        )
+        assert response.status_code == 200
+        assert response.json()["count"] == 3
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?workflow_name=NONEXISTENT"
+        )
+        assert response.status_code == 200
+        assert response.json()["count"] == 0
+
     def test_list_flaws_invalid(self, auth_client, test_api_uri, datetime_with_tz):
         """retrieve list of flaws from endpoint"""
         response = auth_client().get(f"{test_api_uri}/flaws")
