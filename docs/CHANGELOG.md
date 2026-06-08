@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Exclude streams with no offer from tracker suggestions response (OSIDB-4977)
+- Refresh Flaws in signal to avoid revert issues (OSIDB-4985)
 
 ### Fixed
 - Fix check parser replaces spaces with underscores in equality check values (OSIDB-4956)
