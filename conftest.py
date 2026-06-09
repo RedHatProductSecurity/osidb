@@ -346,8 +346,6 @@ def set_invalid_tokens(is_recording_vcr, monkeypatch):
     if not is_recording_vcr:
         monkeypatch.setattr(osv_collector, "JIRA_AUTH_TOKEN", "SECRET")
         monkeypatch.setattr(cveorg_collector, "JIRA_AUTH_TOKEN", "SECRET")
-        monkeypatch.setattr(jira_collector, "JIRA_TOKEN", "SECRET")
-        monkeypatch.setattr(jira_collector, "JIRA_EMAIL", "test@redhat.com")
 
 
 @pytest.fixture(autouse=True)  # Automatically use in tests.
