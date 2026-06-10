@@ -4,6 +4,7 @@ from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from packageurl import PackageURL
 
+from apps.ace.constants import OSV_ECOSYSTEM_MAP
 from osidb.mixins import (
     ACLMixin,
     ACLMixinManager,
@@ -14,24 +15,6 @@ from osidb.mixins import (
 from osidb.query_sets import CustomQuerySetUpdatedDt
 
 from .flaw import Flaw
-
-# OSV ecosystem string to normalized ecosystem identifier.
-_OSV_ECOSYSTEM_MAP: dict[str, str] = {
-    "maven": "maven",
-    "pypi": "pypi",
-    "npm": "npm",
-    "crates.io": "cargo",
-    "go": "golang",
-    "rubygems": "gem",
-    "nuget": "nuget",
-    "packagist": "generic",
-    "hex": "generic",
-    "pub": "generic",
-    "hackage": "generic",
-    "bioconductor": "generic",
-    "cran": "generic",
-    "github actions": "generic",
-}
 
 
 class UpstreamDataManager(ACLMixinManager, TrackingMixinManager):
@@ -107,7 +90,7 @@ class UpstreamData(AlertMixin, ACLMixin, TrackingMixin):
             return result
 
         for entry in self.upstream_purls:
-            name = entry.get("name", "")
+            name = (entry.get("name") or "").strip().lower()
             if not name:
                 continue
 
@@ -121,7 +104,7 @@ class UpstreamData(AlertMixin, ACLMixin, TrackingMixin):
 
             if not ecosystem:
                 raw_eco = (entry.get("ecosystem") or "").lower()
-                ecosystem = _OSV_ECOSYSTEM_MAP.get(raw_eco, "")
+                ecosystem = OSV_ECOSYSTEM_MAP.get(raw_eco, "")
 
             if ecosystem and ecosystem not in result.get(name, []):
                 result.setdefault(name, []).append(ecosystem)
