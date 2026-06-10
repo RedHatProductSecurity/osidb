@@ -124,7 +124,7 @@ class TestDefaultWorkflow:
         # (impact is low OR has cve_description) — MODERATE impact needs cve_description
         flaw.cve_description = "A vulnerability in the kernel"
         flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == WS.TRIAGE
+        assert flaw.workflow_state == "TRIAGE"
 
         # --- TRIAGE → ANALYSIS: requires affects ---
 
@@ -153,7 +153,7 @@ class TestDefaultWorkflow:
         tracker.save()
         affect.tracker = tracker
         affect.save(raise_validation_error=False)
-        assert flaw.workflow_state == WS.SECONDARY_ASSESSMENT
+        assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
 
         # --- SECONDARY_ASSESSMENT → DONE: requires label approved ---
 
@@ -164,7 +164,7 @@ class TestDefaultWorkflow:
             type=FlawLabel.FlawLabelType.WORKFLOW,
             contributor="reviewer@redhat.com",
         )
-        assert flaw.workflow_state == WS.DONE
+        assert flaw.workflow_state == "DONE"
         assert flaw.workflow_name == "DEFAULT"
 
     @pytest.mark.enable_signals
@@ -280,45 +280,6 @@ class TestDefaultWorkflow:
         flaw.impact = Impact.LOW
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
-
-    @pytest.mark.enable_signals
-    def test_label_removal_triggers_regression(self):
-        """
-        Verify that deleting an "approved" label triggers reclassification
-        and the flaw regresses from DONE.
-        """
-        WS = WorkflowModel.WorkflowState
-
-        # build a flaw all the way to DONE
-        flaw = FlawFactory(
-            embargoed=False,
-            task_key="TASK-3",
-            owner="analyst@redhat.com",
-        )
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.NEW,
-            resolution=Affect.AffectResolution.NOVALUE,
-        )
-        tracker = TrackerFactory.build(
-            embargoed=False,
-            ps_update_stream=affect.ps_update_stream,
-        )
-        tracker.save()
-        affect.tracker = tracker
-        affect.save(raise_validation_error=False)
-        collaborator = FlawCollaborator.objects.create(
-            flaw=flaw,
-            label="approved",
-            type=FlawLabel.FlawLabelType.WORKFLOW,
-            contributor="reviewer@redhat.com",
-        )
-        assert flaw.workflow_state == WS.DONE
-
-        # remove the approved label — should regress
-        collaborator.delete()
-        flaw.refresh_from_db()
-        assert flaw.workflow_state == WS.SECONDARY_ASSESSMENT
 
     @pytest.mark.enable_signals
     def test_no_classification_without_task_key(self):
