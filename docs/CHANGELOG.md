@@ -5,10 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [5.11.1] - 2026-06-10
 ### Fixed
 - Fix Jira metadata collector crash on duplicate field names (OSIDB-4920)
 - Fix check parser replaces spaces with underscores in equality check values (OSIDB-4956)
 - Exclude orphaned trackers from v1 flaw and tracker endoints when filtering by tracker_ids(OSIDB-4927)
+- Refresh Flaws in signal to avoid revert issues (OSIDB-4985)
 
 ## [5.11.0] - 2026-05-28
 ### Added
@@ -18,14 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `bu_labels` label type (OSIDB-4982)
 - Auditing and tracking of tool-assisted and auto-created affects (OSIDB-4951, OSIDB-4978)
 - Add UpstreamData model with upstream purl field and collection (OSIDB-4923)
+- Add comment_zero in the description of community trackers (OSIDB-4776)
 
 ### Changed
 - Allow adding labels to flaws in any workflow state, including DONE (OSIDB-4986)
 
 ### Fixed
 - Exclude streams with no offer from tracker suggestions response (OSIDB-4977)
-- Exclude orphaned trackers from v1 flaw and tracker endoints when filtering by tracker_ids(OSIDB-4927)
-- Refresh Flaws in signal to avoid revert issues (OSIDB-4985)
 
 ## [5.10.3] - 2026-05-06
 ### Fixed

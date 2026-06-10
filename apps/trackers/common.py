@@ -263,6 +263,8 @@ class TrackerQueryBuilder:
             "best effort basis. Package maintainers are required to ascertain if the flaw indeed "
             "affects their package, before starting the update process."
         )
+        for flaw in self.flaws:
+            description_parts.append(flaw.comment_zero)
         return description_parts
 
     def _description_embargoed(self):
