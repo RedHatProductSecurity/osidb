@@ -2239,7 +2239,11 @@ class TestEndpointsFlaws:
         response = client.get(f"{test_api_uri}/available-flaws/{flaw.cve_id}")
         assert response.data is None
 
-        if flaw.is_public or flaw.workflow_state == "DONE":
+        if (
+            flaw.is_public
+            or flaw.workflow_name == "REJECTED"
+            or flaw.workflow_state == "DONE"
+        ):
             assert response.status_code == 204
         else:
             assert response.status_code == 404
