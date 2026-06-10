@@ -13,7 +13,8 @@ import pytest
 from packageurl import PackageURL
 
 from apps.ace.tasks import sync_flaw_affects_from_newcli
-from osidb.tests.factories import FlawFactory
+from osidb.models.affect import Affect
+from osidb.tests.factories import FlawFactory, UpstreamDataFactory
 
 pytestmark = pytest.mark.unit
 
@@ -33,7 +34,12 @@ def test_sync_creates_one_affect_per_result(
     stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
 
     n = len(urllib3_results)
-    assert stats == {"created": n, "skipped": 0, "skipped_existing": 0}
+    assert stats == {
+        "created": n,
+        "skipped": 0,
+        "skipped_existing": 0,
+        "marked_notaffected": 0,
+    }
     assert flaw.affects.count() == n
     assert {
         str(a.purl) for a in flaw.affects.filter(ps_update_stream="hummingbird-1")
@@ -67,7 +73,12 @@ def test_sync_runs_query_per_flaw_component(
 
     assert querier_calls == ["urllib3", "openssl"]
     n_urllib3 = len(urllib3_results)
-    assert stats == {"created": n_urllib3, "skipped": 0, "skipped_existing": 1}
+    assert stats == {
+        "created": n_urllib3,
+        "skipped": 0,
+        "skipped_existing": 1,
+        "marked_notaffected": 0,
+    }
     assert flaw.affects.count() == n_urllib3
 
 
@@ -84,8 +95,18 @@ def test_sync_skips_existing_on_second_run(
     first = sync_flaw_affects_from_newcli(str(flaw.uuid))
     second = sync_flaw_affects_from_newcli(str(flaw.uuid))
 
-    assert first == {"created": n, "skipped": 0, "skipped_existing": 0}
-    assert second == {"created": 0, "skipped": 0, "skipped_existing": n}
+    assert first == {
+        "created": n,
+        "skipped": 0,
+        "skipped_existing": 0,
+        "marked_notaffected": 0,
+    }
+    assert second == {
+        "created": 0,
+        "skipped": 0,
+        "skipped_existing": n,
+        "marked_notaffected": 0,
+    }
 
 
 def test_sync_no_components_raises(monkeypatch, ace_enabled):
@@ -107,7 +128,12 @@ def test_sync_includes_builds_as_affects(
 
     stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
 
-    assert stats == {"created": 2, "skipped": 0, "skipped_existing": 0}
+    assert stats == {
+        "created": 2,
+        "skipped": 0,
+        "skipped_existing": 0,
+        "marked_notaffected": 0,
+    }
     assert flaw.affects.count() == 2
 
     expected = {PackageURL.from_string(r.purls[0]).to_string() for r in ostree_results}
@@ -141,7 +167,12 @@ def test_sync_multi_stream_with_duplicate(
 
     stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
 
-    assert stats == {"created": 5, "skipped": 0, "skipped_existing": 1}
+    assert stats == {
+        "created": 5,
+        "skipped": 0,
+        "skipped_existing": 1,
+        "marked_notaffected": 0,
+    }
     assert flaw.affects.count() == 5
 
     stored_by_stream = defaultdict(set)
@@ -156,7 +187,12 @@ def test_sync_multi_stream_with_duplicate(
 
     # Second run: all 6 entries find existing affects; duplicate also matches → 6 skipped
     stats2 = sync_flaw_affects_from_newcli(str(flaw.uuid))
-    assert stats2 == {"created": 0, "skipped": 0, "skipped_existing": 6}
+    assert stats2 == {
+        "created": 0,
+        "skipped": 0,
+        "skipped_existing": 6,
+        "marked_notaffected": 0,
+    }
     assert flaw.affects.count() == 5
 
 
@@ -234,3 +270,181 @@ def test_sync_respects_ps_modules_setting(monkeypatch, ace_enabled, urllib3_resu
     sync_flaw_affects_from_newcli(str(flaw.uuid))
 
     assert seen_filter_products == [["hummingbird-1", "rhel-9"]]
+
+
+# ── Version-range / OSV upstream_purls integration tests ─────────────────────
+
+
+def test_sync_marks_notaffected_when_version_outside_range(
+    monkeypatch, ace_enabled, mock_querier, result, upstream_purls_openssl_rpm
+):
+    """
+    lib_newtopia returns openssl@3.5.1 but the OSV range says fixed at 3.0.9.
+    The created affect must be NOTAFFECTED.
+    """
+    flaw = FlawFactory(components=["openssl"])
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+
+    results = [
+        result("rhel-9.8.z", "pkg:rpm/redhat/openssl@3.5.1-7.el9_7?arch=src"),
+    ]
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"openssl": results})
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["created"] == 1
+    assert stats["marked_notaffected"] == 1
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.NOTAFFECTED
+
+
+def test_sync_creates_affected_when_version_in_range(
+    monkeypatch, ace_enabled, mock_querier, result, upstream_purls_openssl_rpm
+):
+    """
+    lib_newtopia returns openssl@3.0.7 which is inside the OSV range (< 3.0.9).
+    The created affect must be AFFECTED (auto_resolve applies).
+    """
+    flaw = FlawFactory(components=["openssl"])
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+
+    results = [
+        result("rhel-9.8.z", "pkg:rpm/redhat/openssl@3.0.7-18.el9_2?arch=src"),
+    ]
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"openssl": results})
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["created"] == 1
+    assert stats["marked_notaffected"] == 0
+    affect = flaw.affects.get()
+    assert affect.affectedness != Affect.AffectAffectedness.NOTAFFECTED
+
+
+def test_sync_creates_affected_when_no_upstream_match(
+    monkeypatch, ace_enabled, mock_querier, result
+):
+    """
+    No upstream_purls entry matches the component name.
+    Falls back to AFFECTED (current behaviour preserved).
+    """
+    flaw = FlawFactory(components=["curl"])
+    UpstreamDataFactory(
+        flaw=flaw,
+        upstream_purls=[
+            {
+                "purl": "pkg:rpm/redhat/openssl",
+                "name": "openssl",
+                "ecosystem": "Linux",
+                "ranges": [
+                    {
+                        "type": "ECOSYSTEM",
+                        "events": [{"introduced": "0"}, {"fixed": "3.0.9"}],
+                    }
+                ],
+                "versions": [],
+            }
+        ],
+    )
+
+    results = [
+        result("rhel-9.8.z", "pkg:rpm/redhat/curl@7.76.1-19.el9?arch=src"),
+    ]
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"curl": results})
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["created"] == 1
+    assert stats["marked_notaffected"] == 0
+    affect = flaw.affects.get()
+    assert affect.affectedness != Affect.AffectAffectedness.NOTAFFECTED
+
+
+def test_sync_creates_affected_when_no_range(
+    monkeypatch, ace_enabled, mock_querier, result
+):
+    """
+    upstream_purls entry matches the component but has empty ranges.
+    Falls back to AFFECTED (no range to compare against).
+    """
+    flaw = FlawFactory(components=["openssl"])
+    UpstreamDataFactory(
+        flaw=flaw,
+        upstream_purls=[
+            {
+                "purl": "pkg:rpm/redhat/openssl",
+                "name": "openssl",
+                "ecosystem": "Linux",
+                "ranges": [],
+                "versions": [],
+            }
+        ],
+    )
+
+    results = [
+        result("rhel-9.8.z", "pkg:rpm/redhat/openssl@3.5.1-7.el9_7?arch=src"),
+    ]
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"openssl": results})
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["created"] == 1
+    assert stats["marked_notaffected"] == 0
+
+
+def test_sync_assist_meta_includes_osv_fields(
+    monkeypatch, ace_enabled, mock_querier, result, upstream_purls_openssl_rpm
+):
+    """
+    Every created affect (AFFECTED or NOTAFFECTED) must have osv_* keys in assist_meta.
+    """
+    flaw = FlawFactory(components=["openssl"])
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+
+    results = [
+        result("rhel-9.8.z", "pkg:rpm/redhat/openssl@3.5.1-7.el9_7?arch=src"),
+    ]
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"openssl": results})
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    affect = flaw.affects.get()
+    meta = affect.assist_meta
+    assert "osv_range_used" in meta
+    assert "osv_version_checked" in meta
+    assert "osv_status" in meta
+
+
+def test_sync_returns_marked_notaffected_count(
+    monkeypatch, ace_enabled, mock_querier, result, upstream_purls_openssl_rpm
+):
+    """sync_flaw_affects_from_newcli return dict includes marked_notaffected."""
+    flaw = FlawFactory(components=["openssl"])
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+
+    results = [
+        result("rhel-9.8.z", "pkg:rpm/redhat/openssl@3.5.1-7.el9_7?arch=src"),
+        result("rhel-8.8.0.z", "pkg:rpm/redhat/openssl@3.5.1-7.el8?arch=src"),
+    ]
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"openssl": results})
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats == {
+        "created": 2,
+        "skipped": 0,
+        "skipped_existing": 0,
+        "marked_notaffected": 2,
+    }
