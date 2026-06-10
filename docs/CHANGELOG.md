@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic creation of upsteam maintainer notification when criteria is met for flaw (OSIDB-5077)
 - Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
 - Exclude orphaned trackers from v1 flaw and tracker endpoints when filtering by tracker_ids(OSIDB-4927)
+- Auto-affect creation no longer overrides Affect.impact
+- Fixed double error raise problem in sync_manager.
 tetime queries in API filters (OSIDB-5168)
 >>>>>>> 46ae7370 (feat: Add relative datetime filtering)
 ct creation (OSIDB-4952)
@@ -36,15 +38,15 @@ orkflow
 - align existing workflows with workflow framework concepts
 - auto-adjust workflow:state on Flaw.save
 - unrestrict workflow state names (OSIDB-5049)
-- move automatic visibility change handling specification into the workflow definitions
-- align workflow definition YAMLs with the Argus requirements (OSIDB-5050)
-- introduce true labels and deprecate collaborator-centric pseudo-labels (OSIDB-5191)
+- move automatic visibility change handling specificat- introduce true labels and deprecate collaborator-centric pseudo-labels (OSIDB-5191)
 
 ### Fixed
 - Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
 - Wrap external errors with affect context for bulk PUT endpoint (OSIDB-5038)
 - Wrapped bulk ACL up- Fixed double error raise problem in sync_manager.
 - Fix incorrect OpenAPI schema types for audit endpoint fields (pgh_data, pgh_context, pgh_diff) (OSIDB-3637)
+aise problem in sync_manager.
+>>>>>>> 51e7c04a (remove the restriction on the fixed set of available states)
 
 ### Removed
 - deprecate workflow manipulation endpoints
