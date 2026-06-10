@@ -13,6 +13,12 @@ def _result(ps_update_stream: str, purl: str) -> SimpleNamespace:
     )
 
 
+@pytest.fixture
+def result():
+    """Return the _result factory so tests can call ``result(stream, purl)``."""
+    return _result
+
+
 def _make_mock_querier(results_by_component: dict) -> MagicMock:
     """Return a NewtopiaQuerier mock whose .search().filter().all() returns
     the list mapped to each component key in *results_by_component*."""
@@ -97,3 +103,41 @@ def mock_querier():
 def ace_enabled(monkeypatch):
     """Patch HAS_LIB_NEWTOPIA=True so the task does not short-circuit."""
     monkeypatch.setattr("apps.ace.tasks.HAS_LIB_NEWTOPIA", True)
+
+
+@pytest.fixture
+def upstream_purls_openssl_rpm():
+    """OSV upstream_purls entry for openssl (RPM ecosystem, fixed at 3.0.9)."""
+    return [
+        {
+            "purl": "pkg:rpm/redhat/openssl",
+            "name": "openssl",
+            "ecosystem": "Linux",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "3.0.9"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+
+
+@pytest.fixture
+def upstream_purls_nuget():
+    """OSV upstream_purls entry for Magick.NET (NuGet ecosystem, fixed at 14.10.3)."""
+    return [
+        {
+            "purl": "pkg:nuget/Magick.NET-Q16-AnyCPU",
+            "name": "Magick.NET-Q16-AnyCPU",
+            "ecosystem": "NuGet",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "14.10.3"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]

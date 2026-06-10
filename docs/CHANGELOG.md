@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Base auto-affect determination on upstream affected versions (OSIDB-5031)
+
 ### Fixed
 - Fix Jira metadata collector crash on duplicate field names (OSIDB-4920)
 
