@@ -1,14 +1,10 @@
 from datetime import datetime, timedelta, timezone
-from unittest.mock import Mock
 
 import pytest
-from celery.exceptions import Ignore
 from django.test import TestCase
 from freezegun import freeze_time
 
 from osidb.sync_manager import (
-    JiraTaskDownloadManager,
-    JiraTaskSyncManager,
     JiraTaskTransitionManager,
     SyncManager,
 )
@@ -121,67 +117,3 @@ class TestSyncManager(TestCase):
         assert (
             transition_manager2.last_scheduled_dt > transition_manager.last_scheduled_dt
         )
-
-    @freeze_time(datetime(2025, 6, 24))
-    def test_jira_task_download_manager_conflicting_idle(self):
-        flaw = FlawFactory(embargoed=False)
-
-        download_manager = JiraTaskDownloadManager.objects.create(
-            name=JiraTaskDownloadManager.__name__, sync_id=flaw.task_key
-        )
-
-        # Raises an exception if conflicting sync managers are found
-        download_manager.check_conflicting_sync_managers(
-            flaw.task_key, Mock(), [JiraTaskTransitionManager, JiraTaskSyncManager]
-        )
-
-    @freeze_time(datetime(2025, 6, 24))
-    def test_jira_task_download_manager_conflicting_running(self):
-        flaw = FlawFactory(embargoed=False)
-
-        download_manager = JiraTaskDownloadManager.objects.create(
-            name=JiraTaskDownloadManager.__name__, sync_id=flaw.task_key
-        )
-        transition_manager = JiraTaskTransitionManager.objects.create(
-            name=JiraTaskTransitionManager.__name__, sync_id=flaw.uuid
-        )
-
-        transition_manager.last_scheduled_dt = datetime.now(timezone.utc)
-        transition_manager.last_started_dt = datetime.now(timezone.utc)
-        transition_manager.save()
-
-        with pytest.raises(Ignore):
-            download_manager.check_conflicting_sync_managers(
-                flaw.task_key, Mock(), [JiraTaskTransitionManager, JiraTaskSyncManager]
-            )
-
-    @freeze_time(datetime(2025, 6, 24))
-    def test_jira_task_download_manager_conflicting_scheduled(self):
-        flaw = FlawFactory(embargoed=False)
-
-        download_manager = JiraTaskDownloadManager.objects.create(
-            name=JiraTaskDownloadManager.__name__, sync_id=flaw.task_key
-        )
-        transition_manager = JiraTaskTransitionManager.objects.create(
-            name=JiraTaskTransitionManager.__name__, sync_id=flaw.uuid
-        )
-
-        transition_manager.last_scheduled_dt = datetime.now(timezone.utc) + timedelta(
-            seconds=1
-        )
-        transition_manager.last_rescheduled_dt = datetime.now(timezone.utc) + timedelta(
-            seconds=1
-        )
-        transition_manager.last_consecutive_reschedules = 1
-        transition_manager.last_started_dt = datetime.now(timezone.utc) + timedelta(
-            seconds=2
-        )
-        transition_manager.last_finished_dt = datetime.now(timezone.utc) + timedelta(
-            seconds=3
-        )
-        transition_manager.save()
-
-        with pytest.raises(Ignore):
-            download_manager.check_conflicting_sync_managers(
-                flaw.task_key, Mock(), [JiraTaskTransitionManager, JiraTaskSyncManager]
-            )

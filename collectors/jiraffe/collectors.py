@@ -13,114 +13,17 @@ from django.utils import timezone
 from jira import Issue
 from jira.exceptions import JIRAError
 
-from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
 from collectors.framework.models import Collector
 from osidb.models import PsModule, Tracker
-from osidb.sync_manager import (
-    JiraTaskDownloadManager,
-    JiraTrackerDownloadManager,
-)
+from osidb.sync_manager import JiraTrackerDownloadManager
 
-from .constants import JIRA_EMAIL, JIRA_TOKEN, jira_collector_settings
-from .convertors import JiraTaskConvertor, JiraTrackerConvertor
+from .constants import jira_collector_settings
+from .convertors import JiraTrackerConvertor
 from .core import JiraQuerier
 from .exceptions import MetadataCollectorInsufficientDataJiraffeException
 
 logger = get_task_logger(__name__)
-
-
-class JiraTaskCollector(Collector):
-    """
-    Jira task collector
-    """
-
-    # date before the first Jira task was created (or at least the oldest update)
-    BEGINNING = timezone.datetime(2024, 2, 21, tzinfo=timezone.get_current_timezone())
-    # Jira API does not seem to have either issues returning large number of results
-    # or any restrictions on the maximum query period so we can be quite greedy
-    BATCH_PERIOD_DAYS = 10
-
-    def __init__(self):
-        super().__init__()
-        self._jira_querier = None
-
-    @property
-    def jira_querier(self):
-        if self._jira_querier is None:
-            self._jira_querier = JiraTaskmanQuerier(JIRA_TOKEN, JIRA_EMAIL)
-        return self._jira_querier
-
-    def free_queriers(self):
-        self._jira_querier = None
-
-    def get_batch(self) -> (List[Issue], timezone.datetime):
-        """
-        get next batch of Jira tasks plus period_end timestamp
-        """
-        period_start = self.metadata.updated_until_dt or self.BEGINNING
-        period_end = period_start + timezone.timedelta(days=self.BATCH_PERIOD_DAYS)
-
-        # query for tasks in the period and return them together with the timestamp
-        return (
-            self.jira_querier.get_task_period(period_start, period_end),
-            period_end,
-        )
-
-    def collect(self, task_id: Union[str, None] = None) -> str:
-        """
-        collector run handler
-
-        on every run the next batch of Jira tasks is fetched and store
-        while proceeding forward by the timestamp of the last update
-        """
-        logger.info("Fetching Jira tasks")
-
-        # single-task sync
-        if task_id is not None:
-            task_data = self.jira_querier.get_issue(task_id, expand="changelog")
-            flaw = JiraTaskConvertor(task_data).flaw
-            if flaw:
-                self.save(flaw)
-            return f"Jira task sync of {task_id} completed"
-
-        # multi-task sync
-        start_dt = timezone.now()
-        updated_tasks = []
-
-        JiraTaskDownloadManager.check_for_reschedules()
-
-        batch_data, period_end = self.get_batch()
-
-        # schedule data sync
-        for task in batch_data:
-            JiraTaskDownloadManager.schedule(task.key)
-            updated_tasks.append(task.key)
-
-        logger.info(
-            f"Flaw update was scheduled for the following task IDs: {', '.join(updated_tasks)}"
-            if updated_tasks
-            else "No Flaw were updated."
-        )
-
-        # when we get to the future with the period end
-        # the initial sync is done and the data are complete
-        updated_until_dt = min(start_dt, period_end)
-        complete = start_dt == updated_until_dt or self.metadata.is_complete
-        self.store(complete=complete, updated_until_dt=updated_until_dt)
-
-        # Remove querier objects and close unneeded connection when collector task is finished
-        self.free_queriers()
-
-        msg = f"{self.name} is updated until {updated_until_dt}."
-        msg += (
-            f"Flaw update scheduled for Jira tasks: {', '.join(updated_tasks)}"
-            if updated_tasks
-            else ""
-        )
-
-        logger.info("Jira tasks sync scheduled successfully.")
-        return msg
 
 
 class JiraTrackerCollector(Collector):
