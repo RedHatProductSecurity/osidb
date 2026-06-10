@@ -11,7 +11,7 @@ from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from apps.workflows.models import Workflow
-from apps.workflows.workflow import WorkflowFramework, WorkflowModel
+from apps.workflows.workflow import WorkflowFramework
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
 from osidb.mixins import ACLMixinVisibility, Alert, AlertMixin
@@ -541,13 +541,13 @@ class TestBugzillaJiraMixinIntegration:
         """Clean default workflows and set a basic workflow for testing"""
 
         state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
+            "name": "NEW",
             "requirements": [],
             "jira_state": "New",
             "jira_resolution": None,
         }
         state_second = {
-            "name": WorkflowModel.WorkflowState.TRIAGE,
+            "name": "TRIAGE",
             "requirements": ["has title"],
             "jira_state": "Refinement",
             "jira_resolution": None,
@@ -564,7 +564,7 @@ class TestBugzillaJiraMixinIntegration:
         )
 
         state_reject = {
-            "name": WorkflowModel.WorkflowState.DONE,
+            "name": "DONE",
             "requirements": [],
             "jira_state": "Closed",
             "jira_resolution": "Won't Do",
@@ -622,7 +622,7 @@ class TestBugzillaJiraMixinIntegration:
         assert flaw.task_key
         # Flaw gets classified into TRIAGE immediately because it has a title
         # and adjust_classification is called when the Jira task is created
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.workflow_state == "TRIAGE"
 
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw = Flaw.objects.get(uuid=flaw.uuid)
@@ -636,7 +636,7 @@ class TestBugzillaJiraMixinIntegration:
             raise_validation_error=False,
         )
         flaw.refresh_from_db()
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.workflow_state == "TRIAGE"
 
         jtq = JiraTaskmanQuerier(jira_token, jira_email)
 
@@ -655,7 +655,7 @@ class TestBugzillaJiraMixinIntegration:
             bz_api_key=bugzilla_token,
             raise_validation_error=False,
         )
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.DONE
+        assert flaw.workflow_state == "DONE"
         assert flaw.workflow_name == "REJECTED"
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
@@ -708,7 +708,7 @@ class TestBugzillaJiraMixinIntegration:
         assert flaw.task_key
         # Flaw gets classified into TRIAGE immediately because it has a title
         # and adjust_classification is called when the Jira task is created
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.workflow_state == "TRIAGE"
 
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
 
@@ -723,7 +723,7 @@ class TestBugzillaJiraMixinIntegration:
         )
 
         flaw = Flaw.objects.get(pk=created_uuid)
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.workflow_state == "TRIAGE"
 
         jtq = JiraTaskmanQuerier(jira_token, jira_email)
 

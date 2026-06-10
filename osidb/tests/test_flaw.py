@@ -8,7 +8,6 @@ from freezegun import freeze_time
 
 from apps.bbsync.constants import RHSCL_BTS_KEY
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
-from apps.workflows.workflow import WorkflowModel
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import BZ_ID_SENTINEL
 from osidb.core import generate_acls
@@ -544,7 +543,7 @@ class TestFlaw:
         with freeze_time(tzdatetime(1998, 2, 25, 13, 27, 0)):
             f = FlawFactory(embargoed=False)
             _ = AffectFactory(flaw=f)
-            f.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+            f.workflow_state = "PRE_SECONDARY_ASSESSMENT"
             f.save()
         og_local_updated_dt = f.local_updated_dt
         FlawCollaborator.objects.create(

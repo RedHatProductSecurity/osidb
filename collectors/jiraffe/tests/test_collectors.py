@@ -8,7 +8,6 @@ from jira.exceptions import JIRAError
 
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
-from apps.workflows.workflow import WorkflowModel
 from collectors.bzimport.constants import BZ_DT_FMT
 from collectors.jiraffe.collectors import (
     JiraTaskCollector,
@@ -168,7 +167,7 @@ class TestJiraTaskCollector:
         monkeypatch.setattr(JiraQuerier, "get_issue", mock_get_issue)
 
         # 5 - simulate user promoting a flaw
-        flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
+        flaw.workflow_state = "TRIAGE"
         flaw.save(auto_timestamps=False)
         # provide a fake diff just to pretend that the workflow state has changed
         flaw.tasksync(

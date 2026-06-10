@@ -3,7 +3,7 @@ import json
 import pytest
 
 from apps.workflows.models import Workflow
-from apps.workflows.workflow import WorkflowFramework, WorkflowModel
+from apps.workflows.workflow import WorkflowFramework
 from osidb.models import Flaw, FlawCVSS, FlawReference, Impact, Snippet
 from osidb.tests.factories import FlawFactory, SnippetFactory
 
@@ -37,7 +37,7 @@ class TestSnippet:
                 "conditions": [],
                 "states": [
                     {
-                        "name": WorkflowModel.WorkflowState.NEW,
+                        "name": "NEW",
                         "requirements": [],
                         "jira_state": "New",
                         "jira_resolution": None,
@@ -72,7 +72,7 @@ class TestSnippet:
         assert flaw.source == snippet.source
         assert flaw.title == content["title"]
         assert flaw.unembargo_dt
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.NOVALUE
+        assert flaw.workflow_state == ""
 
         flaw_cvss = flaw.cvss_scores.all().first()
         assert flaw_cvss.issuer == FlawCVSS.CVSSIssuer.NIST

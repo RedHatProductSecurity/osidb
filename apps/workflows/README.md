@@ -115,12 +115,12 @@ If a requirement that was fulfilled in a prior state becomes unfulfilled (e.g.
 owner is cleared), the flaw automatically regresses to the last state whose
 requirements are still fully met. No manual action is needed.
 
-### Fixed State Set
+### State Names
 
-All workflows share a fixed set of states defined in `WorkflowState`. Each
-workflow uses a subset of these states. NEW represents the initial point and
-DONE the final one, which is useful for convenient querying, but this is a soft
-convention.
+State names are free-form strings defined in the YAML workflow files. Each
+workflow can define its own set of states. By convention, NEW represents the
+initial point and DONE the final one, which is useful for consistent querying,
+but this is not enforced by the framework.
 
 ### WORKFLOW Label Type
 

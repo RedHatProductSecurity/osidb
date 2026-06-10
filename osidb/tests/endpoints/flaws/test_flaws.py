@@ -8,7 +8,6 @@ from django.utils.timezone import datetime, make_aware
 from freezegun import freeze_time
 from rest_framework import status
 
-from apps.workflows.workflow import WorkflowModel
 from osidb.core import set_user_acls
 from osidb.filters import FlawFilter
 from osidb.models import (
@@ -750,7 +749,7 @@ class TestEndpointsFlaws:
 
         flaw1 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw1)
-        flaw1.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw1.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw1.save()
         FlawCollaborator.objects.create(
             flaw=flaw1,
@@ -761,7 +760,7 @@ class TestEndpointsFlaws:
 
         flaw2 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw2)
-        flaw2.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw2.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw2.save()
         FlawCollaborator.objects.create(
             flaw=flaw2,
@@ -778,7 +777,7 @@ class TestEndpointsFlaws:
 
         flaw3 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw3)
-        flaw3.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw3.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw3.save()
         FlawCollaborator.objects.create(
             flaw=flaw3,
@@ -1835,7 +1834,7 @@ class TestEndpointsFlaws:
     def test_embargoed_deadlock(self, auth_client, test_api_v2_uri):
         flaw = FlawFactory(
             embargoed=True,
-            workflow_state=WorkflowModel.WorkflowState.TRIAGE,
+            workflow_state="TRIAGE",
             reported_dt=datetime(2025, 1, 1, tzinfo=timezone.utc),
         )
 
@@ -2132,9 +2131,9 @@ class TestEndpointsFlaws:
     @pytest.mark.parametrize(
         "workflow_status,workflow_name",
         (
-            (WorkflowModel.WorkflowState.NEW, "DEFAULT"),
-            (WorkflowModel.WorkflowState.DONE, "REJECTED"),
-            (WorkflowModel.WorkflowState.DONE, "DEFAULT"),
+            ("NEW", "DEFAULT"),
+            ("DONE", "REJECTED"),
+            ("DONE", "DEFAULT"),
         ),
     )
     @pytest.mark.parametrize(
@@ -2178,7 +2177,7 @@ class TestEndpointsFlaws:
         if (
             flaw.is_public
             or flaw.workflow_name == "REJECTED"
-            or flaw.workflow_state == WorkflowModel.WorkflowState.DONE
+            or flaw.workflow_state == "DONE"
         ):
             assert response.status_code == 204
         else:
