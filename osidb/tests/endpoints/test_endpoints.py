@@ -12,7 +12,6 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 from rest_framework.test import APIClient
 
-from apps.workflows.workflow import WorkflowModel
 from collectors.jiraffe.convertors import JiraTrackerConvertor
 from collectors.jiraffe.core import JiraQuerier
 from osidb.core import generate_acls, set_user_acls
@@ -684,7 +683,7 @@ class TestEndpointsACLs:
         )
         flaw = Flaw.objects.first()
         assert flaw.is_internal
-        flaw.workflow_state = WorkflowModel.WorkflowState.NOVALUE
+        flaw.workflow_state = ""
         flaw.adjust_acls()  # adjust_acls() saves the flaw by default
         assert not flaw.is_public
         internal_read = [

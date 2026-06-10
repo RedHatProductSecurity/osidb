@@ -1352,16 +1352,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -3998,16 +3989,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -4016,16 +3998,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       tags:
@@ -8735,16 +8708,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -11844,16 +11808,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -11862,16 +11817,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       tags:
@@ -15284,13 +15230,6 @@ components:
               type: string
             state:
               type: string
-              enum:
-              - ''
-              - NEW
-              - TRIAGE
-              - PRE_SECONDARY_ASSESSMENT
-              - SECONDARY_ASSESSMENT
-              - DONE
           readOnly: true
         group_key:
           type: string
@@ -16230,13 +16169,6 @@ components:
               type: string
             state:
               type: string
-              enum:
-              - ''
-              - NEW
-              - TRIAGE
-              - PRE_SECONDARY_ASSESSMENT
-              - SECONDARY_ASSESSMENT
-              - DONE
           readOnly: true
         group_key:
           type: string
@@ -16752,13 +16684,6 @@ components:
               type: string
             state:
               type: string
-              enum:
-              - ''
-              - NEW
-              - TRIAGE
-              - PRE_SECONDARY_ASSESSMENT
-              - SECONDARY_ASSESSMENT
-              - DONE
           readOnly: true
         group_key:
           type: string

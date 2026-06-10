@@ -33,7 +33,6 @@ from django_filters.rest_framework import (
 from djangoql.queryset import apply_search
 from packageurl import PackageURL
 
-from apps.workflows.workflow import WorkflowModel
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -617,9 +616,7 @@ class FlawFilter(
         field_name="visibility", choices=ACLMixinVisibility.choices
     )
     workflow_name = CharInFilter(field_name="workflow_name")
-    workflow_state = ChoiceInFilter(
-        field_name="workflow_state", choices=WorkflowModel.WorkflowState.choices
-    )
+    workflow_state = CharInFilter(field_name="workflow_state")
     affects__isnull = NullForeignKeyFilter(field_name="affects")
     affects__embargoed = BooleanFilter(field_name="affects__embargoed")
     affects__visibility = ChoiceFilter(
@@ -1202,9 +1199,7 @@ class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFil
         field_name="flaw__components", lookup_expr="contains"
     )
     flaw__workflow_name = CharInFilter(field_name="flaw__workflow_name")
-    flaw__workflow_state = ChoiceInFilter(
-        field_name="flaw__workflow_state", choices=WorkflowModel.WorkflowState.choices
-    )
+    flaw__workflow_state = CharInFilter(field_name="flaw__workflow_state")
 
     # Custom method filters for trackers
     trackers__uuid = UUIDFilter(method="tracker_uuid_filter")
@@ -1519,9 +1514,7 @@ class AffectFilter(
         field_name="flaw__visibility", choices=ACLMixinVisibility.choices
     )
     flaw__workflow_name = CharInFilter(field_name="flaw__workflow_name")
-    flaw__workflow_state = ChoiceInFilter(
-        field_name="flaw__workflow_state", choices=WorkflowModel.WorkflowState.choices
-    )
+    flaw__workflow_state = CharInFilter(field_name="flaw__workflow_state")
     flaw__components = CharInFilter(
         field_name="flaw__components", lookup_expr="contains"
     )

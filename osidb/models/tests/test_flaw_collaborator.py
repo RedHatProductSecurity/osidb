@@ -1,7 +1,6 @@
 import pytest
 from django.core.exceptions import ValidationError
 
-from apps.workflows.workflow import WorkflowModel
 from osidb.models import FlawCollaborator, FlawLabel
 from osidb.tests.factories import (
     AffectFactory,
@@ -17,7 +16,7 @@ class TestFlawCollaborator:
     def test_unique_constraint(self):
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
-        flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw.save()
 
         label = FlawLabel.objects.create(
@@ -73,7 +72,7 @@ class TestFlawCollaborator:
         )
 
         assert flaw.labels.count() == 0
-        flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw.save()
         assert flaw.labels.count() == 2
 
@@ -99,7 +98,7 @@ class TestFlawCollaborator:
             ps_component="test_component",
             ps_update_stream=ps_update_stream1.name,
         )
-        flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw.save()
 
         assert flaw.labels.count() == 2
@@ -122,7 +121,7 @@ class TestFlawCollaborator:
 
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
-        flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw.save()
 
         assert flaw.labels.count() == 1
@@ -139,7 +138,7 @@ class TestFlawCollaborator:
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory(
             embargoed=False,
-            workflow_state=WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT,
+            workflow_state="PRE_SECONDARY_ASSESSMENT",
         )
         FlawLabel.objects.create(
             name="test_module_label",
@@ -162,12 +161,12 @@ class TestFlawCollaborator:
     @pytest.mark.parametrize(
         "workflow_state",
         [
-            WorkflowModel.WorkflowState.NOVALUE,
-            WorkflowModel.WorkflowState.NEW,
-            WorkflowModel.WorkflowState.TRIAGE,
-            WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT,
-            WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
-            WorkflowModel.WorkflowState.DONE,
+            "",
+            "NEW",
+            "TRIAGE",
+            "PRE_SECONDARY_ASSESSMENT",
+            "SECONDARY_ASSESSMENT",
+            "DONE",
         ],
     )
     def test_labels_can_be_created_in_any_workflow_state(self, workflow_state):

@@ -16,7 +16,7 @@ import pytest
 from apps.workflows.models import Workflow
 from apps.workflows.serializers import WorkflowSerializer
 from apps.workflows.urls import urlpatterns
-from apps.workflows.workflow import WorkflowFramework, WorkflowModel
+from apps.workflows.workflow import WorkflowFramework
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.integration
@@ -218,13 +218,13 @@ class TestRestApi(object):
     def test_adjust(self, auth_client, test_api_uri):
         """test that adjust endpoint is now a NO-OP that returns current classification"""
         state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
+            "name": "NEW",
             "requirements": [],
             "jira_state": "New",
             "jira_resolution": None,
         }
         state_first = {
-            "name": WorkflowModel.WorkflowState.TRIAGE,
+            "name": "TRIAGE",
             "requirements": ["has cwe"],
             "jira_state": "To Do",
             "jira_resolution": None,
@@ -248,7 +248,7 @@ class TestRestApi(object):
         flaw.cwe_id = ""
         flaw.save(raise_validation_error=False)
         flaw.adjust_classification()
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        assert flaw.classification["state"] == "NEW"
 
         flaw.cwe_id = "CWE-1"
         flaw.save(raise_validation_error=False)
@@ -264,14 +264,14 @@ class TestRestApi(object):
         json_body = response.json()
         assert str(flaw.uuid) == json_body["flaw"]
         # Endpoint is NO-OP, returns current state (NEW) not recalculated state (TRIAGE)
-        assert WorkflowModel.WorkflowState.NEW == json_body["classification"]["state"]
+        assert "NEW" == json_body["classification"]["state"]
         # Verify deprecation warning is present
         assert json_body.get("deprecated") is True
         assert "deprecation_message" in json_body
 
     def test_classification(self, auth_client, test_api_uri):
         state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
+            "name": "NEW",
             "requirements": [],
             "jira_state": "New",
             "jira_resolution": None,
@@ -304,7 +304,7 @@ class TestRestApi(object):
         assert "state" in json_body["classification"]
 
         assert json_body["classification"]["workflow"] == "main workflow"
-        assert json_body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+        assert json_body["classification"]["state"] == "NEW"
 
     def test_workflows(self, auth_client, test_api_uri):
         response = auth_client().get(

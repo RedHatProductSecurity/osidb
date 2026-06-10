@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - align existing workflows with workflow framework concepts
 - auto-adjust workflow:state on Flaw.save
+- unrestrict workflow state names (OSIDB-5049)
 
 ## [5.12.0] - 2026-06-25
 ### Added

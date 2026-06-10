@@ -7,7 +7,6 @@ from rest_framework.response import Response
 
 from apps.taskman.exceptions import TaskWritePermissionsException
 from apps.taskman.service import JiraTaskmanQuerier
-from apps.workflows.workflow import WorkflowModel
 from osidb.models import Flaw, FlawSource, Impact
 from osidb.tests.factories import AffectFactory, FlawFactory
 
@@ -437,7 +436,7 @@ class TestFlawModelIntegration(object):
         create_or_update_performed = False
         transition_performed = False
 
-        flaw.workflow_state = WorkflowModel.WorkflowState.NEW
+        flaw.workflow_state = "NEW"
         assert flaw.save(jira_token="SECRET", jira_email="test@example.com") is None  # nosec
         # task state transition on workflow state change
         assert not create_or_update_performed
@@ -447,7 +446,7 @@ class TestFlawModelIntegration(object):
         transition_performed = False
 
         flaw.cve_id = flaw.cve_id + "0"
-        flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
+        flaw.workflow_state = "TRIAGE"
         assert (
             flaw.save(
                 jira_token="SECRET",
