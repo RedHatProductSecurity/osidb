@@ -1338,21 +1338,21 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: flaw__workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: flaw__workflow_state
         schema:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -3404,6 +3404,7 @@ paths:
             - -unembargo_dt
             - -updated_dt
             - -uuid
+            - -workflow_name
             - -workflow_state
             - acknowledgments__affiliation
             - acknowledgments__created_dt
@@ -3445,6 +3446,7 @@ paths:
             - unembargo_dt
             - updated_dt
             - uuid
+            - workflow_name
             - workflow_state
         description: |+
           Ordering
@@ -3964,21 +3966,30 @@ paths:
           - INTERNAL
           - PUBLIC
       - in: query
+        name: workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: workflow_name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: workflow_state
         schema:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -3987,16 +3998,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       tags:
@@ -8692,21 +8694,21 @@ paths:
           - INTERNAL
           - PUBLIC
       - in: query
+        name: flaw__workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: flaw__workflow_state
         schema:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -11201,6 +11203,7 @@ paths:
             - -unembargo_dt
             - -updated_dt
             - -uuid
+            - -workflow_name
             - -workflow_state
             - acknowledgments__affiliation
             - acknowledgments__created_dt
@@ -11262,6 +11265,7 @@ paths:
             - unembargo_dt
             - updated_dt
             - uuid
+            - workflow_name
             - workflow_state
         description: |+
           Ordering
@@ -11781,21 +11785,30 @@ paths:
           - INTERNAL
           - PUBLIC
       - in: query
+        name: workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: workflow_name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: workflow_state
         schema:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -11804,16 +11817,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       tags:
@@ -15155,13 +15159,6 @@ components:
               type: string
             state:
               type: string
-              enum:
-              - ''
-              - NEW
-              - TRIAGE
-              - PRE_SECONDARY_ASSESSMENT
-              - SECONDARY_ASSESSMENT
-              - DONE
           readOnly: true
         group_key:
           type: string
@@ -16085,13 +16082,6 @@ components:
               type: string
             state:
               type: string
-              enum:
-              - ''
-              - NEW
-              - TRIAGE
-              - PRE_SECONDARY_ASSESSMENT
-              - SECONDARY_ASSESSMENT
-              - DONE
           readOnly: true
         group_key:
           type: string
@@ -16597,13 +16587,6 @@ components:
               type: string
             state:
               type: string
-              enum:
-              - ''
-              - NEW
-              - TRIAGE
-              - PRE_SECONDARY_ASSESSMENT
-              - SECONDARY_ASSESSMENT
-              - DONE
           readOnly: true
         group_key:
           type: string

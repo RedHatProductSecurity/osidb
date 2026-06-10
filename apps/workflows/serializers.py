@@ -215,10 +215,7 @@ class WorkflowModelSerializer(serializers.ModelSerializer):
             "type": "object",
             "properties": {
                 "workflow": {"type": "string"},
-                "state": {
-                    "type": "string",
-                    "enum": WorkflowModel.WorkflowState.values,
-                },
+                "state": {"type": "string"},
             },
         }
     )

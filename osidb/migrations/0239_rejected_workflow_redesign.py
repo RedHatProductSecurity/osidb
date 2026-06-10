@@ -10,6 +10,7 @@ import uuid
 
 from django.conf import settings
 from django.db import migrations, models
+from django.utils import timezone
 
 from osidb.core import set_user_acls
 
@@ -37,6 +38,8 @@ def migrate_rejected_flaws(apps, schema_editor):
                 "type": "workflow",
                 "state": "NEW",
                 "relevant": True,
+                "created_dt": timezone.now(),
+                "updated_dt": timezone.now(),
             },
         )
 

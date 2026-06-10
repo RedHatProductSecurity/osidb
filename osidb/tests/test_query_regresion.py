@@ -4,7 +4,6 @@ from django.db.models.query import QuerySet
 from django.test.utils import CaptureQueriesContext
 from pytest_django.asserts import assertNumQueries
 
-from apps.workflows.workflow import WorkflowModel
 from osidb.api_views import FlawView
 from osidb.models import Affect, Flaw, FlawSource, Impact, Tracker
 from osidb.tests.factories import (
@@ -454,7 +453,7 @@ class TestQuerySetRegression:
         # auto-adjust and skip ahead because required fields are already filled.
         flaw.classification = {
             "workflow": "DEFAULT",
-            "state": WorkflowModel.WorkflowState.NEW,
+            "state": "NEW",
         }
 
         # NEW -> TRIAGE requires owner

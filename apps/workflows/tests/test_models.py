@@ -2,7 +2,7 @@ import pytest
 
 from apps.workflows.checks import CheckParser
 from apps.workflows.models import Check, Condition, State, Workflow
-from apps.workflows.workflow import WorkflowFramework, WorkflowModel
+from apps.workflows.workflow import WorkflowFramework
 from osidb.models import (
     Affect,
     Flaw,
@@ -821,19 +821,19 @@ class TestWorkflowFramework:
     def test_classify_complete(self):
         """test flaw classification in both workflow and state"""
         state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
+            "name": "NEW",
             "requirements": [],
             "jira_state": "New",
             "jira_resolution": None,
         }
         state_first = {
-            "name": WorkflowModel.WorkflowState.TRIAGE,
+            "name": "TRIAGE",
             "requirements": ["has comment_zero"],
             "jira_state": "To Do",
             "jira_resolution": None,
         }
         state_second = {
-            "name": WorkflowModel.WorkflowState.DONE,
+            "name": "DONE",
             "requirements": ["has title"],
             "jira_state": "Refinement",
             "jira_resolution": None,
@@ -850,7 +850,7 @@ class TestWorkflowFramework:
         )
 
         state_not_affected = {
-            "name": WorkflowModel.WorkflowState.DONE,
+            "name": "DONE",
             "requirements": [],
             "jira_state": "Done",
             "jira_resolution": "Won't Do",
@@ -916,7 +916,7 @@ class TestFlaw:
         flaw = FlawFactory()
         # Flaws without task_key should have empty workflow fields
         assert flaw.workflow_name == ""
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.NOVALUE
+        assert flaw.workflow_state == ""
 
     @pytest.mark.enable_signals
     def test_adjust(self):
@@ -926,7 +926,7 @@ class TestFlaw:
 
         state_new = State(
             {
-                "name": WorkflowModel.WorkflowState.NEW,
+                "name": "NEW",
                 "jira_state": "New",
                 "jira_resolution": None,
                 "requirements": [],
@@ -934,7 +934,7 @@ class TestFlaw:
         )
         state_first = State(
             {
-                "name": WorkflowModel.WorkflowState.TRIAGE,
+                "name": "TRIAGE",
                 "jira_state": "To Do",
                 "jira_resolution": None,
                 "requirements": ["has comment_zero"],
@@ -942,7 +942,7 @@ class TestFlaw:
         )
         state_second = State(
             {
-                "name": WorkflowModel.WorkflowState.DONE,
+                "name": "DONE",
                 "jira_state": "In Progress",
                 "jira_resolution": None,
                 "requirements": ["has title"],
@@ -1004,7 +1004,7 @@ class TestFlaw:
         assert classification == flaw.classification
         # Verify workflow fields remain empty without task_key
         assert flaw.workflow_name == ""
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.NOVALUE
+        assert flaw.workflow_state == ""
 
     @pytest.mark.enable_signals
     def test_rejected_label_classifies_to_rejected_workflow(self):
@@ -1022,7 +1022,7 @@ class TestFlaw:
         flaw.adjust_classification()
 
         assert flaw.classification["workflow"] == "REJECTED"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
+        assert flaw.classification["state"] == "DONE"
 
     @pytest.mark.enable_signals
     def test_removing_rejected_label_falls_back_to_default(self):
