@@ -2,18 +2,23 @@
 implement osidb rest api views
 """
 
+import json
 import logging
+from collections import defaultdict
 from datetime import datetime
 from importlib.metadata import distributions
+from types import SimpleNamespace
 from typing import Any, Type, cast
 from urllib.parse import urljoin
 from uuid import uuid4
 
 import pghistory
 import requests
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import connection
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -41,6 +46,7 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
 )
+from rest_framework.utils.urls import remove_query_param, replace_query_param
 from rest_framework.views import APIView
 from rest_framework.viewsets import (
     ModelViewSet,
@@ -124,6 +130,7 @@ from .serializer import (
     FlawReferenceSerializer,
     FlawSerializer,
     FlawV1Serializer,
+    HistoryMixinSerializer,
     IncidentRequestSerializer,
     IntegrationTokenGetSerializer,
     IntegrationTokenPatchSerializer,
@@ -133,6 +140,24 @@ from .serializer import (
     TrackerV1Serializer,
     UserSerializer,
 )
+
+
+def _normalize_pgh_context(value):
+    if isinstance(value, (bytes, bytearray)):
+        value = value.decode()
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            return value
+    return value
+
+
+def _assert_safe_audit_table(audit_table):
+    table = audit_table["table"]
+    assert isinstance(table, str) and table
+    assert audit_table["quoted_table"] == connection.ops.quote_name(table)
+
 
 # Use only for RudimentaryUserPathLoggingMixin
 api_logger = logging.getLogger("api_req")
@@ -570,14 +595,227 @@ class BulkHistoryMixin(ReadOnlyModelViewSet):
         history_map = {}
 
         if objects:
-            all_history_events = Events.objects.references(*objects)
-            for event in all_history_events:
-                key = f"{event.pgh_obj_model}:{event.pgh_obj_id}"
-                if key not in history_map:
-                    history_map[key] = []
-                history_map[key].append(event)
+            history_map = self._build_concrete_history_cache(objects)
+            if history_map is None:
+                history_map = {}
+                all_history_events = Events.objects.references(*objects)
+                for event in all_history_events:
+                    key = f"{event.pgh_obj_model}:{event.pgh_obj_id}"
+                    if key not in history_map:
+                        history_map[key] = []
+                    history_map[key].append(event)
 
         return history_map
+
+    def _build_concrete_history_cache(self, objects):
+        """
+        Build history for serializers that expose HistoryMixinSerializer.
+
+        Serializer declarations decide which nested serializers can expose
+        history. Reading concrete audit tables keeps the API shape while
+        avoiding the broad pghistory references aggregate.
+        """
+        serializer_class = self.get_serializer_class()
+        objects_by_model = defaultdict(list)
+        include_fields, include_nested = self._history_requested_fields(
+            "include_fields"
+        )
+        exclude_fields, exclude_nested = self._history_requested_fields(
+            "exclude_fields", default_empty=True
+        )
+
+        if not self._collect_history_objects(
+            serializer_class,
+            objects,
+            objects_by_model,
+            include_fields,
+            include_nested,
+            exclude_fields,
+            exclude_nested,
+        ):
+            return None
+
+        history_map = {}
+        for model_class, model_objects in objects_by_model.items():
+            self._add_model_history(history_map, model_class, model_objects)
+        return history_map
+
+    def _collect_history_objects(
+        self,
+        serializer_class,
+        objects,
+        objects_by_model,
+        include_fields,
+        include_nested,
+        exclude_fields,
+        exclude_nested,
+    ):
+        if not issubclass(serializer_class, HistoryMixinSerializer):
+            return False
+
+        object_list = list(objects)
+        objects_by_model[serializer_class.get_history_model()].extend(object_list)
+
+        for relation in serializer_class.get_history_relations():
+            if not self._history_field_included(
+                relation.field_name, include_fields, exclude_fields
+            ):
+                continue
+
+            related_objects = []
+            for obj in object_list:
+                related_objects.extend(relation.accessor(obj))
+
+            child_include_fields, child_include_nested = self._history_child_fields(
+                relation.field_name, include_nested, default_empty=False
+            )
+            child_exclude_fields, child_exclude_nested = self._history_child_fields(
+                relation.field_name, exclude_nested, default_empty=True
+            )
+            self._collect_history_objects(
+                relation.serializer_class,
+                related_objects,
+                objects_by_model,
+                child_include_fields,
+                child_include_nested,
+                child_exclude_fields,
+                child_exclude_nested,
+            )
+
+        return True
+
+    def _history_requested_fields(self, param_name, default_empty=False):
+        request = getattr(self, "request", None)
+        if request is None:
+            return (set() if default_empty else None), {}
+
+        raw = request.query_params.get(param_name)
+        if not raw:
+            return (set() if default_empty else None), {}
+
+        fields = set()
+        nested = defaultdict(list)
+        for item in raw.split(","):
+            item = item.strip()
+            if not item:
+                continue
+            field_name, separator, child_field = item.partition(".")
+            fields.add(field_name)
+            if separator:
+                nested[field_name].append(child_field)
+        return fields, nested
+
+    def _history_child_fields(self, field_name, nested_fields, default_empty=False):
+        child_values = nested_fields.get(field_name, [])
+        if not child_values:
+            return (set() if default_empty else None), {}
+
+        fields = set()
+        nested = defaultdict(list)
+        for item in child_values:
+            child_name, separator, grandchild = item.partition(".")
+            fields.add(child_name)
+            if separator:
+                nested[child_name].append(grandchild)
+        return fields, nested
+
+    def _history_field_included(self, field_name, include_fields, exclude_fields):
+        if include_fields is not None and field_name not in include_fields:
+            return False
+        return not (
+            field_name in exclude_fields
+            and (include_fields is None or field_name not in include_fields)
+        )
+
+    def _add_model_history(self, history_map, model_class, objects):
+        object_ids = [obj.pk for obj in objects if obj.pk is not None]
+        if not object_ids:
+            return
+
+        audit_table = self._history_audit_table(model_class)
+        if audit_table is None:
+            return
+        _assert_safe_audit_table(audit_table)
+
+        # Audit table names are selected from Django metadata and
+        # quoted with connection.ops.quote_name; no user input
+        sql = (
+            "SELECT audit_table.*, pghistory_context.metadata AS pgh_context "  # noqa: S608
+            f"FROM {audit_table['quoted_table']} audit_table "
+            "LEFT JOIN pghistory_context "
+            "ON pghistory_context.id = audit_table.pgh_context_id "
+            "WHERE audit_table.pgh_obj_id = ANY(%s) "
+            "ORDER BY audit_table.pgh_obj_id, audit_table.pgh_id"
+        )
+        rows = self._fetchall_dicts(sql, [object_ids])
+
+        previous_data_by_obj_id = {}
+        for row in rows:
+            key = f"{audit_table['object_label']}:{row['pgh_obj_id']}"
+            pgh_data = self._history_pgh_data(audit_table, row)
+            previous_data = previous_data_by_obj_id.get(row["pgh_obj_id"], {})
+            history_map.setdefault(key, []).append(
+                SimpleNamespace(
+                    pgh_created_at=row["pgh_created_at"],
+                    pgh_slug=f"{audit_table['audit_label']}:{row['pgh_id']}",
+                    pgh_label=row["pgh_label"],
+                    pgh_context=_normalize_pgh_context(row.get("pgh_context")),
+                    pgh_diff=self._history_pgh_diff(previous_data, pgh_data),
+                )
+            )
+            previous_data_by_obj_id[row["pgh_obj_id"]] = pgh_data
+
+    def _history_audit_table(self, model_class):
+        table = f"{model_class._meta.db_table}audit"
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT to_regclass(%s)", [table])
+            exists = cursor.fetchone()[0]
+        if not exists:
+            return None
+
+        columns = [
+            row["column_name"]
+            for row in self._fetchall_dicts(
+                """
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_schema = 'public' AND table_name = %s
+                ORDER BY ordinal_position
+                """,
+                [table],
+            )
+        ]
+        return {
+            "table": table,
+            "audit_label": f"{model_class._meta.app_label}.{model_class._meta.object_name}Audit",
+            "object_label": model_class._meta.label,
+            "quoted_table": connection.ops.quote_name(table),
+            "columns": columns,
+        }
+
+    def _history_pgh_data(self, audit_table, row):
+        excluded = {"acl_read", "acl_write", "pgh_context", "pgh_context_id"}
+        return {
+            column: row[column]
+            for column in audit_table["columns"]
+            if not column.startswith("pgh_") and column not in excluded
+        }
+
+    def _history_pgh_diff(self, previous_data, pgh_data):
+        diff = {}
+        for key, value in pgh_data.items():
+            if previous_data.get(key) != value:
+                diff[key] = [previous_data.get(key), value]
+        return diff
+
+    def _fetchall_dicts(self, sql, params=None):
+        with connection.cursor() as cursor:
+            if params is None:
+                cursor.execute(sql)
+            else:
+                cursor.execute(sql, params)
+            columns = [col[0] for col in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
     def list(self, request, *args, **kwargs):
         # Override list to bulk-fetch history for all objects.
@@ -1959,6 +2197,265 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
     # allow dots and colons in pgh_slug (e.g. "osidb.FlawAudit:2035413"); default [^/.]+
     # would only capture up to the first dot.
     lookup_value_regex = "[^/]+"
+
+    def list(self, request, *args, **kwargs):
+        limit = self._get_limit(request)
+        offset = self._get_offset(request)
+        count = self._audit_count(request.query_params)
+        rows = self._audit_rows(request.query_params, limit, offset)
+        events = [self._event_from_row(*row) for row in rows]
+
+        return Response(
+            {
+                "count": count,
+                "next": self._get_next_link(request, limit, offset, count),
+                "previous": self._get_previous_link(request, limit, offset),
+                "results": events,
+            }
+        )
+
+    def retrieve(self, request, *args, **kwargs):
+        event = self._event_by_slug(kwargs[self.lookup_field])
+        if event is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(event)
+
+    def _get_limit(self, request):
+        default_limit = settings.REST_FRAMEWORK.get("PAGE_SIZE") or 100
+        hard_limit = settings.REST_FRAMEWORK.get("MAX_PAGE_SIZE") or default_limit
+        try:
+            limit = int(request.query_params.get("limit", default_limit))
+        except (TypeError, ValueError):
+            limit = default_limit
+        return max(0, min(limit, hard_limit))
+
+    def _get_offset(self, request):
+        try:
+            return max(0, int(request.query_params.get("offset", 0)))
+        except (TypeError, ValueError):
+            return 0
+
+    def _get_next_link(self, request, limit, offset, count):
+        if not limit or offset + limit >= count:
+            return None
+
+        url = request.build_absolute_uri()
+        url = replace_query_param(url, "limit", limit)
+        return replace_query_param(url, "offset", offset + limit)
+
+    def _get_previous_link(self, request, limit, offset):
+        if not limit or offset <= 0:
+            return None
+
+        url = request.build_absolute_uri()
+        url = replace_query_param(url, "limit", limit)
+        previous_offset = max(offset - limit, 0)
+        if previous_offset == 0:
+            return remove_query_param(url, "offset")
+        return replace_query_param(url, "offset", previous_offset)
+
+    def _audit_count(self, params):
+        pgh_slug = params.get("pgh_slug")
+        if pgh_slug:
+            return 1 if self._row_by_slug(pgh_slug, params) else 0
+
+        count = 0
+        for audit_table in self._audit_tables():
+            _assert_safe_audit_table(audit_table)
+            if (
+                params.get("pgh_obj_model")
+                and params["pgh_obj_model"] != audit_table["object_label"]
+            ):
+                continue
+
+            where, sql_params = self._audit_where(params)
+            sql = f"SELECT count(*) AS count FROM {audit_table['quoted_table']}"  # noqa: S608
+            if where:
+                sql += " WHERE " + " AND ".join(where)
+            count += self._fetchall_dicts(sql, sql_params)[0]["count"]
+        return count
+
+    def _audit_rows(self, params, limit, offset):
+        rows = []
+        pgh_slug = params.get("pgh_slug")
+        if pgh_slug:
+            if not limit or offset:
+                return []
+            event = self._row_by_slug(pgh_slug, params)
+            return [event] if event else []
+
+        for audit_table in self._audit_tables():
+            _assert_safe_audit_table(audit_table)
+            if (
+                params.get("pgh_obj_model")
+                and params["pgh_obj_model"] != audit_table["object_label"]
+            ):
+                continue
+
+            where, sql_params = self._audit_where(params, table_alias="audit_table")
+
+            window = limit + offset
+            if not window:
+                continue
+
+            sql = (
+                "SELECT audit_table.*, pghistory_context.metadata AS pgh_context "  # noqa: S608
+                f"FROM {audit_table['quoted_table']} audit_table "
+                "LEFT JOIN pghistory_context "
+                "ON pghistory_context.id = audit_table.pgh_context_id"
+            )
+            if where:
+                sql += " WHERE " + " AND ".join(where)
+            sql += " ORDER BY audit_table.pgh_id DESC LIMIT %s"
+            sql_params.append(window)
+            rows.extend(
+                (audit_table, row) for row in self._fetchall_dicts(sql, sql_params)
+            )
+
+        rows.sort(key=lambda item: item[1]["pgh_created_at"], reverse=True)
+        return rows[offset : offset + limit]
+
+    def _audit_where(self, params, table_alias=None):
+        where = []
+        sql_params = []
+        prefix = f"{table_alias}." if table_alias else ""
+        if params.get("pgh_label"):
+            where.append(f"{prefix}pgh_label = %s")
+            sql_params.append(params["pgh_label"])
+        if params.get("pgh_obj_id"):
+            where.append(f"{prefix}pgh_obj_id = %s")
+            sql_params.append(params["pgh_obj_id"])
+        if params.get("pgh_created_at"):
+            where.append(f"{prefix}pgh_created_at = %s")
+            sql_params.append(params["pgh_created_at"])
+        return where, sql_params
+
+    def _event_by_slug(self, pgh_slug):
+        row = self._row_by_slug(pgh_slug)
+        if row is None:
+            return None
+        return self._event_from_row(*row)
+
+    def _row_by_slug(self, pgh_slug, params=None):
+        if ":" not in pgh_slug:
+            return None
+
+        audit_label, pgh_id = pgh_slug.rsplit(":", 1)
+        try:
+            pgh_id = int(pgh_id)
+        except ValueError:
+            return None
+
+        for audit_table in self._audit_tables():
+            _assert_safe_audit_table(audit_table)
+            if audit_table["audit_label"] != audit_label:
+                continue
+            if (
+                params
+                and params.get("pgh_obj_model")
+                and params["pgh_obj_model"] != audit_table["object_label"]
+            ):
+                return None
+
+            where = ["audit_table.pgh_id = %s"]
+            sql_params = [pgh_id]
+            if params:
+                extra_where, extra_params = self._audit_where(
+                    params, table_alias="audit_table"
+                )
+                where.extend(extra_where)
+                sql_params.extend(extra_params)
+
+            sql = (
+                "SELECT audit_table.*, pghistory_context.metadata AS pgh_context "  # noqa: S608
+                f"FROM {audit_table['quoted_table']} audit_table "
+                "LEFT JOIN pghistory_context "
+                "ON pghistory_context.id = audit_table.pgh_context_id "
+                f"WHERE {' AND '.join(where)} "
+                "LIMIT 1"
+            )
+            rows = self._fetchall_dicts(sql, sql_params)
+            row = rows[0] if rows else None
+            if row is None:
+                return None
+            return audit_table, row
+        return None
+
+    def _event_from_row(self, audit_table, row):
+        pgh_data = self._pgh_data(audit_table, row)
+        previous = self._previous_row(audit_table, row)
+        previous_data = self._pgh_data(audit_table, previous) if previous else {}
+
+        return {
+            "pgh_created_at": row["pgh_created_at"],
+            "pgh_slug": f"{audit_table['audit_label']}:{row['pgh_id']}",
+            "pgh_obj_model": audit_table["object_label"],
+            "pgh_obj_id": row["pgh_obj_id"],
+            "pgh_label": row["pgh_label"],
+            "pgh_context": _normalize_pgh_context(row.get("pgh_context")),
+            "pgh_diff": self._pgh_diff(previous_data, pgh_data),
+            "pgh_data": pgh_data,
+        }
+
+    def _previous_row(self, audit_table, row):
+        _assert_safe_audit_table(audit_table)
+        sql = (
+            f"SELECT * FROM {audit_table['quoted_table']} "  # noqa: S608
+            "WHERE pgh_obj_id = %s AND pgh_id < %s "
+            "ORDER BY pgh_id DESC "
+            "LIMIT 1"
+        )
+        rows = self._fetchall_dicts(sql, [row["pgh_obj_id"], row["pgh_id"]])
+        return rows[0] if rows else None
+
+    def _pgh_data(self, audit_table, row):
+        excluded = {"acl_read", "acl_write", "pgh_context_id"}
+        return {
+            column: row[column]
+            for column in audit_table["columns"]
+            if not column.startswith("pgh_") and column not in excluded
+        }
+
+    def _pgh_diff(self, previous_data, pgh_data):
+        diff = {}
+        for key, value in pgh_data.items():
+            if previous_data.get(key) != value:
+                diff[key] = [previous_data.get(key), value]
+        return diff
+
+    def _fetchall_dicts(self, sql, params=None):
+        with connection.cursor() as cursor:
+            if params is None:
+                cursor.execute(sql)
+            else:
+                cursor.execute(sql, params)
+            columns = [col[0] for col in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    def _audit_tables(self):
+        audit_tables = []
+        for model in apps.get_models():
+            fields = {field.attname for field in model._meta.fields}
+            if not {"pgh_id", "pgh_obj_id", "pgh_created_at"}.issubset(fields):
+                continue
+            if not model._meta.object_name.endswith("Audit"):
+                continue
+            try:
+                object_label = model._meta.get_field(
+                    "pgh_obj"
+                ).remote_field.model._meta.label
+            except Exception:
+                object_label = model._meta.label.removesuffix("Audit")
+            audit_tables.append(
+                {
+                    "table": model._meta.db_table,
+                    "quoted_table": connection.ops.quote_name(model._meta.db_table),
+                    "audit_label": model._meta.label,
+                    "object_label": object_label,
+                    "columns": [field.attname for field in model._meta.concrete_fields],
+                }
+            )
+        return audit_tables
 
 
 # NOTE: Purpose of this custom class is for Kerberos authenticated

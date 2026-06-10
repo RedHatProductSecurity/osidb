@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix check parser replaces spaces with underscores in equality check values (OSIDB-4956)
 - Refresh Flaws in signal to avoid revert issues (OSIDB-4985)
 
+### Changed
+- Performance improvements for pghistory related queries (OSIDB-4906)
+
 ## [5.11.0] - 2026-05-28
 ### Added
 - Add validation to require PURLs (OSIDB-4810)

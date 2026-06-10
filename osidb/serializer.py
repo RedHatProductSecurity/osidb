@@ -5,7 +5,8 @@ serialize flaw model
 import logging
 import uuid
 from collections import defaultdict
-from typing import Dict, List, Tuple
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, Iterable, List, Tuple, Type
 
 import pghistory
 from django.conf import settings
@@ -680,8 +681,24 @@ class HistoricalEventSerializer(serializers.ModelSerializer):
         return representation
 
 
+@dataclass(frozen=True)
+class HistoryRelation:
+    field_name: str
+    serializer_class: Type[serializers.Serializer]
+    accessor: Callable[[Any], Iterable[Any]]
+
+
 class HistoryMixinSerializer(serializers.ModelSerializer):
+    history_relations: Tuple[HistoryRelation, ...] = ()
     history = serializers.SerializerMethodField()
+
+    @classmethod
+    def get_history_model(cls):
+        return cls.Meta.model
+
+    @classmethod
+    def get_history_relations(cls):
+        return cls.history_relations
 
     def __init__(self, *args, **kwargs):
         # Instantiate the superclass normally
@@ -2202,6 +2219,14 @@ class FlawSerializer(
 ):
     """serialize flaw model"""
 
+    history_relations = (
+        HistoryRelation(
+            field_name="affects",
+            serializer_class=AffectSerializer,
+            accessor=lambda flaw: flaw.affects.all(),
+        ),
+    )
+
     # All currently used keys in Flaw.meta_attr used for SwaggerUI population,
     # whenever we introduce new key, which users might be interested in, we should
     # add it to this tuple.
@@ -2523,6 +2548,14 @@ class FlawPutSerializer(FlawSerializer):
 
 class FlawV1Serializer(FlawSerializer):
     """Serializer for the flaw model adapted to affects v1"""
+
+    history_relations = (
+        HistoryRelation(
+            field_name="affects",
+            serializer_class=AffectV1Serializer,
+            accessor=lambda flaw: AffectV1.objects.filter(flaw=flaw),
+        ),
+    )
 
     @extend_schema_field(AffectV1Serializer(many=True))
     def get_affects(self, obj):

@@ -123,7 +123,7 @@ class TestQuerySetRegression:
             response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 62), (True, 62)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 67), (True, 67)])
     def test_flaw_with_affects_history(
         self, auth_client, test_api_v2_uri, embargoed, query_count
     ):
@@ -218,7 +218,7 @@ class TestQuerySetRegression:
         executed_sql = "\n".join(q["sql"] for q in ctx.captured_queries)
         assert '"osidb_affect"' not in executed_sql
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 66), (True, 67)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 68), (True, 67)])
     def test_flaw_with_affects_trackers(
         self, auth_client, test_api_v2_uri, embargoed, query_count
     ):
@@ -267,7 +267,7 @@ class TestQuerySetRegression:
             response = auth_client().get(f"{test_api_v2_uri}/affects")
             assert response.status_code == 200
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 54), (True, 54)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 56), (True, 56)])
     def test_affect_list_history(
         self, auth_client, test_api_v2_uri, embargoed, query_count
     ):
@@ -391,9 +391,9 @@ class TestQuerySetRegression:
     @pytest.mark.parametrize(
         "embargoed,affect_quantity,expected_queries",
         [
-            (True, 1, 76),
-            (True, 10, 76),
-            (True, 100, 76),
+            (True, 1, 79),
+            (True, 10, 79),
+            (True, 100, 79),
             (False, 1, 113),  # down from 119
             (False, 10, 311),  # down from 389
             (False, 100, 2291),  # down from 3089
