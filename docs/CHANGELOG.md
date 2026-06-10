@@ -5,8 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [5.11.1] - 2026-06-10
 ### Fixed
 - Fix Jira metadata collector crash on duplicate field names (OSIDB-4920)
+- Fix check parser replaces spaces with underscores in equality check values (OSIDB-4956)
+- Refresh Flaws in signal to avoid revert issues (OSIDB-4985)
 
 ## [5.11.0] - 2026-05-28
 ### Added
@@ -22,11 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Exclude streams with no offer from tracker suggestions response (OSIDB-4977)
-- Refresh Flaws in signal to avoid revert issues (OSIDB-4985)
-
-### Fixed
-- Fix check parser replaces spaces with underscores in equality check values (OSIDB-4956)
-
 
 ## [5.10.3] - 2026-05-06
 ### Fixed
