@@ -122,23 +122,8 @@ class WorkflowModelManager(models.Manager):
 class WorkflowModel(models.Model):
     """workflow model base class"""
 
-    class WorkflowState(models.TextChoices):
-        """allowable workflow states"""
-
-        NOVALUE = ""
-        NEW = "NEW"
-        TRIAGE = "TRIAGE"
-        PRE_SECONDARY_ASSESSMENT = "PRE_SECONDARY_ASSESSMENT"
-        SECONDARY_ASSESSMENT = "SECONDARY_ASSESSMENT"
-        DONE = "DONE"
-
     workflow_name = models.CharField(max_length=50, blank=True)
-    workflow_state = models.CharField(
-        choices=WorkflowState.choices,
-        max_length=24,
-        blank=True,
-        default=WorkflowState.NOVALUE,
-    )
+    workflow_state = models.CharField(max_length=50, blank=True)
     owner = models.CharField(max_length=60, blank=True)
     group_key = deprecate_field(models.CharField(max_length=60, blank=True))
     task_key = models.CharField(max_length=60, blank=True)
@@ -225,9 +210,9 @@ class WorkflowModel(models.Model):
 
         public_workflows = ["DEFAULT"]
         public_states = [
-            WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT,
-            WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
-            WorkflowModel.WorkflowState.DONE,
+            "PRE_SECONDARY_ASSESSMENT",
+            "SECONDARY_ASSESSMENT",
+            "DONE",
         ]
 
         if (

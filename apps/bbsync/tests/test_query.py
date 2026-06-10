@@ -6,7 +6,6 @@ from django.utils import timezone
 
 from apps.bbsync.constants import MAX_SUMMARY_LENGTH
 from apps.bbsync.query import FlawBugzillaQueryBuilder
-from apps.workflows.workflow import WorkflowModel
 from osidb.core import generate_acls
 from osidb.models import Affect, Flaw, FlawComment, FlawSource, Snippet, Tracker
 from osidb.tests.factories import (
@@ -228,12 +227,12 @@ class TestGenerateBasics:
     @pytest.mark.parametrize(
         "workflow_state,result",
         [
-            (WorkflowModel.WorkflowState.NOVALUE, "vulnerability"),
-            (WorkflowModel.WorkflowState.NEW, "vulnerability-draft"),
-            (WorkflowModel.WorkflowState.TRIAGE, "vulnerability"),
-            (WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT, "vulnerability"),
-            (WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT, "vulnerability"),
-            (WorkflowModel.WorkflowState.DONE, "vulnerability"),
+            ("", "vulnerability"),
+            ("NEW", "vulnerability-draft"),
+            ("TRIAGE", "vulnerability"),
+            ("PRE_SECONDARY_ASSESSMENT", "vulnerability"),
+            ("SECONDARY_ASSESSMENT", "vulnerability"),
+            ("DONE", "vulnerability"),
         ],
     )
     @pytest.mark.parametrize("has_meta_attr", [True, False])
@@ -269,13 +268,13 @@ class TestGenerateBasics:
         """
         if has_meta_attr:
             flaw = FlawFactory(
-                workflow_state=WorkflowModel.WorkflowState.DONE,
+                workflow_state="DONE",
                 workflow_name="REJECTED",
                 meta_attr={"bz_id": "123", "bz_component": "vulnerability-draft"},
             )
         else:
             flaw = FlawFactory(
-                workflow_state=WorkflowModel.WorkflowState.DONE,
+                workflow_state="DONE",
                 workflow_name="REJECTED",
                 meta_attr={},
             )
@@ -286,12 +285,12 @@ class TestGenerateBasics:
     @pytest.mark.parametrize(
         "workflow_state",
         [
-            WorkflowModel.WorkflowState.NOVALUE,
-            WorkflowModel.WorkflowState.NEW,
-            WorkflowModel.WorkflowState.TRIAGE,
-            WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT,
-            WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
-            WorkflowModel.WorkflowState.DONE,
+            "",
+            "NEW",
+            "TRIAGE",
+            "PRE_SECONDARY_ASSESSMENT",
+            "SECONDARY_ASSESSMENT",
+            "DONE",
         ],
     )
     def test_generate_component_after_bz_sync_with_regular_component(
