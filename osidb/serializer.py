@@ -1490,7 +1490,12 @@ class AffectV1Serializer(
         # Use pre-queried list when present
         tracker_list = self.context.get("tracker_list_by_uuid")
         if tracker_list is not None:
-            uuids = getattr(obj, "all_tracker_ids", None) or []
+            uuids = (
+                Affect.objects.filter(uuid=obj.uuid)
+                .exclude(tracker__isnull=True)
+                .values_list("tracker__uuid", flat=True)
+                .distinct()
+            )
             return [
                 tracker_list[str(uuid)] for uuid in uuids if str(uuid) in tracker_list
             ]
@@ -1573,9 +1578,11 @@ class TrackerV1Serializer(TrackerSerializer):
         if affect_list is not None:
             return affect_list.get(obj.uuid, [])
 
-        return AffectV1.objects.filter(
-            all_tracker_ids__contains=[obj.uuid]
-        ).values_list("uuid", flat=True)
+        return (
+            Affect.objects.filter(tracker__uuid=obj.uuid)
+            .values_list("uuid", flat=True)
+            .distinct()
+        )
 
 
 class PackageVerSerializer(serializers.ModelSerializer):
@@ -2546,7 +2553,9 @@ class FlawV1Serializer(FlawSerializer):
                     external_system_id__in=tracker_ids_param.split(",")
                 ).values_list("uuid", flat=True)
                 affects_v1 = affects_v1.filter(
-                    all_tracker_ids__overlap=list(tracker_uuids)
+                    uuid__in=Affect.objects.filter(tracker__uuid__in=tracker_uuids)
+                    .values_list("uuid", flat=True)
+                    .distinct()
                 )
 
             # If we have requested history on Flaw, then apply it to affects as well
@@ -2603,11 +2612,16 @@ class FlawV1Serializer(FlawSerializer):
 
         tracker_uuid_set = set()
         affects_by_tracker = defaultdict(list)
-        for a in affects:
-            ids = getattr(a, "all_tracker_ids", None) or []
-            for t in ids:
-                tracker_uuid_set.add(t)
-                affects_by_tracker[t].append(a.uuid)
+
+        if affects:
+            for affect_uuid, tracker_uuid in (
+                Affect.objects.filter(uuid__in=affect_uuid_set)
+                .exclude(tracker__isnull=True)
+                .values_list("uuid", "tracker__uuid")
+                .distinct()
+            ):
+                tracker_uuid_set.add(tracker_uuid)
+                affects_by_tracker[tracker_uuid].append(affect_uuid)
 
         # Fetch and serialize each tracker
         tracker_list = {}

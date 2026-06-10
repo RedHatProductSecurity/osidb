@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix Jira metadata collector crash on duplicate field names (OSIDB-4920)
 - Fix check parser replaces spaces with underscores in equality check values (OSIDB-4956)
+- Exclude orphaned trackers from v1 flaw and tracker endoints when filtering by tracker_ids(OSIDB-4927)
 - Refresh Flaws in signal to avoid revert issues (OSIDB-4985)
 
 ## [5.11.0] - 2026-05-28

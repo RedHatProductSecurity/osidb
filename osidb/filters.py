@@ -942,7 +942,7 @@ class FlawV1Filter(FlawFilter):
             "uuid", flat=True
         )
         return (
-            AffectV1.objects.filter(all_tracker_ids__overlap=list(tracker_uuids))
+            Affect.objects.filter(tracker__uuid__in=tracker_uuids)
             .values_list("flaw_id", flat=True)
             .distinct()
         )
@@ -954,7 +954,7 @@ class FlawV1Filter(FlawFilter):
             .distinct()
         )
         return (
-            AffectV1.objects.filter(all_tracker_ids__overlap=list(tracker_uuids))
+            Affect.objects.filter(tracker__uuid__in=tracker_uuids)
             .values_list("flaw_id", flat=True)
             .distinct()
         )
@@ -990,12 +990,8 @@ class FlawV1Filter(FlawFilter):
         return queryset.filter(uuid__in=flaw_ids)
 
     def tracker_ids_filter(self, queryset, name, value):
-        tracker_uuids = Tracker.objects.filter(
-            external_system_id__in=value
-        ).values_list("uuid", flat=True)
-
         flaw_ids = (
-            AffectV1.objects.filter(all_tracker_ids__overlap=list(tracker_uuids))
+            Affect.objects.filter(tracker__external_system_id__in=value)
             .values_list("flaw_id", flat=True)
             .distinct()
         )
@@ -1277,7 +1273,11 @@ class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFil
         if not tracker_uuids.exists():
             return queryset.none()
 
-        return queryset.filter(all_tracker_ids__overlap=list(tracker_uuids))
+        return queryset.filter(
+            uuid__in=Affect.objects.filter(tracker__uuid__in=tracker_uuids)
+            .values_list("uuid", flat=True)
+            .distinct()
+        )
 
     def _filter_by_cvss_attribute(self, queryset, filter_key, value):
         """Helper method to find affects v1 from CVSS score fields"""
@@ -1288,7 +1288,11 @@ class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFil
         )
         if not affect_ids:
             return queryset.none()
-        return queryset.filter(uuid__in=affect_ids)
+        return queryset.filter(
+            uuid__in=Affect.objects.filter(tracker__uuid__in=value)
+            .values_list("uuid", flat=True)
+            .distinct()
+        )
 
     def tracker_uuid_filter(self, queryset, name, value):
         return queryset.filter(all_tracker_ids__contains=[value])
@@ -1737,10 +1741,12 @@ class TrackerV1Filter(TrackerFilter):
         """
         Helper to get all tracker ids from affect v1 objects that match a given filter.
         """
-        tracker_uuids = AffectV1.objects.filter(**affect_v1_filter).values_list(
-            "all_tracker_ids", flat=True
+        return (
+            Affect.objects.filter(**affect_v1_filter)
+            .exclude(tracker__isnull=True)
+            .values_list("tracker__uuid", flat=True)
+            .distinct()
         )
-        return {uuid for sublist in tracker_uuids if sublist for uuid in sublist}
 
     def affect_direct_filter(self, queryset, name, value):
         key = name.replace("affects__", "") + "__exact"
