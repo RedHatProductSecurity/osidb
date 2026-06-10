@@ -1,7 +1,6 @@
 import pytest
 from rest_framework import status
 
-from apps.workflows.workflow import WorkflowModel
 from osidb.models import Flaw, FlawCollaborator, FlawLabel
 from osidb.tests.factories import AffectFactory, FlawFactory
 
@@ -25,7 +24,7 @@ class TestEndpointsFlawsLabels:
 
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
-        flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw.save()
 
     def test_get_labels(self, auth_client, test_api_uri):
@@ -192,7 +191,7 @@ class TestEndpointsFlawsLabels:
 
         # Test that alias labels can be set in other workflow state
         flaw_workflow = FlawFactory(embargoed=False)
-        flaw_workflow.workflow_state = WorkflowModel.WorkflowState.TRIAGE
+        flaw_workflow.workflow_state = "TRIAGE"
         flaw_workflow.save()
 
         response = auth_client().post(
@@ -203,7 +202,7 @@ class TestEndpointsFlawsLabels:
         assert FlawCollaborator.objects.filter(label="incident-12346").exists()
 
         flaw_workflow = FlawFactory(embargoed=False)
-        flaw_workflow.workflow_state = WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
+        flaw_workflow.workflow_state = "SECONDARY_ASSESSMENT"
         flaw_workflow.save()
 
         response = auth_client().post(

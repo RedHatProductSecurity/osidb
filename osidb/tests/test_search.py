@@ -2,7 +2,6 @@ import uuid
 
 import pytest
 
-from apps.workflows.workflow import WorkflowModel
 from osidb.models import Flaw, FlawCollaborator, FlawLabel, FlawSource, Impact
 
 from .factories import AffectFactory, FlawFactory
@@ -385,7 +384,7 @@ class TestSearch:
 
         flaw1 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw1)
-        flaw1.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw1.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw1.save()
         FlawCollaborator.objects.create(
             flaw=flaw1,
@@ -396,7 +395,7 @@ class TestSearch:
 
         flaw2 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw2)
-        flaw2.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw2.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw2.save()
         FlawCollaborator.objects.create(
             flaw=flaw2,
@@ -413,7 +412,7 @@ class TestSearch:
 
         flaw3 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw3)
-        flaw3.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw3.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw3.save()
         FlawCollaborator.objects.create(
             flaw=flaw3,

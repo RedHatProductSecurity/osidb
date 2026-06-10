@@ -103,7 +103,7 @@ class TestAtomicRollbackOnFailure:
             embargoed=False,
             unembargo_dt=datetime(2000, 1, 1, tzinfo=timezone.utc),
             task_key="TASK-1",
-            workflow_state=Flaw.WorkflowState.TRIAGE,
+            workflow_state="TRIAGE",
             acl_read=internal_read_groups,
             acl_write=internal_write_groups,
         )
@@ -136,14 +136,14 @@ class TestAtomicRollbackOnFailure:
 
         with patch.object(flaw_queryset_class, "update", failing_flaw_acl_update):
             with pytest.raises(Exception, match="Simulated failure during flaw ACL"):
-                flaw.workflow_state = Flaw.WorkflowState.PRE_SECONDARY_ASSESSMENT
+                flaw.workflow_state = "PRE_SECONDARY_ASSESSMENT"
                 flaw.tasksync(
                     jira_token=None,
                     jira_email=None,
                     diff={
                         "workflow_state": {
-                            "old": Flaw.WorkflowState.TRIAGE,
-                            "new": Flaw.WorkflowState.PRE_SECONDARY_ASSESSMENT,
+                            "old": "TRIAGE",
+                            "new": "PRE_SECONDARY_ASSESSMENT",
                         },
                     },
                 )
@@ -156,4 +156,4 @@ class TestAtomicRollbackOnFailure:
         assert (list(flaw.acl_read), list(flaw.acl_write)) == original_flaw_acls
         assert (list(affect.acl_read), list(affect.acl_write)) == original_affect_acls
         # Workflow state should also be unchanged
-        assert flaw.workflow_state == Flaw.WorkflowState.TRIAGE
+        assert flaw.workflow_state == "TRIAGE"
