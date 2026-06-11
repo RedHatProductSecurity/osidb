@@ -29,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Exclude streams with no offer from tracker suggestions response (OSIDB-4977)
 
+### Changed
+- Improve Gunicorn security configuration by restricting forwarded_allow_ips to specific proxy IPs in production environments via GUNICORN_FORWARDED_ALLOW_IPS environment variable
+
 ## [5.10.3] - 2026-05-06
 ### Fixed
 - Include builds during affect auto-creation (OSIDB-4965)
