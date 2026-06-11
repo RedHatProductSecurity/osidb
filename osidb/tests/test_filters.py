@@ -531,6 +531,19 @@ class TestInFilterSet:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["count"] == 4
 
+    def test_flaw_list_with_non_db_fields(self, auth_client, test_api_v2_uri):
+        """
+        Test passing non-DB fields without raising error
+        """
+        FlawFactory(embargoed=False)
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/flaws?include_fields=cve_id,uuid,classification,embargoed"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        assert len(results) > 0
+
 
 class TestPURLFilter:
     """
