@@ -11,7 +11,7 @@ from os.path import join
 from typing import Optional
 
 import yaml
-from django.db import models
+from django.db import models, transaction
 
 from osidb.helpers import deprecate_field
 
@@ -407,10 +407,11 @@ class WorkflowModel(models.Model):
         ]
 
         if self.is_internal and self.workflow_state in public_stages:
-            self.set_public()
-            # updates ACLs of all related objects except for snippets
-            self.set_public_nested()
-            self.set_history_public()
+            with transaction.atomic():
+                self.set_public()
+                # updates ACLs of all related objects except for snippets
+                self.set_public_nested()
+                self.set_history_public()
 
         if save:
             self.save()

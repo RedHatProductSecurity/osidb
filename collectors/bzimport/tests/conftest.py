@@ -1,10 +1,6 @@
-import uuid
-
 import pytest
-from django.conf import settings
 
 from collectors.bzimport.collectors import BugzillaTrackerCollector
-from osidb.core import generate_acls
 
 
 @pytest.fixture(autouse=True)
@@ -54,33 +50,3 @@ def bz_tracker_id():
 @pytest.fixture
 def bz_tracker_collector():
     return BugzillaTrackerCollector()
-
-
-@pytest.fixture
-def public_read_groups():
-    return [uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_READ_GROUPS)]
-
-
-@pytest.fixture
-def embargoed_read_groups():
-    return [uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])]
-
-
-@pytest.fixture
-def internal_read_groups():
-    return [uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])]
-
-
-@pytest.fixture
-def public_write_groups():
-    return [uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_WRITE_GROUP])]
-
-
-@pytest.fixture
-def embargoed_write_groups():
-    return [uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])]
-
-
-@pytest.fixture
-def internal_write_groups():
-    return [uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])]

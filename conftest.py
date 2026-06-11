@@ -1,5 +1,6 @@
 import json
 import re
+import uuid
 
 import pytest
 from django.conf import settings
@@ -15,7 +16,7 @@ from rest_framework.test import APIClient
 
 from apps.trackers.models import JiraBugIssuetype, JiraProjectFields
 from osidb.constants import OSIDB_API_VERSION
-from osidb.core import set_user_acls
+from osidb.core import generate_acls, set_user_acls
 from osidb.exceptions import InvalidTestEnvironmentException
 from osidb.models import PsModule, PsUpdateStream
 from osidb.tests.factories import PsModuleFactory, PsProductFactory
@@ -685,3 +686,39 @@ def setup_sample_external_resources():
         "jboss_components": ["kernel", "kernel-rt"],
         "bz_components": ["redhat-certification", "openssl"],
     }
+
+
+@pytest.fixture
+def public_read_groups():
+    """Public read ACL groups (multiple groups for public read access)."""
+    return [uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_READ_GROUPS)]
+
+
+@pytest.fixture
+def embargoed_read_groups():
+    """Embargoed read ACL group (restricted to embargo group)."""
+    return [uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])]
+
+
+@pytest.fixture
+def internal_read_groups():
+    """Internal read ACL group (restricted to internal group)."""
+    return [uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])]
+
+
+@pytest.fixture
+def public_write_groups():
+    """Public write ACL group."""
+    return [uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_WRITE_GROUP])]
+
+
+@pytest.fixture
+def embargoed_write_groups():
+    """Embargoed write ACL group."""
+    return [uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])]
+
+
+@pytest.fixture
+def internal_write_groups():
+    """Internal write ACL group."""
+    return [uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])]
