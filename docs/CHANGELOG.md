@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Make HashiCorp Vault integration credential-based opt-in (OSIDB-5108)
 - Performance improvements for pghistory-related queries (OSIDB-4906)
+- Make HashiCorp Vault integration credential-based opt-in (OSIDB-5108)
 
 ### Fixed
 - Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
