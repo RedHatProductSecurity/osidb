@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     # --- Foundation ---
     "osidb",
     # --- Business logic (no cross-app deps beyond osidb) ---
+    "regulatory_reporting",
     "apps.workflows",
     "apps.bbsync",
     "apps.exploits",
