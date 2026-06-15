@@ -42,6 +42,7 @@ reviews:
       - "main"
       - "master"
       - "release-\\d+\\.\\d+\\.\\d+(-prep)?$"
+      - "CRA_regulatory_reporting" # temporary branch for CRA regulatory reporting [DELETE before merging to master]
 
   path_instructions:
 
