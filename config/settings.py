@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "djangoql",
     "drf_spectacular",
     "osidb",
+    "regulatory_reporting",
     "pghistory",
     "pgtrigger",
     "polymorphic",
