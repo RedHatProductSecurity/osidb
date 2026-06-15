@@ -21,7 +21,7 @@ python3 manage.py migrate --settings config.settings_local
 
 # Leave this running even if the server is killed later.
 while true; do
-    ( python3 manage.py runserver 0.0.0.0:8000 || true )
+    ( ddtrace-run python3 manage.py runserver 0.0.0.0:8000 || true )
     sleep 5
 done
 

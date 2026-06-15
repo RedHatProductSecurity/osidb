@@ -108,6 +108,16 @@ services:
         OSIDB_VAULT_ADDR: ${OSIDB_VAULT_ADDR}
         OSIDB_ROLE_ID: ${OSIDB_ROLE_ID}
         OSIDB_SECRET_ID: ${OSIDB_SECRET_ID}
+        DD_AGENT_HOST: datadog-agent
+        DD_TRACE_AGENT_PORT: 8126
+        DD_SERVICE: osidb-service
+        DD_ENV: ${DD_ENV:-local}
+        DD_VERSION: ${DD_VERSION:-5.11.1}
+        DD_TRACE_ENABLED: ${DD_TRACE_ENABLED:-true}
+        DD_LOGS_INJECTION: ${DD_LOGS_INJECTION:-true}
+        DD_TRACE_SAMPLE_RATE: ${DD_TRACE_SAMPLE_RATE:-1.0}
+        DD_DJANGO_INSTRUMENT_DATABASES: ${DD_DJANGO_INSTRUMENT_DATABASES:-true}
+        DD_DJANGO_INSTRUMENT_MIDDLEWARE: ${DD_DJANGO_INSTRUMENT_MIDDLEWARE:-true}
       command: ./scripts/setup-osidb-service.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z
@@ -189,6 +199,14 @@ services:
         PRODUCT_DEF_BRANCH: ${PRODUCT_DEF_BRANCH}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
         PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
+        DD_AGENT_HOST: datadog-agent
+        DD_TRACE_AGENT_PORT: 8126
+        DD_SERVICE: osidb-celery
+        DD_ENV: ${DD_ENV:-local}
+        DD_VERSION: ${DD_VERSION:-5.11.1}
+        DD_TRACE_ENABLED: ${DD_TRACE_ENABLED:-true}
+        DD_LOGS_INJECTION: ${DD_LOGS_INJECTION:-true}
+        DD_TRACE_SAMPLE_RATE: ${DD_TRACE_SAMPLE_RATE:-1.0}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
       # depends_on:
@@ -209,7 +227,7 @@ services:
       container_name: celery-fifo-1
       hostname: celery-fifo-1
       command:
-        celery -A config worker --pidfile /tmp/celery_worker.pid -f celery.log --loglevel DEBUG -Q fifo.0 --concurrency=1 -E
+        ddtrace-run celery -A config worker --pidfile /tmp/celery_worker.pid -f celery.log --loglevel DEBUG -Q fifo.0 --concurrency=1 -E
       volumes:
         - ${PWD}:/opt/app-root/src:z
       environment: *celery-env
@@ -220,7 +238,7 @@ services:
       container_name: celery-fifo-2
       hostname: celery-fifo-2
       command:
-        celery -A config worker --pidfile /tmp/celery_worker.pid -f celery.log --loglevel DEBUG -Q fifo.1 --concurrency=1 -E
+        ddtrace-run celery -A config worker --pidfile /tmp/celery_worker.pid -f celery.log --loglevel DEBUG -Q fifo.1 --concurrency=1 -E
 
     celery_beat:
       container_name: celery_beat
@@ -254,6 +272,14 @@ services:
         OSV_COLLECTOR_ENABLED: ${OSV_COLLECTOR_ENABLED}
         JIRA_USER_MAPPING_COLLECTOR_ENABLED: ${JIRA_USER_MAPPING_COLLECTOR_ENABLED}
         JIRA_USER_MAPPING_COLLECTOR_URL: ${JIRA_USER_MAPPING_COLLECTOR_URL}
+        DD_AGENT_HOST: datadog-agent
+        DD_TRACE_AGENT_PORT: 8126
+        DD_SERVICE: osidb-celery-beat
+        DD_ENV: ${DD_ENV:-local}
+        DD_VERSION: ${DD_VERSION:-5.11.1}
+        DD_TRACE_ENABLED: ${DD_TRACE_ENABLED:-true}
+        DD_LOGS_INJECTION: ${DD_LOGS_INJECTION:-true}
+        DD_TRACE_SAMPLE_RATE: ${DD_TRACE_SAMPLE_RATE:-1.0}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
       # depends_on:
@@ -290,6 +316,24 @@ services:
       image: mirror.gcr.io/library/redis:6
       ports:
         - "6379"
+
+    datadog-agent:
+      container_name: datadog-agent
+      hostname: datadog-agent
+      image: gcr.io/datadoghq/agent:7
+      environment:
+        - DD_API_KEY=${DD_API_KEY}
+        - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true # enables agent to receive custom metrics from other containers
+        - DD_APM_ENABLED=true # enables tracing
+        - DD_APM_NON_LOCAL_TRAFFIC=true # enables agent to receive traces from other containers
+        - DD_AGENT_HOST=datadog-agent
+        - DD_SITE=datadoghq.com # determines datadog instance to send data to (e.g change to datadoghq.eu for EU1)
+      volumes:
+        - ${HOME}/.local/share/containers:/var/lib/containers:ro
+        - /proc/:/host/proc/:ro
+        - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
+      depends_on: ["osidb-service"]
+
 
 volumes:
   pg-data:
