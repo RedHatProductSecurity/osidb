@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - document workflow framework
 - introduce EMBARGOED workflow
 - introduce workflow labels
+- Add new module "regulatory_reporting"
 
 ### Changed
 - align existing workflows with workflow framework concepts
