@@ -23,10 +23,6 @@ JIRA_MAX_CONNECTION_AGE = get_env("JIRA_MAX_CONNECTION_AGE")
 # Jira label containing Bugzilla ID
 JIRA_BZ_ID_LABEL_RE = re.compile(r"flaw:bz#(\d+)")
 
-# Switches to turn each collector on/off
-JIRA_TASK_COLLECTOR_ENABLED = get_env(
-    "JIRA_TASK_COLLECTOR_ENABLED", default="True", is_bool=True
-)
 JIRA_METADATA_COLLECTOR_ENABLED = get_env(
     "JIRA_METADATA_COLLECTOR_ENABLED", default="True", is_bool=True
 )

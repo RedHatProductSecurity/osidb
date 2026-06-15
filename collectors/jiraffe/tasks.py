@@ -6,27 +6,15 @@ from celery.schedules import crontab
 from celery.utils.log import get_task_logger
 
 from collectors.framework.models import collector
-from osidb.models import Flaw, Tracker
+from osidb.models import Tracker
 
-from .collectors import JiraTaskCollector, JiraTrackerCollector, MetadataCollector
+from .collectors import JiraTrackerCollector, MetadataCollector
 from .constants import (
     JIRA_METADATA_COLLECTOR_ENABLED,
-    JIRA_TASK_COLLECTOR_ENABLED,
     jira_collector_settings,
 )
 
 logger = get_task_logger(__name__)
-
-
-@collector(
-    base=JiraTaskCollector,
-    crontab=crontab(),  # run every minute
-    data_models=[Flaw],
-    enabled=JIRA_TASK_COLLECTOR_ENABLED,
-)
-def jira_task_collector(collector_obj):
-    logger.info(f"Collector {collector_obj.name} is running")
-    return collector_obj.collect()
 
 
 @collector(

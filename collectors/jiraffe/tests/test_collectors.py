@@ -1,27 +1,22 @@
 import json
-import uuid
 from datetime import datetime, timedelta, timezone
 
 import pytest
 from freezegun import freeze_time
 from jira.exceptions import JIRAError
 
-from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraProjectFields
-from apps.workflows.workflow import WorkflowModel
 from collectors.bzimport.constants import BZ_DT_FMT
 from collectors.jiraffe.collectors import (
-    JiraTaskCollector,
     JiraTrackerCollector,
     JiraTrackerDownloadManager,
     MetadataCollector,
 )
 from collectors.jiraffe.constants import jira_collector_settings
-from collectors.jiraffe.core import JiraQuerier
 from collectors.jiraffe.exceptions import (
     MetadataCollectorInsufficientDataJiraffeException,
 )
-from osidb.models import Affect, Flaw, Impact, Tracker
+from osidb.models import Affect, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -31,154 +26,6 @@ from osidb.tests.factories import (
 )
 
 pytestmark = pytest.mark.unit
-
-
-class TestJiraTaskCollector:
-    @pytest.mark.vcr
-    def test_collect(self, enable_jira_task_sync, jira_token, jira_email):
-        """
-        test the Jira collector run
-        """
-        collector = JiraTaskCollector()
-        jtq = JiraTaskmanQuerier(token=jira_token, email=jira_email)
-
-        # remove randomness for VCR usage
-        uuid = "fb145b06-82a7-4851-a429-541288633d16"
-        flaw = FlawFactory(uuid=uuid, embargoed=False, impact=Impact.IMPORTANT)
-        AffectFactory(flaw=flaw)
-
-        # freeze the time so NOW corresponds to the Jira as it is split
-        with freeze_time(datetime(2024, 11, 26, 12, 6, 0)):
-            flaw.tasksync(
-                force_creation=True, jira_token=jira_token, jira_email=jira_email
-            )
-            assert flaw.impact == Impact.IMPORTANT
-
-        assert flaw.task_key
-
-        issue = jtq.jira_conn.issue(flaw.task_key).raw
-        assert issue["fields"]["status"]["name"] == "New"
-        assert not issue["fields"]["resolution"]
-        assert f"flawuuid:{str(uuid)}" in issue["fields"]["labels"]
-        assert f"impact:{Impact.IMPORTANT}" in issue["fields"]["labels"]
-
-        # Manually modify Jira task status
-        data = {
-            "fields": {
-                "labels": [f"flawuuid:{str(uuid)}", f"impact:{Impact.IMPORTANT}"],
-            }
-        }
-        url = f"{jtq.jira_conn._get_url('issue')}/{flaw.task_key}"
-        jtq.jira_conn._session.put(url, json.dumps(data))
-        jtq.jira_conn.transition_issue(
-            issue=flaw.task_key,
-            transition="Refinement",
-        )
-        issue = jtq.jira_conn.issue(flaw.task_key).raw
-        assert issue["fields"]["status"]["name"] == "Refinement"
-        assert f"flawuuid:{str(uuid)}" in issue["fields"]["labels"]
-        assert f"impact:{Impact.IMPORTANT}" in issue["fields"]["labels"]
-        assert not issue["fields"]["resolution"]
-
-        collector.collect(flaw.task_key)
-
-        # refresh instance
-        flaw = Flaw.objects.get(uuid=flaw.uuid)
-        assert flaw.workflow_state == "TRIAGE"
-
-    @pytest.mark.vcr
-    def test_update_only_changed_fields(self, enable_jira_task_sync, jira_token):
-        collector = JiraTaskCollector()
-
-        # remove randomness for VCR usage
-        uuid = "fb145b06-82a7-4851-a429-541288633d16"
-        flaw = FlawFactory(uuid=uuid, embargoed=False, impact=Impact.IMPORTANT)
-        AffectFactory(flaw=flaw)
-
-        # download related task
-        collector.collect("OSIM-22679")
-        flaw.refresh_from_db()
-        assert flaw.workflow_state == "NEW"
-
-        # change relevant fields but do not forward this change to Jira
-        new_values = {
-            "workflow_state": "REJECTED",
-            "workflow_name": "REJECTED",
-            "owner": "skynet",
-        }
-        for field, value in new_values.items():
-            setattr(flaw, field, value)
-        flaw.save()
-
-        # download the task again
-        collector.collect("OSIM-22679")
-        flaw.refresh_from_db()
-
-        # ensure changes OSIDB are not overwritten from Jira
-        for field, value in new_values.items():
-            assert getattr(flaw, field) == value
-
-    @pytest.mark.vcr
-    def test_link_on_cve(self):
-        flaw = FlawFactory(cve_id="CVE-2024-34703")
-        # this is super-unprobable to happen but based
-        # on the review feedback I am adding the assert
-        assert flaw.uuid != uuid.UUID("9d9132a4-0484-48a5-b484-185abf39b771")
-        assert not flaw.task_key
-
-        collector = JiraTaskCollector()
-        collector.collect("OSIM-156")
-        assert Flaw.objects.get(uuid=flaw.uuid).task_key
-
-    @pytest.mark.vcr
-    def test_outdated_query(
-        self, enable_jira_task_sync, jira_token, jira_email, monkeypatch
-    ):
-        """
-        test that Jira task collector ignores tasks with outdated timestamp
-        """
-
-        jtq = JiraTaskmanQuerier(token=jira_token, email=jira_email)
-
-        # 1 - create a flaw
-        # remove randomness for VCR usage
-        uuid = "e49a732a-06fe-4942-94d8-3a8b0407e827"
-        flaw = FlawFactory(uuid=uuid, embargoed=False, impact=Impact.IMPORTANT)
-        AffectFactory(flaw=flaw)
-
-        # 2 - create a task
-        #     freezing the time so NOW corresponds to the Jira as it is split
-        with freeze_time(datetime(2024, 7, 22, 14, 30, 14, 665000)):
-            flaw.tasksync(
-                force_creation=True, jira_token=jira_token, jira_email=jira_email
-            )
-            assert flaw.task_key
-
-        # 3 - get the current Jira task and make sure db is in-sync
-        issue = jtq.jira_conn.issue(flaw.task_key)
-        assert issue.fields.status.name == "New"
-
-        # 4 - freeze the issue in time to simulate long queries being outdated
-        def mock_get_issue(self, jira_id: str, expand: str):
-            return issue
-
-        monkeypatch.setattr(JiraQuerier, "get_issue", mock_get_issue)
-
-        # 5 - simulate user promoting a flaw
-        flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
-        flaw.save(auto_timestamps=False)
-        # provide a fake diff just to pretend that the workflow state has changed
-        flaw.tasksync(
-            diff={"workflow_state": None}, jira_token=jira_token, jira_email=jira_email
-        )
-        flaw = Flaw.objects.get(uuid=flaw.uuid)
-        assert flaw.workflow_state == "TRIAGE"
-
-        # 6 - make sure collector does not change flaw if it is holding outdated issue
-        collector = JiraTaskCollector()
-        collector.collect(flaw.task_key)
-        flaw = Flaw.objects.get(uuid=flaw.uuid)
-        assert flaw.workflow_state == "TRIAGE"
 
 
 class TestJiraTrackerCollector:
