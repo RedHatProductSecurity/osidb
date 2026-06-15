@@ -1447,16 +1447,38 @@ class AffectView(
         # Second, save the updated affects to the database, but not sync with BZ.
         actor = self._actor(request.user)
         ret = []
+        errors = []
         for serializer in validated_serializers:
             # Make the serializer skip the sync for each affect
-            serializer.save(skip_bz_sync=True, updated_by=actor)
-            ret.append(serializer.data)
+            try:
+                serializer.save(skip_bz_sync=True, updated_by=actor)
+                ret.append(serializer.data)
+            except ValidationError as e:
+                instance = serializer.instance
+                error_detail = (
+                    e.message_dict
+                    if hasattr(e, "message_dict")
+                    else {"non_field_errors": e.messages}
+                )
+                errors.append(
+                    {
+                        "input": {
+                            "uuid": str(instance.uuid),
+                            "ps_update_stream": instance.ps_update_stream,
+                            "ps_component": instance.ps_component,
+                            "purl": instance.purl,
+                            "ps_module": instance.ps_module,
+                        },
+                        "errors": error_detail,
+                    }
+                )
 
         # Third, proxy the update to Bugzilla
         flaw = Flaw.objects.get(uuid=next(iter(flaws)))
-        flaw.save(bz_api_key=bz_api_key)
+        if ret:
+            flaw.save(bz_api_key=bz_api_key)
 
-        return Response({"results": ret})
+        return Response({"results": ret, "failed": errors})
 
     @extend_schema(
         request=AffectPostSerializer(many=True),

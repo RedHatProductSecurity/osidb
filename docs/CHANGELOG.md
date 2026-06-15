@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
+- Wrap external errors with affect context for bulk PUT endpoint (OSIDB-5038)
 
 ## [5.11.1] - 2026-06-10
 ### Fixed
