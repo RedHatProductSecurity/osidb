@@ -16,8 +16,6 @@ class TestFlawCollaborator:
     def test_unique_constraint(self):
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
-        flaw.workflow_state = "PRE_SECONDARY_ASSESSMENT"
-        flaw.save()
 
         label = FlawLabel.objects.create(
             name="test_label", type=FlawLabel.FlawLabelType.CONTEXT_BASED
@@ -39,7 +37,7 @@ class TestFlawCollaborator:
             )
 
     @pytest.mark.enable_signals
-    def test_create_labels_on_promote(self):
+    def test_create_labels_on_affect_create(self):
         ps_module = PsModuleFactory()
         ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
         ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
@@ -60,20 +58,20 @@ class TestFlawCollaborator:
         )
 
         flaw = FlawFactory(embargoed=False)
+        assert flaw.labels.count() == 0
+
         AffectFactory(
             flaw=flaw,
             ps_component="test_component",
             ps_update_stream=ps_update_stream1.name,
         )
+        assert flaw.labels.count() == 2
+
         AffectFactory(
             flaw=flaw,
             ps_component="test_component",
             ps_update_stream=ps_update_stream2.name,
         )
-
-        assert flaw.labels.count() == 0
-        flaw.workflow_state = "PRE_SECONDARY_ASSESSMENT"
-        flaw.save()
         assert flaw.labels.count() == 2
 
     @pytest.mark.enable_signals
@@ -98,9 +96,6 @@ class TestFlawCollaborator:
             ps_component="test_component",
             ps_update_stream=ps_update_stream1.name,
         )
-        flaw.workflow_state = "PRE_SECONDARY_ASSESSMENT"
-        flaw.save()
-
         assert flaw.labels.count() == 2
 
         affect.ps_update_stream = ps_update_stream2.name
@@ -121,9 +116,6 @@ class TestFlawCollaborator:
 
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
-        flaw.workflow_state = "PRE_SECONDARY_ASSESSMENT"
-        flaw.save()
-
         assert flaw.labels.count() == 1
 
         label.delete()
@@ -136,10 +128,7 @@ class TestFlawCollaborator:
     def test_create_from_flaw(self):
         ps_module = PsModuleFactory()
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
-        flaw = FlawFactory(
-            embargoed=False,
-            workflow_state="PRE_SECONDARY_ASSESSMENT",
-        )
+        flaw = FlawFactory(embargoed=False)
         FlawLabel.objects.create(
             name="test_module_label",
             type=FlawLabel.FlawLabelType.PRODUCT_FAMILY,
