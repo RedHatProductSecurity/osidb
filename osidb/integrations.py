@@ -14,9 +14,18 @@ _logger = logging.getLogger(__name__)
 class IntegrationSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="OSIDB_")
 
-    vault_addr: str = Field(default=...)
-    role_id: str = Field(default=...)
-    secret_id: str = Field(default=...)
+    vault_addr: str = Field(default="")
+    role_id: str = Field(default="")
+    secret_id: str = Field(default="")
+
+    def is_vault_enabled(self) -> bool:
+        """
+        Determine if Vault should be enabled based on credentials.
+
+        Vault is enabled only when ALL THREE credentials are provided:
+        OSIDB_VAULT_ADDR, OSIDB_ROLE_ID, OSIDB_SECRET_ID
+        """
+        return bool(self.vault_addr and self.role_id and self.secret_id)
 
 
 class IntegrationRepository:
@@ -24,6 +33,16 @@ class IntegrationRepository:
     BASE_MOUNTPOINT = "apps"
 
     def __init__(self, settings: IntegrationSettings):
+        self.settings = settings
+
+        if not settings.is_vault_enabled():
+            _logger.info(
+                "Vault integration is disabled because required credentials are not provided"
+            )
+            self.client = None
+            return
+
+        # Credentials are guaranteed to be present by is_vault_enabled()
         self.client = hvac.Client(url=settings.vault_addr)
         try:
             self.client.auth.approle.login(
@@ -33,6 +52,10 @@ class IntegrationRepository:
             _logger.error("Vault AppRole authentication failed.", exc_info=e)
 
     def upsert_secret(self, subpath: Path, key: str, value: str) -> None:
+        if self.client is None:
+            _logger.debug(f"Vault is disabled, cannot write secret at {subpath}/{key}")
+            return
+
         self.client.secrets.kv.v2.patch(
             path=str(self.BASE_PATH / subpath),
             secret={key: value},
@@ -40,6 +63,10 @@ class IntegrationRepository:
         )
 
     def read_secret(self, subpath: Path, key: str) -> Optional[str]:
+        if self.client is None:
+            _logger.debug(f"Vault is disabled, cannot read secret at {subpath}/{key}")
+            return None
+
         r = self.client.secrets.kv.v2.read_secret_version(
             path=str(self.BASE_PATH / subpath),
             mount_point=self.BASE_MOUNTPOINT,

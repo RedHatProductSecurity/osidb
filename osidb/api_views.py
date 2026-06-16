@@ -40,6 +40,7 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
+    HTTP_503_SERVICE_UNAVAILABLE,
 )
 from rest_framework.views import APIView
 from rest_framework.viewsets import (
@@ -1132,12 +1133,30 @@ def whoami(request: Request) -> Response:
 
 @extend_schema(
     methods=["GET"],
-    responses={200: OpenApiResponse(response=IntegrationTokenGetSerializer)},
+    responses={
+        200: OpenApiResponse(response=IntegrationTokenGetSerializer),
+        503: {
+            "type": "object",
+            "properties": {
+                "detail": {"type": "string"},
+            },
+            "description": "Vault integration is disabled",
+        },
+    },
 )
 @extend_schema(
     methods=["PATCH"],
     request=OpenApiRequest(request=IntegrationTokenPatchSerializer),
-    responses={204: {}},
+    responses={
+        204: {},
+        503: {
+            "type": "object",
+            "properties": {
+                "detail": {"type": "string"},
+            },
+            "description": "Vault integration is disabled",
+        },
+    },
 )
 @api_view(["GET", "PATCH"])
 def integration_tokens(request: Request) -> Response:
@@ -1147,6 +1166,14 @@ def integration_tokens(request: Request) -> Response:
     integration_settings = IntegrationSettings()
     integration_repo = IntegrationRepository(integration_settings)
     current_user = cast(User, request.user)
+
+    if integration_repo.client is None:
+        return Response(
+            {
+                "detail": "Vault integration is disabled because required credentials are not provided"
+            },
+            status=HTTP_503_SERVICE_UNAVAILABLE,
+        )
 
     if request.method == "GET":
         data = {
