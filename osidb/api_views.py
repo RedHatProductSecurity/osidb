@@ -1286,11 +1286,7 @@ def flaw_available(request: Request, *args, **kwargs) -> Response:
     except ValidationError:
         return Response(status=HTTP_400_BAD_REQUEST)
 
-    if (
-        flaw.is_public
-        or flaw.workflow_name == "REJECTED"
-        or flaw.workflow_state == "DONE"
-    ):
+    if flaw.is_public or flaw.workflow_state == "DONE":
         return Response(status=HTTP_204_NO_CONTENT)
 
     return Response(status=HTTP_404_NOT_FOUND)
