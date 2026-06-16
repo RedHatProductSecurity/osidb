@@ -158,28 +158,15 @@ def updated_local_updated_dt_affectcvss(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Affect)
 def create_flaw_labels(sender, instance, **kwargs):
-    if instance.flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT":
-        if instance._state.adding:
-            FlawCollaborator.objects.create_from_affect(instance)
-        else:
-            FlawCollaborator.objects.mark_irrelevant(instance.flaw)
+    if instance._state.adding:
+        FlawCollaborator.objects.create_from_affect(instance)
+    else:
+        FlawCollaborator.objects.mark_irrelevant(instance.flaw)
 
 
 @receiver(post_delete, sender=Affect)
 def delete_flaw_labels(sender, instance, **kwargs):
-    if instance.flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT":
-        FlawCollaborator.objects.mark_irrelevant(instance.flaw)
-
-
-@receiver(pre_save, sender=Flaw)
-def create_labels_on_promote(sender, instance, **kwargs):
-    if (
-        not instance._state.adding
-        and instance.workflow_state == "PRE_SECONDARY_ASSESSMENT"
-        and Flaw.objects.get(pk=instance.pk).workflow_state
-        != "PRE_SECONDARY_ASSESSMENT"
-    ):
-        FlawCollaborator.objects.create_from_flaw(instance)
+    FlawCollaborator.objects.mark_irrelevant(instance.flaw)
 
 
 @receiver(pre_save, sender=Affect)
