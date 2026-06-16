@@ -1514,10 +1514,8 @@ def _run_post_save_effects_for_bulk(created_affects, flaw):
     """
     from osidb.models import FlawCollaborator
 
-    # FlawCollaborator labels for PRE_SECONDARY_ASSESSMENT flaws
-    if flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT":
-        for affect in created_affects:
-            FlawCollaborator.objects.create_from_affect(affect)
+    for affect in created_affects:
+        FlawCollaborator.objects.create_from_affect(affect)
 
 
 @include_meta_attr_extend_schema_view
