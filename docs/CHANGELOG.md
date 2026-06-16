@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - document workflow framework
 - introduce EMBARGOED workflow
 - introduce workflow labels
-- Add new module "regulatory_reporting"
+- Add new module "regulatory_reporting" (OSIDB-5127)
+- Add new Models SRPReport and SRPReportMilestone (OSIDB-5066)
 
 ### Changed
 - align existing workflows with workflow framework concepts
