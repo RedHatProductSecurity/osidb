@@ -40,6 +40,8 @@ reviews:
       - "main"
       - "master"
       - "release-\\d+\\.\\d+\\.\\d+(-prep)?$"
+      # Special branch for CRA regulatory reporting project (remove after merge)
+      - "CRA_regulatory_reporting"
 
   path_instructions:
 
