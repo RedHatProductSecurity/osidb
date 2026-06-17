@@ -145,11 +145,20 @@ def patch_hvac_client(monkeypatch, mock_hvac_client_instance):
     """Patches hvac.Client in vault_integration module to return our mock instance."""
     MockHvacClientClass = MagicMock(return_value=mock_hvac_client_instance)
     monkeypatch.setattr("osidb.integrations.hvac.Client", MockHvacClientClass)
+    # Note: Credentials are set per-test via set_hvac_test_env_vars fixture or fake_integration_settings
     return MockHvacClientClass
 
 
 @pytest.fixture
 def set_hvac_test_env_vars():
+    """Set Vault credentials as environment variables for tests."""
     os.environ["OSIDB_VAULT_ADDR"] = "https://fake-vault:8200/"
     os.environ["OSIDB_ROLE_ID"] = "fake-role"
     os.environ["OSIDB_SECRET_ID"] = "fake-secret"
+
+    yield
+
+    # Clean up to prevent leaking to other tests
+    os.environ.pop("OSIDB_VAULT_ADDR", None)
+    os.environ.pop("OSIDB_ROLE_ID", None)
+    os.environ.pop("OSIDB_SECRET_ID", None)
