@@ -78,7 +78,7 @@ class TestDefaultWorkflow:
     @pytest.mark.enable_signals
     def test_default_workflow_full_traversal(self):
         """
-        Walk a flaw through NEW → TRIAGE → PRE_SECONDARY_ASSESSMENT →
+        Walk a flaw through NEW → TRIAGE → ANALYSIS → PRE_SECONDARY_ASSESSMENT →
         SECONDARY_ASSESSMENT → DONE, verifying each requirement gates progression.
 
         Note: title and comment_zero must be non-empty at creation time due to
@@ -95,42 +95,52 @@ class TestDefaultWorkflow:
             impact="",
             components=[],
             reported_dt=None,
+            cve_description="",
         )
         assert flaw.workflow_name == "DEFAULT"
         assert flaw.workflow_state == "NEW"
 
-        # --- NEW → TRIAGE: requires owner ---
-        flaw.owner = "analyst@redhat.com"
-        flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "TRIAGE"
+        # --- NEW → TRIAGE: requires components, impact, reported_dt, source,
+        #     title, and (impact is low OR has cve_description) ---
 
-        # --- TRIAGE → PRE_SECONDARY_ASSESSMENT: requires affects, impact,
-        #     source, components, reported_dt (title already set) ---
-
-        # add requirements one by one, verify flaw stays in TRIAGE until all present
+        # add requirements one by one, verify flaw stays in NEW until all present
         flaw.source = "INTERNET"
         flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "TRIAGE"
+        assert flaw.workflow_state == "NEW"
 
         flaw.impact = Impact.MODERATE
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "NEW"
+
+        flaw.components = ["kernel"]
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "NEW"
+
+        flaw.reported_dt = flaw.created_dt
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "NEW"
+
+        # title is already set by FlawFactory, still missing the OR condition
+        # (impact is low OR has cve_description) — MODERATE impact needs cve_description
         flaw.cve_description = "A vulnerability in the kernel"
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == "TRIAGE"
 
-        flaw.components = ["kernel"]
-        flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "TRIAGE"
+        # --- TRIAGE → ANALYSIS: requires affects ---
 
-        flaw.reported_dt = flaw.created_dt
-        flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "TRIAGE"
-
-        # still missing affects — creating one triggers reclassification via signal
+        # creating an affect triggers reclassification via signal
         affect = AffectFactory(
             flaw=flaw,
             affectedness=Affect.AffectAffectedness.NEW,
             resolution=Affect.AffectResolution.NOVALUE,
         )
+        assert flaw.workflow_state == "ANALYSIS"
+
+        # --- ANALYSIS → PRE_SECONDARY_ASSESSMENT: requires affects resolved ---
+
+        affect.affectedness = Affect.AffectAffectedness.AFFECTED
+        affect.resolution = Affect.AffectResolution.DELEGATED
+        affect.save(raise_validation_error=False)
         assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
 
         # --- PRE_SECONDARY_ASSESSMENT → SECONDARY_ASSESSMENT: requires trackers ---
@@ -170,36 +180,26 @@ class TestDefaultWorkflow:
         )
         AffectFactory(
             flaw=flaw,
-            affectedness=Affect.AffectAffectedness.NEW,
-            resolution=Affect.AffectResolution.NOVALUE,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
 
-        # clear owner — should regress past TRIAGE back to NEW
-        flaw.owner = ""
+        # clear source — should regress to NEW (source is a TRIAGE requirement)
+        flaw.source = ""
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == "NEW"
 
-        # restore owner — should advance back to PRE_SECONDARY_ASSESSMENT
-        flaw.owner = "analyst@redhat.com"
-        flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
-
-        # clear source — should regress to TRIAGE
-        flaw.source = ""
-        flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "TRIAGE"
-
-        # restore source
+        # restore source — should advance back to PRE_SECONDARY_ASSESSMENT
         flaw.source = "INTERNET"
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
 
-        # clear components — should regress to TRIAGE
+        # clear components — should regress to NEW (components is a TRIAGE requirement)
         flaw.components = []
         flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "TRIAGE"
+        assert flaw.workflow_state == "NEW"
 
         # restore components
         flaw.components = ["kernel"]
@@ -220,8 +220,8 @@ class TestDefaultWorkflow:
         )
         affect = AffectFactory(
             flaw=flaw,
-            affectedness=Affect.AffectAffectedness.NEW,
-            resolution=Affect.AffectResolution.NOVALUE,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         tracker = TrackerFactory.build(
             embargoed=False,
@@ -246,10 +246,10 @@ class TestDefaultWorkflow:
     @pytest.mark.enable_signals
     def test_cve_description_or_low_impact(self):
         """
-        Verify the OR condition: PRE_SECONDARY_ASSESSMENT requires either
-        LOW impact or a non-empty cve_description. A MODERATE-impact flaw
-        without cve_description stays in TRIAGE; adding the description
-        or switching to LOW impact advances it.
+        Verify the OR condition: TRIAGE requires either LOW impact or a
+        non-empty cve_description. A MODERATE-impact flaw without
+        cve_description stays in NEW; adding the description or switching
+        to LOW impact advances it.
         """
         flaw = FlawFactory(
             embargoed=False,
@@ -260,21 +260,21 @@ class TestDefaultWorkflow:
         )
         AffectFactory(
             flaw=flaw,
-            affectedness=Affect.AffectAffectedness.NEW,
-            resolution=Affect.AffectResolution.NOVALUE,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
         )
         flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "TRIAGE"
+        assert flaw.workflow_state == "NEW"
 
-        # adding cve_description satisfies the OR condition
+        # adding cve_description satisfies the OR condition → advances through TRIAGE
         flaw.cve_description = "A vulnerability in the kernel"
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
 
-        # removing cve_description regresses back to TRIAGE
+        # removing cve_description regresses back to NEW
         flaw.cve_description = ""
         flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "TRIAGE"
+        assert flaw.workflow_state == "NEW"
 
         # switching to LOW impact also satisfies the OR condition
         flaw.impact = Impact.LOW
