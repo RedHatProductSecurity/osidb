@@ -26,6 +26,7 @@ states:
       and the affectedness was assessed. The trackers can be filed.
     jira_state: To Do
     jira_resolution: null
+    visibility: PUBLIC
     requirements:
       - has affects
       - has components

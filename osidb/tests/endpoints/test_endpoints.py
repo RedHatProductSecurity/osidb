@@ -684,7 +684,7 @@ class TestEndpointsACLs:
         flaw = Flaw.objects.first()
         assert flaw.is_internal
         flaw.workflow_state = ""
-        flaw.adjust_acls()  # adjust_acls() saves the flaw by default
+        flaw.save()
         assert not flaw.is_public
         internal_read = [
             uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])

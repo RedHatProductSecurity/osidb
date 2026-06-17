@@ -92,6 +92,30 @@ class WorkflowFramework:
             if workflow.accepts(instance):
                 return (workflow, workflow.classify(instance)) if state else workflow
 
+    def get_effective_visibility(self, workflow_name, state_name):
+        """
+        Get the effective visibility for a state within a workflow.
+
+        The effective visibility is the widest visibility defined across
+        all states from the beginning up to and including the given state
+        in the workflow's state sequence. This ensures that visibility
+        gates are not skipped when a flaw is classified multiple states
+        ahead, and that a later state cannot narrow visibility set by
+        an earlier one.
+        """
+        from osidb.mixins import ACLMixinVisibility
+
+        for workflow in self.workflows:
+            if workflow.name == workflow_name:
+                effective = None
+                for state in workflow.states:
+                    if state.visibility:
+                        visibility = ACLMixinVisibility(state.visibility)
+                        if effective is None or visibility > effective:
+                            effective = visibility
+                    if state.name == state_name:
+                        return effective
+
     def jira_status(self, instance):
         """
         Given an instance, return expected jira status and resolution
@@ -195,6 +219,7 @@ class WorkflowModel(models.Model):
             return
 
         self.classification = classification
+        self.adjust_acls()  # possibly adjust ACLs too
 
         if not save:
             return
@@ -204,26 +229,9 @@ class WorkflowModel(models.Model):
     def jira_status(self):
         return WorkflowFramework().jira_status(self)
 
-    def adjust_acls(self, save=True):
-        # a flaw can have internal ACLs before the triage is
-        # completed or if it was rejected during the triage
-
-        public_workflows = ["DEFAULT"]
-        public_states = [
-            "PRE_SECONDARY_ASSESSMENT",
-            "SECONDARY_ASSESSMENT",
-            "DONE",
-        ]
-
-        if (
-            self.is_internal
-            and self.workflow_name in public_workflows
-            and self.workflow_state in public_states
-        ):
-            self.set_public()
-            # updates ACLs of all related objects except for snippets
-            self.set_public_nested()
-            self.set_history_public()
-
-        if save:
-            self.save()
+    def adjust_acls(self):
+        visibility = WorkflowFramework().get_effective_visibility(
+            self.workflow_name, self.workflow_state
+        )
+        if visibility:
+            self.visibility = visibility

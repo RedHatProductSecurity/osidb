@@ -3,6 +3,7 @@ import pytest
 from apps.workflows.checks import CheckParser
 from apps.workflows.models import Check, Condition, State, Workflow
 from apps.workflows.workflow import WorkflowFramework
+from osidb.mixins import ACLMixinVisibility
 from osidb.models import (
     Affect,
     Flaw,
@@ -616,6 +617,145 @@ class TestState:
         )
 
         assert state.accepts(flaw)
+
+    def test_visibility_parsed_from_yaml(self):
+        """Test that the optional visibility field is parsed from state definition"""
+        state_with = State(
+            {
+                "name": "PUBLIC_STATE",
+                "jira_state": "To Do",
+                "jira_resolution": None,
+                "visibility": "PUBLIC",
+                "requirements": [],
+            }
+        )
+        assert state_with.visibility == "PUBLIC"
+
+        state_without = State(
+            {
+                "name": "NO_VIS_STATE",
+                "jira_state": "New",
+                "jira_resolution": None,
+                "requirements": [],
+            }
+        )
+        assert state_without.visibility is None
+
+    def test_visibility_invalid_value_rejected(self):
+        """Test that an invalid visibility value is rejected during state creation"""
+        with pytest.raises(ValueError):
+            State(
+                {
+                    "name": "BAD_STATE",
+                    "jira_state": "New",
+                    "jira_resolution": None,
+                    "visibility": "PUBLC",
+                    "requirements": [],
+                }
+            )
+
+
+class TestEffectiveVisibility:
+    def test_effective_visibility_from_current_state(self):
+        """
+        Test that effective visibility is returned when the current state
+        has a visibility property
+        """
+        wf = WorkflowFramework()
+        vis = wf.get_effective_visibility("DEFAULT", "PRE_SECONDARY_ASSESSMENT")
+        assert vis == ACLMixinVisibility.PUBLIC
+
+    def test_effective_visibility_inherited_from_earlier_state(self):
+        """
+        Test that effective visibility is inherited from an earlier state
+        when the current state has no visibility property (e.g. DONE
+        inherits PUBLIC from PRE_SECONDARY_ASSESSMENT)
+        """
+        wf = WorkflowFramework()
+        vis = wf.get_effective_visibility("DEFAULT", "DONE")
+        assert vis == ACLMixinVisibility.PUBLIC
+
+    def test_effective_visibility_none_before_gate(self):
+        """
+        Test that states before any visibility gate return None
+        """
+        wf = WorkflowFramework()
+        vis = wf.get_effective_visibility("DEFAULT", "NEW")
+        assert vis is None
+
+        vis = wf.get_effective_visibility("DEFAULT", "TRIAGE")
+        assert vis is None
+
+    def test_effective_visibility_none_for_rejected(self):
+        """
+        Test that the REJECTED workflow has no visibility gates
+        """
+        wf = WorkflowFramework()
+        vis = wf.get_effective_visibility("REJECTED", "DONE")
+        assert vis is None
+
+    def test_effective_visibility_none_for_embargoed(self):
+        """
+        Test that the EMBARGOED workflow has no visibility gates
+        """
+        wf = WorkflowFramework()
+        vis = wf.get_effective_visibility("EMBARGOED", "PRE_SECONDARY_ASSESSMENT")
+        assert vis is None
+
+    def test_effective_visibility_none_for_unknown(self):
+        """
+        Test that unknown workflow/state combinations return None
+        """
+        wf = WorkflowFramework()
+        assert wf.get_effective_visibility("NONEXISTENT", "NEW") is None
+        assert wf.get_effective_visibility("DEFAULT", "NONEXISTENT") is None
+
+    def test_effective_visibility_picks_widest(self):
+        """
+        Test that if multiple states define visibility, the widest is used
+        """
+        wf = WorkflowFramework()
+        wf._workflows = []
+        wf.register_workflow(
+            Workflow(
+                {
+                    "name": "TEST",
+                    "description": "test",
+                    "priority": 0,
+                    "conditions": [],
+                    "states": [
+                        {
+                            "name": "A",
+                            "jira_state": "New",
+                            "jira_resolution": None,
+                            "visibility": "INTERNAL",
+                            "requirements": [],
+                        },
+                        {
+                            "name": "B",
+                            "jira_state": "To Do",
+                            "jira_resolution": None,
+                            "visibility": "PUBLIC",
+                            "requirements": [],
+                        },
+                        {
+                            "name": "C",
+                            "jira_state": "In Progress",
+                            "jira_resolution": None,
+                            "visibility": "INTERNAL",
+                            "requirements": [],
+                        },
+                    ],
+                }
+            )
+        )
+
+        assert wf.get_effective_visibility("TEST", "A") == ACLMixinVisibility.INTERNAL
+        assert wf.get_effective_visibility("TEST", "B") == ACLMixinVisibility.PUBLIC
+        assert wf.get_effective_visibility("TEST", "C") == ACLMixinVisibility.PUBLIC
+
+        wf._workflows = []
+        wf.load_workflows()
 
 
 class TestWorkflow:
