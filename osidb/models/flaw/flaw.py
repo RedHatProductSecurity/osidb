@@ -916,7 +916,7 @@ class Flaw(
         ).exists()
 
     @property
-    def affects_resolved(self):
+    def has_affects_resolved(self):
         """check that all affects have resolution"""
         from osidb.models import Affect
 
