@@ -14163,8 +14163,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -14308,8 +14308,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -14404,8 +14404,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -14677,8 +14677,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -15179,8 +15179,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         created_dt:
           type: string
           format: date-time
@@ -15269,8 +15269,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -15416,8 +15416,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -15570,8 +15570,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -15767,8 +15767,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
       required:
       - alerts
       - created_dt
@@ -15846,8 +15846,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         created_dt:
           type: string
           format: date-time
@@ -16102,8 +16102,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         created_dt:
           type: string
           format: date-time
@@ -16192,8 +16192,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -16607,8 +16607,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         created_dt:
           type: string
           format: date-time
@@ -17732,8 +17732,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -17822,8 +17822,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -18032,8 +18032,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -18091,8 +18091,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:

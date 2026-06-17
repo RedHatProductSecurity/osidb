@@ -371,6 +371,34 @@ class ACLMixin(models.Model):
     def is_public(self):
         return set(self.acl_read + self.acl_write) == self.acls_public
 
+    @property
+    def visibility(self):
+        if self.is_embargoed:
+            return ACLMixinVisibility.EMBARGOED
+        if self.is_internal:
+            return ACLMixinVisibility.INTERNAL
+        return ACLMixinVisibility.PUBLIC
+
+    @visibility.setter
+    def visibility(self, target):
+        """
+        Monotonically widen visibility to the given target level.
+
+        ACLMixinVisibility can only be widened (EMBARGOED -> INTERNAL -> PUBLIC),
+        never narrowed. If the current level is already at or wider than
+        the target, this is a no-op.
+        """
+        target = ACLMixinVisibility(target)
+        if self.visibility >= target:
+            return
+
+        if target == ACLMixinVisibility.PUBLIC:
+            self.set_public()
+            self.set_public_nested()
+            self.set_history_public()
+        elif target == ACLMixinVisibility.INTERNAL:
+            self.set_internal()
+
     def acl2group(self, acl):
         """
         transform back to human readable group name or

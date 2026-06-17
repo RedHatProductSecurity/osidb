@@ -340,6 +340,99 @@ class TestACLMixin:
         assert not public_flaw.is_embargoed
         assert not public_flaw.is_internal
 
+    def test_visibility_property_getter(self):
+        """
+        Test that the visibility property returns the correct ACLMixinVisibility value
+        """
+        embargoed = self.create_flaw(
+            acl_read=[settings.EMBARGO_READ_GROUP],
+            acl_write=[settings.EMBARGO_WRITE_GROUP],
+            save=False,
+        )
+        internal = self.create_flaw(
+            acl_read=[settings.INTERNAL_READ_GROUP],
+            acl_write=[settings.INTERNAL_WRITE_GROUP],
+            save=False,
+        )
+        public = self.create_flaw(
+            acl_read=settings.PUBLIC_READ_GROUPS,
+            acl_write=[settings.PUBLIC_WRITE_GROUP],
+            save=False,
+        )
+
+        assert embargoed.visibility == ACLMixinVisibility.EMBARGOED
+        assert internal.visibility == ACLMixinVisibility.INTERNAL
+        assert public.visibility == ACLMixinVisibility.PUBLIC
+
+    def test_visibility_ordering(self):
+        """
+        Test that visibility levels are ordered from least to most visible
+        """
+        assert ACLMixinVisibility.EMBARGOED < ACLMixinVisibility.INTERNAL
+        assert ACLMixinVisibility.INTERNAL < ACLMixinVisibility.PUBLIC
+        assert ACLMixinVisibility.EMBARGOED < ACLMixinVisibility.PUBLIC
+
+    def test_visibility_setter_widens(self):
+        """
+        Test that setting visibility widens from more restricted to less restricted
+        """
+        flaw = self.create_flaw(
+            acl_read=[settings.INTERNAL_READ_GROUP],
+            acl_write=[settings.INTERNAL_WRITE_GROUP],
+            save=False,
+        )
+        assert flaw.visibility == ACLMixinVisibility.INTERNAL
+
+        flaw.visibility = ACLMixinVisibility.PUBLIC
+        assert flaw.visibility == ACLMixinVisibility.PUBLIC
+        assert flaw.is_public
+
+    def test_visibility_setter_widens_embargoed_to_internal(self):
+        """
+        Test that setting visibility widens from embargoed to internal
+        """
+        flaw = self.create_flaw(
+            acl_read=[settings.EMBARGO_READ_GROUP],
+            acl_write=[settings.EMBARGO_WRITE_GROUP],
+            save=False,
+        )
+        assert flaw.visibility == ACLMixinVisibility.EMBARGOED
+
+        flaw.visibility = ACLMixinVisibility.INTERNAL
+        assert flaw.visibility == ACLMixinVisibility.INTERNAL
+        assert flaw.is_internal
+
+    def test_visibility_setter_noop_on_same_level(self):
+        """
+        Test that setting visibility to the current level is a no-op
+        """
+        flaw = self.create_flaw(
+            acl_read=settings.PUBLIC_READ_GROUPS,
+            acl_write=[settings.PUBLIC_WRITE_GROUP],
+            save=False,
+        )
+        assert flaw.visibility == ACLMixinVisibility.PUBLIC
+
+        flaw.visibility = ACLMixinVisibility.PUBLIC
+        assert flaw.is_public
+
+    def test_visibility_setter_noop_on_narrowing(self):
+        """
+        Test that setting visibility to a more restricted level is a no-op
+        """
+        flaw = self.create_flaw(
+            acl_read=settings.PUBLIC_READ_GROUPS,
+            acl_write=[settings.PUBLIC_WRITE_GROUP],
+            save=False,
+        )
+        assert flaw.visibility == ACLMixinVisibility.PUBLIC
+
+        flaw.visibility = ACLMixinVisibility.INTERNAL
+        assert flaw.is_public
+
+        flaw.visibility = ACLMixinVisibility.EMBARGOED
+        assert flaw.is_public
+
 
 class TestTrackingMixin:
     def create_flaw(self, **kwargs):
