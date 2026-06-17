@@ -14895,6 +14895,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ClassificationCheck'
+          readOnly: true
         states:
           type: array
           items:
