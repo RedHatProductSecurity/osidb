@@ -856,6 +856,38 @@ class TestWorkflow:
             f'flaw was wrongly accepted by workflow conditions "{conditions}"'
         )
 
+    def test_condition_with_or(self):
+        """test that a workflow condition can use an OR logical condition"""
+        workflow = Workflow(
+            {
+                "name": "test",
+                "description": "test",
+                "priority": 0,
+                "conditions": [
+                    {
+                        "condition": "OR",
+                        "requirements": [
+                            "has comment_zero",
+                            "has title",
+                        ],
+                    }
+                ],
+                "states": [],
+            }
+        )
+
+        flaw = FlawFactory()
+        flaw.comment_zero = ""
+        flaw.title = ""
+        assert not workflow.accepts(flaw)
+
+        flaw.comment_zero = "some comment"
+        assert workflow.accepts(flaw)
+
+        flaw.comment_zero = ""
+        flaw.title = "some title"
+        assert workflow.accepts(flaw)
+
     def test_classify(self):
         """test that a flaw is correctly classified in the workflow states"""
         state_new = {

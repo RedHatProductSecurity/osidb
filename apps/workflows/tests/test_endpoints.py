@@ -11,6 +11,7 @@ from osidb.models import (
     AffectCVSS,
     Flaw,
     FlawAcknowledgment,
+    FlawCollaborator,
     FlawComment,
     FlawCVSS,
     FlawReference,
@@ -60,6 +61,19 @@ class TestEndpoints(object):
         """test unauthenticated workflows API endpoint"""
         response = client.get(f"{test_api_uri}/workflows")
         assert response.status_code == 200
+
+    def test_workflows_condition_in_conditions(self, auth_client, test_api_uri):
+        """test that workflows with OR/AND conditions in workflow conditions serialize correctly"""
+        response = auth_client().get(f"{test_api_uri}/workflows")
+        assert response.status_code == 200
+        body = response.json()
+        rejected = next(
+            w for w in body["workflows"] if w["name"] == "REJECTED"
+        )
+        assert len(rejected["conditions"]) == 1
+        condition = rejected["conditions"][0]
+        assert condition["condition"] == "OR"
+        assert len(condition["requirements"]) == 2
 
     def test_workflows_cve(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint"""
@@ -134,6 +148,55 @@ class TestEndpoints(object):
         assert selected_workflow is not None
         classified = selected_workflow["classified_state"]
         assert classified == body["classification"]["state"]
+
+    def test_workflows_verbose_rejected_workflow(self, auth_client, test_api_uri):
+        """test verbose classification for a flaw in the REJECTED workflow with OR condition"""
+        flaw = FlawFactory(embargoed=False)
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
+        )
+        response = auth_client().get(
+            f"{test_api_uri}/workflows/{flaw.uuid}?verbose=true"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "REJECTED"
+        assert body["classification"]["state"] == "DONE"
+
+        rejected_wf = next(
+            w for w in body["workflows"] if w["name"] == "REJECTED"
+        )
+        assert rejected_wf["accepts"] is True
+        assert rejected_wf["classified_state"] == "DONE"
+
+        or_condition = rejected_wf["conditions"][0]
+        assert or_condition["accepts"] is True
+        assert or_condition["condition"] == "OR"
+        assert len(or_condition["requirements"]) == 2
+        for req in or_condition["requirements"]:
+            assert "accepts" in req
+
+    def test_workflows_verbose_condition_structure(self, auth_client, test_api_uri):
+        """test that verbose classification serializes all condition types correctly"""
+        flaw = FlawFactory(embargoed=False)
+        response = auth_client().get(
+            f"{test_api_uri}/workflows/{flaw.uuid}?verbose=true"
+        )
+        assert response.status_code == 200
+        body = response.json()
+
+        for wf in body["workflows"]:
+            for condition in wf["conditions"]:
+                assert "accepts" in condition
+                if "condition" in condition:
+                    assert condition["condition"] in ("AND", "OR")
+                    assert "requirements" in condition
+                    for req in condition["requirements"]:
+                        assert "accepts" in req
+                        assert "name" in req
+                else:
+                    assert "name" in condition
+                    assert "description" in condition
 
     def test_workflows_uuid_non_existing(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint with non-exising flaw"""
