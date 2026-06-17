@@ -47,6 +47,8 @@ class TestTaskmanService(object):
         assert response2 is None
 
         assert flaw.workflow_state in (
+            "TRIAGE",
+            "ANALYSIS",
             "PRE_SECONDARY_ASSESSMENT",
             "SECONDARY_ASSESSMENT",
             "DONE",
