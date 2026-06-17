@@ -67,9 +67,7 @@ class TestEndpoints(object):
         response = auth_client().get(f"{test_api_uri}/workflows")
         assert response.status_code == 200
         body = response.json()
-        rejected = next(
-            w for w in body["workflows"] if w["name"] == "REJECTED"
-        )
+        rejected = next(w for w in body["workflows"] if w["name"] == "REJECTED")
         assert len(rejected["conditions"]) == 1
         condition = rejected["conditions"][0]
         assert condition["condition"] == "OR"
@@ -95,6 +93,42 @@ class TestEndpoints(object):
         assert body["flaw"] == str(flaw.uuid)
         assert "classification" in body
         assert "workflows" not in body
+
+    def test_workflows_next_state(self, auth_client, test_api_uri):
+        """test that next parameter returns the next state with requirement acceptance"""
+        flaw = FlawFactory(embargoed=False)
+        response = auth_client().get(f"{test_api_uri}/workflows/{flaw.uuid}?next=true")
+        assert response.status_code == 200
+        body = response.json()
+        assert "next" in body
+        next_state = body["next"]
+        assert next_state is not None
+        assert "accepts" in next_state
+        assert "name" in next_state
+        assert "requirements" in next_state
+        for req in next_state["requirements"]:
+            assert "accepts" in req
+
+    def test_workflows_next_state_final(self, auth_client, test_api_uri):
+        """test that next is null when flaw is in the final state"""
+        flaw = FlawFactory(embargoed=False)
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test"
+        )
+        response = auth_client().get(f"{test_api_uri}/workflows/{flaw.uuid}?next=true")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "REJECTED"
+        assert body["classification"]["state"] == "DONE"
+        assert body["next"] is None
+
+    def test_workflows_next_not_included_by_default(self, auth_client, test_api_uri):
+        """test that next is not included when parameter is not set"""
+        flaw = FlawFactory()
+        response = auth_client().get(f"{test_api_uri}/workflows/{flaw.uuid}")
+        assert response.status_code == 200
+        body = response.json()
+        assert "next" not in body
 
     def test_workflows_uuid_verbose(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint with verbose parameter"""
@@ -163,9 +197,7 @@ class TestEndpoints(object):
         assert body["classification"]["workflow"] == "REJECTED"
         assert body["classification"]["state"] == "DONE"
 
-        rejected_wf = next(
-            w for w in body["workflows"] if w["name"] == "REJECTED"
-        )
+        rejected_wf = next(w for w in body["workflows"] if w["name"] == "REJECTED")
         assert rejected_wf["accepts"] is True
         assert rejected_wf["classified_state"] == "DONE"
 
