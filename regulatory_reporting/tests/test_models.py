@@ -1,10 +1,17 @@
 import pytest
 from django.core.exceptions import ValidationError
 from django.db.models.deletion import ProtectedError
+from django.test import TestCase
 from django.utils import timezone
 
 from osidb.tests.factories import FlawFactory
-from regulatory_reporting.models import SRPReport, SRPReportMilestone
+from regulatory_reporting.models import (
+    FlawUpstreamMapping,
+    SRPReport,
+    SRPReportMilestone,
+    UpstreamNotification,
+    UpstreamProject,
+)
 from regulatory_reporting.tests.factories import (
     SRPReportFactory,
     SRPReportMilestoneFactory,
@@ -136,7 +143,7 @@ class TestSRPReportMilestone:
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H,
         )
 
-        assert str(milestone) == f"24h - CVE-2024-5678"
+        assert str(milestone) == "24h - CVE-2024-5678"
 
     def test_srp_report_reverse_relation(self):
         milestone = SRPReportMilestoneFactory()
@@ -185,3 +192,53 @@ class TestSRPReportMilestone:
 
         assert not SRPReport.objects.filter(uuid=report_uuid).exists()
         assert not SRPReportMilestone.objects.filter(uuid=milestone_uuid).exists()
+
+
+class TestUpstreamProject(TestCase):
+    def test_create_upstream_project(self):
+        project = UpstreamProject.objects.create(
+            component_name="test-component",
+        )
+        assert project.component_name == "test-component"
+        assert project.uuid is not None
+
+
+class TestUpstreamNotification(TestCase):
+    def test_create_upstream_notification(self):
+        flaw = FlawFactory()
+        project = UpstreamProject.objects.create(
+            component_name="test-component",
+        )
+        notification = UpstreamNotification.objects.create(
+            flaw=flaw,
+            upstream_project=project,
+        )
+        assert notification.uuid is not None
+        assert notification.status == UpstreamNotification.NotificationStatus.REQUIRED
+        assert notification.flaw == flaw
+
+
+class TestFlawUpstreamMapping(TestCase):
+    def test_create_flaw_upstream_mapping(self):
+        flaw = FlawFactory()
+        project = UpstreamProject.objects.create(
+            component_name="test-component",
+        )
+        mapping = FlawUpstreamMapping.objects.create(
+            flaw=flaw,
+            upstream_project=project,
+        )
+        assert mapping.uuid is not None
+        assert mapping.flaw == flaw
+
+    def test_mapping_independent_of_affects(self):
+        flaw = FlawFactory()
+        project = UpstreamProject.objects.create(
+            component_name="test-component",
+        )
+        mapping = FlawUpstreamMapping.objects.create(
+            flaw=flaw,
+            upstream_project=project,
+        )
+        assert not hasattr(mapping, "affect")
+        assert not hasattr(mapping, "tracker")
