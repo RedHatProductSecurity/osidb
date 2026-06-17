@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from osidb.models import Affect, Flaw, Tracker
+from osidb.models import Affect, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -87,23 +87,52 @@ class TestAtomicRollbackOnFailure:
             list(tracker.acl_write),
         ) == original_tracker_acls
 
+    @pytest.mark.enable_signals
     @pytest.mark.django_db
-    def test_set_history_public_failure_during_workflow_transition(
+    def test_visibility_auto_adjustment_propagates_to_nested(
         self,
         internal_read_groups,
         internal_write_groups,
     ):
-        """When flaw ACL update fails during workflow transition, all changes rollback."""
+        """When classification crosses a visibility gate, ACLs propagate to nested entities."""
+        from apps.workflows.models import Workflow
+        from apps.workflows.workflow import WorkflowFramework
 
         ps_module = PsModuleFactory()
         ps_stream = PsUpdateStreamFactory(ps_module=ps_module)
 
-        # Create INTERNAL flaw for workflow transition test
+        workflow_framework = WorkflowFramework()
+        workflow_framework._workflows = []
+        workflow_framework.register_workflow(
+            Workflow(
+                {
+                    "name": "DEFAULT",
+                    "description": "test workflow",
+                    "priority": 0,
+                    "conditions": [],
+                    "states": [
+                        {
+                            "name": "NEW",
+                            "requirements": [],
+                            "jira_state": "New",
+                            "jira_resolution": None,
+                        },
+                        {
+                            "name": "PUBLIC_STATE",
+                            "requirements": ["has owner"],
+                            "jira_state": "To Do",
+                            "jira_resolution": None,
+                            "visibility": "PUBLIC",
+                        },
+                    ],
+                }
+            )
+        )
+
         flaw = FlawFactory(
             embargoed=False,
-            unembargo_dt=datetime(2000, 1, 1, tzinfo=timezone.utc),
             task_key="TASK-1",
-            workflow_state="TRIAGE",
+            owner="",
             acl_read=internal_read_groups,
             acl_write=internal_write_groups,
         )
@@ -118,42 +147,16 @@ class TestAtomicRollbackOnFailure:
             acl_write=internal_write_groups,
         )
 
-        # Verify flaw is internal
         assert flaw.is_internal
+        assert affect.is_internal
+        assert flaw.workflow_state == "NEW"
 
-        original_flaw_acls = (list(flaw.acl_read), list(flaw.acl_write))
-        original_affect_acls = (list(affect.acl_read), list(affect.acl_write))
+        flaw.owner = "analyst@redhat.com"
+        flaw.save(raise_validation_error=False)
 
-        flaw_queryset_class = Flaw.objects.get_queryset().__class__
-        original_update = flaw_queryset_class.update
-
-        # Inject failure at the call-site level, after nested ACLs were updated
-        # and before the flaw-row ACL update can commit.
-        def failing_flaw_acl_update(self, *args, **kwargs):
-            if self.model is Flaw and "acl_read" in kwargs and "acl_write" in kwargs:
-                raise Exception("Simulated failure during flaw ACL update")
-            return original_update(self, *args, **kwargs)
-
-        with patch.object(flaw_queryset_class, "update", failing_flaw_acl_update):
-            with pytest.raises(Exception, match="Simulated failure during flaw ACL"):
-                flaw.workflow_state = "PRE_SECONDARY_ASSESSMENT"
-                flaw.tasksync(
-                    jira_token=None,
-                    jira_email=None,
-                    diff={
-                        "workflow_state": {
-                            "old": "TRIAGE",
-                            "new": "PRE_SECONDARY_ASSESSMENT",
-                        },
-                    },
-                )
-
-        # Refresh from database
-        flaw.refresh_from_db()
         affect.refresh_from_db()
+        assert flaw.workflow_state == "PUBLIC_STATE"
+        assert flaw.is_public
+        assert affect.is_public
 
-        # ACLs should be unchanged (rollback occurred)
-        assert (list(flaw.acl_read), list(flaw.acl_write)) == original_flaw_acls
-        assert (list(affect.acl_read), list(affect.acl_write)) == original_affect_acls
-        # Workflow state should also be unchanged
-        assert flaw.workflow_state == "TRIAGE"
+        workflow_framework._workflows = []
