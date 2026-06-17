@@ -448,28 +448,16 @@ class ACLMixinSerializer(BaseSerializer):
             "modifies the ACLs but is mandatory as it controls the access to the resource."
         ),
     )
-    visibility = serializers.SerializerMethodField(
-        help_text="The visibility level of the resource based on ACL read groups."
+    visibility = serializers.ChoiceField(
+        choices=ACLMixinVisibility,
+        read_only=True,
+        help_text="The visibility level of the resource based on ACL read groups.",
     )
 
     class Meta:
         abstract = True
         fields = ["embargoed", "visibility"]
         model = ACLMixin
-
-    @extend_schema_field(ACLMixinVisibility)
-    def get_visibility(self, obj):
-        """Return the visibility annotation value from the queryset"""
-        if hasattr(obj, "visibility"):
-            return obj.visibility
-
-        # Fallback to checking properties if annotation isn't available
-        if obj.is_internal:
-            return ACLMixinVisibility.INTERNAL
-        elif obj.is_embargoed:
-            return ACLMixinVisibility.EMBARGOED
-        else:
-            return ACLMixinVisibility.PUBLIC
 
     def hash_acl(self, acl):
         """
@@ -1843,28 +1831,16 @@ class FlawPackageVersionACLMixinSerializer(serializers.ModelSerializer):
             "modifies the ACLs but is mandatory as it controls the access to the resource."
         ),
     )
-    visibility = serializers.SerializerMethodField(
-        help_text="The visibility level of the resource based on ACL read groups."
+    visibility = serializers.ChoiceField(
+        choices=ACLMixinVisibility,
+        read_only=True,
+        help_text="The visibility level of the resource based on ACL read groups.",
     )
 
     class Meta:
         abstract = True
         fields = ["embargoed", "visibility"]
         model = ACLMixin
-
-    @extend_schema_field(ACLMixinVisibility)
-    def get_visibility(self, obj):
-        """Return the visibility annotation value from the queryset"""
-        if hasattr(obj, "visibility"):
-            return obj.visibility
-
-        # Fallback to checking properties if annotation isn't available
-        if obj.is_internal:
-            return ACLMixinVisibility.INTERNAL
-        elif obj.is_embargoed:
-            return ACLMixinVisibility.EMBARGOED
-        else:
-            return ACLMixinVisibility.PUBLIC
 
     def hash_acl(self, acl):
         """
