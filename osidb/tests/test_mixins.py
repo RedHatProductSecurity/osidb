@@ -433,6 +433,47 @@ class TestACLMixin:
         flaw.visibility = ACLMixinVisibility.EMBARGOED
         assert flaw.is_public
 
+    def test_visibility_setter_propagates_to_nested(self):
+        """
+        Test that setting visibility propagates ACLs to related objects
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+        )
+        flaw.set_internal()
+        flaw.save(raise_validation_error=False)
+
+        affect = AffectFactory(flaw=flaw)
+        affect.set_internal()
+        affect.save(raise_validation_error=False)
+
+        assert flaw.is_internal
+        assert affect.is_internal
+
+        flaw.visibility = ACLMixinVisibility.PUBLIC
+        flaw.save(raise_validation_error=False)
+
+        affect.refresh_from_db()
+        assert flaw.is_public
+        assert affect.is_public
+
+    def test_visibility_setter_propagates_embargoed_to_internal(self):
+        """
+        Test that widening from embargoed to internal propagates to children
+        """
+        flaw = FlawFactory(embargoed=True)
+        affect = AffectFactory(flaw=flaw)
+
+        assert flaw.is_embargoed
+        assert affect.is_embargoed
+
+        flaw.visibility = ACLMixinVisibility.INTERNAL
+        flaw.save(raise_validation_error=False)
+
+        affect.refresh_from_db()
+        assert flaw.is_internal
+        assert affect.is_internal
+
 
 class TestTrackingMixin:
     def create_flaw(self, **kwargs):

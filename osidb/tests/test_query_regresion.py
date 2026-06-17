@@ -62,7 +62,7 @@ class TestQuerySetRegression:
             response = auth_client().get(f"{test_api_v2_uri}/flaws")
             assert response.status_code == 200
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 59), (True, 59)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 65), (True, 65)])
     def test_flaw_list_filtered(
         self, auth_client, test_api_v2_uri, embargoed, query_count
     ):
@@ -287,7 +287,7 @@ class TestQuerySetRegression:
             )
             assert response.status_code == 200
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 59), (True, 59)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 65), (True, 65)])
     def test_related_flaws(self, auth_client, test_api_v2_uri, embargoed, query_count):
         """
         Test query performance for related flaws endpoint.
@@ -483,7 +483,7 @@ class TestQuerySetRegression:
         assert response.status_code == 200
 
         # Promote to PRE_SECONDARY_ASSESSMENT using async task sync
-        # this one runs the nested set_public_nested call and set_history_public
+        # this one runs the nested set_acls_nested and set_acls_history calls
 
         with assertNumQueriesLessThan(expected_queries):
             response = auth_client().post(
