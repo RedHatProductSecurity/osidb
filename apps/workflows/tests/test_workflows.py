@@ -134,14 +134,14 @@ class TestDefaultWorkflow:
             affectedness=Affect.AffectAffectedness.NEW,
             resolution=Affect.AffectResolution.NOVALUE,
         )
-        assert flaw.workflow_state == WS.ANALYSIS
+        assert flaw.workflow_state == "ANALYSIS"
 
         # --- ANALYSIS → PRE_SECONDARY_ASSESSMENT: requires affects resolved ---
 
         affect.affectedness = Affect.AffectAffectedness.AFFECTED
         affect.resolution = Affect.AffectResolution.DELEGATED
         affect.save(raise_validation_error=False)
-        assert flaw.workflow_state == WS.PRE_SECONDARY_ASSESSMENT
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
 
         # --- PRE_SECONDARY_ASSESSMENT → SECONDARY_ASSESSMENT: requires trackers ---
 
