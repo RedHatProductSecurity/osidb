@@ -522,6 +522,52 @@ class TestCondition:
         with pytest.raises(ValueError, match="MULT"):
             condition.accepts(flaw)
 
+    def test_condition_description_composition(self):
+        """Test that Condition.description composes check descriptions with logical operator"""
+        # Test OR condition
+        or_condition = Condition(
+            condition="OR",
+            requirements=["has cve_id", "impact is critical"],
+        )
+        assert or_condition.name == "has cve_id OR impact is critical"
+        assert " OR " in or_condition.description
+        # Verify descriptions are from the individual checks
+        assert "cve_id" in or_condition.description
+        assert "impact" in or_condition.description
+
+        # Test AND condition
+        and_condition = Condition(
+            condition="AND",
+            requirements=["has title", "has comment_zero"],
+        )
+        assert and_condition.name == "has title AND has comment_zero"
+        assert " AND " in and_condition.description
+        assert "title" in and_condition.description
+        assert "comment_zero" in and_condition.description
+
+    def test_nested_condition_description(self):
+        """Test that nested conditions also compose descriptions correctly"""
+        nested_condition = Condition(
+            condition="AND",
+            requirements=[
+                "has cve_id",
+                {
+                    "condition": "OR",
+                    "requirements": ["impact is critical", "has title"],
+                },
+            ],
+        )
+        # Name should compose both levels
+        assert "has cve_id" in nested_condition.name
+        assert " OR " in nested_condition.name
+        assert "impact is critical" in nested_condition.name
+
+        # Description should also compose both levels
+        assert "cve_id" in nested_condition.description
+        assert " OR " in nested_condition.description
+        assert "impact" in nested_condition.description
+        assert "title" in nested_condition.description
+
 
 class TestState:
     def test_empty_requirements(self):

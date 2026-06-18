@@ -76,6 +76,16 @@ class Condition:
     def name(self):
         return f" {self.condition} ".join(check.name for check in self.checks)
 
+    @property
+    def description(self):
+        """
+        Compose description from all checks in this condition.
+
+        Returns a human-readable description explaining the logical relationship
+        between the checks.
+        """
+        return f" {self.condition} ".join(check.description for check in self.checks)
+
 
 class State:
     """
