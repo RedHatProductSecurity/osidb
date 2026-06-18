@@ -273,7 +273,7 @@ class TestFlaw:
         )
         assert len(tracker.affects.all()) == 2
 
-    def test_trackers_filed(self):
+    def test_has_trackers(self):
         flaw = FlawFactory()
         ps_module = PsModuleFactory(bts_name="bugzilla")
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
@@ -283,20 +283,20 @@ class TestFlaw:
             ps_update_stream=ps_update_stream.name,
             flaw=flaw,
         )
-        assert not flaw.trackers_filed
+        assert not flaw.has_trackers
         TrackerFactory(
             affects=(fix_affect,),
             embargoed=flaw.is_embargoed,
             ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.BUGZILLA,
         )
-        assert flaw.trackers_filed
+        assert flaw.has_trackers
         AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             flaw=flaw,
         )
-        assert not flaw.trackers_filed
+        assert not flaw.has_trackers
 
     @pytest.mark.parametrize(
         "status,resolution,delegated_resolution",

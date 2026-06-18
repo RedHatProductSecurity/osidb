@@ -925,7 +925,7 @@ class Flaw(
         ).exists()
 
     @property
-    def trackers_filed(self):
+    def has_trackers(self):
         """
         check that all affects in
         NEW:NOVALUE or AFFECTED:DELEGATED

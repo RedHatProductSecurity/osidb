@@ -29,7 +29,6 @@ class CheckParser:
         "cve": "cve_id",
         "cwe": "cwe_id",
         "state": "workflow_state",
-        "has_trackers": "trackers_filed",
     }
 
     # the list of properties which return text choices
