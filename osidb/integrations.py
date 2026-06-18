@@ -17,6 +17,7 @@ class IntegrationSettings(BaseSettings):
     vault_addr: str = Field(default="")
     role_id: str = Field(default="")
     secret_id: str = Field(default="")
+    integrations_base_path: str = Field(default="/osidb-integrations")
 
     def is_vault_enabled(self) -> bool:
         """
@@ -29,11 +30,13 @@ class IntegrationSettings(BaseSettings):
 
 
 class IntegrationRepository:
-    BASE_PATH = Path("/osidb-integrations") / Path(get_execution_env())
     BASE_MOUNTPOINT = "apps"
 
     def __init__(self, settings: IntegrationSettings):
         self.settings = settings
+        self.base_path = Path(settings.integrations_base_path) / Path(
+            get_execution_env()
+        )
 
         if not settings.is_vault_enabled():
             _logger.info(
@@ -57,7 +60,7 @@ class IntegrationRepository:
             return
 
         self.client.secrets.kv.v2.patch(
-            path=str(self.BASE_PATH / subpath),
+            path=str(self.base_path / subpath),
             secret={key: value},
             mount_point=self.BASE_MOUNTPOINT,
         )
@@ -68,7 +71,7 @@ class IntegrationRepository:
             return None
 
         r = self.client.secrets.kv.v2.read_secret_version(
-            path=str(self.BASE_PATH / subpath),
+            path=str(self.base_path / subpath),
             mount_point=self.BASE_MOUNTPOINT,
         )
         return r["data"]["data"].get(key)
