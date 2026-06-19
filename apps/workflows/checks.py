@@ -28,7 +28,6 @@ class CheckParser:
     ATTRIBUTE_MAP = {
         "cve": "cve_id",
         "cwe": "cwe_id",
-        "state": "workflow_state",
     }
 
     # the list of properties which return text choices

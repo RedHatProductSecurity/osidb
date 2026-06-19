@@ -729,7 +729,7 @@ class TestSLOPolicy:
                         "flaw": [
                             "major incident state is major incident approved",
                             "is not embargoed",
-                            "state is not triage",
+                            "has affects",
                         ],
                         "tracker": ["aggregated impact is critical"],
                     },
@@ -737,7 +737,7 @@ class TestSLOPolicy:
                     [
                         "major incident state is major incident approved",
                         "is not embargoed",
-                        "state is not triage",
+                        "has affects",
                     ],
                     ["aggregated impact is critical"],
                 ),

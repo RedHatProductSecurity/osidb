@@ -51,7 +51,7 @@ conditions:
     - is not community
   flaw:
     - is not embargoed
-    - state is not triage
+    - has affects
 slo:
   duration: 180
   start:
@@ -86,7 +86,7 @@ conditions:
     - is not community
   flaw:
     - is not embargoed
-    - state is not triage
+    - has affects
 slo:
   duration: 50
   start:
@@ -104,7 +104,7 @@ conditions:
     - is not community
   flaw:
     - is not embargoed
-    - state is not triage
+    - has affects
 slo:
   duration: 90
   start:
@@ -122,7 +122,7 @@ conditions:
     - is not community
   flaw:
     - is not embargoed
-    - state is not triage
+    - has affects
 slo:
   duration: 180
   start:
