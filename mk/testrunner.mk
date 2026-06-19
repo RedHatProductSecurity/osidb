@@ -31,6 +31,8 @@ testrunner.all-integration-tests:
 	$(podman) exec -it testrunner tox -e integration-tests
 testrunner.all-tests:
 	$(podman) exec -it testrunner tox -e tests
+testrunner.queryset-tests:
+	$(podman) exec -it testrunner tox -e queryset-tests
 testrunner.record-new:
 	rm -rf *_cache.sqlite
 	$(podman) exec -it testrunner tox -e record-new -- osidb/ collectors/jiraffe collectors/bzimport collectors/product_definitions
