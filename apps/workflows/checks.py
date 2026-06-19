@@ -87,7 +87,6 @@ class CheckParser:
             # because of the limitations of the naive syntax parsing
             self.desc2not_equals,
             self.desc2equals,
-            self.desc2in,
         ]:
             result = func(check_desc, original_check_desc=original_check_desc)
             if result is not None:

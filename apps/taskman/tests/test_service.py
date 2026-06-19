@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 
 from apps.taskman.constants import JIRA_SUMMARY_MAX_LENGTH
 from apps.taskman.service import JiraTaskmanQuerier
-from osidb.models import Flaw, Profile
+from osidb.models import Affect, Flaw, Profile
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
@@ -26,8 +26,12 @@ class TestTaskmanService(object):
         # Remove randomness to reuse VCR every possible time
         user, _ = User.objects.get_or_create(username="concosta")
         Profile.objects.filter(user=user).update(atlassian_cloud_id="test=cloud-id")
-        flaw = FlawFactory(embargoed=False)
-        AffectFactory(flaw=flaw)
+        flaw = FlawFactory(embargoed=False, cwe_id="CWE-79")
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NOTAFFECTED,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
         taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
@@ -39,13 +43,14 @@ class TestTaskmanService(object):
 
         flaw.title = new_title
         flaw.owner = "concosta@redhat.com"
-        flaw.workflow_state = "TRIAGE"
         flaw.save()
 
         response2 = taskman.create_or_update_task(flaw=flaw)
         status, _ = flaw.jira_status()
         assert response2 is None
 
+        # Flaw should automatically classify to PRE_SECONDARY_ASSESSMENT
+        # (has affects and they are resolved)
         assert flaw.workflow_state in (
             "TRIAGE",
             "ANALYSIS",

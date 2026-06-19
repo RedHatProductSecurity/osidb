@@ -180,6 +180,7 @@ class TestDefaultWorkflow:
             embargoed=False,
             task_key="TASK-2",
             owner="analyst@redhat.com",
+            cwe_id="CWE-79",
         )
         AffectFactory(
             flaw=flaw,
@@ -230,6 +231,7 @@ class TestDefaultWorkflow:
             embargoed=False,
             task_key="TASK-3",
             owner="analyst@redhat.com",
+            cwe_id="CWE-79",
         )
         affect = AffectFactory(
             flaw=flaw,
@@ -293,6 +295,7 @@ class TestDefaultWorkflow:
             owner="analyst@redhat.com",
             impact=Impact.MODERATE,
             cve_description="",
+            cwe_id="CWE-79",
         )
         AffectFactory(
             flaw=flaw,
