@@ -31,6 +31,8 @@ testrunner.all-integration-tests:
 	$(podman) exec -it testrunner tox -e integration-tests
 testrunner.all-tests:
 	$(podman) exec -it testrunner tox -e tests
+testrunner.all-tests-in-parallel:
+	$(podman) exec -it testrunner tox -e tests-in-parallel
 testrunner.queryset-tests:
 	$(podman) exec -it testrunner tox -e queryset-tests
 testrunner.record-new:
