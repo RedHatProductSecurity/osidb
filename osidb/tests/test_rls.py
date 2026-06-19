@@ -1,6 +1,6 @@
 import pytest
 from django.conf import settings
-from django.db import transaction
+from django.db import connections, transaction
 from django.db.utils import ProgrammingError
 
 from osidb.core import set_user_acls
@@ -14,6 +14,13 @@ class TestRLS:
     # XXX: The following tests use Flaw for a model to test ACLs on,
     # but any RLS-enabled model should be able to replace Flaw and
     # make the tests pass.
+
+    @pytest.fixture(autouse=True)
+    def reset_acl(self):
+        for db_alias in connections:
+            with connections[db_alias].cursor() as cursor:
+                cursor.execute("RESET osidb.acl")
+
     @pytest.mark.parametrize(
         "embargoed,acls",
         [
