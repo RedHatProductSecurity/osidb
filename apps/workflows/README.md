@@ -154,6 +154,52 @@ Because `classify()` is a pure function of flaw data, calling
 `adjust_classification()` multiple times with the same data produces the same
 result. There is no risk of double-promoting or oscillating states.
 
+### Classification Change Tracking
+
+Every classification change is automatically recorded with human-readable
+reasoning in the `classification_meta` JSONField on the WorkflowModel. This
+provides visibility into why automatic reclassification occurred.
+
+The tracking system records the following classification changes:
+
+1. **Initial classification** - The first workflow/state classification
+2. **State progression** - Same workflow, state advances (NEW → TRIAGE)
+3. **State regression** - Same workflow, state moves backward
+   (SECONDARY_ASSESSMENT → TRIAGE when owner is cleared)
+4. **Workflow promotion** - Classified to higher priority workflow
+   (DEFAULT → REJECTED when rejected label is applied)
+5. **Workflow demotion** - Classified to lower priority workflow
+   (EMBARGOED → DEFAULT when embargo is lifted)
+
+#### Change Record Structure
+
+Each change record is stored as a JSON object in the `classification_meta` list:
+
+```json
+{
+    "timestamp": "2026-06-19T14:30:00Z",
+    "change_type": "STATE_PROGRESSION",
+    "workflow": "DEFAULT",
+    "state": "TRIAGE",
+    "reason": {
+        "requirements_satisfied": [
+            {
+                "name": "has CWE",
+                "description": "check that Flaw attribute cwe_id has a value set"
+            }
+        ],
+        "explanation": "State progressed from NEW to TRIAGE by satisfying: has CWE"
+    }
+}
+```
+
+The `reason` object contains:
+- **requirements_satisfied/unsatisfied** - For state changes within the same
+  workflow, lists which requirements became satisfied or unsatisfied
+- **conditions_satisfied/unsatisfied** - For workflow changes, lists which
+  conditions triggered the workflow switch
+- **explanation** - Human-readable summary of what triggered the change
+
 ## Workflow Definitions
 
 For exact requirements and conditions, see the YAML files in
@@ -200,11 +246,23 @@ REJECTED:DONE because DONE represents "fully processed", and a rejected flaw
 has been fully processed by the act of rejecting it. The Jira resolution
 distinguishes rejection ("Won't Do") from completion ("Done").
 
-### ACL Handling
+### Visibility and ACL Adjustment
 
-Rejected and embargoed flaws with internal ACLs are **not** promoted to public
-even though their workflow state is DONE. The `adjust_acls` method only
-promotes flaws in the DEFAULT workflow.
+Workflow states can specify a `visibility` field (PUBLIC, INTERNAL, or
+EMBARGOED) in their YAML definitions. When a flaw reaches a state with explicit
+visibility, its ACLs are automatically adjusted to match.
+
+The effective visibility for a state is the **widest visibility** defined across
+all states from the beginning up to and including the current state. This
+ensures that:
+
+1. Visibility gates are not skipped when a flaw is classified multiple states
+   ahead
+2. A later state cannot narrow visibility set by an earlier one (visibility can
+   only widen, never narrow)
+
+ACL adjustment happens automatically. However, only flaws with explicit visibility
+settings in their workflow states will have ACLs automatically adjusted.
 
 ## Jira Integration
 
@@ -243,12 +301,24 @@ The deprecated mutation endpoints (`promote`, `revert`, `reset`, `reject`,
 | `/workflows/api/v1/graph/workflows` | GET | Visual (Mermaid) diagram of all workflows |
 | `/workflows/api/v1/graph/workflows/{id}` | GET | Visual diagram with flaw classification highlighted |
 
-The classification endpoint (`/workflows/{id}`) accepts an optional
-`?verbose=true` query parameter. When set, the response includes all workflow
-definitions with per-workflow, per-state, and per-requirement `accepts`
-booleans showing the classification reasoning. Each accepting workflow also
-contains a `classified_state` field naming the state the flaw is classified in
-(or `null` for non-selected workflows).
+The classification endpoint (`/workflows/{id}`) accepts optional query parameters:
+
+- **`?verbose=true`** - Includes all workflow definitions with per-workflow,
+  per-state, and per-requirement `accepts` booleans showing the classification
+  reasoning. Each accepting workflow also contains a `classified_state` field
+  naming the state the flaw is classified in (or `null` for non-selected
+  workflows).
+
+- **`?next=true`** - Includes the `next` field containing the next state in the
+  workflow with its requirements and their acceptance status. Returns `null` if
+  the flaw is already in the final state. Useful for determining what
+  requirements must be satisfied to progress to the next state.
+
+- **`?history=true`** - Includes the `history` field containing all
+  classification changes recorded in `classification_meta`. Each change record
+  shows the timestamp, change type (initial classification, progression, regression, promotion, demotion),
+  resulting workflow/state, and human-readable reasoning explaining
+  what requirements or conditions triggered the change.
 
 Classification is automatic based on flaw data and cannot be manually changed.
 
