@@ -18,6 +18,7 @@ from .constants import WORKFLOW_DIR
 from .exceptions import WorkflowDefinitionError
 from .helpers import singleton
 from .models import Workflow
+from .tracking import add_classification_change, create_change_record
 
 logger = logging.getLogger(__name__)
 
@@ -161,6 +162,7 @@ class WorkflowModel(models.Model):
     task_key = models.CharField(max_length=60, blank=True)
     task_updated_dt = models.DateTimeField(null=True, blank=True)
     team_id = deprecate_field(models.CharField(max_length=8, blank=True))
+    classification_meta = models.JSONField(default=list, blank=True)
 
     class Meta:
         abstract = True
@@ -220,18 +222,37 @@ class WorkflowModel(models.Model):
         state change, please consider using promote method from this mixin instead
 
         workflow model is by default saved on change which can be turned off by argument
+
+        Automatically tracks classification changes in classification_meta with
+        human-readable reasoning.
         """
         # Only classify if there is a task associated, otherwise workflow fields
         # should remain empty
         if not self.task_key:
             return
 
+        # Store old classification before computing new one
+        old_classification = self.classification
+
+        # Compute new classification
         classification = self.classify()
 
-        if classification == self.classification:
+        if classification == old_classification:
             # no change to be stored
             return
 
+        # Classification changed - track it
+        add_classification_change(
+            self,
+            create_change_record(
+                old_classification,
+                classification,
+                instance=self,
+                framework=WorkflowFramework(),
+            ),
+        )
+
+        # Update instance fields
         self.classification = classification
         self.adjust_acls()  # possibly adjust ACLs too
 

@@ -49,15 +49,8 @@ class TestTaskmanService(object):
         status, _ = flaw.jira_status()
         assert response2 is None
 
-        # Flaw should automatically classify to PRE_SECONDARY_ASSESSMENT
-        # (has affects and they are resolved)
-        assert flaw.workflow_state in (
-            "TRIAGE",
-            "ANALYSIS",
-            "PRE_SECONDARY_ASSESSMENT",
-            "SECONDARY_ASSESSMENT",
-            "DONE",
-        )
+        # Flaw classifies to ANALYSIS (has affects but resolution is NOVALUE)
+        assert flaw.workflow_state == "ANALYSIS"
         flaw.save(raise_validation_error=False)
         response3 = taskman.create_or_update_task(flaw=flaw)
         assert response3 is None

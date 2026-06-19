@@ -268,6 +268,15 @@ class classification(RudimentaryUserPathLoggingMixin, APIView):
                     "and their acceptance status. Null if the flaw is in the final state."
                 ),
             ),
+            OpenApiParameter(
+                "history",
+                type={"type": "boolean"},
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "Include classification change history with human-readable reasoning "
+                    "for why the classification changed over time."
+                ),
+            ),
         ],
         responses={200: ClassificationResponseSerializer},
     )
@@ -283,6 +292,8 @@ class classification(RudimentaryUserPathLoggingMixin, APIView):
 
             verbose - return also workflows with flaw classification
                       which represents the reasoning of the result
+
+            history - return classification change history with reasoning
         """
         logger.info(f"getting flaw {pk} workflow classification")
         flaw = get_flaw_or_404(pk)
@@ -328,6 +339,23 @@ class classification(RudimentaryUserPathLoggingMixin, APIView):
                         ).data
                     else:
                         response["next"] = None
+
+            # optional classification history
+            history_param = request.GET.get("history")
+            if history_param is not None:
+                if str2bool(history_param, "history"):
+                    # Explicitly order the fields for consistent JSON output
+                    # PostgreSQL JSONB doesn't preserve key order, so we rebuild each record
+                    response["history"] = [
+                        {
+                            "timestamp": record.get("timestamp"),
+                            "change_type": record.get("change_type"),
+                            "workflow": record.get("workflow"),
+                            "state": record.get("state"),
+                            "reason": record.get("reason"),
+                        }
+                        for record in flaw.classification_meta
+                    ]
 
         return Response(response)
 

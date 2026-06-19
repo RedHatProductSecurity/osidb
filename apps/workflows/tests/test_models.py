@@ -559,11 +559,13 @@ class TestCondition:
         )
         # Name should compose both levels
         assert "has cve_id" in nested_condition.name
+        assert " AND " in nested_condition.name
         assert " OR " in nested_condition.name
         assert "impact is critical" in nested_condition.name
 
         # Description should also compose both levels
         assert "cve_id" in nested_condition.description
+        assert " AND " in nested_condition.description
         assert " OR " in nested_condition.description
         assert "impact" in nested_condition.description
         assert "title" in nested_condition.description
