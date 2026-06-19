@@ -650,6 +650,52 @@ class TestEndpointsAffectsBulk:
         assert response.status_code == 200
         assert Affect.objects.count() == 0
 
+    def test_affect_update_bulk_empty_list(
+        self, auth_client, test_api_v2_uri, bugzilla_token, jira_token
+    ):
+        bulk_request = []
+        response = auth_client().put(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+
+        assert response.status_code == 400
+        body = response.json()
+        assert body["affect"] == ["At least one affect is required."]
+
+    def test_affect_create_bulk_empty_list(
+        self, auth_client, test_api_v2_uri, bugzilla_token
+    ):
+        bulk_request = []
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+        )
+
+        assert response.status_code == 400
+        body = response.json()
+        assert body["affect"] == ["At least one affect is required."]
+
+    def test_affect_delete_bulk_empty_list(
+        self, auth_client, test_api_v2_uri, bugzilla_token
+    ):
+        bulk_request = []
+        response = auth_client().delete(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+        )
+
+        assert response.status_code == 400
+        body = response.json()
+        assert body["affect"] == ["At least one affect is required."]
+
     @pytest.mark.enable_signals
     def test_affect_create_bulk_public_acls(self, auth_client, test_api_v2_uri):
         """
