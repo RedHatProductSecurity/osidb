@@ -5,7 +5,8 @@ serialize flaw model
 import logging
 import uuid
 from collections import defaultdict
-from typing import Dict, List, Tuple
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, Iterable, List, Tuple, Type
 
 import pghistory
 from django.conf import settings
@@ -680,8 +681,24 @@ class HistoricalEventSerializer(serializers.ModelSerializer):
         return representation
 
 
+@dataclass(frozen=True)
+class HistoryRelation:
+    field_name: str
+    serializer_class: Type[serializers.Serializer]
+    accessor: Callable[[Any], Iterable[Any]]
+
+
 class HistoryMixinSerializer(serializers.ModelSerializer):
+    history_relations: Tuple[HistoryRelation, ...] = ()
     history = serializers.SerializerMethodField()
+
+    @classmethod
+    def get_history_model(cls):
+        return cls.Meta.model
+
+    @classmethod
+    def get_history_relations(cls):
+        return cls.history_relations
 
     def __init__(self, *args, **kwargs):
         # Instantiate the superclass normally
@@ -1490,12 +1507,16 @@ class AffectV1Serializer(
         # Use pre-queried list when present
         tracker_list = self.context.get("tracker_list_by_uuid")
         if tracker_list is not None:
-            uuids = (
-                Affect.objects.filter(uuid=obj.uuid)
-                .exclude(tracker__isnull=True)
-                .values_list("tracker__uuid", flat=True)
-                .distinct()
-            )
+            tracker_uuids_by_affect = self.context.get("tracker_uuids_by_affect")
+            if tracker_uuids_by_affect is not None:
+                uuids = tracker_uuids_by_affect.get(str(obj.uuid), [])
+            else:
+                uuids = (
+                    Affect.objects.filter(uuid=obj.uuid)
+                    .exclude(tracker__isnull=True)
+                    .values_list("tracker__uuid", flat=True)
+                    .distinct()
+                )
             return [
                 tracker_list[str(uuid)] for uuid in uuids if str(uuid) in tracker_list
             ]
@@ -2209,6 +2230,14 @@ class FlawSerializer(
 ):
     """serialize flaw model"""
 
+    history_relations = (
+        HistoryRelation(
+            field_name="affects",
+            serializer_class=AffectSerializer,
+            accessor=lambda flaw: flaw.affects.all(),
+        ),
+    )
+
     # All currently used keys in Flaw.meta_attr used for SwaggerUI population,
     # whenever we introduce new key, which users might be interested in, we should
     # add it to this tuple.
@@ -2531,6 +2560,14 @@ class FlawPutSerializer(FlawSerializer):
 class FlawV1Serializer(FlawSerializer):
     """Serializer for the flaw model adapted to affects v1"""
 
+    history_relations = (
+        HistoryRelation(
+            field_name="affects",
+            serializer_class=AffectV1Serializer,
+            accessor=lambda flaw: AffectV1.objects.filter(flaw=flaw),
+        ),
+    )
+
     @extend_schema_field(AffectV1Serializer(many=True))
     def get_affects(self, obj):
         # Query the AffectV1 read-only model instead of the original Affect model.
@@ -2612,6 +2649,7 @@ class FlawV1Serializer(FlawSerializer):
 
         tracker_uuid_set = set()
         affects_by_tracker = defaultdict(list)
+        tracker_uuids_by_affect = defaultdict(list)
 
         if affects:
             for affect_uuid, tracker_uuid in (
@@ -2622,6 +2660,7 @@ class FlawV1Serializer(FlawSerializer):
             ):
                 tracker_uuid_set.add(tracker_uuid)
                 affects_by_tracker[tracker_uuid].append(affect_uuid)
+                tracker_uuids_by_affect[str(affect_uuid)].append(str(tracker_uuid))
 
         # Fetch and serialize each tracker
         tracker_list = {}
@@ -2660,6 +2699,7 @@ class FlawV1Serializer(FlawSerializer):
 
         # Pass down caches
         context["tracker_list_by_uuid"] = tracker_list
+        context["tracker_uuids_by_affect"] = tracker_uuids_by_affect
         context["cvss_list_by_uuid"] = cvss_list
 
         return AffectV1Serializer(

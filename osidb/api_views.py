@@ -2,18 +2,17 @@
 implement osidb rest api views
 """
 
-import json
 import logging
+from collections import defaultdict
 from datetime import datetime
-from functools import cache
 from importlib.metadata import distributions
+from types import SimpleNamespace
 from typing import Any, Type, cast
 from urllib.parse import urljoin
 from uuid import uuid4
 
 import pghistory
 import requests
-from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -68,6 +67,16 @@ from osidb.models import (
     FlawLabel,
     PsUpdateStream,
     Tracker,
+)
+from osidb.models.audit_history import (
+    audit_rows_with_context,
+    audit_table_for_model,
+    normalize_pgh_context,
+    pgh_data_from_row,
+    registered_audit_tables,
+)
+from osidb.models.audit_history import (
+    pgh_diff as build_pgh_diff,
 )
 from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.cvss import FlawCVSS
@@ -130,6 +139,7 @@ from .serializer import (
     FlawReferenceSerializer,
     FlawSerializer,
     FlawV1Serializer,
+    HistoryMixinSerializer,
     IncidentRequestSerializer,
     IntegrationTokenGetSerializer,
     IntegrationTokenPatchSerializer,
@@ -140,62 +150,7 @@ from .serializer import (
     UserSerializer,
 )
 
-
-def _normalize_pgh_context(value):
-    if isinstance(value, (bytes, bytearray)):
-        value = value.decode()
-    if isinstance(value, str):
-        try:
-            return json.loads(value)
-        except json.JSONDecodeError:
-            return value
-    return value
-
-
-def _pgh_data_from_row(audit_table, row):
-    excluded = {"acl_read", "acl_write", "pgh_context", "pgh_context_id"}
-    return {
-        column: row[column]
-        for column in audit_table["columns"]
-        if not column.startswith("pgh_") and column not in excluded
-    }
-
-
-def _pgh_diff(previous_data, pgh_data):
-    diff = {}
-    for key, value in pgh_data.items():
-        if previous_data.get(key) != value:
-            diff[key] = [previous_data.get(key), value]
-    return diff
-
-
 _PREVIOUS_ROW_NOT_LOADED = object()
-
-
-@cache
-def _registered_audit_tables():
-    audit_tables = []
-    for model in apps.get_models():
-        fields = {field.attname for field in model._meta.fields}
-        if not {"pgh_id", "pgh_obj_id", "pgh_created_at"}.issubset(fields):
-            continue
-        if not model._meta.object_name.endswith("Audit"):
-            continue
-        try:
-            object_label = model._meta.get_field(
-                "pgh_obj"
-            ).remote_field.model._meta.label
-        except Exception:
-            object_label = model._meta.label.removesuffix("Audit")
-        audit_tables.append(
-            {
-                "model": model,
-                "audit_label": model._meta.label,
-                "object_label": object_label,
-                "columns": [field.attname for field in model._meta.concrete_fields],
-            }
-        )
-    return tuple(audit_tables)
 
 
 # Use only for RudimentaryUserPathLoggingMixin
@@ -634,14 +589,170 @@ class BulkHistoryMixin(ReadOnlyModelViewSet):
         history_map = {}
 
         if objects:
-            all_history_events = Events.objects.references(*objects)
-            for event in all_history_events:
-                key = f"{event.pgh_obj_model}:{event.pgh_obj_id}"
-                if key not in history_map:
-                    history_map[key] = []
-                history_map[key].append(event)
+            history_map = self._build_concrete_history_cache(objects)
+            if history_map is None:
+                history_map = {}
+                all_history_events = Events.objects.references(*objects)
+                for event in all_history_events:
+                    key = f"{event.pgh_obj_model}:{event.pgh_obj_id}"
+                    if key not in history_map:
+                        history_map[key] = []
+                    history_map[key].append(event)
 
         return history_map
+
+    def _build_concrete_history_cache(self, objects):
+        """
+        Build history for serializers that expose HistoryMixinSerializer.
+
+        Serializer declarations decide which nested serializers can expose
+        history. Reading concrete audit tables keeps the API shape while
+        avoiding the broad pghistory references aggregate.
+        """
+        serializer_class = self.get_serializer_class()
+        objects_by_model = defaultdict(list)
+        include_fields, include_nested = self._history_requested_fields(
+            "include_fields"
+        )
+        exclude_fields, exclude_nested = self._history_requested_fields(
+            "exclude_fields", default_empty=True
+        )
+
+        if not self._collect_history_objects(
+            serializer_class,
+            objects,
+            objects_by_model,
+            include_fields,
+            include_nested,
+            exclude_fields,
+            exclude_nested,
+        ):
+            return None
+
+        history_map = {}
+        for model_class, model_objects in objects_by_model.items():
+            self._add_model_history(history_map, model_class, model_objects)
+        return history_map
+
+    def _collect_history_objects(
+        self,
+        serializer_class,
+        objects,
+        objects_by_model,
+        include_fields,
+        include_nested,
+        exclude_fields,
+        exclude_nested,
+    ):
+        if not issubclass(serializer_class, HistoryMixinSerializer):
+            return False
+
+        object_list = list(objects)
+        objects_by_model[serializer_class.get_history_model()].extend(object_list)
+
+        for relation in serializer_class.get_history_relations():
+            if not self._history_field_included(
+                relation.field_name, include_fields, exclude_fields
+            ):
+                continue
+
+            related_objects = []
+            for obj in object_list:
+                related_objects.extend(relation.accessor(obj))
+
+            child_include_fields, child_include_nested = self._history_child_fields(
+                relation.field_name, include_nested, default_empty=False
+            )
+            child_exclude_fields, child_exclude_nested = self._history_child_fields(
+                relation.field_name, exclude_nested, default_empty=True
+            )
+            self._collect_history_objects(
+                relation.serializer_class,
+                related_objects,
+                objects_by_model,
+                child_include_fields,
+                child_include_nested,
+                child_exclude_fields,
+                child_exclude_nested,
+            )
+
+        return True
+
+    def _history_requested_fields(self, param_name, default_empty=False):
+        request = getattr(self, "request", None)
+        if request is None:
+            return (set() if default_empty else None), {}
+
+        raw = request.query_params.get(param_name)
+        if not raw:
+            return (set() if default_empty else None), {}
+
+        fields = set()
+        nested = defaultdict(list)
+        for item in raw.split(","):
+            item = item.strip()
+            if not item:
+                continue
+            field_name, separator, child_field = item.partition(".")
+            fields.add(field_name)
+            if separator:
+                nested[field_name].append(child_field)
+        return fields, nested
+
+    def _history_child_fields(self, field_name, nested_fields, default_empty=False):
+        child_values = nested_fields.get(field_name, [])
+        if not child_values:
+            return (set() if default_empty else None), {}
+
+        fields = set()
+        nested = defaultdict(list)
+        for item in child_values:
+            child_name, separator, grandchild = item.partition(".")
+            fields.add(child_name)
+            if separator:
+                nested[child_name].append(grandchild)
+        return fields, nested
+
+    def _history_field_included(self, field_name, include_fields, exclude_fields):
+        # Explicit includes take precedence over excludes.
+        if include_fields is not None and field_name not in include_fields:
+            return False
+        return not (
+            field_name in exclude_fields
+            and (include_fields is None or field_name not in include_fields)
+        )
+
+    def _add_model_history(self, history_map, model_class, objects):
+        object_ids = [obj.pk for obj in objects if obj.pk is not None]
+        if not object_ids:
+            return
+
+        audit_table = audit_table_for_model(model_class)
+        if audit_table is None:
+            return
+
+        rows = audit_rows_with_context(
+            audit_table["model"]
+            .objects.filter(pgh_obj_id__in=object_ids)
+            .order_by("pgh_obj_id", "pgh_id"),
+            audit_table,
+        )
+
+        previous_data_by_obj_id = {}
+        for row in rows:
+            key = f"{audit_table['object_label']}:{row['pgh_obj_id']}"
+            pgh_data = pgh_data_from_row(audit_table, row)
+            previous_data = previous_data_by_obj_id.get(row["pgh_obj_id"], {})
+            history_map.setdefault(key, []).append(
+                SimpleNamespace(
+                    pgh_created_at=row["pgh_created_at"],
+                    pgh_slug=f"{audit_table['audit_label']}:{row['pgh_id']}",
+                    pgh_label=row["pgh_label"],
+                    pgh_context=normalize_pgh_context(row.get("pgh_context")),
+                    pgh_diff=build_pgh_diff(previous_data, pgh_data),
+                )
+            )
+            previous_data_by_obj_id[row["pgh_obj_id"]] = pgh_data
 
     def list(self, request, *args, **kwargs):
         # Override list to bulk-fetch history for all objects.
@@ -2120,7 +2231,7 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
             return 1 if self._row_by_slug(pgh_slug, params) else 0
 
         count = 0
-        for audit_table in self._audit_tables():
+        for audit_table in registered_audit_tables():
             if (
                 params.get("pgh_obj_model")
                 and params["pgh_obj_model"] != audit_table["object_label"]
@@ -2140,7 +2251,7 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
             event = self._row_by_slug(pgh_slug, params)
             return [event] if event else []
 
-        for audit_table in self._audit_tables():
+        for audit_table in registered_audit_tables():
             if (
                 params.get("pgh_obj_model")
                 and params["pgh_obj_model"] != audit_table["object_label"]
@@ -2153,7 +2264,7 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
 
             rows.extend(
                 (audit_table, row)
-                for row in self._audit_rows_with_context(
+                for row in audit_rows_with_context(
                     self._audit_queryset(audit_table, params).order_by("-pgh_id")[
                         :window
                     ],
@@ -2190,7 +2301,7 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
         except ValueError:
             return None
 
-        for audit_table in self._audit_tables():
+        for audit_table in registered_audit_tables():
             if audit_table["audit_label"] != audit_label:
                 continue
             if (
@@ -2201,7 +2312,7 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
                 return None
 
             row = next(
-                self._audit_rows_with_context(
+                audit_rows_with_context(
                     self._audit_queryset(audit_table, params or {}).filter(
                         pgh_id=pgh_id
                     )[:1],
@@ -2215,10 +2326,10 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
         return None
 
     def _event_from_row(self, audit_table, row, previous=_PREVIOUS_ROW_NOT_LOADED):
-        pgh_data = self._pgh_data(audit_table, row)
+        pgh_data = pgh_data_from_row(audit_table, row)
         if previous is _PREVIOUS_ROW_NOT_LOADED:
             previous = self._previous_row(audit_table, row)
-        previous_data = self._pgh_data(audit_table, previous) if previous else {}
+        previous_data = pgh_data_from_row(audit_table, previous) if previous else {}
 
         return {
             "pgh_created_at": row["pgh_created_at"],
@@ -2226,8 +2337,8 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
             "pgh_obj_model": audit_table["object_label"],
             "pgh_obj_id": row["pgh_obj_id"],
             "pgh_label": row["pgh_label"],
-            "pgh_context": _normalize_pgh_context(row.get("pgh_context")),
-            "pgh_diff": self._pgh_diff(previous_data, pgh_data),
+            "pgh_context": normalize_pgh_context(row.get("pgh_context")),
+            "pgh_diff": build_pgh_diff(previous_data, pgh_data),
             "pgh_data": pgh_data,
         }
 
@@ -2284,21 +2395,6 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
                     previous_rows[(audit_label, row["pgh_id"])] = previous
 
         return previous_rows
-
-    def _pgh_data(self, audit_table, row):
-        return _pgh_data_from_row(audit_table, row)
-
-    def _pgh_diff(self, previous_data, pgh_data):
-        return _pgh_diff(previous_data, pgh_data)
-
-    def _audit_tables(self):
-        return _registered_audit_tables()
-
-    def _audit_rows_with_context(self, queryset, audit_table):
-        rows = queryset.values(*audit_table["columns"], "pgh_context__metadata")
-        for row in rows:
-            row["pgh_context"] = row.pop("pgh_context__metadata")
-            yield row
 
 
 # NOTE: Purpose of this custom class is for Kerberos authenticated

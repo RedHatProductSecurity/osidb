@@ -2122,6 +2122,32 @@ class TestEndpointsFlaws:
             assert flaw_json["history"][1]["pgh_diff"]
             assert "last_validated_dt" not in flaw_json["history"][1]["pgh_diff"]
 
+    def test_flaw_history_schema(self, auth_client, test_api_v2_uri):
+        with pghistory.context(source="schema-test"):
+            flaw = FlawFactory()
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/flaws?cve_id={flaw.cve_id}&include_history=True"
+        )
+
+        assert response.status_code == 200
+        flaw_json = response.json()["results"][0]
+        history = flaw_json["history"]
+
+        assert len(history) == 1
+        assert set(history[0]) == {
+            "pgh_created_at",
+            "pgh_slug",
+            "pgh_label",
+            "pgh_context",
+            "pgh_diff",
+        }
+        assert history[0]["pgh_created_at"]
+        assert history[0]["pgh_slug"].startswith("osidb.FlawAudit:")
+        assert history[0]["pgh_label"] == "insert"
+        assert history[0]["pgh_context"] == {"source": "schema-test"}
+        assert isinstance(history[0]["pgh_diff"], dict)
+
     def test_flaw_history_no_history(self, auth_client, test_api_v2_uri):
         with pghistory.context(disable=True):
             flaw = FlawFactory()
