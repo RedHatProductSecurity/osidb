@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from django.core.exceptions import ValidationError
 from rest_framework import status
 
 from osidb.models import Affect, AffectCVSS, Tracker
@@ -1212,8 +1213,10 @@ class TestEndpointsAffectsBulk:
             HTTP_BUGZILLA_API_KEY="SECRET",
             HTTP_JIRA_API_KEY="SECRET",
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "must have either purl or ps_component" in str(response.content)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["failed"]
+        assert "must have either purl or ps_component" in str(response.data["failed"])
 
     def test_create_neither_purl_nor_ps_component(self, auth_client, test_api_v2_uri):
         """
@@ -1270,6 +1273,49 @@ class TestEndpointsAffectsBulk:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "must have either purl or ps_component" in str(response.content)
+
+    def test_bulk_put_external_error_includes_context(
+        self, auth_client, test_api_v2_uri
+    ):
+        """bulk PUT external errors should include affect context fields"""
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_component="test-component",
+            purl="",
+            **_community_ps_for_affect(),
+        )
+
+        update_data = {
+            "uuid": str(affect.uuid),
+            "flaw": str(flaw.uuid),
+            "affectedness": affect.affectedness,
+            "resolution": affect.resolution,
+            "ps_update_stream": affect.ps_update_stream,
+            "embargoed": affect.is_embargoed,
+            "updated_dt": affect.updated_dt,
+            "ps_component": affect.ps_component,
+        }
+
+        with patch(
+            "osidb.api_views.AffectSerializer.save",
+            side_effect=ValidationError("Jira connection failed"),
+        ):
+            response = auth_client().put(
+                f"{test_api_v2_uri}/affects/bulk",
+                [update_data],
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["failed"]
+        failed = response.data["failed"][0]
+        assert "ps_update_stream" in failed["input"]
+        assert "ps_component" in failed["input"]
+        assert "purl" in failed["input"]
+        assert "ps_module" in failed["input"]
 
 
 class TestEndpointsAffectsUpdateTrackers:
