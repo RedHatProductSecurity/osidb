@@ -2,8 +2,10 @@
 implement osidb rest api views
 """
 
+import json
 import logging
 from datetime import datetime
+from functools import cache
 from importlib.metadata import distributions
 from typing import Any, Type, cast
 from urllib.parse import urljoin
@@ -11,9 +13,11 @@ from uuid import uuid4
 
 import pghistory
 import requests
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -42,6 +46,7 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND,
     HTTP_503_SERVICE_UNAVAILABLE,
 )
+from rest_framework.utils.urls import remove_query_param, replace_query_param
 from rest_framework.views import APIView
 from rest_framework.viewsets import (
     ModelViewSet,
@@ -134,6 +139,64 @@ from .serializer import (
     TrackerV1Serializer,
     UserSerializer,
 )
+
+
+def _normalize_pgh_context(value):
+    if isinstance(value, (bytes, bytearray)):
+        value = value.decode()
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            return value
+    return value
+
+
+def _pgh_data_from_row(audit_table, row):
+    excluded = {"acl_read", "acl_write", "pgh_context", "pgh_context_id"}
+    return {
+        column: row[column]
+        for column in audit_table["columns"]
+        if not column.startswith("pgh_") and column not in excluded
+    }
+
+
+def _pgh_diff(previous_data, pgh_data):
+    diff = {}
+    for key, value in pgh_data.items():
+        if previous_data.get(key) != value:
+            diff[key] = [previous_data.get(key), value]
+    return diff
+
+
+_PREVIOUS_ROW_NOT_LOADED = object()
+
+
+@cache
+def _registered_audit_tables():
+    audit_tables = []
+    for model in apps.get_models():
+        fields = {field.attname for field in model._meta.fields}
+        if not {"pgh_id", "pgh_obj_id", "pgh_created_at"}.issubset(fields):
+            continue
+        if not model._meta.object_name.endswith("Audit"):
+            continue
+        try:
+            object_label = model._meta.get_field(
+                "pgh_obj"
+            ).remote_field.model._meta.label
+        except Exception:
+            object_label = model._meta.label.removesuffix("Audit")
+        audit_tables.append(
+            {
+                "model": model,
+                "audit_label": model._meta.label,
+                "object_label": object_label,
+                "columns": [field.attname for field in model._meta.concrete_fields],
+            }
+        )
+    return tuple(audit_tables)
+
 
 # Use only for RudimentaryUserPathLoggingMixin
 api_logger = logging.getLogger("api_req")
@@ -1986,6 +2049,256 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
     # allow dots and colons in pgh_slug (e.g. "osidb.FlawAudit:2035413"); default [^/.]+
     # would only capture up to the first dot.
     lookup_value_regex = "[^/]+"
+
+    def list(self, request, *args, **kwargs):
+        limit = self._get_limit(request)
+        offset = self._get_offset(request)
+        count = self._audit_count(request.query_params)
+        rows = self._audit_rows(request.query_params, limit, offset)
+        previous_rows = self._previous_rows_for_rows(rows)
+        events = [
+            self._event_from_row(
+                audit_table,
+                row,
+                previous_rows.get((audit_table["audit_label"], row["pgh_id"])),
+            )
+            for audit_table, row in rows
+        ]
+
+        return Response(
+            {
+                "count": count,
+                "next": self._get_next_link(request, limit, offset, count),
+                "previous": self._get_previous_link(request, limit, offset),
+                "results": events,
+            }
+        )
+
+    def retrieve(self, request, *args, **kwargs):
+        event = self._event_by_slug(kwargs[self.lookup_field])
+        if event is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(event)
+
+    def _get_limit(self, request):
+        default_limit = settings.REST_FRAMEWORK.get("PAGE_SIZE") or 100
+        hard_limit = settings.REST_FRAMEWORK.get("MAX_PAGE_SIZE") or default_limit
+        try:
+            limit = int(request.query_params.get("limit", default_limit))
+        except (TypeError, ValueError):
+            limit = default_limit
+        return max(0, min(limit, hard_limit))
+
+    def _get_offset(self, request):
+        try:
+            return max(0, int(request.query_params.get("offset", 0)))
+        except (TypeError, ValueError):
+            return 0
+
+    def _get_next_link(self, request, limit, offset, count):
+        if not limit or offset + limit >= count:
+            return None
+
+        url = request.build_absolute_uri()
+        url = replace_query_param(url, "limit", limit)
+        return replace_query_param(url, "offset", offset + limit)
+
+    def _get_previous_link(self, request, limit, offset):
+        if not limit or offset <= 0:
+            return None
+
+        url = request.build_absolute_uri()
+        url = replace_query_param(url, "limit", limit)
+        previous_offset = max(offset - limit, 0)
+        if previous_offset == 0:
+            return remove_query_param(url, "offset")
+        return replace_query_param(url, "offset", previous_offset)
+
+    def _audit_count(self, params):
+        pgh_slug = params.get("pgh_slug")
+        if pgh_slug:
+            return 1 if self._row_by_slug(pgh_slug, params) else 0
+
+        count = 0
+        for audit_table in self._audit_tables():
+            if (
+                params.get("pgh_obj_model")
+                and params["pgh_obj_model"] != audit_table["object_label"]
+            ):
+                continue
+            # Exact counts on unfiltered audit feeds are expensive on large audit tables,
+            # but are preserved for API compatibility with the existing /audit contract.
+            count += self._audit_queryset(audit_table, params).count()
+        return count
+
+    def _audit_rows(self, params, limit, offset):
+        rows = []
+        pgh_slug = params.get("pgh_slug")
+        if pgh_slug:
+            if not limit or offset:
+                return []
+            event = self._row_by_slug(pgh_slug, params)
+            return [event] if event else []
+
+        for audit_table in self._audit_tables():
+            if (
+                params.get("pgh_obj_model")
+                and params["pgh_obj_model"] != audit_table["object_label"]
+            ):
+                continue
+
+            window = limit + offset
+            if not window:
+                continue
+
+            rows.extend(
+                (audit_table, row)
+                for row in self._audit_rows_with_context(
+                    self._audit_queryset(audit_table, params).order_by("-pgh_id")[
+                        :window
+                    ],
+                    audit_table,
+                )
+            )
+
+        rows.sort(key=lambda item: item[1]["pgh_created_at"], reverse=True)
+        return rows[offset : offset + limit]
+
+    def _audit_queryset(self, audit_table, params):
+        filters = {}
+        if params.get("pgh_label"):
+            filters["pgh_label"] = params["pgh_label"]
+        if params.get("pgh_obj_id"):
+            filters["pgh_obj_id"] = params["pgh_obj_id"]
+        if params.get("pgh_created_at"):
+            filters["pgh_created_at"] = params["pgh_created_at"]
+        return audit_table["model"].objects.filter(**filters)
+
+    def _event_by_slug(self, pgh_slug):
+        row = self._row_by_slug(pgh_slug)
+        if row is None:
+            return None
+        return self._event_from_row(*row)
+
+    def _row_by_slug(self, pgh_slug, params=None):
+        if ":" not in pgh_slug:
+            return None
+
+        audit_label, pgh_id = pgh_slug.rsplit(":", 1)
+        try:
+            pgh_id = int(pgh_id)
+        except ValueError:
+            return None
+
+        for audit_table in self._audit_tables():
+            if audit_table["audit_label"] != audit_label:
+                continue
+            if (
+                params
+                and params.get("pgh_obj_model")
+                and params["pgh_obj_model"] != audit_table["object_label"]
+            ):
+                return None
+
+            row = next(
+                self._audit_rows_with_context(
+                    self._audit_queryset(audit_table, params or {}).filter(
+                        pgh_id=pgh_id
+                    )[:1],
+                    audit_table,
+                ),
+                None,
+            )
+            if row is None:
+                return None
+            return audit_table, row
+        return None
+
+    def _event_from_row(self, audit_table, row, previous=_PREVIOUS_ROW_NOT_LOADED):
+        pgh_data = self._pgh_data(audit_table, row)
+        if previous is _PREVIOUS_ROW_NOT_LOADED:
+            previous = self._previous_row(audit_table, row)
+        previous_data = self._pgh_data(audit_table, previous) if previous else {}
+
+        return {
+            "pgh_created_at": row["pgh_created_at"],
+            "pgh_slug": f"{audit_table['audit_label']}:{row['pgh_id']}",
+            "pgh_obj_model": audit_table["object_label"],
+            "pgh_obj_id": row["pgh_obj_id"],
+            "pgh_label": row["pgh_label"],
+            "pgh_context": _normalize_pgh_context(row.get("pgh_context")),
+            "pgh_diff": self._pgh_diff(previous_data, pgh_data),
+            "pgh_data": pgh_data,
+        }
+
+    def _previous_row(self, audit_table, row):
+        """pg_diff is not physically stored, previous edit on field is needed for that"""
+        return (
+            audit_table["model"]
+            .objects.filter(pgh_obj_id=row["pgh_obj_id"], pgh_id__lt=row["pgh_id"])
+            .order_by("-pgh_id")
+            .values(*audit_table["columns"])
+            .first()
+        )
+
+    def _previous_rows_for_rows(self, rows):
+        rows_by_audit_label = defaultdict(list)
+        audit_tables_by_label = {}
+        for audit_table, row in rows:
+            audit_label = audit_table["audit_label"]
+            audit_tables_by_label[audit_label] = audit_table
+            rows_by_audit_label[audit_label].append(row)
+
+        previous_rows = {}
+        for audit_label, audit_rows in rows_by_audit_label.items():
+            audit_table = audit_tables_by_label[audit_label]
+            max_pgh_id_by_obj_id = defaultdict(int)
+            for row in audit_rows:
+                max_pgh_id_by_obj_id[row["pgh_obj_id"]] = max(
+                    max_pgh_id_by_obj_id[row["pgh_obj_id"]], row["pgh_id"]
+                )
+
+            filters = Q()
+            for pgh_obj_id, pgh_id in max_pgh_id_by_obj_id.items():
+                filters |= Q(pgh_obj_id=pgh_obj_id, pgh_id__lt=pgh_id)
+
+            candidates_by_obj_id = defaultdict(list)
+            for previous in (
+                audit_table["model"]
+                .objects.filter(filters)
+                .order_by("pgh_obj_id", "-pgh_id")
+                .values(*audit_table["columns"])
+            ):
+                candidates_by_obj_id[previous["pgh_obj_id"]].append(previous)
+
+            for row in audit_rows:
+                previous = next(
+                    (
+                        candidate
+                        for candidate in candidates_by_obj_id[row["pgh_obj_id"]]
+                        if candidate["pgh_id"] < row["pgh_id"]
+                    ),
+                    None,
+                )
+                if previous:
+                    previous_rows[(audit_label, row["pgh_id"])] = previous
+
+        return previous_rows
+
+    def _pgh_data(self, audit_table, row):
+        return _pgh_data_from_row(audit_table, row)
+
+    def _pgh_diff(self, previous_data, pgh_data):
+        return _pgh_diff(previous_data, pgh_data)
+
+    def _audit_tables(self):
+        return _registered_audit_tables()
+
+    def _audit_rows_with_context(self, queryset, audit_table):
+        rows = queryset.values(*audit_table["columns"], "pgh_context__metadata")
+        for row in rows:
+            row["pgh_context"] = row.pop("pgh_context__metadata")
+            yield row
 
 
 # NOTE: Purpose of this custom class is for Kerberos authenticated
