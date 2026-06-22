@@ -2,6 +2,8 @@
 implement osidb rest api views
 """
 
+# this changes nothing, sanity check for changelog check
+
 import logging
 from datetime import datetime
 from importlib.metadata import distributions
