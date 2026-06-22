@@ -21,6 +21,10 @@ jobs:
   changelog:
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'dependabot[bot]' }}
+    permissions:
+      checks: write
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
       - name: Check existence of CHANGELOG entry
