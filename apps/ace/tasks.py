@@ -8,6 +8,7 @@ from config.celery import app
 from osidb.helpers import bypass_rls
 from osidb.models import Flaw
 from osidb.models.affect import Affect, AffectSettings
+from osidb.models.flaw.upstream import UpstreamData
 
 logger = get_task_logger(__name__)
 
@@ -27,9 +28,15 @@ def _flaw_components(flaw: Flaw) -> list[str]:
     return components
 
 
-def _query_newtopia(flaw_component: str, ps_modules: list[str]) -> list:
+def _query_newtopia(
+    flaw_component: str, ps_modules: list[str], ecosystem: str = ""
+) -> list:
     nq = NewtopiaQuerier()  # type: ignore[misc]
-    return nq.search([flaw_component], strict=True).filter(products=ps_modules).all()
+    return (
+        nq.search([flaw_component], strict=True, ecosystem=ecosystem)
+        .filter(products=ps_modules)
+        .all()
+    )
 
 
 def _ace_tool_name() -> str:
@@ -49,6 +56,7 @@ def _sync_affects_from_results(
     results: list,
     flaw_component: str = "",
     ps_modules: list[str] | None = None,
+    ecosystem: str = "",
 ) -> dict[str, int]:
     """Create affects on ``flaw`` for each entry in ``results``.
 
@@ -100,7 +108,7 @@ def _sync_affects_from_results(
                 assist_meta={
                     "tool_name": tool_name,
                     "tool_input": (
-                        f"NewtopiaQuerier().search([{flaw_component!r}], strict=True)"
+                        f"NewtopiaQuerier().search([{flaw_component!r}], ecosystem={ecosystem!r}, strict=True)"
                         f".filter(products={ps_modules!r}).all()"
                     ),
                     "tool_output": repr(result),
@@ -155,11 +163,18 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
     ps_modules = AffectSettings().auto_create_ps_modules
     totals: dict[str, int] = {"created": 0, "skipped": 0, "skipped_existing": 0}
 
+    osv_data = flaw.upstream_data.filter(source=UpstreamData.Source.OSV).first()
+    component_ecosystems = osv_data.component_ecosystems if osv_data else {}
+
     for flaw_component in components:
-        results = _query_newtopia(flaw_component, ps_modules)
-        stats = _sync_affects_from_results(flaw, results, flaw_component, ps_modules)
-        for key in totals:
-            totals[key] += stats[key]
+        ecosystems = component_ecosystems.get(flaw_component, [""])
+        for ecosystem in ecosystems:
+            results = _query_newtopia(flaw_component, ps_modules, ecosystem=ecosystem)
+            stats = _sync_affects_from_results(
+                flaw, results, flaw_component, ps_modules, ecosystem=ecosystem
+            )
+            for key in totals:
+                totals[key] += stats[key]
 
     logger.info(
         "sync_flaw_affects_from_newcli flaw=%s components=%s %s",
