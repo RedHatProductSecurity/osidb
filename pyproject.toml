@@ -39,7 +39,7 @@ dependencies = [
     "psycogreen>=1.0.2",
     "psycopg2>=2.9.2",
     "pydantic-settings>=2.9.1",
-    "pyjwt>=2.4.0",
+    "pyjwt>=2.13.0",
     "python-bugzilla>=3.3.0",
     "python-ldap>=3.4.5",
     "pyyaml>=6.0.2",
@@ -74,7 +74,7 @@ dev = [
     "python-dotenv>=1.2.2",
     "tox>=4.28.1",
     "tox-uv>=1.26.2",
-    "vcrpy>=4.2.1",
+    "vcrpy>=8.2.1",
 ]
 
 [tool.ruff]
