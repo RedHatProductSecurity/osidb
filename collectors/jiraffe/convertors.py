@@ -160,7 +160,6 @@ class JiraTaskConvertor:
 
             for field in changed_fields:
                 setattr(flaw, field, self.task_data[field])
-            flaw.adjust_acls(save=False)
             return JiraTaskSaver(flaw)
         return None
 
@@ -184,17 +183,20 @@ class JiraTaskSaver:
             "workflow_name",
             "workflow_state",
         ]
-        kwargs = {}
-        # set only existing values
-        for attribute in task_attributes:
-            value = getattr(self.flaw, attribute)
-            if value is not None:
-                kwargs[attribute] = value
+        with transaction.atomic():
+            self.flaw.adjust_acls(save=False)
 
-        Flaw.objects.filter(uuid=self.flaw.uuid).update(
-            auto_timestamps=False,  # we do not want to touch updated_dt
-            **kwargs,
-        )
+            kwargs = {}
+            # set only existing values
+            for attribute in task_attributes:
+                value = getattr(self.flaw, attribute)
+                if value is not None:
+                    kwargs[attribute] = value
+
+            Flaw.objects.filter(uuid=self.flaw.uuid).update(
+                auto_timestamps=False,  # we do not want to touch updated_dt
+                **kwargs,
+            )
 
 
 class TrackerSaver:
