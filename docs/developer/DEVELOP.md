@@ -108,6 +108,10 @@ JIRA_METADATA_COLLECTOR_ENABLED=1
 CVEORG_COLLECTOR_ENABLED=1
 NVD_COLLECTOR_ENABLED=1
 OSV_COLLECTOR_ENABLED=1
+# Exploit collector switches: set to 0 to turn each collector off (default), or 1 to turn it on
+EXPLOITS_CISA_COLLECTOR_ENABLED=0
+EXPLOITS_EXPLOITDB_COLLECTOR_ENABLED=0
+EXPLOITS_METASPLOIT_COLLECTOR_ENABLED=0
 
 # If set, it will append the tracker accuracy feedback form at the end of the description when creating Jira trackers
 TRACKER_FEEDBACK_FORM_URL="https://foo.bar"
