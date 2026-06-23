@@ -6,7 +6,6 @@ from itertools import batched, chain
 
 import pghistory
 import pgtrigger
-from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -17,6 +16,7 @@ from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 
 from osidb.exceptions import DataInconsistencyException
+from osidb.models.audit_history import audit_model_for_model
 
 from .core import generate_acls
 
@@ -615,17 +615,33 @@ class ACLMixin(models.Model):
         """
         set the history to public
         """
-        refs = pghistory.models.Events.objects.tracks(self).all()
-        for ref in refs:
-            model_audit = apps.get_model(ref.pgh_model).objects.filter(
-                pgh_id=ref.pgh_id
-            )
+        self._set_history_public_for_model(type(self), [self.pk])
 
-            with pgtrigger.ignore(f"{ref.pgh_model}:append_only"):
-                model_audit.update(
-                    acl_read=list(self.acls_public_read),
-                    acl_write=list(self.acls_public_write),
-                )
+    @classmethod
+    def _set_history_public_for_model(cls, model_class, object_ids):
+        """
+        Set history ACLs in one update per concrete audit table.
+        """
+        object_ids = [object_id for object_id in object_ids if object_id is not None]
+        if not object_ids:
+            return
+
+        audit_model = audit_model_for_model(model_class)
+        if audit_model is None:
+            return
+
+        public_acl_read = [
+            uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_READ_GROUPS)
+        ]
+        public_acl_write = [
+            uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_WRITE_GROUP])
+        ]
+
+        with pgtrigger.ignore(f"{audit_model._meta.label}:append_only"):
+            audit_model.objects.filter(pgh_obj_id__in=object_ids).update(
+                acl_read=public_acl_read,
+                acl_write=public_acl_write,
+            )
 
     def unembargo(self):
         """
@@ -722,8 +738,8 @@ class ACLMixin(models.Model):
             for pk_chunk in batched(object_ids, max_chunk_size):
                 model_class.objects.filter(pk__in=pk_chunk).update(**update_kwargs)
 
-            for pk in object_ids:
-                model_class(pk=pk).set_history_public()
+            for pk_chunk in batched(object_ids, max_chunk_size):
+                self._set_history_public_for_model(model_class, pk_chunk)
 
     def _collect_objects_for_public_update(self, objects_to_update, visited):
         """
