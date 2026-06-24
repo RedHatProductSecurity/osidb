@@ -13,22 +13,16 @@ SECRET_KEY = get_env("DJANGO_SECRET_KEY")
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Minimal group for read access of public flaws in OSIDB
-# TODO: In the future we might simply use a proxy group in which
-# membership is based off of one or more LDAP groups
-# e.g. (|(memberOf=group-a)(memberOf=group-b))
-PUBLIC_READ_GROUPS = ["osidb-stage-public-read", "red-hat-product-security"]
-# Minimal group for write access of public flaws in OSIDB
-PUBLIC_WRITE_GROUP = "osidb-stage-public-write"
-# Minimal group for read access of embargoed flaws in OSIDB
-EMBARGO_READ_GROUP = "osidb-stage-embargo-read"
-# Minimal group for write access of embargoed flaws in OSIDB
-EMBARGO_WRITE_GROUP = "osidb-stage-embargo-write"
-# Minimal group for read access of internal flaws in OSIDB
-INTERNAL_READ_GROUP = "osidb-stage-internal-read"
-# Minimal group for write access of internal flaws in OSIDB
-INTERNAL_WRITE_GROUP = "osidb-stage-internal-write"
-# Contains all non-admin groups
+PUBLIC_READ_GROUPS = get_env(
+    "OSIDB_PUBLIC_READ_GROUPS",
+    default='["osidb-stage-public-read", "red-hat-product-security"]',
+    is_json=True,
+)
+PUBLIC_WRITE_GROUP = get_env("OSIDB_PUBLIC_WRITE_GROUP", default="osidb-stage-public-write")
+EMBARGO_READ_GROUP = get_env("OSIDB_EMBARGO_READ_GROUP", default="osidb-stage-embargo-read")
+EMBARGO_WRITE_GROUP = get_env("OSIDB_EMBARGO_WRITE_GROUP", default="osidb-stage-embargo-write")
+INTERNAL_READ_GROUP = get_env("OSIDB_INTERNAL_READ_GROUP", default="osidb-stage-internal-read")
+INTERNAL_WRITE_GROUP = get_env("OSIDB_INTERNAL_WRITE_GROUP", default="osidb-stage-internal-write")
 ALL_GROUPS = [
     *PUBLIC_READ_GROUPS,
     PUBLIC_WRITE_GROUP,
@@ -37,8 +31,7 @@ ALL_GROUPS = [
     INTERNAL_READ_GROUP,
     INTERNAL_WRITE_GROUP,
 ]
-# Minimal group for managing the OSIDB service
-SERVICE_MANAGE_GROUP = "osidb-stage-manage"
+SERVICE_MANAGE_GROUP = get_env("OSIDB_SERVICE_MANAGE_GROUP", default="osidb-stage-manage")
 
 ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
 
