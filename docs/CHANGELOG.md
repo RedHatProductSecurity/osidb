@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add new module "regulatory_reporting" (OSIDB-5127)
 - Add new Models SRPReport and SRPReportMilestone (OSIDB-5066)
+- Add `upstream maintainer` notification models (OSIDB-5076) 
 
 ## [5.11.1] - 2026-06-10
 ### Fixed
