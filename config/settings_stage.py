@@ -1,6 +1,7 @@
 import ssl
 
 import ldap
+from django.core.exceptions import ImproperlyConfigured
 from django_auth_ldap.config import GroupOfUniqueNamesType, LDAPSearch, LDAPSearchUnion
 
 from .settings import *
@@ -18,6 +19,8 @@ PUBLIC_READ_GROUPS = get_env(
     default='["osidb-stage-public-read", "red-hat-product-security"]',
     is_json=True,
 )
+if not PUBLIC_READ_GROUPS:
+    raise ImproperlyConfigured("OSIDB_PUBLIC_READ_GROUPS must be a non-empty list")
 PUBLIC_WRITE_GROUP = get_env("OSIDB_PUBLIC_WRITE_GROUP", default="osidb-stage-public-write")
 EMBARGO_READ_GROUP = get_env("OSIDB_EMBARGO_READ_GROUP", default="osidb-stage-embargo-read")
 EMBARGO_WRITE_GROUP = get_env("OSIDB_EMBARGO_WRITE_GROUP", default="osidb-stage-embargo-write")
