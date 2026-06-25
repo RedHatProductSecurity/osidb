@@ -96,7 +96,7 @@ class TestEndpoints(object):
 
     def test_workflows_next_state(self, auth_client, test_api_uri):
         """test that next parameter returns the next state with requirement acceptance"""
-        flaw = FlawFactory(embargoed=False)
+        flaw = FlawFactory(embargoed=False, task_key="TASK-123")
         response = auth_client().get(f"{test_api_uri}/workflows/{flaw.uuid}?next=true")
         assert response.status_code == 200
         body = response.json()
@@ -111,7 +111,7 @@ class TestEndpoints(object):
 
     def test_workflows_next_state_final(self, auth_client, test_api_uri):
         """test that next is null when flaw is in the final state"""
-        flaw = FlawFactory(embargoed=False)
+        flaw = FlawFactory(embargoed=False, task_key="TASK-123")
         FlawCollaborator.objects.create(
             flaw=flaw, label="rejected", type="workflow", contributor="test"
         )
@@ -132,7 +132,7 @@ class TestEndpoints(object):
 
     def test_workflows_uuid_verbose(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint with verbose parameter"""
-        flaw = FlawFactory()
+        flaw = FlawFactory(task_key="TASK-123")
         response = auth_client().get(
             f"{test_api_uri}/workflows/{flaw.uuid}?verbose=true"
         )
@@ -185,7 +185,7 @@ class TestEndpoints(object):
 
     def test_workflows_verbose_rejected_workflow(self, auth_client, test_api_uri):
         """test verbose classification for a flaw in the REJECTED workflow with OR condition"""
-        flaw = FlawFactory(embargoed=False)
+        flaw = FlawFactory(embargoed=False, task_key="TASK-123")
         FlawCollaborator.objects.create(
             flaw=flaw, label="rejected", type="workflow", contributor="test_user"
         )
@@ -210,7 +210,7 @@ class TestEndpoints(object):
 
     def test_workflows_verbose_condition_structure(self, auth_client, test_api_uri):
         """test that verbose classification serializes all condition types correctly"""
-        flaw = FlawFactory(embargoed=False)
+        flaw = FlawFactory(embargoed=False, task_key="TASK-123")
         response = auth_client().get(
             f"{test_api_uri}/workflows/{flaw.uuid}?verbose=true"
         )
