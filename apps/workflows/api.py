@@ -286,36 +286,48 @@ class classification(RudimentaryUserPathLoggingMixin, APIView):
         """
         logger.info(f"getting flaw {pk} workflow classification")
         flaw = get_flaw_or_404(pk)
-        workflow, state = WorkflowFramework().classify(flaw)
-        response = {
-            "flaw": flaw.pk,
-            "classification": {
-                "workflow": workflow.name,
-                "state": state.name,
-            },
-        }
-        # optional verbose classification context
-        verbose = request.GET.get("verbose")
-        if verbose is not None:
-            if str2bool(verbose, "verbose"):
-                response["workflows"] = ClassificationWorkflowSerializer(
-                    WorkflowFramework().workflows,
-                    context={"flaw": flaw},
-                    many=True,
-                ).data
+        result = WorkflowFramework().classify(flaw)
 
-        # optional next state context
-        next_param = request.GET.get("next")
-        if next_param is not None:
-            if str2bool(next_param, "next"):
-                state_index = workflow.states.index(state)
-                if state_index + 1 < len(workflow.states):
-                    next_state = workflow.states[state_index + 1]
-                    response["next"] = ClassificationStateSerializer(
-                        next_state, context={"flaw": flaw}
+        if result is None:
+            response = {
+                "flaw": flaw.pk,
+                "classification": {
+                    "workflow": "",
+                    "state": "",
+                },
+            }
+        else:
+            workflow, state = result
+            response = {
+                "flaw": flaw.pk,
+                "classification": {
+                    "workflow": workflow.name,
+                    "state": state.name,
+                },
+            }
+
+            # optional verbose classification context
+            verbose = request.GET.get("verbose")
+            if verbose is not None:
+                if str2bool(verbose, "verbose"):
+                    response["workflows"] = ClassificationWorkflowSerializer(
+                        WorkflowFramework().workflows,
+                        context={"flaw": flaw},
+                        many=True,
                     ).data
-                else:
-                    response["next"] = None
+
+            # optional next state context
+            next_param = request.GET.get("next")
+            if next_param is not None:
+                if str2bool(next_param, "next"):
+                    state_index = workflow.states.index(state)
+                    if state_index + 1 < len(workflow.states):
+                        next_state = workflow.states[state_index + 1]
+                        response["next"] = ClassificationStateSerializer(
+                            next_state, context={"flaw": flaw}
+                        ).data
+                    else:
+                        response["next"] = None
 
         return Response(response)
 
