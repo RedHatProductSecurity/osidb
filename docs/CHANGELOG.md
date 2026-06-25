@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wrap external errors with affect context for bulk PUT endpoint (OSIDB-5038)
 - Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
 - Fixed double error raise problem in sync_manager.
+- Fix incorrect OpenAPI schema types for audit endpoint fields (pgh_data, pgh_context, pgh_diff) (OSIDB-3637)
 
 ### Removed
 - deprecate workflow manipulation endpoints
