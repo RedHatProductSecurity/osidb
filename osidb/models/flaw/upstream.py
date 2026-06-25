@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models
+from packageurl import PackageURL
 
 from osidb.mixins import (
     ACLMixin,
@@ -13,6 +14,24 @@ from osidb.mixins import (
 from osidb.query_sets import CustomQuerySetUpdatedDt
 
 from .flaw import Flaw
+
+# OSV ecosystem string to normalized ecosystem identifier.
+_OSV_ECOSYSTEM_MAP: dict[str, str] = {
+    "maven": "maven",
+    "pypi": "pypi",
+    "npm": "npm",
+    "crates.io": "cargo",
+    "go": "golang",
+    "rubygems": "gem",
+    "nuget": "nuget",
+    "packagist": "generic",
+    "hex": "generic",
+    "pub": "generic",
+    "hackage": "generic",
+    "bioconductor": "generic",
+    "cran": "generic",
+    "github actions": "generic",
+}
 
 
 class UpstreamDataManager(ACLMixinManager, TrackingMixinManager):
@@ -74,6 +93,40 @@ class UpstreamData(AlertMixin, ACLMixin, TrackingMixin):
     source = models.CharField(choices=Source.choices, max_length=10, blank=True)
 
     objects = UpstreamDataManager.from_queryset(CustomQuerySetUpdatedDt)()
+
+    @property
+    def component_ecosystems(self) -> dict[str, list[str]]:
+        """
+        Create a mapping of component names to ecosystems derived from upstream PURLs.
+
+        PURL type strings are used directly when available, falling back to OSV ecosystem
+        string when PURL parsing fails. A component may appear in multiple ecosystems.
+        """
+        result: dict[str, list[str]] = {}
+        if not self.upstream_purls:
+            return result
+
+        for entry in self.upstream_purls:
+            name = entry.get("name", "")
+            if not name:
+                continue
+
+            ecosystem = ""
+            purl_str = entry.get("purl", "")
+            if purl_str:
+                try:
+                    ecosystem = PackageURL.from_string(purl_str).type
+                except ValueError:
+                    pass
+
+            if not ecosystem:
+                raw_eco = (entry.get("ecosystem") or "").lower()
+                ecosystem = _OSV_ECOSYSTEM_MAP.get(raw_eco, "")
+
+            if ecosystem and ecosystem not in result.get(name, []):
+                result.setdefault(name, []).append(ecosystem)
+
+        return result
 
     class Meta:
         constraints = [

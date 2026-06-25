@@ -7,13 +7,14 @@ the real network-calling library is never invoked.
 """
 
 from collections import defaultdict
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
 from packageurl import PackageURL
 
 from apps.ace.tasks import sync_flaw_affects_from_newcli
-from osidb.tests.factories import FlawFactory
+from osidb.tests.factories import FlawFactory, UpstreamDataFactory
 
 pytestmark = pytest.mark.unit
 
@@ -234,3 +235,113 @@ def test_sync_respects_ps_modules_setting(monkeypatch, ace_enabled, urllib3_resu
     sync_flaw_affects_from_newcli(str(flaw.uuid))
 
     assert seen_filter_products == [["hummingbird-1", "rhel-9"]]
+
+
+def test_sync_passes_ecosystem_to_newtopia(monkeypatch, ace_enabled):
+    """When UpstreamData exists for a flaw, the ecosystem derived from its PURLs
+    is forwarded to NewtopiaQuerier.search()."""
+    flaw = FlawFactory(components=["redis"])
+    UpstreamDataFactory(
+        flaw=flaw,
+        upstream_purls=[
+            {
+                "purl": "pkg:npm/redis",
+                "name": "redis",
+                "ecosystem": "npm",
+                "ranges": [],
+                "versions": [],
+            }
+        ],
+    )
+
+    search_kwargs = []
+
+    def _search(terms, **kwargs):
+        search_kwargs.append(kwargs)
+        qs = MagicMock()
+        qs.filter.return_value.all.return_value = []
+        return qs
+
+    mock_nq = MagicMock()
+    mock_nq.return_value.search.side_effect = _search
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_nq)
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert len(search_kwargs) == 1
+    assert search_kwargs[0]["ecosystem"] == "npm"
+
+
+def test_sync_no_ecosystem_when_no_upstream_data(monkeypatch, ace_enabled):
+    """Without UpstreamData the ecosystem falls back to an empty string."""
+    flaw = FlawFactory(components=["curl"])
+
+    search_kwargs = []
+
+    def _search(terms, **kwargs):
+        search_kwargs.append(kwargs)
+        qs = MagicMock()
+        qs.filter.return_value.all.return_value = []
+        return qs
+
+    mock_nq = MagicMock()
+    mock_nq.return_value.search.side_effect = _search
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_nq)
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert len(search_kwargs) == 1
+    assert search_kwargs[0]["ecosystem"] == ""
+
+
+def test_sync_queries_each_ecosystem_for_component(monkeypatch, ace_enabled):
+    """When a component maps to multiple ecosystems, lib-newtopia is queried
+    once per ecosystem and all results are accumulated."""
+    flaw = FlawFactory(components=["redis"])
+    UpstreamDataFactory(
+        flaw=flaw,
+        upstream_purls=[
+            {
+                "purl": "pkg:npm/redis",
+                "name": "redis",
+                "ecosystem": "npm",
+                "ranges": [],
+                "versions": [],
+            },
+            {
+                "purl": "pkg:pypi/redis",
+                "name": "redis",
+                "ecosystem": "PyPI",
+                "ranges": [],
+                "versions": [],
+            },
+        ],
+    )
+
+    search_kwargs = []
+
+    def _search(terms, **kwargs):
+        search_kwargs.append(kwargs)
+        eco = kwargs.get("ecosystem", "")
+        qs = MagicMock()
+        qs.filter.return_value.all.return_value = [
+            SimpleNamespace(
+                ps_update_stream="hummingbird-1",
+                purls=[
+                    f"pkg:oci/redis-{eco}?repository_url=registry.redhat.io/redis-{eco}"
+                ],
+                build_nvr=None,
+            )
+        ]
+        return qs
+
+    mock_nq = MagicMock()
+    mock_nq.return_value.search.side_effect = _search
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_nq)
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert len(search_kwargs) == 2
+    assert search_kwargs[0]["ecosystem"] == "npm"
+    assert search_kwargs[1]["ecosystem"] == "pypi"
+    assert stats["created"] == 2
