@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
 - Wrap external errors with affect context for bulk PUT endpoint (OSIDB-5038)
 - Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
+- Return descriptive 400 error instead of 500 on empty bulk affects requests (OSIDB-3134)
 
 ## [5.11.1] - 2026-06-10
 ### Fixed
