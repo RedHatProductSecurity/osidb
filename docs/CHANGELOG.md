@@ -26,7 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
 - Add new module "regulatory_reporting" (OSIDB-5127)
 - Add new Models SRPReport and SRPReportMilestone (OSIDB-5066)
-- Add `upstream maintainer` notification models (OSIDB-5076) 
+- Add `upstream maintainer` notification models (OSIDB-5076)
+- Automatic creation of upsteam maintainer notification when criteria is met for flaw (OSIDB-5077)
 
 ## [5.11.1] - 2026-06-10
 ### Fixed

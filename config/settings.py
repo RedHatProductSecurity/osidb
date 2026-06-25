@@ -315,6 +315,11 @@ DEFAULT_REQUEST_TIMEOUT = get_env(
     "OSIDB_DEFAULT_REQUEST_TIMEOUT", default="30", is_int=True
 )
 
+# opt-in-flag for CRA upstream notification
+CRA_NOTIFICATIONS_ENABLED = get_env(
+    "CRA_NOTIFICATIONS_ENABLED", default="False", is_bool=True
+)
+
 # sets the Access-Control-Allow-Origin response header - accepts regex
 # example value: [ r"^https://([^.]*\.)?\.example\.com$" ]
 CORS_ALLOWED_ORIGIN_REGEXES = get_env(
