@@ -19,7 +19,9 @@ worker_tmp_dir = "/dev/shm"
 if get_execution_env() in ["stage", "prod", "ci"]:
     preload_app = True
     graceful_timeout = 800  # if a restart must happen then let it be graceful
-    keepalive = 60  # specifically this should be a value larger then nginx setting
+    # Prevent HAProxy from sending packets to a closed connection
+    # where the worker has definitely timed out.
+    keepalive = timeout + 1
 else:
     # Support hot-reloading of Gunicorn / Django when files change in dev/local/shell
     reload = True
