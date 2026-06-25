@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance improvements for pghistory-related queries (OSIDB-4906)
 - align existing workflows with workflow framework concepts
 - auto-adjust workflow:state on Flaw.save
+- unrestrict workflow state names (OSIDB-5049)
+- move automatic visibility change handling specification into the workflow definitions
+- align workflow definition YAMLs with the Argus requirements (OSIDB-5050)
 
 ### Fixed
 - Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)

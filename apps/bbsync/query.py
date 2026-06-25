@@ -199,8 +199,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         component = "vulnerability"
 
         if (
-            self.flaw.workflow_state == Flaw.WorkflowState.NEW
-            or self.flaw.workflow_name == "REJECTED"
+            self.flaw.workflow_state == "NEW" or self.flaw.workflow_name == "REJECTED"
         ) and self.flaw.meta_attr.get("bz_component") in [None, "vulnerability-draft"]:
             component = "vulnerability-draft"
 

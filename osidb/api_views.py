@@ -55,7 +55,6 @@ from rest_framework.viewsets import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from apps.workflows.workflow import WorkflowModel
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 from osidb.helpers import bypass_rls, get_bugzilla_api_key, get_flaw_or_404
 from osidb.integrations import IntegrationRepository, IntegrationSettings
@@ -1287,11 +1286,7 @@ def flaw_available(request: Request, *args, **kwargs) -> Response:
     except ValidationError:
         return Response(status=HTTP_400_BAD_REQUEST)
 
-    if (
-        flaw.is_public
-        or flaw.workflow_name == "REJECTED"
-        or flaw.workflow_state == WorkflowModel.WorkflowState.DONE
-    ):
+    if flaw.is_public or flaw.workflow_state == "DONE":
         return Response(status=HTTP_204_NO_CONTENT)
 
     return Response(status=HTTP_404_NOT_FOUND)
@@ -1517,13 +1512,10 @@ def _run_post_save_effects_for_bulk(created_affects, flaw):
     Run the post_save side-effects that are normally triggered by signals
     after each individual Affect.save().  Called once after bulk_create.
     """
-    from apps.workflows.workflow import WorkflowModel
     from osidb.models import FlawCollaborator
 
-    # FlawCollaborator labels for PRE_SECONDARY_ASSESSMENT flaws
-    if flaw.workflow_state == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT:
-        for affect in created_affects:
-            FlawCollaborator.objects.create_from_affect(affect)
+    for affect in created_affects:
+        FlawCollaborator.objects.create_from_affect(affect)
 
 
 @include_meta_attr_extend_schema_view

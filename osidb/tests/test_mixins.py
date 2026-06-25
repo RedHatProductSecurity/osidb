@@ -11,7 +11,7 @@ from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from apps.workflows.models import Workflow
-from apps.workflows.workflow import WorkflowFramework, WorkflowModel
+from apps.workflows.workflow import WorkflowFramework
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
 from osidb.mixins import ACLMixinVisibility, Alert, AlertMixin
@@ -340,6 +340,140 @@ class TestACLMixin:
         assert not public_flaw.is_embargoed
         assert not public_flaw.is_internal
 
+    def test_visibility_property_getter(self):
+        """
+        Test that the visibility property returns the correct ACLMixinVisibility value
+        """
+        embargoed = self.create_flaw(
+            acl_read=[settings.EMBARGO_READ_GROUP],
+            acl_write=[settings.EMBARGO_WRITE_GROUP],
+            save=False,
+        )
+        internal = self.create_flaw(
+            acl_read=[settings.INTERNAL_READ_GROUP],
+            acl_write=[settings.INTERNAL_WRITE_GROUP],
+            save=False,
+        )
+        public = self.create_flaw(
+            acl_read=settings.PUBLIC_READ_GROUPS,
+            acl_write=[settings.PUBLIC_WRITE_GROUP],
+            save=False,
+        )
+
+        assert embargoed.visibility == ACLMixinVisibility.EMBARGOED
+        assert internal.visibility == ACLMixinVisibility.INTERNAL
+        assert public.visibility == ACLMixinVisibility.PUBLIC
+
+    def test_visibility_ordering(self):
+        """
+        Test that visibility levels are ordered from least to most visible
+        """
+        assert ACLMixinVisibility.EMBARGOED < ACLMixinVisibility.INTERNAL
+        assert ACLMixinVisibility.INTERNAL < ACLMixinVisibility.PUBLIC
+        assert ACLMixinVisibility.EMBARGOED < ACLMixinVisibility.PUBLIC
+
+    def test_visibility_setter_widens(self):
+        """
+        Test that setting visibility widens from more restricted to less restricted
+        """
+        flaw = self.create_flaw(
+            acl_read=[settings.INTERNAL_READ_GROUP],
+            acl_write=[settings.INTERNAL_WRITE_GROUP],
+            save=False,
+        )
+        assert flaw.visibility == ACLMixinVisibility.INTERNAL
+
+        flaw.visibility = ACLMixinVisibility.PUBLIC
+        assert flaw.visibility == ACLMixinVisibility.PUBLIC
+        assert flaw.is_public
+
+    def test_visibility_setter_widens_embargoed_to_internal(self):
+        """
+        Test that setting visibility widens from embargoed to internal
+        """
+        flaw = self.create_flaw(
+            acl_read=[settings.EMBARGO_READ_GROUP],
+            acl_write=[settings.EMBARGO_WRITE_GROUP],
+            save=False,
+        )
+        assert flaw.visibility == ACLMixinVisibility.EMBARGOED
+
+        flaw.visibility = ACLMixinVisibility.INTERNAL
+        assert flaw.visibility == ACLMixinVisibility.INTERNAL
+        assert flaw.is_internal
+
+    def test_visibility_setter_noop_on_same_level(self):
+        """
+        Test that setting visibility to the current level is a no-op
+        """
+        flaw = self.create_flaw(
+            acl_read=settings.PUBLIC_READ_GROUPS,
+            acl_write=[settings.PUBLIC_WRITE_GROUP],
+            save=False,
+        )
+        assert flaw.visibility == ACLMixinVisibility.PUBLIC
+
+        flaw.visibility = ACLMixinVisibility.PUBLIC
+        assert flaw.is_public
+
+    def test_visibility_setter_noop_on_narrowing(self):
+        """
+        Test that setting visibility to a more restricted level is a no-op
+        """
+        flaw = self.create_flaw(
+            acl_read=settings.PUBLIC_READ_GROUPS,
+            acl_write=[settings.PUBLIC_WRITE_GROUP],
+            save=False,
+        )
+        assert flaw.visibility == ACLMixinVisibility.PUBLIC
+
+        flaw.visibility = ACLMixinVisibility.INTERNAL
+        assert flaw.is_public
+
+        flaw.visibility = ACLMixinVisibility.EMBARGOED
+        assert flaw.is_public
+
+    def test_visibility_setter_propagates_to_nested(self):
+        """
+        Test that setting visibility propagates ACLs to related objects
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+        )
+        flaw.set_internal()
+        flaw.save(raise_validation_error=False)
+
+        affect = AffectFactory(flaw=flaw)
+        affect.set_internal()
+        affect.save(raise_validation_error=False)
+
+        assert flaw.is_internal
+        assert affect.is_internal
+
+        flaw.visibility = ACLMixinVisibility.PUBLIC
+        flaw.save(raise_validation_error=False)
+
+        affect.refresh_from_db()
+        assert flaw.is_public
+        assert affect.is_public
+
+    def test_visibility_setter_propagates_embargoed_to_internal(self):
+        """
+        Test that widening from embargoed to internal propagates to children
+        """
+        flaw = FlawFactory(embargoed=True)
+        affect = AffectFactory(flaw=flaw)
+
+        assert flaw.is_embargoed
+        assert affect.is_embargoed
+
+        flaw.visibility = ACLMixinVisibility.INTERNAL
+        flaw.save(raise_validation_error=False)
+
+        affect.refresh_from_db()
+        assert flaw.is_internal
+        assert affect.is_internal
+
 
 class TestTrackingMixin:
     def create_flaw(self, **kwargs):
@@ -541,13 +675,13 @@ class TestBugzillaJiraMixinIntegration:
         """Clean default workflows and set a basic workflow for testing"""
 
         state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
+            "name": "NEW",
             "requirements": [],
             "jira_state": "New",
             "jira_resolution": None,
         }
         state_second = {
-            "name": WorkflowModel.WorkflowState.TRIAGE,
+            "name": "TRIAGE",
             "requirements": ["has title"],
             "jira_state": "Refinement",
             "jira_resolution": None,
@@ -564,7 +698,7 @@ class TestBugzillaJiraMixinIntegration:
         )
 
         state_reject = {
-            "name": WorkflowModel.WorkflowState.DONE,
+            "name": "DONE",
             "requirements": [],
             "jira_state": "Closed",
             "jira_resolution": "Won't Do",
@@ -622,7 +756,7 @@ class TestBugzillaJiraMixinIntegration:
         assert flaw.task_key
         # Flaw gets classified into TRIAGE immediately because it has a title
         # and adjust_classification is called when the Jira task is created
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.workflow_state == "TRIAGE"
 
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         flaw = Flaw.objects.get(uuid=flaw.uuid)
@@ -636,7 +770,7 @@ class TestBugzillaJiraMixinIntegration:
             raise_validation_error=False,
         )
         flaw.refresh_from_db()
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.workflow_state == "TRIAGE"
 
         jtq = JiraTaskmanQuerier(jira_token, jira_email)
 
@@ -655,7 +789,7 @@ class TestBugzillaJiraMixinIntegration:
             bz_api_key=bugzilla_token,
             raise_validation_error=False,
         )
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.DONE
+        assert flaw.workflow_state == "DONE"
         assert flaw.workflow_name == "REJECTED"
 
         issue = jtq.jira_conn.issue(flaw.task_key).raw
@@ -708,7 +842,7 @@ class TestBugzillaJiraMixinIntegration:
         assert flaw.task_key
         # Flaw gets classified into TRIAGE immediately because it has a title
         # and adjust_classification is called when the Jira task is created
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.workflow_state == "TRIAGE"
 
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
 
@@ -723,7 +857,7 @@ class TestBugzillaJiraMixinIntegration:
         )
 
         flaw = Flaw.objects.get(pk=created_uuid)
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
+        assert flaw.workflow_state == "TRIAGE"
 
         jtq = JiraTaskmanQuerier(jira_token, jira_email)
 

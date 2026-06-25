@@ -4,13 +4,14 @@ from apps.taskman.service import JiraTaskmanQuerier
 from apps.workflows.models import State, Workflow
 from apps.workflows.serializers import WorkflowSerializer
 from apps.workflows.urls import urlpatterns
-from apps.workflows.workflow import WorkflowFramework, WorkflowModel
+from apps.workflows.workflow import WorkflowFramework
 from collectors.osv.collectors import OSVCollector
 from osidb.models import (
     Affect,
     AffectCVSS,
     Flaw,
     FlawAcknowledgment,
+    FlawCollaborator,
     FlawComment,
     FlawCVSS,
     FlawReference,
@@ -61,6 +62,17 @@ class TestEndpoints(object):
         response = client.get(f"{test_api_uri}/workflows")
         assert response.status_code == 200
 
+    def test_workflows_condition_in_conditions(self, auth_client, test_api_uri):
+        """test that workflows with OR/AND conditions in workflow conditions serialize correctly"""
+        response = auth_client().get(f"{test_api_uri}/workflows")
+        assert response.status_code == 200
+        body = response.json()
+        rejected = next(w for w in body["workflows"] if w["name"] == "REJECTED")
+        assert len(rejected["conditions"]) == 1
+        condition = rejected["conditions"][0]
+        assert condition["condition"] == "OR"
+        assert len(condition["requirements"]) == 2
+
     def test_workflows_cve(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint"""
         flaw = FlawFactory()
@@ -81,6 +93,42 @@ class TestEndpoints(object):
         assert body["flaw"] == str(flaw.uuid)
         assert "classification" in body
         assert "workflows" not in body
+
+    def test_workflows_next_state(self, auth_client, test_api_uri):
+        """test that next parameter returns the next state with requirement acceptance"""
+        flaw = FlawFactory(embargoed=False)
+        response = auth_client().get(f"{test_api_uri}/workflows/{flaw.uuid}?next=true")
+        assert response.status_code == 200
+        body = response.json()
+        assert "next" in body
+        next_state = body["next"]
+        assert next_state is not None
+        assert "accepts" in next_state
+        assert "name" in next_state
+        assert "requirements" in next_state
+        for req in next_state["requirements"]:
+            assert "accepts" in req
+
+    def test_workflows_next_state_final(self, auth_client, test_api_uri):
+        """test that next is null when flaw is in the final state"""
+        flaw = FlawFactory(embargoed=False)
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test"
+        )
+        response = auth_client().get(f"{test_api_uri}/workflows/{flaw.uuid}?next=true")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "REJECTED"
+        assert body["classification"]["state"] == "DONE"
+        assert body["next"] is None
+
+    def test_workflows_next_not_included_by_default(self, auth_client, test_api_uri):
+        """test that next is not included when parameter is not set"""
+        flaw = FlawFactory()
+        response = auth_client().get(f"{test_api_uri}/workflows/{flaw.uuid}")
+        assert response.status_code == 200
+        body = response.json()
+        assert "next" not in body
 
     def test_workflows_uuid_verbose(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint with verbose parameter"""
@@ -134,6 +182,53 @@ class TestEndpoints(object):
         assert selected_workflow is not None
         classified = selected_workflow["classified_state"]
         assert classified == body["classification"]["state"]
+
+    def test_workflows_verbose_rejected_workflow(self, auth_client, test_api_uri):
+        """test verbose classification for a flaw in the REJECTED workflow with OR condition"""
+        flaw = FlawFactory(embargoed=False)
+        FlawCollaborator.objects.create(
+            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
+        )
+        response = auth_client().get(
+            f"{test_api_uri}/workflows/{flaw.uuid}?verbose=true"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["classification"]["workflow"] == "REJECTED"
+        assert body["classification"]["state"] == "DONE"
+
+        rejected_wf = next(w for w in body["workflows"] if w["name"] == "REJECTED")
+        assert rejected_wf["accepts"] is True
+        assert rejected_wf["classified_state"] == "DONE"
+
+        or_condition = rejected_wf["conditions"][0]
+        assert or_condition["accepts"] is True
+        assert or_condition["condition"] == "OR"
+        assert len(or_condition["requirements"]) == 2
+        for req in or_condition["requirements"]:
+            assert "accepts" in req
+
+    def test_workflows_verbose_condition_structure(self, auth_client, test_api_uri):
+        """test that verbose classification serializes all condition types correctly"""
+        flaw = FlawFactory(embargoed=False)
+        response = auth_client().get(
+            f"{test_api_uri}/workflows/{flaw.uuid}?verbose=true"
+        )
+        assert response.status_code == 200
+        body = response.json()
+
+        for wf in body["workflows"]:
+            for condition in wf["conditions"]:
+                assert "accepts" in condition
+                if "condition" in condition:
+                    assert condition["condition"] in ("AND", "OR")
+                    assert "requirements" in condition
+                    for req in condition["requirements"]:
+                        assert "accepts" in req
+                        assert "name" in req
+                else:
+                    assert "name" in condition
+                    assert "description" in condition
 
     def test_workflows_uuid_non_existing(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint with non-exising flaw"""
@@ -190,7 +285,7 @@ class TestEndpoints(object):
         workflow_framework = WorkflowFramework()
         state_new = State(
             {
-                "name": WorkflowModel.WorkflowState.NEW,
+                "name": "NEW",
                 "requirements": [],
                 "jira_state": "New",
                 "jira_resolution": None,
@@ -198,7 +293,7 @@ class TestEndpoints(object):
         )
         state_first = State(
             {
-                "name": WorkflowModel.WorkflowState.TRIAGE,
+                "name": "TRIAGE",
                 "requirements": ["has comment_zero"],
                 "jira_state": "To Do",
                 "jira_resolution": None,
@@ -206,7 +301,7 @@ class TestEndpoints(object):
         )
         state_second = State(
             {
-                "name": WorkflowModel.WorkflowState.DONE,
+                "name": "DONE",
                 "requirements": ["has title"],
                 "jira_state": "In Progress",
                 "jira_resolution": None,
@@ -293,7 +388,7 @@ class TestEndpoints(object):
         """
         test authenticated workflow classification adjusting API endpoint with no flaw modification
         """
-        flaw = FlawFactory(workflow_state=WorkflowModel.WorkflowState.NEW)
+        flaw = FlawFactory(workflow_state="NEW")
         response = auth_client().post(f"{test_api_uri}/workflows/{flaw.uuid}/adjust")
         assert response.status_code == 200
         body = response.json()
@@ -345,21 +440,21 @@ class TestEndpoints(object):
         workflow_framework._workflows = []
 
         state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
+            "name": "NEW",
             "requirements": [],
             "jira_state": "New",
             "jira_resolution": None,
         }
 
         state_first = {
-            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
+            "name": "SECONDARY_ASSESSMENT",
             "requirements": ["has cwe"],
             "jira_state": "In Progress",
             "jira_resolution": None,
         }
 
         state_second = {
-            "name": WorkflowModel.WorkflowState.DONE,
+            "name": "DONE",
             "requirements": ["has cve_description"],
             "jira_state": "Closed",
             "jira_resolution": "Done",
@@ -380,7 +475,7 @@ class TestEndpoints(object):
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        assert flaw.classification["state"] == "NEW"
         headers = {"HTTP_JIRA_API_KEY": "SECRET"}
 
         # Call deprecated NO-OP promote endpoint - returns 200 with current state (NEW)
@@ -396,7 +491,7 @@ class TestEndpoints(object):
         assert "Warning" in response
         assert body["deprecated"] is True
         # Endpoint returns current state unchanged
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+        assert body["classification"]["state"] == "NEW"
 
         # Change flaw data - auto-classification advances the state
         flaw = Flaw.objects.get(pk=flaw.pk)
@@ -413,10 +508,7 @@ class TestEndpoints(object):
         assert response.status_code == 200
         body = response.json()
         assert body["deprecated"] is True
-        assert (
-            body["classification"]["state"]
-            == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
-        )
+        assert body["classification"]["state"] == "SECONDARY_ASSESSMENT"
 
         # Change flaw data again - state advances further
         flaw = Flaw.objects.get(pk=flaw.pk)
@@ -433,7 +525,7 @@ class TestEndpoints(object):
         assert response.status_code == 200
         body = response.json()
         assert body["deprecated"] is True
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
+        assert body["classification"]["state"] == "DONE"
 
         # Call NO-OP promote endpoint again - always returns 200
         response = auth_client().post(
@@ -445,7 +537,7 @@ class TestEndpoints(object):
         assert response.status_code == 200
         body = response.json()
         assert body["deprecated"] is True
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
+        assert body["classification"]["state"] == "DONE"
 
     @pytest.mark.enable_signals
     def test_revert_endpoint(
@@ -473,21 +565,21 @@ class TestEndpoints(object):
         workflow_framework._workflows = []
 
         state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
+            "name": "NEW",
             "requirements": [],
             "jira_state": "New",
             "jira_resolution": None,
         }
 
         state_first = {
-            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
+            "name": "SECONDARY_ASSESSMENT",
             "requirements": ["has cwe"],
             "jira_state": "In Progress",
             "jira_resolution": None,
         }
 
         state_second = {
-            "name": WorkflowModel.WorkflowState.DONE,
+            "name": "DONE",
             "requirements": ["has cve_description"],
             "jira_state": "Closed",
             "jira_resolution": "Done",
@@ -509,12 +601,12 @@ class TestEndpoints(object):
             cwe_id="CWE-1",
             cve_description="valid cve_description",
             task_key="OSIM-123",
-            workflow_state=WorkflowModel.WorkflowState.DONE,
+            workflow_state="DONE",
         )
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
+        assert flaw.classification["state"] == "DONE"
 
         # Call deprecated NO-OP revert endpoint - returns current state (DONE)
         response = auth_client().post(
@@ -527,7 +619,7 @@ class TestEndpoints(object):
         assert "Warning" in response
         assert body["deprecated"] is True
         # Returns current state unchanged (DONE, not SECONDARY_ASSESSMENT)
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
+        assert body["classification"]["state"] == "DONE"
 
         # Call NO-OP revert again - still returns DONE
         response = auth_client().post(
@@ -539,7 +631,7 @@ class TestEndpoints(object):
         body = response.json()
         assert body["deprecated"] is True
         # Still DONE (not NEW) - no state changes from endpoint
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
+        assert body["classification"]["state"] == "DONE"
 
         # Call NO-OP revert again - always returns 200 (not 409)
         response = auth_client().post(
@@ -551,7 +643,7 @@ class TestEndpoints(object):
         body = response.json()
         assert body["deprecated"] is True
         # No validation errors - just returns current state
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
+        assert body["classification"]["state"] == "DONE"
 
     @pytest.mark.enable_signals
     def test_reset_endpoint(
@@ -580,21 +672,21 @@ class TestEndpoints(object):
 
         # Create default workflow with multiple states
         state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
+            "name": "NEW",
             "requirements": [],
             "jira_state": "New",
             "jira_resolution": None,
         }
 
         state_triage = {
-            "name": WorkflowModel.WorkflowState.TRIAGE,
+            "name": "TRIAGE",
             "requirements": ["has cwe"],
             "jira_state": "To Do",
             "jira_resolution": None,
         }
 
         state_done = {
-            "name": WorkflowModel.WorkflowState.DONE,
+            "name": "DONE",
             "requirements": ["has cve_description"],
             "jira_state": "Closed",
             "jira_resolution": "Done",
@@ -612,7 +704,7 @@ class TestEndpoints(object):
 
         # Create rejected workflow
         state_rejected = {
-            "name": WorkflowModel.WorkflowState.DONE,
+            "name": "DONE",
             "requirements": [],
             "jira_state": "Closed",
             "jira_resolution": "Won't Do",
@@ -636,13 +728,13 @@ class TestEndpoints(object):
             cwe_id="CWE-1",
             cve_description="valid cve_description",
             task_key="OSIM-123",
-            workflow_state=WorkflowModel.WorkflowState.DONE,
+            workflow_state="DONE",
             workflow_name="DEFAULT",
         )
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
+        assert flaw.classification["state"] == "DONE"
 
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reset",
@@ -655,20 +747,20 @@ class TestEndpoints(object):
         assert body["deprecated"] is True
         # Returns current state unchanged (DONE, not reset to NEW)
         assert body["classification"]["workflow"] == "DEFAULT"
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
+        assert body["classification"]["state"] == "DONE"
 
         # Test 2: Auto-classification assigns non-rejected flaw to DEFAULT
         flaw = FlawFactory(
             cwe_id="CWE-1",
             cve_description="valid cve_description",
             task_key="OSIM-124",
-            workflow_state=WorkflowModel.WorkflowState.DONE,
+            workflow_state="DONE",
             workflow_name="DEFAULT",
         )
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
+        assert flaw.classification["state"] == "DONE"
 
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reset",
@@ -679,20 +771,20 @@ class TestEndpoints(object):
         body = response.json()
         assert body["deprecated"] is True
         assert body["classification"]["workflow"] == "DEFAULT"
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
+        assert body["classification"]["state"] == "DONE"
 
         # Test 3: Call NO-OP reset from NEW state - returns current state
         flaw = FlawFactory(
             cwe_id="",
             cve_description="",
             task_key="OSIM-125",
-            workflow_state=WorkflowModel.WorkflowState.NEW,
+            workflow_state="NEW",
             workflow_name="DEFAULT",
         )
         AffectFactory(flaw=flaw)
 
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        assert flaw.classification["state"] == "NEW"
 
         response = auth_client().post(
             f"{test_api_uri_osidb}/flaws/{flaw.uuid}/reset",
@@ -704,7 +796,7 @@ class TestEndpoints(object):
         assert body["deprecated"] is True
         # Returns current state unchanged (already NEW)
         assert body["classification"]["workflow"] == "DEFAULT"
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+        assert body["classification"]["state"] == "NEW"
 
     @pytest.mark.enable_signals
     def test_reject_endpoint(
@@ -734,14 +826,14 @@ class TestEndpoints(object):
         workflow_framework._workflows = []
 
         state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
+            "name": "NEW",
             "requirements": [],
             "jira_state": "New",
             "jira_resolution": None,
         }
 
         state_first = {
-            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
+            "name": "SECONDARY_ASSESSMENT",
             "requirements": ["has cwe"],
             "jira_state": "To Do",
             "jira_resolution": None,
@@ -757,7 +849,7 @@ class TestEndpoints(object):
             }
         )
         state_reject = {
-            "name": WorkflowModel.WorkflowState.DONE,
+            "name": "DONE",
             "requirements": [],
             "jira_state": "Closed",
             "jira_resolution": "Won't Do",
@@ -779,7 +871,7 @@ class TestEndpoints(object):
 
         # Flaw has task_key, so it gets auto-classified to DEFAULT on creation
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        assert flaw.classification["state"] == "NEW"
         headers = {"HTTP_JIRA_API_KEY": "SECRET"}
 
         # Test 1: Call without reason - NO-OP endpoint accepts any body
@@ -798,7 +890,7 @@ class TestEndpoints(object):
         # Returns current state unchanged (DEFAULT/NEW, not REJECTED)
         # No Jira comment is created (mock would raise AssertionError if called)
         assert body["classification"]["workflow"] == "DEFAULT"
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+        assert body["classification"]["state"] == "NEW"
 
 
 class TestFlawDraft:
@@ -858,7 +950,7 @@ class TestFlawDraft:
         assert Flaw.objects.count() == 1
         flaw = Flaw.objects.first()
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        assert flaw.classification["state"] == "NEW"
         assert flaw.task_key == "OSIM-123"
         assert flaw.is_internal
 
@@ -975,7 +1067,7 @@ class TestFlawDraft:
         flaw = Flaw.objects.first()
         assert flaw.task_key == "OSIM-123"
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        assert flaw.classification["state"] == "NEW"
         assert flaw.is_internal is True
 
         headers = {"HTTP_JIRA_API_KEY": jira_token}
@@ -992,12 +1084,12 @@ class TestFlawDraft:
         # Returns current state unchanged (not REJECTED)
         # No Jira comment is created (mock would raise AssertionError if called)
         assert body["classification"]["workflow"] == "DEFAULT"
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+        assert body["classification"]["state"] == "NEW"
 
         # Verify endpoint made no changes to flaw in database
         flaw = Flaw.objects.get(pk=flaw.pk)
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        assert flaw.classification["state"] == "NEW"
         # ACLs remain internal (no state change means no ACL change)
         assert flaw.is_internal is True
 

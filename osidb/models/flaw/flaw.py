@@ -916,7 +916,7 @@ class Flaw(
         ).exists()
 
     @property
-    def affects_resolved(self):
+    def has_affects_resolved(self):
         """check that all affects have resolution"""
         from osidb.models import Affect
 
@@ -1039,13 +1039,6 @@ class Flaw(
                     JiraTaskSyncManager.schedule(str(self.uuid))
 
                 if transition_task:
-                    # workflow transition may result in ACL change
-                    self.adjust_acls(save=False)
-                    Flaw.objects.filter(uuid=self.uuid).update(
-                        acl_read=self.acl_read,
-                        acl_write=self.acl_write,
-                    )
-
                     JiraTaskTransitionManager.check_for_reschedules()
                     JiraTaskTransitionManager.schedule(str(self.uuid))
 
@@ -1054,13 +1047,6 @@ class Flaw(
                     self._create_or_update_task(jira_token, jira_email)
 
                 if transition_task:
-                    # workflow transition may result in ACL change
-                    self.adjust_acls(save=False)
-                    Flaw.objects.filter(uuid=self.uuid).update(
-                        acl_read=self.acl_read,
-                        acl_write=self.acl_write,
-                    )
-
                     self._transition_task(jira_token, jira_email)
 
     def _create_or_update_task(self, jira_token=None, jira_email=None):

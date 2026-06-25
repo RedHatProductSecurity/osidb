@@ -2,9 +2,12 @@
 name: REJECTED
 description: >
   Rejected vulnerability workflow.
-priority: 2
+priority: 3
 conditions:
-  - has label rejected
+  - condition: OR
+    requirements:
+      - has label auto-rejected
+      - has label rejected
 states:
   - name: DONE
     description: >

@@ -3,30 +3,48 @@
 ############################################################################
 
 #***********************************
-### Lint/security check with ruff
+### All CI lint checks
+#***********************************
+.PHONY : lint-all
+lint-all: osidb collectors apps check-testenv
+	@echo ">running all CI lint checks"
+	$(tox) -e secrets,ruff-check,ruff-isort,ruff-format,migrations,schema-check
+
+
+#***********************************
+### Ruff checks (lint + isort + format)
 #***********************************
 .PHONY : lint
 lint: osidb collectors apps check-testenv
-	@echo ">running lint"
-	$(tox) -e ruff-check
+	@echo ">running ruff checks"
+	$(tox) -e ruff-check,ruff-isort,ruff-format
 
 
 #***********************************
-### Isort with ruff
+### Secret detection
 #***********************************
-.PHONY : ruff-isort
-ruff-isort: osidb collectors apps check-testenv
-	@echo ">running ruff's isort"
-	$(tox) -e ruff-isort
+.PHONY : lint-secrets
+lint-secrets: check-testenv
+	@echo ">running secret detection"
+	$(tox) -e secrets
 
 
 #***********************************
-### Autoformat with ruff
+### Migration check
 #***********************************
-.PHONY : format
-format: osidb collectors apps check-testenv
-	@echo ">running formatting"
-	$(tox) -e ruff-format
+.PHONY : lint-migrations
+lint-migrations: osidb collectors apps check-testenv
+	@echo ">running migration check"
+	$(tox) -e migrations
+
+
+#***********************************
+### Schema check
+#***********************************
+.PHONY : lint-schema
+lint-schema: osidb collectors apps check-testenv
+	@echo ">running schema check"
+	$(tox) -e schema-check
 
 
 #***********************************

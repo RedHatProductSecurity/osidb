@@ -10,7 +10,6 @@ from django.contrib.auth.models import User
 
 from apps.taskman.constants import JIRA_SUMMARY_MAX_LENGTH
 from apps.taskman.service import JiraTaskmanQuerier
-from apps.workflows.workflow import WorkflowModel
 from osidb.models import Flaw, Profile
 from osidb.tests.factories import AffectFactory, FlawFactory
 
@@ -40,7 +39,7 @@ class TestTaskmanService(object):
 
         flaw.title = new_title
         flaw.owner = "concosta@redhat.com"
-        flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
+        flaw.workflow_state = "TRIAGE"
         flaw.save()
 
         response2 = taskman.create_or_update_task(flaw=flaw)
@@ -48,9 +47,11 @@ class TestTaskmanService(object):
         assert response2 is None
 
         assert flaw.workflow_state in (
-            WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT,
-            WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
-            WorkflowModel.WorkflowState.DONE,
+            "TRIAGE",
+            "ANALYSIS",
+            "PRE_SECONDARY_ASSESSMENT",
+            "SECONDARY_ASSESSMENT",
+            "DONE",
         )
         flaw.save(raise_validation_error=False)
         response3 = taskman.create_or_update_task(flaw=flaw)

@@ -1338,21 +1338,21 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: flaw__workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: flaw__workflow_state
         schema:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -3404,6 +3404,7 @@ paths:
             - -unembargo_dt
             - -updated_dt
             - -uuid
+            - -workflow_name
             - -workflow_state
             - acknowledgments__affiliation
             - acknowledgments__created_dt
@@ -3445,6 +3446,7 @@ paths:
             - unembargo_dt
             - updated_dt
             - uuid
+            - workflow_name
             - workflow_state
         description: |+
           Ordering
@@ -3964,21 +3966,30 @@ paths:
           - INTERNAL
           - PUBLIC
       - in: query
+        name: workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: workflow_name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: workflow_state
         schema:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -3987,16 +3998,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       tags:
@@ -8692,21 +8694,21 @@ paths:
           - INTERNAL
           - PUBLIC
       - in: query
+        name: flaw__workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: flaw__workflow_state
         schema:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -11201,6 +11203,7 @@ paths:
             - -unembargo_dt
             - -updated_dt
             - -uuid
+            - -workflow_name
             - -workflow_state
             - acknowledgments__affiliation
             - acknowledgments__created_dt
@@ -11262,6 +11265,7 @@ paths:
             - unembargo_dt
             - updated_dt
             - uuid
+            - workflow_name
             - workflow_state
         description: |+
           Ordering
@@ -11781,21 +11785,30 @@ paths:
           - INTERNAL
           - PUBLIC
       - in: query
+        name: workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: workflow_name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: workflow_state
         schema:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -11804,16 +11817,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       tags:
@@ -13958,6 +13962,8 @@ paths:
 
         params:
 
+            next - return the next state with requirement acceptance status
+
             verbose - return also workflows with flaw classification
                       which represents the reasoning of the result
       parameters:
@@ -13966,6 +13972,12 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: next
+        schema:
+          type: boolean
+        description: Return the next state in the workflow with its requirements and
+          their acceptance status. Null if the flaw is in the final state.
       - in: query
         name: verbose
         schema:
@@ -14159,8 +14171,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -14304,8 +14316,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -14400,8 +14412,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -14673,8 +14685,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -14891,6 +14903,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ClassificationCheck'
+          readOnly: true
         states:
           type: array
           items:
@@ -15175,8 +15188,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         created_dt:
           type: string
           format: date-time
@@ -15193,13 +15206,6 @@ components:
               type: string
             state:
               type: string
-              enum:
-              - ''
-              - NEW
-              - TRIAGE
-              - PRE_SECONDARY_ASSESSMENT
-              - SECONDARY_ASSESSMENT
-              - DONE
           readOnly: true
         group_key:
           type: string
@@ -15272,8 +15278,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -15419,8 +15425,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -15573,8 +15579,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -15770,8 +15776,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
       required:
       - alerts
       - created_dt
@@ -15849,8 +15855,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         created_dt:
           type: string
           format: date-time
@@ -16105,8 +16111,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         created_dt:
           type: string
           format: date-time
@@ -16123,13 +16129,6 @@ components:
               type: string
             state:
               type: string
-              enum:
-              - ''
-              - NEW
-              - TRIAGE
-              - PRE_SECONDARY_ASSESSMENT
-              - SECONDARY_ASSESSMENT
-              - DONE
           readOnly: true
         group_key:
           type: string
@@ -16202,8 +16201,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -16617,8 +16616,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         created_dt:
           type: string
           format: date-time
@@ -16635,13 +16634,6 @@ components:
               type: string
             state:
               type: string
-              enum:
-              - ''
-              - NEW
-              - TRIAGE
-              - PRE_SECONDARY_ASSESSMENT
-              - SECONDARY_ASSESSMENT
-              - DONE
           readOnly: true
         group_key:
           type: string
@@ -17749,8 +17741,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -17839,8 +17831,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -18049,8 +18041,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -18108,8 +18100,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:

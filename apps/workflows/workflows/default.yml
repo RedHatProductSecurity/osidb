@@ -1,6 +1,6 @@
 ---
 name: DEFAULT
-description: Default vulnerability workflow.
+description: Automated vulnerability processing workflow.
 priority: 0
 conditions: []
 states:
@@ -13,21 +13,11 @@ states:
 
   - name: TRIAGE
     description: >
-      Queue captain has taken the flaw off the incoming queue and will evaluate
-      whether it should be rejected or analysed further.
+      The flaw has passed automated initial triage. Basic data has been
+      filled in and the flaw is ready for affect creation.
     jira_state: Refinement
     jira_resolution: null
     requirements:
-      - has owner
-
-  - name: PRE_SECONDARY_ASSESSMENT
-    description: >
-      A flaw was qualified for further work. It has the initial data filled
-      and the affectedness was assessed. The trackers can be filed.
-    jira_state: To Do
-    jira_resolution: null
-    requirements:
-      - has affects
       - has components
       - has impact
       - has reported_dt
@@ -37,6 +27,25 @@ states:
         requirements:
           - impact is low
           - has cve_description
+
+  - name: ANALYSIS
+    description: >
+      Affects have been created and are being analysed. Each affect
+      needs to be resolved before the flaw can proceed.
+    jira_state: Refinement
+    jira_resolution: null
+    requirements:
+      - has affects
+
+  - name: PRE_SECONDARY_ASSESSMENT
+    description: >
+      All affects have been resolved. The trackers can be filed.
+      Also the flaw data is complete enough to make it public.
+    jira_state: To Do
+    jira_resolution: null
+    visibility: PUBLIC
+    requirements:
+      - has affects resolved
 
   - name: SECONDARY_ASSESSMENT
     description: The trackers were filed. The flaw is ready for the review.

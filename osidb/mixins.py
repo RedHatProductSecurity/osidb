@@ -6,6 +6,7 @@ from itertools import batched, chain
 
 import pghistory
 import pgtrigger
+from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -16,7 +17,6 @@ from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 
 from osidb.exceptions import DataInconsistencyException
-from osidb.models.audit_history import audit_model_for_model
 
 from .core import generate_acls
 
@@ -204,8 +204,77 @@ class ValidateMixin(models.Model):
         self.full_clean(exclude=["meta_attr"])
 
 
-class ACLMixinVisibility(models.TextChoices):
-    """Visibility levels based on ACL read groups"""
+class ComparableTextChoices(models.TextChoices):
+    """
+    extension of the models.TextChoices classes
+    making them comparable with the standard operators
+
+    the comparison order is defined simply by the
+    top-down order in which the choices are written
+    """
+
+    @classmethod
+    def get_choices(cls):
+        """
+        get processed choices
+        """
+        return [choice[0] for choice in cls.choices]
+
+    @property
+    def weight(self):
+        """
+        weight of the instance for the comparison
+        defined by the order of the definition of the choices
+        """
+        return self.get_choices().index(str(self))
+
+    def incomparable_with(self, other):
+        """
+        to ensure that that we are comparing the instances of the same type as
+        comparing different types (even two ComparableTextChoices) is undefined
+        """
+        return type(self) is not type(other)
+
+    def __hash__(self):
+        return super().__hash__()
+
+    def __eq__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self.weight == other.weight
+
+    def __ne__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self.weight != other.weight
+
+    def __lt__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self.weight < other.weight
+
+    def __gt__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self.weight > other.weight
+
+    def __le__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self == other or self.__lt__(other)
+
+    def __ge__(self, other):
+        if self.incomparable_with(other):
+            return NotImplemented
+        return self == other or self.__gt__(other)
+
+
+class ACLMixinVisibility(ComparableTextChoices):
+    """
+    ACLMixinVisibility levels based on ACL read groups
+
+    ordered from least visible to most visible
+    """
 
     EMBARGOED = "EMBARGOED", "Embargoed"
     INTERNAL = "INTERNAL", "Internal"
@@ -301,6 +370,35 @@ class ACLMixin(models.Model):
     @property
     def is_public(self):
         return set(self.acl_read + self.acl_write) == self.acls_public
+
+    @property
+    def visibility(self):
+        if self.is_embargoed:
+            return ACLMixinVisibility.EMBARGOED
+        if self.is_internal:
+            return ACLMixinVisibility.INTERNAL
+        return ACLMixinVisibility.PUBLIC
+
+    @visibility.setter
+    def visibility(self, target):
+        """
+        Monotonically widen visibility to the given target level.
+
+        ACLMixinVisibility can only be widened (EMBARGOED -> INTERNAL -> PUBLIC),
+        never narrowed. If the current level is already at or wider than
+        the target, this is a no-op.
+        """
+        target = ACLMixinVisibility(target)
+        if self.visibility >= target:
+            return
+
+        if target == ACLMixinVisibility.PUBLIC:
+            self.set_public()
+        elif target == ACLMixinVisibility.INTERNAL:
+            self.set_internal()
+
+        self.set_acls_nested()
+        self.set_acls_history()
 
     def acl2group(self, acl):
         """
@@ -611,37 +709,23 @@ class ACLMixin(models.Model):
                     + ("embargoed" if self.flaw.is_embargoed else "public")
                 )
 
-    def set_history_public(self):
+    def set_acls_history(self, acl_read=None, acl_write=None):
         """
-        set the history to public
+        set the history ACLs to match the given or current instance ACLs
         """
-        self._set_history_public_for_model(type(self), [self.pk])
-
-    @classmethod
-    def _set_history_public_for_model(cls, model_class, object_ids):
-        """
-        Set history ACLs in one update per concrete audit table.
-        """
-        object_ids = [object_id for object_id in object_ids if object_id is not None]
-        if not object_ids:
-            return
-
-        audit_model = audit_model_for_model(model_class)
-        if audit_model is None:
-            return
-
-        public_acl_read = [
-            uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_READ_GROUPS)
-        ]
-        public_acl_write = [
-            uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_WRITE_GROUP])
-        ]
-
-        with pgtrigger.ignore(f"{audit_model._meta.label}:append_only"):
-            audit_model.objects.filter(pgh_obj_id__in=object_ids).update(
-                acl_read=public_acl_read,
-                acl_write=public_acl_write,
+        acl_read = list(acl_read if acl_read is not None else self.acl_read)
+        acl_write = list(acl_write if acl_write is not None else self.acl_write)
+        refs = pghistory.models.Events.objects.tracks(self).all()
+        for ref in refs:
+            model_audit = apps.get_model(ref.pgh_model).objects.filter(
+                pgh_id=ref.pgh_id
             )
+
+            with pgtrigger.ignore(f"{ref.pgh_model}:append_only"):
+                model_audit.update(
+                    acl_read=acl_read,
+                    acl_write=acl_write,
+                )
 
     def unembargo(self):
         """
@@ -660,7 +744,7 @@ class ACLMixin(models.Model):
         with transaction.atomic():
             # unembargo
             self.set_public()
-            self.set_history_public()
+            self.set_acls_history()
 
             kwargs = {}
             if issubclass(type(self), AlertMixin):
@@ -702,28 +786,32 @@ class ACLMixin(models.Model):
         Change internal ACLs to public ACLs for all related Flaw objects and save them.
         The only exception is "snippets", which should always have internal ACLs.
         The Flaw itself will be saved later to avoid duplicate operations.
-
-        This method collects all objects that need to be updated and performs
-        chunked queryset updates to minimize database queries and avoid storing
-        model instances in memory.
         """
-        objects_to_update = defaultdict(set)  # {ModelClass: {pk, ...}}
+        self.set_acls_nested(
+            [uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_READ_GROUPS)],
+            [uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_WRITE_GROUP])],
+            max_chunk_size=max_chunk_size,
+        )
 
+    def set_acls_nested(self, acl_read=None, acl_write=None, max_chunk_size=5000):
+        """
+        Propagate ACLs to all related objects. Uses the given ACLs or
+        falls back to the current instance's ACLs.
+
+        Collects all related objects that need updating and performs
+        chunked queryset updates to minimize database queries.
+        """
+        acl_read = list(acl_read if acl_read is not None else self.acl_read)
+        acl_write = list(acl_write if acl_write is not None else self.acl_write)
+
+        objects_to_update = defaultdict(set)
         visited = set()
-        self._collect_objects_for_public_update(objects_to_update, visited)
+        self._collect_objects_for_acl_update(objects_to_update, visited)
 
         if not any(objects_to_update.values()):
             return
 
-        # Cut off microseconds to match TrackingMixin.save() behavior
         now = timezone.now().replace(microsecond=0)
-
-        public_acl_read = [
-            uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_READ_GROUPS)
-        ]
-        public_acl_write = [
-            uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_WRITE_GROUP])
-        ]
 
         for model_class, object_ids in objects_to_update.items():
             if not object_ids:
@@ -732,20 +820,20 @@ class ACLMixin(models.Model):
             if not issubclass(model_class, ACLMixin):
                 continue
 
-            update_kwargs = {"acl_read": public_acl_read, "acl_write": public_acl_write}
+            update_kwargs = {"acl_read": acl_read, "acl_write": acl_write}
             if issubclass(model_class, TrackingMixin):
                 update_kwargs["updated_dt"] = now
 
             for pk_chunk in batched(object_ids, max_chunk_size):
                 model_class.objects.filter(pk__in=pk_chunk).update(**update_kwargs)
 
-            for pk_chunk in batched(object_ids, max_chunk_size):
-                self._set_history_public_for_model(model_class, pk_chunk)
+            for pk in object_ids:
+                model_class(pk=pk).set_acls_history(acl_read, acl_write)
 
-    def _collect_objects_for_public_update(self, objects_to_update, visited):
+    def _collect_objects_for_acl_update(self, objects_to_update, visited):
         """
         Recursively collect all related objects that need to have their ACLs
-        updated to public. The Flaw itself is not collected as it's saved separately.
+        updated. The Flaw itself is not collected as it's saved separately.
 
         Uses a defaultdict(set) keyed by model class to collect pks.
         Uses a set of (type, pk) to prevent infinite recursion.
@@ -763,8 +851,6 @@ class ACLMixin(models.Model):
         visited.add(visit_key)
 
         if not isinstance(self, Flaw):
-            if not self.is_internal:
-                return
             objects_to_update[type(self)].add(self.pk)
 
         for related_instance in chain.from_iterable(
@@ -772,23 +858,20 @@ class ACLMixin(models.Model):
             for name in [
                 related.related_name
                 for related in self._meta.related_objects
-                # only the models with ACLs other than "snippets" are subject of this
                 if (
                     issubclass(related.related_model, ACLMixin)
                     and related.related_name != "snippets"
                 )
             ]
         ):
-            related_instance._collect_objects_for_public_update(
-                objects_to_update, visited
-            )
+            related_instance._collect_objects_for_acl_update(objects_to_update, visited)
         for field in self._meta.concrete_fields:
             if isinstance(
                 field, (models.ForeignKey, models.OneToOneField)
             ) and issubclass(field.related_model, ACLMixin):
                 related_instance = getattr(self, field.name)
                 if related_instance:
-                    related_instance._collect_objects_for_public_update(
+                    related_instance._collect_objects_for_acl_update(
                         objects_to_update, visited
                     )
 

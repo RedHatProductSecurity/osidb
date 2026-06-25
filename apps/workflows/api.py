@@ -16,6 +16,7 @@ from osidb.helpers import get_flaw_or_404
 from .helpers import str2bool
 from .serializers import (
     ClassificationResponseSerializer,
+    ClassificationStateSerializer,
     ClassificationWorkflowSerializer,
     WorkflowSerializer,
 )
@@ -258,6 +259,15 @@ class classification(RudimentaryUserPathLoggingMixin, APIView):
                     "which represents the reasoning of the result."
                 ),
             ),
+            OpenApiParameter(
+                "next",
+                type={"type": "boolean"},
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "Return the next state in the workflow with its requirements "
+                    "and their acceptance status. Null if the flaw is in the final state."
+                ),
+            ),
         ],
         responses={200: ClassificationResponseSerializer},
     )
@@ -268,6 +278,8 @@ class classification(RudimentaryUserPathLoggingMixin, APIView):
         for flaw identified by UUID or CVE returns its workflow:state classification
 
         params:
+
+            next - return the next state with requirement acceptance status
 
             verbose - return also workflows with flaw classification
                       which represents the reasoning of the result
@@ -291,6 +303,20 @@ class classification(RudimentaryUserPathLoggingMixin, APIView):
                     context={"flaw": flaw},
                     many=True,
                 ).data
+
+        # optional next state context
+        next_param = request.GET.get("next")
+        if next_param is not None:
+            if str2bool(next_param, "next"):
+                state_index = workflow.states.index(state)
+                if state_index + 1 < len(workflow.states):
+                    next_state = workflow.states[state_index + 1]
+                    response["next"] = ClassificationStateSerializer(
+                        next_state, context={"flaw": flaw}
+                    ).data
+                else:
+                    response["next"] = None
+
         return Response(response)
 
 

@@ -99,8 +99,19 @@ class WorkflowSerializer(serializers.Serializer):
     name = serializers.CharField()
     description = serializers.CharField()
     priority = serializers.IntegerField()
-    conditions = CheckSerializer(many=True)
+    conditions = serializers.SerializerMethodField()
     states = StateSerializer(many=True)
+
+    @extend_schema_field(CheckSerializer(many=True))
+    def get_conditions(self, instance):
+        return [
+            (
+                CheckSerializer(cond).data
+                if isinstance(cond, Check)
+                else ConditionSerializer(cond).data
+            )
+            for cond in instance.conditions
+        ]
 
 
 class ClassificationSerializer(serializers.Serializer):
@@ -174,9 +185,20 @@ class ClassificationStateSerializer(ClassificationSerializer, StateSerializer):
 class ClassificationWorkflowSerializer(ClassificationSerializer, WorkflowSerializer):
     """Workflow serializer with classification"""
 
-    conditions = ClassificationCheckSerializer(many=True)
+    conditions = serializers.SerializerMethodField()
     states = ClassificationStateSerializer(many=True)
     classified_state = serializers.SerializerMethodField()
+
+    @extend_schema_field(ClassificationCheckSerializer(many=True))
+    def get_conditions(self, instance):
+        return [
+            (
+                ClassificationCheckSerializer(cond, context=self.context).data
+                if isinstance(cond, Check)
+                else ClassificationConditionSerializer(cond, context=self.context).data
+            )
+            for cond in instance.conditions
+        ]
 
     def get_classified_state(self, instance):
         flaw = self.context.get("flaw")
@@ -215,10 +237,7 @@ class WorkflowModelSerializer(serializers.ModelSerializer):
             "type": "object",
             "properties": {
                 "workflow": {"type": "string"},
-                "state": {
-                    "type": "string",
-                    "enum": WorkflowModel.WorkflowState.values,
-                },
+                "state": {"type": "string"},
             },
         }
     )

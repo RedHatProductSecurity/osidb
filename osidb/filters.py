@@ -30,7 +30,6 @@ from django_filters.rest_framework import (
 from djangoql.queryset import apply_search
 from packageurl import PackageURL
 
-from apps.workflows.workflow import WorkflowModel
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -547,9 +546,8 @@ class FlawFilter(
     visibility = ChoiceFilter(
         field_name="visibility", choices=ACLMixinVisibility.choices
     )
-    workflow_state = ChoiceInFilter(
-        field_name="workflow_state", choices=WorkflowModel.WorkflowState.choices
-    )
+    workflow_name = CharInFilter(field_name="workflow_name")
+    workflow_state = CharInFilter(field_name="workflow_state")
     affects__isnull = NullForeignKeyFilter(field_name="affects")
     affects__embargoed = BooleanFilter(field_name="affects__embargoed")
     affects__visibility = ChoiceFilter(
@@ -690,6 +688,7 @@ class FlawFilter(
             + DATE_LOOKUP_EXPRS,
             "nist_cvss_validation": ["exact"],
             # Workflow fields
+            "workflow_name": ["exact"],
             "workflow_state": ["exact"],
             "owner": ["exact"],
             # Affect fields
@@ -1059,6 +1058,7 @@ class FlawV1Filter(FlawFilter):
             + DATE_LOOKUP_EXPRS,
             "nist_cvss_validation": ["exact"],
             # Workflow fields
+            "workflow_name": ["exact"],
             "workflow_state": ["exact"],
             "owner": ["exact"],
             # Acknowledgment fields
@@ -1129,9 +1129,8 @@ class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFil
     flaw__components = CharInFilter(
         field_name="flaw__components", lookup_expr="contains"
     )
-    flaw__workflow_state = ChoiceInFilter(
-        field_name="flaw__workflow_state", choices=WorkflowModel.WorkflowState.choices
-    )
+    flaw__workflow_name = CharInFilter(field_name="flaw__workflow_name")
+    flaw__workflow_state = CharInFilter(field_name="flaw__workflow_state")
 
     # Custom method filters for trackers
     trackers__uuid = UUIDFilter(method="tracker_uuid_filter")
@@ -1445,9 +1444,8 @@ class AffectFilter(
     flaw__visibility = ChoiceFilter(
         field_name="flaw__visibility", choices=ACLMixinVisibility.choices
     )
-    flaw__workflow_state = ChoiceInFilter(
-        field_name="flaw__workflow_state", choices=WorkflowModel.WorkflowState.choices
-    )
+    flaw__workflow_name = CharInFilter(field_name="flaw__workflow_name")
+    flaw__workflow_state = CharInFilter(field_name="flaw__workflow_state")
     flaw__components = CharInFilter(
         field_name="flaw__components", lookup_expr="contains"
     )
