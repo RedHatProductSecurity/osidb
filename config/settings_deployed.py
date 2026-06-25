@@ -1,9 +1,35 @@
+"""
+Configurable Django settings for deployed OSIDB environments.
+All environment-specific differences are driven by environment variables.
+
+Required env vars:
+    DJANGO_SECRET_KEY
+    OSIDB_DB_USER, OSIDB_DB_PASSWORD, OSIDB_DB_HOST, OSIDB_DB_HOST_RO
+    OSIDB_REDIS_PASSWORD
+    KRB5_HOSTNAME
+    ET_URL
+
+Optional env vars for per-environment tuning:
+    OSIDB_ENV                       - Environment name for log file prefixes (default: "prod")
+    OSIDB_LDAP_GROUP_PREFIX         - Prefix for LDAP group names (default: "osidb-prod")
+    OSIDB_DB_NAME                   - Database name (default: "osidb")
+    OSIDB_CORS_LITERAL_ORIGINS_ONLY - Use literal CORS origins instead of regex (default: "False");
+                                      requires OSIDB_CORS_ALLOWED_ORIGINS (JSON list of origin strings)
+"""
+
 import ssl
 
 import ldap
 from django_auth_ldap.config import GroupOfUniqueNamesType, LDAPSearch, LDAPSearchUnion
 
 from .settings import *
+
+# --- Environment ---
+
+ENV = get_env("OSIDB_ENV", default="prod")
+LDAP_GROUP_PREFIX = get_env("OSIDB_LDAP_GROUP_PREFIX", default="osidb-prod")
+
+# --- Django core ---
 
 # django secret key provided by ansible vault
 SECRET_KEY = get_env("DJANGO_SECRET_KEY")
@@ -13,21 +39,14 @@ SECRET_KEY = get_env("DJANGO_SECRET_KEY")
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Minimal group for read access of public flaws in OSIDB
-# TODO: In the future we might simply use a proxy group in which
-# membership is based off of one or more LDAP groups
-# e.g. (|(memberOf=group-a)(memberOf=group-b))
-PUBLIC_READ_GROUPS = ["osidb-prod-public-read", "red-hat-product-security"]
-# Minimal group for write access of public flaws in OSIDB
-PUBLIC_WRITE_GROUP = "osidb-prod-public-write"
-# Minimal group for read access of embargoed flaws in OSIDB
-EMBARGO_READ_GROUP = "osidb-prod-embargo-read"
-# Minimal group for write access of embargoed flaws in OSIDB
-EMBARGO_WRITE_GROUP = "osidb-prod-embargo-write"
-# Minimal group for read access of internal flaws in OSIDB
-INTERNAL_READ_GROUP = "osidb-prod-internal-read"
-# Minimal group for write access of internal flaws in OSIDB
-INTERNAL_WRITE_GROUP = "osidb-prod-internal-write"
+# --- ACL groups ---
+
+PUBLIC_READ_GROUPS = [f"{LDAP_GROUP_PREFIX}-public-read", "red-hat-product-security"]
+PUBLIC_WRITE_GROUP = f"{LDAP_GROUP_PREFIX}-public-write"
+INTERNAL_READ_GROUP = f"{LDAP_GROUP_PREFIX}-internal-read"
+INTERNAL_WRITE_GROUP = f"{LDAP_GROUP_PREFIX}-internal-write"
+EMBARGO_READ_GROUP = f"{LDAP_GROUP_PREFIX}-embargo-read"
+EMBARGO_WRITE_GROUP = f"{LDAP_GROUP_PREFIX}-embargo-write"
 # Contains all non-admin groups
 ALL_GROUPS = [
     *PUBLIC_READ_GROUPS,
@@ -38,7 +57,9 @@ ALL_GROUPS = [
     INTERNAL_WRITE_GROUP,
 ]
 # Minimal group for managing the OSIDB service
-SERVICE_MANAGE_GROUP = "osidb-prod-manage"
+SERVICE_MANAGE_GROUP = f"{LDAP_GROUP_PREFIX}-manage"
+
+# --- LDAP ---
 
 ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
 
@@ -75,6 +96,8 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {
     "is_staff": f"cn={SERVICE_MANAGE_GROUP},ou=adhoc,ou=managedgroups,dc=redhat,dc=com",
     "is_superuser": f"cn={SERVICE_MANAGE_GROUP},ou=adhoc,ou=managedgroups,dc=redhat,dc=com",
 }
+
+# --- Database ---
 
 DATABASES = {
     "default": {
@@ -116,10 +139,12 @@ DATABASES = {
 
 DATABASE_ROUTERS = ["osidb.routers.AffectV1ReplicaRouter"]
 
+# --- Static files ---
+
 STATIC_ROOT = "/opt/app-root/static/"
 STATIC_URL = "/static/"
 
-# Celery settings
+# --- Celery / Redis ---
 
 REDIS_PASSWORD = get_env("OSIDB_REDIS_PASSWORD")
 CELERY_BROKER_URL = CELERY_RESULT_BACKEND = f"rediss://:{REDIS_PASSWORD}@redis:6379/"
@@ -130,7 +155,8 @@ CELERY_BROKER_USE_SSL = CELERY_REDIS_BACKEND_USE_SSL = CELERY_RHUBARB_BACKEND_KW
     "ssl_cert_reqs": ssl.CERT_REQUIRED,
 }
 
-# Kerberos + LDAP Auth
+# --- Kerberos + LDAP Auth ---
+
 INSTALLED_APPS += [
     "kaminarimon",
 ]
@@ -141,11 +167,17 @@ AUTHENTICATION_BACKENDS += [
 ]
 KRB5_HOSTNAME = get_env("KRB5_HOSTNAME")
 
+# --- External services ---
+
 ERRATA_TOOL_SERVER = get_env("ET_URL")
 ERRATA_TOOL_XMLRPC_BASE_URL = f"{ERRATA_TOOL_SERVER}/errata/errata_service"
 
-# Execute once an hour in production
+# --- Collectors ---
+
+# Execute once an hour
 CISA_COLLECTOR_CRONTAB = crontab(minute=0)
+
+# --- Logging ---
 
 # Use either logstash logging or basic file logging based
 # on the instance configuration
@@ -178,7 +210,7 @@ elif get_env("MPP_LOGFILE_LOGGING_ENABLED", is_bool=True, default="False"):
     LOGGING["handlers"]["celery"] = {
         "class": "logging.handlers.RotatingFileHandler",
         "formatter": "verbose_celery",
-        "filename": "/var/log/prod-celery.log",
+        "filename": f"/var/log/{ENV}-celery.log",
         "maxBytes": LOG_FILE_SIZE,
         "backupCount": LOG_FILE_COUNT,
     }
@@ -186,14 +218,22 @@ elif get_env("MPP_LOGFILE_LOGGING_ENABLED", is_bool=True, default="False"):
         "level": "INFO",
         "class": "logging.handlers.RotatingFileHandler",
         "formatter": "verbose",
-        "filename": "/var/log/prod-django.log",
+        "filename": f"/var/log/{ENV}-django.log",
         "maxBytes": LOG_FILE_SIZE,
         "backupCount": LOG_FILE_COUNT,
     }
 
+# Setup logging for Bugzilla
+LOGGING["loggers"]["bugzilla"] = {
+    "handlers": ["console"],
+    "level": "DEBUG",
+    "propagate": False,
+}
 
-# sets the Access-Control-Allow-Origin response header - accepts literal strings
-# example value: ["https://osidb.example.com", "https://workflows.example.com"]
-CORS_ALLOWED_ORIGINS = get_env("OSIDB_CORS_ALLOWED_ORIGINS", default="[]", is_json=True)
-# removes default config that allows regex
-CORS_ALLOWED_ORIGIN_REGEXES = []
+# --- CORS ---
+
+if get_env("OSIDB_CORS_LITERAL_ORIGINS_ONLY", is_bool=True, default="False"):
+    CORS_ALLOWED_ORIGINS = get_env(
+        "OSIDB_CORS_ALLOWED_ORIGINS", default="[]", is_json=True
+    )
+    CORS_ALLOWED_ORIGIN_REGEXES = []

@@ -37,6 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Auto-affect creation no longer overrides Affect.impact
 
+### Changed
+- replace env-specific settings files with one configurable (OSIDB-5186)
+
 ## [5.12.0] - 2026-06-25
 ### Added
 - Scope lib-newtopia queries by ecosystem derived from upstream PURLs (OSIDB-4966)
