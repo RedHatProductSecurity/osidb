@@ -31,6 +31,7 @@ from djangoql.queryset import apply_search
 from packageurl import PackageURL
 
 from apps.workflows.workflow import WorkflowModel
+from osidb.forms import RelativeDateTimeField
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -79,6 +80,26 @@ class UUIDInFilter(BaseInFilter, UUIDFilter):
     """
 
     pass
+
+
+class RelativeDateTimeFilter(DateTimeFilter):
+    """
+    RelativeDateTimeFilter that accepts both absolute datetime values (default behavior)
+    and relative datetime strings like "-1d", "+2h", "-30m", etc.
+
+    Relative format: [+/-]<number><unit>
+    where unit is one of: s (seconds), m (minutes), h (hours), d (days), w (weeks)
+
+    Examples:
+        -1d     -> 1 day ago
+        +2h     -> 2 hours from now
+        -30m    -> 30 minutes ago
+
+    If the value doesn't match the relative format, it falls back to standard
+    absolute datetime parsing.
+    """
+
+    field_class = RelativeDateTimeField
 
 
 class PURLFilter(CharFilter):
