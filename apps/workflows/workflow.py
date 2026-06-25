@@ -87,7 +87,12 @@ class WorkflowFramework:
 
             (workflow, state) classification by default
             or only workflow classification if requested by state param set to False
+            None if instance has no task_key (flaws without Jira tasks are not classified)
         """
+        # Only classify instances that have a Jira task
+        if not instance.task_key:
+            return None
+
         for workflow in self.workflows:
             if workflow.accepts(instance):
                 return (workflow, workflow.classify(instance)) if state else workflow
@@ -120,7 +125,10 @@ class WorkflowFramework:
         """
         Given an instance, return expected jira status and resolution
         """
-        _, state = self.classify(instance)
+        result = self.classify(instance)
+        if result is None:
+            return None, None
+        _, state = result
         return state.jira_state, state.jira_resolution
 
 
@@ -159,7 +167,13 @@ class WorkflowModel(models.Model):
 
     def classify(self):
         """computed workflow classification"""
-        workflow, state = WorkflowFramework().classify(self)
+        result = WorkflowFramework().classify(self)
+        if result is None:
+            return {
+                "workflow": "",
+                "state": "",
+            }
+        workflow, state = result
         return {
             "workflow": workflow.name,
             "state": state.name,

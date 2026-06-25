@@ -289,7 +289,7 @@ class TestRestApi(object):
 
         workflow_framework = WorkflowFramework()
         workflow_framework.register_workflow(workflow_main)
-        flaw = FlawFactory()
+        flaw = FlawFactory(task_key="TASK-123")
         AffectFactory(flaw=flaw)
 
         response = auth_client().get(
