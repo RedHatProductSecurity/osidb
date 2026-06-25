@@ -6,8 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [5.12.0] - 2026-06-25
 ### Added
 - Scope lib-newtopia queries by ecosystem derived from upstream PURLs (OSIDB-4966)
+- Add comment_zero in the description of community trackers (OSIDB-4776)
 
 ### Changed
 - Make HashiCorp Vault integration credential-based opt-in (OSIDB-5108)
@@ -17,12 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
 - Wrap external errors with affect context for bulk PUT endpoint (OSIDB-5038)
 - Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
+- Exclude orphaned trackers from v1 flaw and tracker endpoints when filtering by tracker_ids(OSIDB-4927)
 
 ## [5.11.1] - 2026-06-10
 ### Fixed
 - Fix Jira metadata collector crash on duplicate field names (OSIDB-4920)
 - Fix check parser replaces spaces with underscores in equality check values (OSIDB-4956)
-- Exclude orphaned trackers from v1 flaw and tracker endoints when filtering by tracker_ids(OSIDB-4927)
 - Refresh Flaws in signal to avoid revert issues (OSIDB-4985)
 
 ## [5.11.0] - 2026-05-28
@@ -33,7 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `bu_labels` label type (OSIDB-4982)
 - Auditing and tracking of tool-assisted and auto-created affects (OSIDB-4951, OSIDB-4978)
 - Add UpstreamData model with upstream purl field and collection (OSIDB-4923)
-- Add comment_zero in the description of community trackers (OSIDB-4776)
 
 ### Changed
 - Allow adding labels to flaws in any workflow state, including DONE (OSIDB-4986)
