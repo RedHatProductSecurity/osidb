@@ -10,7 +10,11 @@ from rest_framework.renderers import JSONRenderer
 import osidb
 
 
-def calc_env(env_str):
+def calc_env():
+    env = os.getenv("OSIDB_ENV")
+    if env:
+        return env
+    env_str = os.getenv("DJANGO_SETTINGS_MODULE", "")
     if "prod" in env_str:
         return "prod"
     if "stage" in env_str:
@@ -35,5 +39,5 @@ class OsidbRenderer(JSONRenderer):
             data["dt"] = timezone.now()
             data["revision"] = os.getenv("OPENSHIFT_BUILD_COMMIT") or "unknown"
             data["version"] = osidb.__version__
-            data["env"] = calc_env(os.getenv("DJANGO_SETTINGS_MODULE"))
+            data["env"] = calc_env()
         return super().render(data, accepted_media_type, renderer_context)

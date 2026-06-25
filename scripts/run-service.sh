@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Custom run script for starting osidb django service in osidb-stage and osidb-prod environments.
+# Custom run script for starting osidb django service in deployed environments.
 
 # collect static files
 python3 manage.py collectstatic \
@@ -12,12 +12,8 @@ python3 manage.py collectstatic \
 # Defaults to stdout for local development
 ACCESS_LOG_FILE="-"
 
-if [ "$DJANGO_SETTINGS_MODULE" = "config.settings_stage" ]; then
-    ACCESS_LOG_FILE="/var/log/stage-access.log"
-elif [ "$DJANGO_SETTINGS_MODULE" = "config.settings_uat" ]; then
-    ACCESS_LOG_FILE="/var/log/uat-access.log"
-elif [ "$DJANGO_SETTINGS_MODULE" = "config.settings_prod" ]; then
-    ACCESS_LOG_FILE="/var/log/prod-access.log"
+if [ -n "$OSIDB_ENV" ]; then
+    ACCESS_LOG_FILE="/var/log/${OSIDB_ENV}-access.log"
 fi
 
 # start gunicorn
