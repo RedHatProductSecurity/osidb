@@ -59,7 +59,7 @@ class SRPReportMilestone(SRPReportBase):
     MILESTONE_DURATION_BY_TYPE = {
         MilestoneType.LEVEL_24H: timedelta(hours=24),
         MilestoneType.LEVEL_72H: timedelta(hours=72),
-        MilestoneType.LEVEL_FINAL: timedelta(days=14),
+        MilestoneType.LEVEL_FINAL: None,  # Duration is calculated based on the reportable event type
         MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE: timedelta(days=30),
     }
 
@@ -129,19 +129,62 @@ class SRPReportMilestone(SRPReportBase):
 
     @property
     def due_at(self):
+        """
+        Calculate milestone due date.
+
+        For LEVEL_FINAL: duration depends on event type:
+        - KEV (actively_exploited_vulnerability): 14 days
+        - Severe Incident (severe_incident): 30 days
+        - Additional Information Request (additional_information_request): 30 days from the request received
+        """
+        if (
+            self.milestone_type
+            == self.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
+        ):
+            if not self.request_received_at:
+                return None
+            return self.request_received_at + timedelta(days=30)
+
         if not self.srp_report.timer_started_at:
             return None
 
-        return (
-            self.srp_report.timer_started_at
-            + self.MILESTONE_DURATION_BY_TYPE[self.milestone_type]
-        )
+        if self.milestone_type == self.MilestoneType.LEVEL_FINAL:
+            # Check parent report's event type
+            if (
+                self.srp_report.reportable_event_type
+                == SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+            ):
+                duration = timedelta(days=14)
+            elif (
+                self.srp_report.reportable_event_type
+                == SRPReport.ReportableEventType.SEVERE_INCIDENT
+            ):
+                duration = timedelta(days=30)
+            else:
+                raise ValidationError("Invalid reportable event type")
+        else:
+            # Use static duration for 24h, 72h, etc.
+            duration = self.MILESTONE_DURATION_BY_TYPE[self.milestone_type]
+
+        return self.srp_report.timer_started_at + duration
 
     def __str__(self):
         return f"{self.milestone_type} - {self.srp_report.flaw.cve_id or self.srp_report.flaw.uuid}"
 
     @validator
     def _validate_due_at_required(self, **kwargs):
-        """Due date must be set for all milestones"""
+        """
+        Due date must be set for all milestones.
+
+        Exception: LEVEL_ADDITIONAL_INFORMATION_RESPONSE milestones can have
+        None due_at if request_received_at is not yet set.
+        """
         if not self.due_at:
+            # Allow None for additional info milestones without request time
+            if (
+                self.milestone_type
+                == self.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
+                and not self.request_received_at
+            ):
+                return  # Valid state - waiting for request
             raise ValidationError("due_at must be set for all milestones")
