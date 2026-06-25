@@ -791,6 +791,11 @@ class FlawFilter(
             "references__url": ["exact"],
             "references__uuid": ["exact"],
         }
+        filter_overrides = {
+            models.DateTimeField: {
+                "filter_class": RelativeDateTimeFilter,
+            },
+        }
 
     order_fields = [
         "bz_id",
@@ -1551,6 +1556,11 @@ class AffectFilter(
             "created_by": ["exact", "icontains"],
             "updated_by": ["exact", "icontains"],
         }
+        filter_overrides = {
+            models.DateTimeField: {
+                "filter_class": RelativeDateTimeFilter,
+            },
+        }
 
     order_fields = [
         "cvss_scores__cvss_version",
@@ -1645,6 +1655,11 @@ class TrackerFilter(
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
             "affects__flaw__components": ["exact"],
+        }
+        filter_overrides = {
+            models.DateTimeField: {
+                "filter_class": RelativeDateTimeFilter,
+            },
         }
 
     order_fields = [
@@ -1854,6 +1869,11 @@ class FlawAcknowledgmentFilter(
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
         }
+        filter_overrides = {
+            models.DateTimeField: {
+                "filter_class": RelativeDateTimeFilter,
+            },
+        }
 
 
 class FlawCommentFilter(InFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
@@ -1886,6 +1906,11 @@ class FlawCVSSFilter(InFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet
             "uuid": ["exact"],
             "vector": ["exact"],
         }
+        filter_overrides = {
+            models.DateTimeField: {
+                "filter_class": RelativeDateTimeFilter,
+            },
+        }
 
 
 class FlawReferenceFilter(InFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet):
@@ -1904,6 +1929,11 @@ class FlawReferenceFilter(InFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilt
             + DATE_LOOKUP_EXPRS,
             "url": ["exact"],
             "uuid": ["exact"],
+        }
+        filter_overrides = {
+            models.DateTimeField: {
+                "filter_class": RelativeDateTimeFilter,
+            },
         }
 
 
@@ -1927,6 +1957,11 @@ class AffectCVSSFilter(InFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterS
             "uuid": ["exact"],
             "vector": ["exact"],
         }
+        filter_overrides = {
+            models.DateTimeField: {
+                "filter_class": RelativeDateTimeFilter,
+            },
+        }
 
 
 class FlawPackageVersionFilter(
@@ -1947,6 +1982,11 @@ class FlawPackageVersionFilter(
             + DATE_LOOKUP_EXPRS,
             # versions fields
             "versions__version": ["exact"],
+        }
+        filter_overrides = {
+            models.DateTimeField: {
+                "filter_class": RelativeDateTimeFilter,
+            },
         }
 
 
@@ -1997,6 +2037,11 @@ class SyncManagerFilter(InFilterSet):
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
+        }
+        filter_overrides = {
+            models.DateTimeField: {
+                "filter_class": RelativeDateTimeFilter,
+            },
         }
 
     order_fields = [
