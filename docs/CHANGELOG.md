@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add create SRP report when Flaw is EXPLOITS_KEV_APPROVED or MAJOR_INCIDENT (OSIDB-5067)
 - Automatic creation of upsteam maintainer notification when criteria is met for flaw (OSIDB-5077)
 - Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
+- Exclude orphaned trackers from v1 flaw and tracker endpoints when filtering by tracker_ids(OSIDB-4927)
+
+## [5.12.0] - 2026-06-25
+### Added
+- Scope lib-newtopia queries by ecosystem derived from upstream PURLs (OSIDB-4966)
+- Add comment_zero in the description of community trackers (OSIDB-4776)
 
 ### Changed
 - align existing workflows with workflow framework concepts
@@ -30,8 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
 - Wrap external errors with affect context for bulk PUT endpoint (OSIDB-5038)
-- Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
-- Fixed double error raise problem in sync_manager.
+- Wrapped bulk ACL up- Fixed double error raise problem in sync_manager.
 - Fix incorrect OpenAPI schema types for audit endpoint fields (pgh_data, pgh_context, pgh_diff) (OSIDB-3637)
 
 ### Removed
@@ -59,6 +64,8 @@ ainer notification when criteria is met for flaw (OSIDB-5077)
 >>>>>>> 5432c362 (OSIDB-5077- Mark flaw as Upstream Maintainer Notifiable When Criteria Are Met)
 ction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
 >>>>>>> 5d0b2638 (Fix changelog file)
+ tracker endpoints when filtering by tracker_ids(OSIDB-4927)
+>>>>>>> f2e75683 (Update version to 5.12.0)
 
 ## [5.11.1] - 2026-06-10
 ### Fixed
