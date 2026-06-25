@@ -975,7 +975,7 @@ class TestWorkflowFramework:
         workflow_framework.register_workflow(workflow_high)
         workflow_framework.register_workflow(workflow_low)
 
-        flaw = Flaw()
+        flaw = Flaw(task_key="TASK-123")
         classified_workflow, classified_state = workflow_framework.classify(flaw)
         assert_workflow_equals(classified_workflow, workflow_high)
         assert_state_equals(classified_state, new_high)
@@ -985,7 +985,7 @@ class TestWorkflowFramework:
         workflow_framework.register_workflow(workflow_low)
         workflow_framework.register_workflow(workflow_high)
 
-        flaw = Flaw()
+        flaw = Flaw(task_key="TASK-123")
         classified_workflow, classified_state = workflow_framework.classify(flaw)
         assert_workflow_equals(classified_workflow, workflow_high)
         assert_state_equals(classified_state, new_high)
@@ -1044,7 +1044,7 @@ class TestWorkflowFramework:
         workflow_framework.register_workflow(workflow_main)
         workflow_framework.register_workflow(workflow_reject)
 
-        flaw = FlawFactory()
+        flaw = FlawFactory(task_key="TASK-123")
         flaw.comment_zero = ""
         flaw.title = ""
 
