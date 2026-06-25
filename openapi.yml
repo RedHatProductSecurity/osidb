@@ -14090,7 +14090,6 @@ components:
           - string
           - 'null'
           default: ''
-          maxLength: 255
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -14144,7 +14143,9 @@ components:
           type: string
           readOnly: true
         assist_meta:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -14229,7 +14230,6 @@ components:
           - string
           - 'null'
           default: ''
-          maxLength: 255
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -14248,7 +14248,9 @@ components:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
         assist_meta:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -14501,7 +14503,6 @@ components:
           - string
           - 'null'
           default: ''
-          maxLength: 255
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -14520,7 +14521,9 @@ components:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
         assist_meta:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
@@ -14574,7 +14577,6 @@ components:
           - string
           - 'null'
           default: ''
-          maxLength: 255
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -14593,7 +14595,9 @@ components:
           - $ref: '#/components/schemas/NotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
         assist_meta:
-          nullable: true
+          oneOf:
+          - {}
+          - type: 'null'
         embargoed:
           type: boolean
           description: The embargoed boolean attribute is technically read-only as
