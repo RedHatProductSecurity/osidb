@@ -1,13 +1,16 @@
 import logging
 
+from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from osidb.models import Flaw
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 
-logger = logging.getLogger(__name__)
+from .models.upstream import UpstreamNotification
+from .services import is_flaw_upstream_notifiable
 
+logger = logging.getLogger(__name__)
 
 INCIDENT_STATES_THAT_REQUIRE_SRP_REPORT = [
     Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
@@ -65,3 +68,26 @@ def create_srp_report(sender, instance: Flaw, created: bool, **kwargs):
     else:
         create_srp_report_milestones(srp_report)
         logger.info(f"Created SRP Report {srp_report.uuid} for {instance.uuid}")
+
+
+@receiver(post_save, sender=Flaw)
+def check_upstream_notifiable(sender, instance, **kwargs):
+    """
+    On Flaw save, check criteria for upstream maintainer notification.
+    """
+    if not settings.CRA_NOTIFICATIONS_ENABLED:
+        return
+    if not is_flaw_upstream_notifiable(instance):
+        return
+
+    notification, created = UpstreamNotification.objects.get_or_create(
+        flaw=instance,
+        defaults={
+            "status": UpstreamNotification.NotificationStatus.REQUIRED,
+            "reportability_reason": UpstreamNotification.ReportabilityReason.RED_HAT_IDENTIFIED,
+        },
+    )
+    if created:
+        logger.info(
+            f"Created upstream notification {notification.uuid} for flaw {instance.uuid}"
+        )

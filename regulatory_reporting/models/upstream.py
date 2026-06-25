@@ -88,6 +88,8 @@ class UpstreamNotification(ACLMixin, TrackingMixin):
         UpstreamProject,
         on_delete=models.CASCADE,
         related_name="notifications",
+        null=True,
+        blank=True,
     )
     status = models.CharField(
         max_length=20,
