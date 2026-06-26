@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new Models SRPReport and SRPReportMilestone (OSIDB-5066)
 - Add `upstream maintainer` notification models (OSIDB-5076) 
 - Add create SRP report when Flaw is EXPLOITS_KEV_APPROVED or MAJOR_INCIDENT (OSIDB-5067)
+- Add SRP report milestone creation (OSIDB-5068)
 
 ### Changed
 - Make HashiCorp Vault integration credential-based opt-in (OSIDB-5108)
