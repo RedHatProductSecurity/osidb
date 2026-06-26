@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto-affect creation no longer overrides Affect.impact
 - Fixed double error raise problem in sync_manager.
 adjust workflow:state on Flaw.save
+w:state on Flaw.save
+>>>>>>> e0f59d45 (OSIDB-5067: Mark Flaw as SRP Reportable When Criteria Are Met)
 - unrestrict workflow state names (OSIDB-5049)
 >>>>>>> fc7d9717 (OSIDB-5066: New models SRPReport and Milestones)
 - move automatic visibility change handling specification into the workflow definitions
