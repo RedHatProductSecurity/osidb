@@ -3,11 +3,19 @@ from typing import Any
 
 from celery.utils.log import get_task_logger
 from django.db import transaction
+from packageurl import PackageURL
 
+from apps.ace.osv_ranges import OsvPackageInfo, match_component_to_upstream
+from apps.ace.version import (
+    OsvStatus,
+    determine_status,
+    extract_upstream_version,
+    parse_version_range_or,
+)
 from config.celery import app
 from osidb.helpers import bypass_rls
 from osidb.models import Flaw
-from osidb.models.affect import Affect, AffectSettings
+from osidb.models.affect import Affect, AffectSettings, NotAffectedJustification
 from osidb.models.flaw.upstream import UpstreamData
 
 logger = get_task_logger(__name__)
@@ -51,23 +59,69 @@ def _ace_tool_name() -> str:
         return f"osidb {osidb_version}"
 
 
+def _osv_version_status(
+    purl_str: str,
+    pkg_info: OsvPackageInfo | None,
+) -> tuple[OsvStatus, str | None, str | None]:
+    """
+    Determine the OSV affectedness status for a single lib_newtopia result purl.
+
+    Returns ``(status, range_str, version_checked)`` where:
+      - ``status`` is an :class:`OsvStatus` member
+      - ``range_str`` is the range expression derived from upstream_purls, or ``None``
+        when no range could be determined (NO_MATCH / NO_RANGE)
+      - ``version_checked`` is the upstream version extracted from the result purl, or
+        ``None`` when no version was available (NO_MATCH / NO_RANGE / NO_VERSION)
+    """
+    if pkg_info is None:
+        return OsvStatus.NO_MATCH, None, None
+
+    range_str = pkg_info.affected_range()
+    if range_str is None:
+        return OsvStatus.NO_RANGE, None, None
+
+    try:
+        purl_version = PackageURL.from_string(purl_str).version
+    except Exception:
+        purl_version = None
+
+    upstream_version = extract_upstream_version(purl_version, pkg_info.ecosystem)
+    if upstream_version is None:
+        return OsvStatus.NO_VERSION, range_str, None
+
+    status = determine_status(
+        upstream_version, parse_version_range_or(range_str, pkg_info.ecosystem)
+    )
+    return status, range_str, upstream_version
+
+
 def _sync_affects_from_results(
     flaw: Flaw,
     results: list,
     flaw_component: str = "",
     ps_modules: list[str] | None = None,
     ecosystem: str = "",
+    upstream_purls: list[dict] | None = None,
 ) -> dict[str, int]:
     """Create affects on ``flaw`` for each entry in ``results``.
 
     Each entry is a ``NewcliBuildResult`` or ``NewcliDepResult`` from lib_newtopia.
     Existing affects matching ``(flaw, ps_update_stream, ps_component)`` are skipped.
+
+    When ``upstream_purls`` is provided (from ``UpstreamData``), each result's purl
+    version is checked against the OSV version range for the matched component.
+    Results whose version falls outside the range are created as NOTAFFECTED affects.
     """
     created = 0
     skipped = 0
     skipped_existing = 0
+    marked_notaffected = 0
     flaw_has_high_cvss_score = flaw.has_high_cvss_score
     tool_name = _ace_tool_name()
+
+    pkg_info = match_component_to_upstream(
+        flaw_component, upstream_purls or [], ecosystem=ecosystem
+    )
 
     with transaction.atomic():
         for result in results:
@@ -96,6 +150,10 @@ def _sync_affects_from_results(
                 skipped_existing += 1
                 continue
 
+            osv_status, range_str, version_checked = _osv_version_status(
+                purl_str, pkg_info
+            )
+
             affect = Affect(
                 flaw=flaw,
                 ps_update_stream=ps_update_stream,
@@ -115,9 +173,22 @@ def _sync_affects_from_results(
                     "tool_trigger": (
                         f"flaw.components updated (component: {flaw_component!r})"
                     ),
+                    "osv_range_used": range_str,
+                    "osv_version_checked": version_checked,
+                    "osv_status": osv_status.value,
                 },
             )
-            affect.auto_resolve(flaw_has_high_cvss_score=flaw_has_high_cvss_score)
+
+            if osv_status is OsvStatus.NOT_AFFECTED:
+                affect.affectedness = Affect.AffectAffectedness.NOTAFFECTED
+                affect.resolution = Affect.AffectResolution.NOVALUE
+                affect.not_affected_justification = (
+                    NotAffectedJustification.VULN_CODE_NOT_PRESENT
+                )
+                marked_notaffected += 1
+            else:
+                affect.auto_resolve(flaw_has_high_cvss_score=flaw_has_high_cvss_score)
+
             affect.save(raise_validation_error=False)
             created += 1
 
@@ -125,6 +196,7 @@ def _sync_affects_from_results(
         "created": created,
         "skipped": skipped,
         "skipped_existing": skipped_existing,
+        "marked_notaffected": marked_notaffected,
     }
 
 
@@ -161,17 +233,28 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
     flaw = Flaw.objects.get(uuid=flaw_id)
     components = _flaw_components(flaw)
     ps_modules = AffectSettings().auto_create_ps_modules
-    totals: dict[str, int] = {"created": 0, "skipped": 0, "skipped_existing": 0}
+    totals: dict[str, int] = {
+        "created": 0,
+        "skipped": 0,
+        "skipped_existing": 0,
+        "marked_notaffected": 0,
+    }
 
     osv_data = flaw.upstream_data.filter(source=UpstreamData.Source.OSV).first()
+    upstream_purls: list[dict] = osv_data.upstream_purls if osv_data else []
     component_ecosystems = osv_data.component_ecosystems if osv_data else {}
 
     for flaw_component in components:
-        ecosystems = component_ecosystems.get(flaw_component, [""])
+        ecosystems = component_ecosystems.get(flaw_component.strip().lower(), [""])
         for ecosystem in ecosystems:
             results = _query_newtopia(flaw_component, ps_modules, ecosystem=ecosystem)
             stats = _sync_affects_from_results(
-                flaw, results, flaw_component, ps_modules, ecosystem=ecosystem
+                flaw,
+                results,
+                flaw_component,
+                ps_modules,
+                ecosystem=ecosystem,
+                upstream_purls=upstream_purls,
             )
             for key in totals:
                 totals[key] += stats[key]
