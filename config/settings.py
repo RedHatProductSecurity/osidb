@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "apps.trackers",
     "apps.workflows",
     "collectors.bzimport",
+    "collectors.component_mapping",
     "collectors.cveorg",
     "collectors.epss",
     "collectors.errata",
