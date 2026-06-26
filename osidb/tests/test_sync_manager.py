@@ -117,3 +117,76 @@ class TestSyncManager(TestCase):
         assert (
             transition_manager2.last_scheduled_dt > transition_manager.last_scheduled_dt
         )
+
+
+class TestSyncManagerFailed(TestCase):
+    """Test cases for SyncManager.failed() method"""
+
+    @freeze_time(datetime(2025, 6, 24))
+    def test_failed_raises_exception(self):
+        flaw = FlawFactory(embargoed=False)
+
+        SyncManager.objects.create(name=SyncManager.__name__, sync_id=flaw.uuid)
+
+        test_exception = RuntimeError("Test error")
+
+        with pytest.raises(RuntimeError, match="Test error"):
+            SyncManager.failed(flaw.uuid, test_exception)
+
+        # Verify the failure was recorded even though it was raised
+        manager = SyncManager.objects.get(name=SyncManager.__name__, sync_id=flaw.uuid)
+        assert manager.last_failed_reason == "Test error"
+        assert manager.last_failed_dt is not None
+
+    @freeze_time(datetime(2025, 6, 24))
+    def test_failed_permanent_sets_flag(self):
+        flaw = FlawFactory(embargoed=False)
+
+        SyncManager.objects.create(name=SyncManager.__name__, sync_id=flaw.uuid)
+
+        test_exception = RuntimeError("Data not found")
+
+        with pytest.raises(RuntimeError, match="Data not found"):
+            SyncManager.failed(flaw.uuid, test_exception, permanent=True)
+
+        # Verify permanent flag is set
+        manager = SyncManager.objects.get(name=SyncManager.__name__, sync_id=flaw.uuid)
+        assert manager.permanently_failed is True
+        assert manager.last_failed_reason == "Data not found"
+
+    @freeze_time(datetime(2025, 6, 24))
+    def test_failed_updates_consecutive_failures(self):
+        flaw = FlawFactory(embargoed=False)
+
+        manager = SyncManager.objects.create(
+            name=SyncManager.__name__,
+            sync_id=flaw.uuid,
+            last_consecutive_failures=2,
+        )
+
+        with pytest.raises(RuntimeError):
+            SyncManager.failed(flaw.uuid, RuntimeError("Test"))
+
+        manager.refresh_from_db()
+        assert manager.last_consecutive_failures == 3
+        assert manager.last_consecutive_reschedules == 0  # Should be reset
+
+    @freeze_time(datetime(2025, 6, 24))
+    def test_failed_becomes_permanent_after_max_failures(self):
+        flaw = FlawFactory(embargoed=False)
+
+        # Set to the threshold (MAX_CONSECUTIVE_FAILURES is 5)
+        # The code checks the current value before incrementing, so at 5 it becomes permanent
+        manager = SyncManager.objects.create(
+            name=SyncManager.__name__,
+            sync_id=flaw.uuid,
+            last_consecutive_failures=5,
+        )
+
+        with pytest.raises(RuntimeError):
+            SyncManager.failed(flaw.uuid, RuntimeError("Final failure"))
+
+        manager.refresh_from_db()
+        assert manager.last_consecutive_failures == 6
+        # Verify it becomes permanent when at or above threshold
+        assert manager.permanently_failed is True

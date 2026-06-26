@@ -105,9 +105,11 @@ BZ_METADATA_COLLECTOR_ENABLED=1
 ERRATA_COLLECTOR_ENABLED=1
 JIRA_TRACKER_COLLECTOR_ENABLED=1
 JIRA_METADATA_COLLECTOR_ENABLED=1
+JIRA_USER_MAPPING_COLLECTOR_ENABLED=0
 CVEORG_COLLECTOR_ENABLED=1
 NVD_COLLECTOR_ENABLED=1
 OSV_COLLECTOR_ENABLED=1
+EPSS_COLLECTOR_ENABLED=0
 # Exploit collector switches: set to 0 to turn each collector off (default), or 1 to turn it on
 EXPLOITS_CISA_COLLECTOR_ENABLED=0
 EXPLOITS_EXPLOITDB_COLLECTOR_ENABLED=0
@@ -215,6 +217,12 @@ Start the whole container compose (recommended):
 
 ```bash
 $ make start-local
+```
+
+Start the whole container compose in the background:
+
+```bash
+$ make start-local-bg
 ```
 
 Optionally, also point browser to
