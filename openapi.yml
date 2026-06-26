@@ -14790,14 +14790,22 @@ components:
           type: string
           description: The event label.
         pgh_context:
+          type: object
+          additionalProperties: {}
           nullable: true
           description: The context associated with the event.
+          readOnly: true
         pgh_diff:
+          type: object
+          additionalProperties: {}
           description: The diff between the previous event of the same label.
+          readOnly: true
         pgh_data:
-          type: string
+          type: object
+          additionalProperties: {}
           readOnly: true
       required:
+      - pgh_context
       - pgh_created_at
       - pgh_data
       - pgh_diff
