@@ -274,16 +274,19 @@ class SyncManager(models.Model):
         ):
             updated_permanently_failed = True
 
+        error_msg = str(exception).strip()
         SyncManager.objects.filter(name=cls.__name__, sync_id=sync_id).update(
             last_failed_dt=timezone.now(),
-            last_failed_reason=str(exception).strip(),
+            last_failed_reason=error_msg,
             last_consecutive_failures=updated_last_consecutive_failures,
             last_consecutive_reschedules=0,
             permanently_failed=updated_permanently_failed,
         )
-        logger.info(f"{cls.__name__} {sync_id}: Sync failed")
-        if updated_permanently_failed:
-            logger.info(f"{cls.__name__} {sync_id}: Sync failed permanently")
+        failure_type = "permanently" if updated_permanently_failed else "temporarily"
+        logger.error(
+            f"{cls.__name__} {sync_id}: Sync failed {failure_type} "
+            f"({exception.__class__.__name__}: {error_msg})"
+        )
         raise exception
 
     def revoke_sync_task(self, celery_task):
@@ -606,6 +609,7 @@ class BZTrackerDownloadManager(SyncManager):
 
         # Code adapted from collectors.bzimport.collectors.BugzillaTrackerCollector.collect
         collector = collectors.BugzillaTrackerCollector()
+        permanent = False  # Default to non-permanent failure
         try:
             collector.sync_tracker(tracker_id)
             result = BZTrackerDownloadManager.link_tracker_with_affects(
@@ -614,25 +618,17 @@ class BZTrackerDownloadManager(SyncManager):
             # Handle link failures
             affects, failed_flaws, failed_affects = result
             if failed_flaws:
-                BZTrackerDownloadManager.failed(
-                    tracker_id,
-                    RuntimeError(
-                        f"Flaws do not exist: {failed_flaws}, "
-                        f"Affects do not exist: {failed_affects}"
-                    ),
+                raise RuntimeError(
+                    f"Flaws do not exist: {failed_flaws}, "
+                    f"Affects do not exist: {failed_affects}"
                 )
             elif failed_affects:
-                BZTrackerDownloadManager.failed(
-                    tracker_id,
-                    RuntimeError(f"Affects do not exist: {failed_affects}"),
-                    permanent=True,
-                )
+                permanent = True
+                raise RuntimeError(f"Affects do not exist: {failed_affects}")
             elif not affects:
-                BZTrackerDownloadManager.failed(
-                    tracker_id, RuntimeError("No Affects found")
-                )
+                raise RuntimeError("No Affects found")
         except Exception as e:
-            BZTrackerDownloadManager.failed(tracker_id, e)
+            BZTrackerDownloadManager.failed(tracker_id, e, permanent=permanent)
         else:
             BZTrackerDownloadManager.finished(tracker_id)
         finally:
@@ -950,6 +946,7 @@ class JiraTrackerDownloadManager(SyncManager):
 
         set_user_acls(settings.ALL_GROUPS)
 
+        permanent = False  # Default to non-permanent failure
         try:
             tracker_data = JiraQuerier().get_issue(tracker_id)
             tracker = JiraTrackerConvertor(tracker_data).tracker
@@ -966,24 +963,16 @@ class JiraTrackerDownloadManager(SyncManager):
             # Handle link failures
             affects, failed_flaws, failed_affects = result
             if failed_flaws:
-                JiraTrackerDownloadManager.failed(
-                    tracker_id,
-                    RuntimeError(
-                        f"Flaws do not exist: {failed_flaws}, "
-                        f"Affects do not exist: {failed_affects}"
-                    ),
+                raise RuntimeError(
+                    f"Flaws do not exist: {failed_flaws}, "
+                    f"Affects do not exist: {failed_affects}"
                 )
             elif failed_affects:
-                JiraTrackerDownloadManager.failed(
-                    tracker_id,
-                    RuntimeError(f"Affects do not exist: {failed_affects}"),
-                    permanent=True,
-                )
+                permanent = True
+                raise RuntimeError(f"Affects do not exist: {failed_affects}")
             elif not affects:
-                JiraTrackerDownloadManager.failed(
-                    tracker_id, RuntimeError("No Affects found")
-                )
+                raise RuntimeError("No Affects found")
         except Exception as e:
-            JiraTrackerDownloadManager.failed(tracker_id, e)
+            JiraTrackerDownloadManager.failed(tracker_id, e, permanent=permanent)
         else:
             JiraTrackerDownloadManager.finished(tracker_id)
