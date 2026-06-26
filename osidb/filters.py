@@ -11,7 +11,7 @@ from django.contrib.postgres.search import (
     SearchVector,
     TrigramSimilarity,
 )
-from django.core.exceptions import FieldDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.db.models import Max, Min, Q
@@ -352,6 +352,7 @@ class SparseFieldsFilterSet(FilterSet):
         """
         prefetch_set = set()
         field_set = set()
+        valid_field_names = {f.name for f in self._meta.model._meta.get_fields()}
         for fname in list(fields):
             relation = fname
             if "__" in fname:
@@ -374,11 +375,10 @@ class SparseFieldsFilterSet(FilterSet):
                 # affects__trackers to include_fields, we'll consider this
                 # a limitation of these filters.
                 relation = relation.rsplit("__", 1)[0]
-            try:
-                # check that the field actually exists
-                field = self._meta.model._meta.get_field(fname)
-            except FieldDoesNotExist:
+
+            if fname not in valid_field_names:
                 continue
+            field = self._meta.model._meta.get_field(fname)
             if not field.concrete:
                 # a field is concrete if it has a column in the database, we don't
                 # want non-concrete fields as we cannot filter them via SQL

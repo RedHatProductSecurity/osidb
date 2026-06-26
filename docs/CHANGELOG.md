@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new Models SRPReport and SRPReportMilestone (OSIDB-5066)
 - Add `upstream maintainer` notification models (OSIDB-5076) 
 
+### Changed
+- Make HashiCorp Vault integration credential-based opt-in (OSIDB-5108)
+
+### Fixed
+- Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
+
 ## [5.11.1] - 2026-06-10
 ### Fixed
 - Fix Jira metadata collector crash on duplicate field names (OSIDB-4920)

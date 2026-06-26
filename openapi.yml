@@ -13699,6 +13699,25 @@ paths:
                     version:
                       type: string
           description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+                description: Vault integration is disabled
+          description: ''
     patch:
       operationId: osidb_integrations_partial_update
       description: Set third-party integration tokens for the current user.
@@ -13733,6 +13752,25 @@ paths:
                     type: string
                   version:
                     type: string
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+                description: Vault integration is disabled
           description: ''
   /osidb/whoami:
     get:
