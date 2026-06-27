@@ -123,6 +123,7 @@ def cleanup_last_validated_dt_only_events(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    atomic = False
 
     dependencies = [
         ('osidb', '0237_delete_jirataskdownloadmanager'),
