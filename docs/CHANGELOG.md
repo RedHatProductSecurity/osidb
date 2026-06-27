@@ -45,6 +45,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Exclude streams with no offer from tracker suggestions response (OSIDB-4977)
 
+### Changed
+- Extend Gunicorn keepalive time to 301 seconds to prevent race conditions with HAProxy timeout. (OSIDB-4918)
+
 ## [5.10.3] - 2026-05-06
 ### Fixed
 - Include builds during affect auto-creation (OSIDB-4965)
