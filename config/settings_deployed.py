@@ -1,3 +1,24 @@
+"""
+Django settings for deployed OSIDB environments (prod, stage, uat, or custom).
+
+All environment-specific differences are driven by environment variables
+rather than separate settings files per environment. This allows external
+deployers to configure their own instances without modifying app code.
+
+Required env vars (typically provided by the ops repo / ConfigMap):
+    DJANGO_SECRET_KEY
+    OSIDB_DB_USER, OSIDB_DB_PASSWORD, OSIDB_DB_HOST
+    OSIDB_REDIS_PASSWORD
+    KRB5_HOSTNAME
+    ET_URL
+
+Optional env vars for per-environment tuning:
+    OSIDB_ENV                       - Environment name for log file prefixes (default: "prod")
+    OSIDB_LDAP_GROUP_PREFIX         - Prefix for LDAP group names (default: "osidb-prod")
+    OSIDB_DB_NAME                   - Database name (default: "osidb")
+    OSIDB_CORS_LITERAL_ORIGINS_ONLY - Use literal CORS origins instead of regex (default: "False")
+"""
+
 import ssl
 
 import ldap
@@ -5,30 +26,26 @@ from django_auth_ldap.config import GroupOfUniqueNamesType, LDAPSearch, LDAPSear
 
 from .settings import *
 
-# django secret key provided by ansible vault
+# --- Per-environment knobs ---
+
+ENV = get_env("OSIDB_ENV", default="prod")
+LDAP_GROUP_PREFIX = get_env("OSIDB_LDAP_GROUP_PREFIX", default="osidb-prod")
+
+# --- Django core ---
+
 SECRET_KEY = get_env("DJANGO_SECRET_KEY")
 
-# We trust OpenShift's HAProxy to strip the X-Forwarded-Proto header and to set it to "https" if
-# the request came over HTTPS from the client to HAProxy.
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Minimal group for read access of public flaws in OSIDB
-# TODO: In the future we might simply use a proxy group in which
-# membership is based off of one or more LDAP groups
-# e.g. (|(memberOf=group-a)(memberOf=group-b))
-PUBLIC_READ_GROUPS = ["osidb-prod-public-read", "red-hat-product-security"]
-# Minimal group for write access of public flaws in OSIDB
-PUBLIC_WRITE_GROUP = "osidb-prod-public-write"
-# Minimal group for read access of embargoed flaws in OSIDB
-EMBARGO_READ_GROUP = "osidb-prod-embargo-read"
-# Minimal group for write access of embargoed flaws in OSIDB
-EMBARGO_WRITE_GROUP = "osidb-prod-embargo-write"
-# Minimal group for read access of internal flaws in OSIDB
-INTERNAL_READ_GROUP = "osidb-prod-internal-read"
-# Minimal group for write access of internal flaws in OSIDB
-INTERNAL_WRITE_GROUP = "osidb-prod-internal-write"
-# Contains all non-admin groups
+# --- ACL groups ---
+
+PUBLIC_READ_GROUPS = [f"{LDAP_GROUP_PREFIX}-public-read", "red-hat-product-security"]
+PUBLIC_WRITE_GROUP = f"{LDAP_GROUP_PREFIX}-public-write"
+EMBARGO_READ_GROUP = f"{LDAP_GROUP_PREFIX}-embargo-read"
+EMBARGO_WRITE_GROUP = f"{LDAP_GROUP_PREFIX}-embargo-write"
+INTERNAL_READ_GROUP = f"{LDAP_GROUP_PREFIX}-internal-read"
+INTERNAL_WRITE_GROUP = f"{LDAP_GROUP_PREFIX}-internal-write"
 ALL_GROUPS = [
     *PUBLIC_READ_GROUPS,
     PUBLIC_WRITE_GROUP,
@@ -37,8 +54,9 @@ ALL_GROUPS = [
     INTERNAL_READ_GROUP,
     INTERNAL_WRITE_GROUP,
 ]
-# Minimal group for managing the OSIDB service
-SERVICE_MANAGE_GROUP = "osidb-prod-manage"
+SERVICE_MANAGE_GROUP = f"{LDAP_GROUP_PREFIX}-manage"
+
+# --- LDAP ---
 
 ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
 
@@ -76,6 +94,8 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {
     "is_superuser": f"cn={SERVICE_MANAGE_GROUP},ou=adhoc,ou=managedgroups,dc=redhat,dc=com",
 }
 
+# --- Database ---
+
 DATABASES = {
     "default": {
         "NAME": get_env("OSIDB_DB_NAME", default="osidb"),
@@ -84,13 +104,10 @@ DATABASES = {
         "HOST": get_env("OSIDB_DB_HOST"),
         "PORT": get_env("OSIDB_DB_PORT", default="5432"),
         "ENGINE": "psqlextra.backend",
-        "ATOMIC_REQUESTS": True,  # perform HTTP requests as atomic transactions
+        "ATOMIC_REQUESTS": True,
         "OPTIONS": {
             "sslmode": "require",
-            # prevent libpq from automatically trying to connect to the db via GSSAPI
             "gssencmode": "disable",
-            # this is a hack due to our inability to set a custom parameter either at
-            # the database or role level in managed databases such as AWS RDS
             "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000",
         },
         "CONN_MAX_AGE": 120,
@@ -104,10 +121,7 @@ DATABASES = {
         "ENGINE": "psqlextra.backend",
         "OPTIONS": {
             "sslmode": "require",
-            # prevent libpq from automatically trying to connect to the db via GSSAPI
             "gssencmode": "disable",
-            # this is a hack due to our inability to set a custom parameter either at
-            # the database or role level in managed databases such as AWS RDS
             "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000",
         },
         "CONN_MAX_AGE": 120,
@@ -116,10 +130,12 @@ DATABASES = {
 
 DATABASE_ROUTERS = ["osidb.routers.AffectV1ReplicaRouter"]
 
+# --- Static files ---
+
 STATIC_ROOT = "/opt/app-root/static/"
 STATIC_URL = "/static/"
 
-# Celery settings
+# --- Celery / Redis ---
 
 REDIS_PASSWORD = get_env("OSIDB_REDIS_PASSWORD")
 CELERY_BROKER_URL = CELERY_RESULT_BACKEND = f"rediss://:{REDIS_PASSWORD}@redis:6379/"
@@ -130,30 +146,32 @@ CELERY_BROKER_USE_SSL = CELERY_REDIS_BACKEND_USE_SSL = CELERY_RHUBARB_BACKEND_KW
     "ssl_cert_reqs": ssl.CERT_REQUIRED,
 }
 
-# Kerberos + LDAP Auth
+# --- Kerberos + LDAP Auth ---
+
 INSTALLED_APPS += [
     "kaminarimon",
 ]
 AUTHENTICATION_BACKENDS += [
     "kaminarimon.backend.LDAPRemoteUser",
-    # TODO: remove and replace by krb auth for admin interface
     "django_auth_ldap.backend.LDAPBackend",
 ]
 KRB5_HOSTNAME = get_env("KRB5_HOSTNAME")
 
+# --- External services ---
+
 ERRATA_TOOL_SERVER = get_env("ET_URL")
 ERRATA_TOOL_XMLRPC_BASE_URL = f"{ERRATA_TOOL_SERVER}/errata/errata_service"
 
-# Execute once an hour in production
+# --- Collectors ---
+
 CISA_COLLECTOR_CRONTAB = crontab(minute=0)
 
-# Use either logstash logging or basic file logging based
-# on the instance configuration
+# --- Logging ---
+
 if get_env("MPP_LOGSTASH_LOGGING_ENABLED", is_bool=True, default="False"):
     LOGSTASH_PORT = 5140
     LOGSTASH_HOST = "logstash"
 
-    # Setup logging to logstash via TCP socket
     LOGGING["handlers"]["celery"] = {
         "class": "osidb.helpers.JSONSocketHandler",
         "formatter": "verbose_celery",
@@ -171,14 +189,13 @@ if get_env("MPP_LOGSTASH_LOGGING_ENABLED", is_bool=True, default="False"):
     }
 
 elif get_env("MPP_LOGFILE_LOGGING_ENABLED", is_bool=True, default="False"):
-    # Setup rotation logging into filesystem
     LOG_FILE_SIZE = 1024 * 1024 * 100  # 100mb
     LOG_FILE_COUNT = 3
 
     LOGGING["handlers"]["celery"] = {
         "class": "logging.handlers.RotatingFileHandler",
         "formatter": "verbose_celery",
-        "filename": "/var/log/prod-celery.log",
+        "filename": f"/var/log/{ENV}-celery.log",
         "maxBytes": LOG_FILE_SIZE,
         "backupCount": LOG_FILE_COUNT,
     }
@@ -186,14 +203,21 @@ elif get_env("MPP_LOGFILE_LOGGING_ENABLED", is_bool=True, default="False"):
         "level": "INFO",
         "class": "logging.handlers.RotatingFileHandler",
         "formatter": "verbose",
-        "filename": "/var/log/prod-django.log",
+        "filename": f"/var/log/{ENV}-django.log",
         "maxBytes": LOG_FILE_SIZE,
         "backupCount": LOG_FILE_COUNT,
     }
 
+LOGGING["loggers"]["bugzilla"] = {
+    "handlers": ["console"],
+    "level": "DEBUG",
+    "propagate": False,
+}
 
-# sets the Access-Control-Allow-Origin response header - accepts literal strings
-# example value: ["https://osidb.example.com", "https://workflows.example.com"]
-CORS_ALLOWED_ORIGINS = get_env("OSIDB_CORS_ALLOWED_ORIGINS", default="[]", is_json=True)
-# removes default config that allows regex
-CORS_ALLOWED_ORIGIN_REGEXES = []
+# --- CORS ---
+
+if get_env("OSIDB_CORS_LITERAL_ORIGINS_ONLY", is_bool=True, default="False"):
+    CORS_ALLOWED_ORIGINS = get_env(
+        "OSIDB_CORS_ALLOWED_ORIGINS", default="[]", is_json=True
+    )
+    CORS_ALLOWED_ORIGIN_REGEXES = []

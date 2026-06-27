@@ -385,7 +385,7 @@ def get_execution_env() -> str:
 
     e.g. local, stage, prod, ci
     """
-    return getenv("DJANGO_SETTINGS_MODULE", "").split("_")[-1]
+    return getenv("OSIDB_ENV", "") or getenv("DJANGO_SETTINGS_MODULE", "").split("_")[-1]
 
 
 def get_bugzilla_api_key(request: Request) -> str:
