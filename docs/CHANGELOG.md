@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Base auto-affect determination on upstream affected versions (OSIDB-5031)
+- Add support for relative datetime queries in API filters (OSIDB-5168)
 
 ## [5.12.0] - 2026-06-25
 ### Added

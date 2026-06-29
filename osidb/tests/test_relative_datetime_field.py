@@ -7,6 +7,7 @@ from datetime import date, timedelta, timezone
 import pytest
 from django.core.exceptions import ValidationError
 from django.utils import timezone as django_timezone
+from freezegun import freeze_time
 
 from osidb.forms import RelativeDateTimeField
 
@@ -223,23 +224,6 @@ class TestRelativeDateTimeField:
 
         assert abs(result - expected_time) < timedelta(seconds=1)
 
-    @pytest.mark.parametrize(
-        "value,delta",
-        [
-            ("-1D", -timedelta(days=1)),
-            ("-2H", -timedelta(hours=2)),
-        ],
-    )
-    def test_case_insensitive_units(self, value, delta):
-        """Test that units are case-insensitive"""
-        # TODO: Remove when adding support for Month
-
-        field = RelativeDateTimeField()
-
-        result = field.to_python(value)
-        expected_time = django_timezone.now() + delta
-        assert abs(result - expected_time) < timedelta(seconds=1)
-
     def test_strptime_with_absolute_datetime(self):
         """Test that strptime works with absolute datetime strings"""
         field = RelativeDateTimeField()
@@ -325,6 +309,96 @@ class TestRelativeDateTimeField:
         field = RelativeDateTimeField()
         with pytest.raises(ValidationError):
             field.to_python("-1d2h")
+
+    @freeze_time("2024-06-15 12:00:00")
+    def test_one_month_ago_datetime(self):
+        """Test -1M returns datetime 1 month ago"""
+        field = RelativeDateTimeField()
+        result = field.to_python("-1M")
+        expected = django_timezone.make_aware(
+            django_timezone.datetime(2024, 5, 15, 12, 0, 0)
+        )
+        assert abs(result - expected) < timedelta(seconds=1)
+
+    @freeze_time("2024-06-15 12:00:00")
+    def test_one_year_ago_datetime(self):
+        """Test -1y returns datetime 1 year ago"""
+        field = RelativeDateTimeField()
+        result = field.to_python("-1y")
+        expected = django_timezone.make_aware(
+            django_timezone.datetime(2023, 6, 15, 12, 0, 0)
+        )
+        assert abs(result - expected) < timedelta(seconds=1)
+
+    @freeze_time("2024-01-31 12:00:00")
+    def test_month_overflow_datetime_jan_to_feb(self):
+        """Jan 31 12:00 + 1M should be Feb 29 12:00 (leap year)"""
+        field = RelativeDateTimeField()
+        result = field.to_python("+1M")
+        expected = django_timezone.make_aware(
+            django_timezone.datetime(2024, 2, 29, 12, 0, 0)
+        )
+        assert abs(result - expected) < timedelta(seconds=1)
+
+    @freeze_time("2024-02-29 12:00:00")
+    def test_leap_day_datetime_plus_year(self):
+        """Feb 29, 2024 12:00 + 1y should be Feb 28, 2025 12:00"""
+        field = RelativeDateTimeField()
+        result = field.to_python("+1y")
+        expected = django_timezone.make_aware(
+            django_timezone.datetime(2025, 2, 28, 12, 0, 0)
+        )
+        assert abs(result - expected) < timedelta(seconds=1)
+
+    @freeze_time("2024-06-15 14:30:00")
+    def test_month_preserves_time(self):
+        """Test that month arithmetic preserves time component"""
+        field = RelativeDateTimeField()
+        result = field.to_python("-3M")
+        expected = django_timezone.make_aware(
+            django_timezone.datetime(2024, 3, 15, 14, 30, 0)
+        )
+        assert abs(result - expected) < timedelta(seconds=1)
+
+    @freeze_time("2024-12-31 23:59:59")
+    def test_year_preserves_time_end_of_year(self):
+        """Test that year arithmetic preserves time at year boundary"""
+        field = RelativeDateTimeField()
+        result = field.to_python("+1y")
+        expected = django_timezone.make_aware(
+            django_timezone.datetime(2025, 12, 31, 23, 59, 59)
+        )
+        assert abs(result - expected) < timedelta(seconds=1)
+
+    @freeze_time("2024-06-15 12:00:00")
+    def test_uppercase_m_is_months_not_minutes_datetime(self):
+        """-1M should be 1 month ago, not 1 minute"""
+        field = RelativeDateTimeField()
+        result = field.to_python("-1M")
+        expected_month = django_timezone.make_aware(
+            django_timezone.datetime(2024, 5, 15, 12, 0, 0)
+        )
+        expected_minute = django_timezone.make_aware(
+            django_timezone.datetime(2024, 6, 15, 11, 59, 0)
+        )
+        # Should match month calculation, not minute
+        assert abs(result - expected_month) < timedelta(seconds=1)
+        assert abs(result - expected_minute) > timedelta(minutes=1)
+
+    @freeze_time("2024-06-15 12:00:00")
+    def test_lowercase_m_is_minutes_not_months_datetime(self):
+        """-1m should be 1 minute ago, not 1 month"""
+        field = RelativeDateTimeField()
+        result = field.to_python("-1m")
+        expected_minute = django_timezone.make_aware(
+            django_timezone.datetime(2024, 6, 15, 11, 59, 0)
+        )
+        expected_month = django_timezone.make_aware(
+            django_timezone.datetime(2024, 5, 15, 12, 0, 0)
+        )
+        # Should match minute calculation, not month
+        assert abs(result - expected_minute) < timedelta(seconds=1)
+        assert abs(result - expected_month) > timedelta(days=1)
 
     @pytest.mark.parametrize("value", ["-1d", "+2h", "-30m", "-1w", "+1s"])
     def test_timezone_aware(self, value):

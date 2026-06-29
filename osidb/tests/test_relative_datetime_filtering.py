@@ -618,3 +618,209 @@ class TestRelativeDateTimeFilteringEdgeCases:
         uuids = {r["uuid"] for r in results}
         assert str(flaw_1_hour_ago.uuid) in uuids
         assert str(flaw_2_hours_ago.uuid) in uuids
+
+
+class TestRelativeDateTimeFilteringMonthsYears:
+    """
+    Test relative datetime filtering with month and year units
+    """
+
+    @pytest.fixture
+    @freeze_time("2024-06-15 12:00:00")
+    def flaws_at_different_months(self):
+        """Create flaws at different months for testing month filters"""
+        return {
+            "flaw_6_months_ago": FlawFactory(
+                embargoed=False,
+                created_dt=timezone.now() - timezone.timedelta(days=180),
+            ),
+            "flaw_3_months_ago": FlawFactory(
+                embargoed=False,
+                created_dt=timezone.now() - timezone.timedelta(days=90),
+            ),
+            "flaw_1_month_ago": FlawFactory(
+                embargoed=False,
+                created_dt=timezone.now() - timezone.timedelta(days=30),
+            ),
+            "flaw_1_week_ago": FlawFactory(
+                embargoed=False,
+                created_dt=timezone.now() - timezone.timedelta(weeks=1),
+            ),
+        }
+
+    @freeze_time("2024-06-15 12:00:00")
+    def test_flaw_created_month_filter_gt(
+        self, auth_client, test_api_uri, flaws_at_different_months
+    ):
+        """Test created_dt__gt=-2M (created within last 2 months)"""
+        flaws = flaws_at_different_months
+
+        response = auth_client().get(f"{test_api_uri}/flaws?created_dt__gt=-2M")
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        uuids = {r["uuid"] for r in results}
+
+        assert str(flaws["flaw_1_month_ago"].uuid) in uuids
+        assert str(flaws["flaw_1_week_ago"].uuid) in uuids
+        assert str(flaws["flaw_3_months_ago"].uuid) not in uuids
+        assert str(flaws["flaw_6_months_ago"].uuid) not in uuids
+
+    @freeze_time("2024-06-15 12:00:00")
+    def test_flaw_created_month_filter_lte(
+        self, auth_client, test_api_uri, flaws_at_different_months
+    ):
+        """Test created_dt__lte=-4M (created 4 months ago or earlier)"""
+        flaws = flaws_at_different_months
+
+        response = auth_client().get(f"{test_api_uri}/flaws?created_dt__lte=-4M")
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        uuids = {r["uuid"] for r in results}
+
+        assert str(flaws["flaw_6_months_ago"].uuid) in uuids
+        assert str(flaws["flaw_1_month_ago"].uuid) not in uuids
+        assert str(flaws["flaw_1_week_ago"].uuid) not in uuids
+
+    @pytest.fixture
+    @freeze_time("2024-06-15 12:00:00")
+    def flaws_at_different_years(self):
+        """Create flaws at different years for testing year filters"""
+        from dateutil.relativedelta import relativedelta
+
+        return {
+            "flaw_3_years_ago": FlawFactory(
+                embargoed=False,
+                created_dt=timezone.now() - relativedelta(years=3),
+            ),
+            "flaw_1_year_ago": FlawFactory(
+                embargoed=False,
+                created_dt=timezone.now() - relativedelta(years=1),
+            ),
+            "flaw_6_months_ago": FlawFactory(
+                embargoed=False,
+                created_dt=timezone.now() - relativedelta(months=6),
+            ),
+            "flaw_recent": FlawFactory(
+                embargoed=False,
+                created_dt=timezone.now() - timezone.timedelta(days=30),
+            ),
+        }
+
+    @freeze_time("2024-06-15 12:00:00")
+    def test_flaw_created_year_filter_gt(
+        self, auth_client, test_api_uri, flaws_at_different_years
+    ):
+        """Test created_dt__gt=-1y (created within last year)"""
+        flaws = flaws_at_different_years
+
+        response = auth_client().get(f"{test_api_uri}/flaws?created_dt__gt=-1y")
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        uuids = {r["uuid"] for r in results}
+
+        assert str(flaws["flaw_6_months_ago"].uuid) in uuids
+        assert str(flaws["flaw_recent"].uuid) in uuids
+        assert str(flaws["flaw_1_year_ago"].uuid) not in uuids
+        assert str(flaws["flaw_3_years_ago"].uuid) not in uuids
+
+    @freeze_time("2024-06-15 12:00:00")
+    def test_flaw_created_year_filter_lte(
+        self, auth_client, test_api_uri, flaws_at_different_years
+    ):
+        """Test created_dt__lte=-2y (created 2 years ago or earlier)"""
+        flaws = flaws_at_different_years
+
+        response = auth_client().get(f"{test_api_uri}/flaws?created_dt__lte=-2y")
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        uuids = {r["uuid"] for r in results}
+
+        assert str(flaws["flaw_3_years_ago"].uuid) in uuids
+        assert str(flaws["flaw_1_year_ago"].uuid) not in uuids
+        assert str(flaws["flaw_6_months_ago"].uuid) not in uuids
+        assert str(flaws["flaw_recent"].uuid) not in uuids
+
+    @freeze_time("2024-06-15 12:00:00")
+    def test_month_and_impact_combined_filter(self, auth_client, test_api_uri):
+        """Test impact=CRITICAL&created_dt__gt=-6M"""
+        flaw_critical_recent = FlawFactory(
+            embargoed=False,
+            impact=Impact.CRITICAL,
+            created_dt=timezone.now() - timezone.timedelta(days=90),
+        )
+        flaw_critical_old = FlawFactory(
+            embargoed=False,
+            impact=Impact.CRITICAL,
+            created_dt=timezone.now() - timezone.timedelta(days=270),
+        )
+        flaw_low_recent = FlawFactory(
+            embargoed=False,
+            impact=Impact.LOW,
+            created_dt=timezone.now() - timezone.timedelta(days=90),
+        )
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?impact=CRITICAL&created_dt__gt=-6M"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        uuids = {r["uuid"] for r in results}
+
+        assert str(flaw_critical_recent.uuid) in uuids
+        assert str(flaw_critical_old.uuid) not in uuids
+        assert str(flaw_low_recent.uuid) not in uuids
+
+    @freeze_time("2024-06-15 12:00:00")
+    def test_year_and_month_filters_combined(self, auth_client, test_api_uri):
+        """Test created_dt__gt=-1y&updated_dt__gt=-3M"""
+        flaw_1 = FlawFactory(
+            embargoed=False,
+            created_dt=timezone.now() - timezone.timedelta(days=240),
+        )
+        flaw_1.updated_dt = timezone.now() - timezone.timedelta(days=30)
+        flaw_1.save(auto_timestamps=False)
+
+        flaw_2 = FlawFactory(
+            embargoed=False,
+            created_dt=timezone.now() - timezone.timedelta(days=730),
+        )
+        flaw_2.updated_dt = timezone.now() - timezone.timedelta(days=30)
+        flaw_2.save(auto_timestamps=False)
+
+        flaw_3 = FlawFactory(
+            embargoed=False,
+            created_dt=timezone.now() - timezone.timedelta(days=240),
+        )
+        flaw_3.updated_dt = timezone.now() - timezone.timedelta(days=180)
+        flaw_3.save(auto_timestamps=False)
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?created_dt__gt=-1y&updated_dt__gt=-3M"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        uuids = {r["uuid"] for r in results}
+
+        assert str(flaw_1.uuid) in uuids
+        assert str(flaw_2.uuid) not in uuids
+        assert str(flaw_3.uuid) not in uuids
+
+    @freeze_time("2024-06-15 12:00:00")
+    def test_uppercase_m_is_months_in_filter(self, auth_client, test_api_uri):
+        """Test that -1M in URL is interpreted as months, not minutes"""
+        flaw_2_months = FlawFactory(
+            embargoed=False,
+            created_dt=timezone.now() - timezone.timedelta(days=60),
+        )
+        flaw_2_minutes = FlawFactory(
+            embargoed=False,
+            created_dt=timezone.now() - timezone.timedelta(minutes=2),
+        )
+
+        response = auth_client().get(f"{test_api_uri}/flaws?created_dt__gt=-1M")
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        uuids = {r["uuid"] for r in results}
+
+        assert str(flaw_2_minutes.uuid) in uuids
+        assert str(flaw_2_months.uuid) not in uuids
