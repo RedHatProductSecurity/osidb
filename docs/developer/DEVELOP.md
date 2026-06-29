@@ -47,9 +47,6 @@ JIRA_TASKMAN_ASYNCHRONOUS_SYNC=1
 # Export the default local postgresql password
 OSIDB_DB_PASSWORD=passw0rd
 
-# Errata Tool URL
-ET_URL="https://foo.bar"
-
 # Product definitions git source
 PRODUCT_DEF_URL="https://foo.bar"
 PRODUCT_DEF_BRANCH="master"
@@ -102,7 +99,6 @@ KEYWORDS_CHECK_ENABLED=1
 # Collector switches: set to 0 to turn each collector off, or 1 to turn it on (default)
 BZ_TRACKER_COLLECTOR_ENABLED=1
 BZ_METADATA_COLLECTOR_ENABLED=1
-ERRATA_COLLECTOR_ENABLED=1
 JIRA_TRACKER_COLLECTOR_ENABLED=1
 JIRA_METADATA_COLLECTOR_ENABLED=1
 JIRA_USER_MAPPING_COLLECTOR_ENABLED=0
