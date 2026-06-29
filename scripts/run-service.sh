@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # Custom run script for starting osidb django service in deployed environments.
 
@@ -13,4 +14,4 @@ ACCESS_LOG_FILE="/var/log/${OSIDB_ENV:-prod}-access.log"
 
 # start gunicorn
 pkill gunicorn || true
-exec gunicorn config.wsgi --config gunicorn_config.py --access-logfile $ACCESS_LOG_FILE
+exec gunicorn config.wsgi --config gunicorn_config.py --access-logfile "$ACCESS_LOG_FILE"
