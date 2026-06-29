@@ -17,8 +17,6 @@ testrunner.jiraffe:
 	$(podman) exec -it testrunner tox -e unit-tests -- collectors/jiraffe
 testrunner.product_definitions:
 	$(podman) exec -it testrunner tox -e unit-tests -- collectors/product_definitions
-testrunner.errata:
-	$(podman) exec -it testrunner tox -e unit-tests -- collectors/errata
 testrunner.framework:
 	$(podman) exec -it testrunner tox -e unit-tests -- collectors/framework
 testrunner.sla:
