@@ -111,7 +111,6 @@ def get_flaw_with_related_objects():
         # Affects and their related objects
         "affects__cvss_scores",
         "affects__tracker",
-        "affects__tracker__errata",
         "affects__tracker__affects",
         "affects__alerts",
         "affects__tracker__alerts",

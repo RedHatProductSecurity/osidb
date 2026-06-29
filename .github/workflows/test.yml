@@ -72,7 +72,6 @@ jobs:
         run: uv tool install tox==4.28.1 -w tox-uv==1.26.2
       - name: Run OSIDB tests
         env:
-          ET_URL: https://example.com
           PRODUCT_DEF_URL: https://example.com
           PS_CONSTANTS_URL: https://example.com
           JIRA_TASKMAN_URL: https://example.com
