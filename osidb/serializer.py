@@ -32,7 +32,6 @@ from osidb.models import (
     Affect,
     AffectCVSS,
     AffectV1,
-    Erratum,
     Flaw,
     FlawAcknowledgment,
     FlawCollaborator,
@@ -310,27 +309,6 @@ class SyncToBzBulkEnablementMixinSerializer(serializers.ModelSerializer):
         # This can be removed after decommissioning bugzilla.
         self._sync_to_bz = self._validated_data.pop("sync_to_bz", True)
         return ret
-
-
-class ErratumSerializer(
-    IncludeExcludeFieldsMixin,
-    TrackingMixinSerializer,
-):
-    """Erratum serializer"""
-
-    et_id = serializers.IntegerField(read_only=True)
-    advisory_name = serializers.CharField(read_only=True)
-    shipped_dt = serializers.DateTimeField(read_only=True, allow_null=True)
-
-    class Meta:
-        """filter fields"""
-
-        model = Erratum
-        fields = [
-            "et_id",
-            "advisory_name",
-            "shipped_dt",
-        ] + TrackingMixinSerializer.Meta.fields
 
 
 class EmbargoedField(serializers.BooleanField):
@@ -787,20 +765,27 @@ class TrackerSerializer(
     meta_attr = serializers.SerializerMethodField()
     cve_id = serializers.CharField(allow_blank=True, read_only=True)
 
-    @extend_schema_field(ErratumSerializer(many=True))
-    def get_errata(self, obj):
-        """erratum serializer getter"""
-        context = {
-            "include_fields": self._next_level_include_fields.get("errata", []),
-            "exclude_fields": self._next_level_exclude_fields.get("errata", []),
+    @extend_schema_field(
+        {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "et_id": {"type": "integer"},
+                    "advisory_name": {"type": "string"},
+                    "shipped_dt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": True,
+                    },
+                    "created_dt": {"type": "string", "format": "date-time"},
+                    "updated_dt": {"type": "string", "format": "date-time"},
+                },
+            },
         }
-        if "history_cache" in self.context:
-            context["history_cache"] = self.context["history_cache"]
-
-        serializer = ErratumSerializer(
-            instance=obj.errata.all(), many=True, context=context
-        )
-        return serializer.data
+    )
+    def get_errata(self, obj):
+        return []
 
     @extend_schema_field(
         {

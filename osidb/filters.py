@@ -35,7 +35,6 @@ from osidb.models import (
     Affect,
     AffectCVSS,
     AffectV1,
-    Erratum,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
@@ -279,6 +278,15 @@ class DistinctFilterSet(FilterSet):
                     filter_.distinct = True
 
 
+DEPRECATED_ORDER_FIELDS = frozenset(
+    {
+        "affects__tracker__errata__advisory_name",
+        "affects__tracker__errata__et_id",
+        "affects__tracker__errata__shipped_dt",
+    }
+)
+
+
 class DistinctOrderingFilter(OrderingFilter):
     """
     Custom OrderingFilter that prevents duplicate results when ordering by related fields.
@@ -304,6 +312,9 @@ class DistinctOrderingFilter(OrderingFilter):
 
             is_descending = field_name.startswith("-")
             base_field_name = field_name[1:] if is_descending else field_name
+
+            if base_field_name in DEPRECATED_ORDER_FIELDS:
+                continue
 
             if "__" in base_field_name:
                 aggregation_func = Max if is_descending else Min
@@ -561,6 +572,40 @@ class FlawFilter(
     affects__tracker__visibility = ChoiceFilter(
         field_name="affects__tracker__visibility", choices=ACLMixinVisibility.choices
     )
+    # Deprecated errata filters — preserved for API compatibility, always return no results
+    affects__tracker__errata__advisory_name = CharFilter(
+        method="affect_tracker_errata_noop_filter"
+    )
+    affects__tracker__errata__advisory_name__in = CharInFilter(
+        method="affect_tracker_errata_noop_filter"
+    )
+    affects__tracker__errata__et_id = NumberFilter(
+        method="affect_tracker_errata_noop_filter"
+    )
+    affects__tracker__errata__shipped_dt = DateTimeFilter(
+        method="affect_tracker_errata_noop_filter"
+    )
+    affects__tracker__errata__shipped_dt__lt = DateTimeFilter(
+        method="affect_tracker_errata_noop_filter"
+    )
+    affects__tracker__errata__shipped_dt__gt = DateTimeFilter(
+        method="affect_tracker_errata_noop_filter"
+    )
+    affects__tracker__errata__shipped_dt__lte = DateTimeFilter(
+        method="affect_tracker_errata_noop_filter"
+    )
+    affects__tracker__errata__shipped_dt__gte = DateTimeFilter(
+        method="affect_tracker_errata_noop_filter"
+    )
+    affects__tracker__errata__shipped_dt__date = DateFilter(
+        method="affect_tracker_errata_noop_filter"
+    )
+    affects__tracker__errata__shipped_dt__date__lte = DateFilter(
+        method="affect_tracker_errata_noop_filter"
+    )
+    affects__tracker__errata__shipped_dt__date__gte = DateFilter(
+        method="affect_tracker_errata_noop_filter"
+    )
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
     flaw_has_no_non_community_affects_trackers = BooleanFilter(
         method="flaw_has_no_non_community_affects_trackers_filter"
@@ -656,6 +701,10 @@ class FlawFilter(
 
         return queryset
 
+    def affect_tracker_errata_noop_filter(self, queryset, name, value):
+        # Errata functionality removed — filter is preserved for API compatibility
+        return queryset.none()
+
     class Meta:
         """
         Class that defines some Filter properties. Can be used to auto-generate filters, but param names are less useful
@@ -723,12 +772,6 @@ class FlawFilter(
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
-            "affects__tracker__errata__advisory_name": ["exact"],
-            "affects__tracker__errata__et_id": ["exact"],
-            "affects__tracker__errata__shipped_dt": ["exact"]
-            + LT_GT_LOOKUP_EXPRS
-            + LTE_GTE_LOOKUP_EXPRS
-            + DATE_LOOKUP_EXPRS,
             # Acknowledgment fields
             "acknowledgments__uuid": ["exact"],
             "acknowledgments__name": ["exact"],
@@ -771,16 +814,20 @@ class FlawFilter(
             "references__uuid": ["exact"],
         }
 
-    order_fields = [
-        "bz_id",
-        "cve_id",
-        "embargoed",
-        "comment_zero",
-        "statement",
-        "cve_description",
-        "title",
-        "team_id",  # TODO: deprecated, remove upon major release
-    ] + list(Meta.fields.keys())
+    order_fields = (
+        [
+            "bz_id",
+            "cve_id",
+            "embargoed",
+            "comment_zero",
+            "statement",
+            "cve_description",
+            "title",
+            "team_id",  # TODO: deprecated, remove upon major release
+        ]
+        + list(Meta.fields.keys())
+        + list(DEPRECATED_ORDER_FIELDS)
+    )
     order = DistinctOrderingFilter(fields=order_fields)
 
     search_helper = staticmethod(search_helper)
@@ -947,18 +994,6 @@ class FlawV1Filter(FlawFilter):
             .distinct()
         )
 
-    def _get_flaw_ids_by_errata(self, errata_filter):
-        tracker_uuids = (
-            Erratum.objects.filter(**errata_filter)
-            .values_list("trackers__uuid", flat=True)
-            .distinct()
-        )
-        return (
-            Affect.objects.filter(tracker__uuid__in=tracker_uuids)
-            .values_list("flaw_id", flat=True)
-            .distinct()
-        )
-
     def affect_direct_filter(self, queryset, name, value):
         key = name.replace("affects__", "") + "__exact"
         flaw_ids = self._get_flaw_ids_by_affect({key: value})
@@ -980,14 +1015,12 @@ class FlawV1Filter(FlawFilter):
         return queryset.filter(uuid__in=flaw_ids)
 
     def affect_trackers_errata_filter(self, queryset, name, value):
-        key = name.replace("affects__trackers__errata__", "") + "__exact"
-        flaw_ids = self._get_flaw_ids_by_errata({key: value})
-        return queryset.filter(uuid__in=flaw_ids)
+        # Errata functionality removed — filter is preserved for API compatibility
+        return queryset.none()
 
     def affect_trackers_errata_datetime_filter(self, queryset, name, value):
-        key = name.replace("affects__trackers__errata__", "")
-        flaw_ids = self._get_flaw_ids_by_errata({key: value})
-        return queryset.filter(uuid__in=flaw_ids)
+        # Errata functionality removed — filter is preserved for API compatibility
+        return queryset.none()
 
     def tracker_ids_filter(self, queryset, name, value):
         flaw_ids = (
@@ -1103,16 +1136,20 @@ class FlawV1Filter(FlawFilter):
             "references__uuid": ["exact"],
         }
 
-    order_fields = [
-        "bz_id",
-        "cve_id",
-        "embargoed",
-        "comment_zero",
-        "statement",
-        "cve_description",
-        "title",
-        "team_id",  # TODO: deprecated, remove upon major release
-    ] + list(Meta.fields.keys())
+    order_fields = (
+        [
+            "bz_id",
+            "cve_id",
+            "embargoed",
+            "comment_zero",
+            "statement",
+            "cve_description",
+            "title",
+            "team_id",  # TODO: deprecated, remove upon major release
+        ]
+        + list(Meta.fields.keys())
+        + list(DEPRECATED_ORDER_FIELDS)
+    )
     order = DistinctOrderingFilter(fields=order_fields)
 
 
