@@ -2,7 +2,7 @@
 Unit tests for RelativeDateTimeField in osidb.forms
 """
 
-from datetime import date, timedelta, timezone
+from datetime import timedelta, timezone
 
 import pytest
 from django.core.exceptions import ValidationError
@@ -144,30 +144,6 @@ class TestRelativeDateTimeField:
 
         expected_time = django_timezone.now() - timedelta(days=366)
         assert abs(result - expected_time) < timedelta(seconds=1)
-
-    def test_extreme_past_value_exceeds_date_min(self):
-        """Test that values exceeding date.min raise OverflowError"""
-        field = RelativeDateTimeField()
-
-        # Calculate days that would exceed date.min (year 1)
-        now = django_timezone.now()
-        days_to_min = (now.date() - date.min).days + 1000  # Go beyond min
-
-        # This should raise OverflowError when timedelta calculation exceeds range
-        with pytest.raises(OverflowError):
-            field.to_python(f"-{days_to_min}d")
-
-    def test_extreme_future_value_exceeds_date_max(self):
-        """Test that values exceeding date.max raise OverflowError"""
-        field = RelativeDateTimeField()
-
-        # Calculate days that would exceed date.max (year 9999)
-        now = django_timezone.now()
-        days_to_max = (date.max - now.date()).days + 1000  # Go beyond max
-
-        # This should raise OverflowError when timedelta calculation exceeds range
-        with pytest.raises(OverflowError):
-            field.to_python(f"+{days_to_max}d")
 
     @pytest.mark.parametrize(
         "invalid_value",

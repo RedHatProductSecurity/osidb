@@ -3,8 +3,8 @@ Custom form fields for OSIDB
 """
 
 import re
-from datetime import timedelta
 
+from dateutil.relativedelta import relativedelta
 from django import forms
 from django.utils import timezone
 
@@ -15,24 +15,27 @@ RELATIVE_TIME_UNIT_MAP = {
     "h": "hours",
     "d": "days",
     "w": "weeks",
+    "M": "months",
+    "y": "years",
 }
 
-RELATIVE_DATETIME_REGEX = re.compile(
-    r"^\s*([+-]?)\s*(\d+)\s*([smhdw])\s*$", re.IGNORECASE
-)
+RELATIVE_DATETIME_REGEX = re.compile(r"^\s*([+-]?)\s*(\d+)\s*([smhdwMy])\s*$")
 
 
-def _parse_relative_value(value, base_value):
+def parse_relative_value(value, base_value):
     """
     Parse relative date/datetime strings and return absolute value.
 
     Accepts relative time strings in the format: [+/-]<number><unit>
-    where unit is one of: s (seconds), m (minutes), h (hours), d (days), w (weeks)
+    where unit is one of: s (seconds), m (minutes), h (hours), d (days),
+    w (weeks), M (months), y (years)
 
     Examples:
         -1d     -> 1 day ago from base_value
         +2h     -> 2 hours from base_value
         -30m    -> 30 minutes ago from base_value
+        -6M     -> 6 months ago from base_value
+        +1y     -> 1 year from base_value
         -1w     -> 1 week ago from base_value
         +1s     -> 1 second from base_value
 
@@ -48,6 +51,11 @@ def _parse_relative_value(value, base_value):
         - Sign defaults to '+' if omitted (e.g., "1d" means "+1d")
         - Fractional values are not supported (e.g., "1.5d" will return None)
         - Whitespace is allowed but excessive whitespace may cause parsing to fail
+        - Unit 'M' (uppercase) = months; 'm' (lowercase) = minutes
+        - Month/year arithmetic uses calendar dates, not fixed durations
+        - If target day doesn't exist (e.g., Jan 31 + 1M), uses last day
+          of target month (Feb 28/29)
+        - Uses relativedelta for all units for simplicity and consistency
     """
     if not value:
         return None
@@ -58,25 +66,43 @@ def _parse_relative_value(value, base_value):
 
     sign, amount, unit = match.groups()
     amount = int(amount) if sign != "-" else -int(amount)
-    delta_kwargs = {RELATIVE_TIME_UNIT_MAP[unit.lower()]: amount}
-    return base_value + timedelta(**delta_kwargs)
+
+    # Case-sensitive lookup to distinguish 'm' (minutes) from 'M' (months)
+    delta_unit = RELATIVE_TIME_UNIT_MAP.get(unit)
+    if not delta_unit:
+        return None
+
+    delta_kwargs = {delta_unit: amount}
+    try:
+        return base_value + relativedelta(**delta_kwargs)
+    except OverflowError:
+        return None
 
 
 class RelativeDateTimeField(forms.DateTimeField):
     """
     DateTimeField that accepts both absolute datetime values (default behavior)
-    and relative datetime strings like "-1d", "+2h", "-30m", etc.
+    and relative datetime strings like "-1d", "+2h", "-30m", "-6M", "+1y", etc.
 
     Relative format: [+/-]<number><unit>
-    where unit is one of: s (seconds), m (minutes), h (hours), d (days), w (weeks)
+    where unit is one of: s (seconds), m (minutes), h (hours), d (days),
+    w (weeks), M (months), y (years)
 
     Examples:
         -1d     -> 1 day ago
         +2h     -> 2 hours from now
         -30m    -> 30 minutes ago
+        -6M     -> 6 months ago (calendar arithmetic)
+        +1y     -> 1 year from now
 
     If the value doesn't match the relative format, it falls back to standard
     absolute datetime parsing.
+
+    Notes:
+        - Month/year arithmetic uses calendar dates, not fixed durations
+        - If target day doesn't exist (e.g., Jan 31 + 1M), uses last day
+          of target month (Feb 28/29)
+        - Unit 'M' (uppercase) = months; 'm' (lowercase) = minutes
     """
 
     def strptime(self, value, format):
@@ -90,7 +116,7 @@ class RelativeDateTimeField(forms.DateTimeField):
         try:
             return super().strptime(value, format)
         except (ValueError, TypeError):
-            parsed = _parse_relative_value(value, timezone.now())
+            parsed = parse_relative_value(value, timezone.now())
             if parsed is not None:
                 return parsed
             raise

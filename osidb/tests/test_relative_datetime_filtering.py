@@ -253,10 +253,6 @@ class TestRelativeDateTimeFilteringAffects:
         assert str(affects["affect_2_hours_ago"].uuid) in uuids
         assert str(affects["affect_30_min_ago"].uuid) not in uuids
 
-    # Note: The affects__created_dt filter uses the AffectV1 view which may not
-    # reflect timestamp changes made with auto_timestamps=False in tests.
-    # Commenting out this test as it requires investigation of the view refresh behavior.
-
 
 class TestRelativeDateTimeFilteringTrackers:
     """
