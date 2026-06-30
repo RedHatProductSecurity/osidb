@@ -75,7 +75,7 @@ router.register(
     FlawLabelView,
     basename="flawlabels",
 )
-router.register("labels", LabelView)
+router.register("labels", LabelView, basename="labels")
 router.register(r"affects", AffectV1View)
 router.register(
     r"affects/(?P<affect_id>[^/.]+)/cvss_scores", AffectCVSSView, basename="affectcvss"
