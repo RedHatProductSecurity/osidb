@@ -1588,10 +1588,17 @@ class AffectView(
         flaws = set()
         uuids = set()
         validated_serializers = []
+
+        if not request.data:
+            raise ValidationError({"affect": "At least one affect is required."})
+
+        if not isinstance(request.data, list):
+            raise ValidationError({"affect": "Expected a list of affects."})
+
         for datum in request.data:
             try:
                 uuid = datum["uuid"]
-            except KeyError:
+            except (KeyError, TypeError):
                 raise ValidationError({"uuid": "This field is required."})
 
             if uuid in uuids:
@@ -1603,7 +1610,7 @@ class AffectView(
 
             try:
                 flaw_uuid = datum["flaw"]
-            except KeyError:
+            except (KeyError, TypeError):
                 raise ValidationError({"flaw": "This field is required."})
 
             flaws.add(flaw_uuid)
@@ -1671,6 +1678,13 @@ class AffectView(
 
         # --- Pre-scan: collect flaw UUIDs and enforce constraints ---
         flaw_uuids = set()
+
+        if not request.data:
+            raise ValidationError({"affect": "At least one affect is required."})
+
+        if not isinstance(request.data, list):
+            raise ValidationError({"affect": "Expected a list of affects."})
+
         for datum in request.data:
             try:
                 flaw_uuids.add(datum["flaw"])
@@ -1681,9 +1695,6 @@ class AffectView(
             raise ValidationError(
                 {"flaw": "Provided affects belong to multiple flaws."}
             )
-
-        if not flaw_uuids:
-            raise ValidationError({"flaw": "This field is required."})
 
         flaw_uuid = next(iter(flaw_uuids))
         flaw = get_object_or_404(Flaw, uuid=flaw_uuid)
@@ -1790,6 +1801,13 @@ class AffectView(
 
         flaws = set()
         uuids = set()
+
+        if not request.data:
+            raise ValidationError({"affect": "At least one affect is required."})
+
+        if not isinstance(request.data, list):
+            raise ValidationError({"affect": "Expected a list of affects."})
+
         for uuid in request.data:
             if uuid in uuids:
                 raise ValidationError(
@@ -1800,7 +1818,7 @@ class AffectView(
 
             try:
                 affect_obj = Affect.objects.get(uuid=uuid)
-            except Affect.DoesNotExist:
+            except (ValueError, Affect.DoesNotExist):
                 raise ValidationError({"uuid": "Affect matching query does not exist."})
 
             flaw_obj = affect_obj.flaw
