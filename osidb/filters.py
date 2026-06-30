@@ -538,10 +538,10 @@ class FlawFilter(
     cve_id = CharInFilter(field_name="cve_id")
     components = CharInFilter(field_name="components", lookup_expr="contains")
 
-    changed_after = DateTimeFilter(
+    changed_after = RelativeDateTimeFilter(
         field_name="updated_dt", method="changed_after_filter"
     )
-    changed_before = DateTimeFilter(
+    changed_before = RelativeDateTimeFilter(
         field_name="updated_dt", method="changed_before_filter"
     )
 

@@ -113,21 +113,20 @@ class TestParseRelativeValue:
         assert result == base
 
     @pytest.mark.parametrize(
-        "value",
+        "value,expected",
         [
-            " -1d ",  # Leading and trailing whitespace
-            "- 1d",  # Whitespace after sign
-            "-1 d",  # Whitespace before unit
-            " + 5 w ",  # Multiple whitespace
+            (" -1d ", date(2024, 6, 14)),  # Leading and trailing whitespace
+            ("- 1d", date(2024, 6, 14)),  # Whitespace after sign
+            ("-1 d", date(2024, 6, 14)),  # Whitespace before unit
+            (" + 5 w ", date(2024, 7, 20)),  # Multiple whitespace
         ],
     )
-    def test_whitespace_handling(self, value):
+    def test_whitespace_handling(self, value, expected):
         """Test that whitespace is handled correctly"""
         base = date(2024, 6, 15)
         result = parse_relative_value(value, base)
 
-        # Should successfully parse despite whitespace
-        assert result is not None
+        assert result == expected
 
     @pytest.mark.parametrize(
         "invalid_value",
