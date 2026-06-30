@@ -129,6 +129,9 @@ class SRPReportMilestone(SRPReportBase):
 
     @property
     def due_at(self):
+        if not self.srp_report.timer_started_at:
+            return None
+
         return (
             self.srp_report.timer_started_at
             + self.MILESTONE_DURATION_BY_TYPE[self.milestone_type]
