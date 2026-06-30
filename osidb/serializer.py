@@ -12,7 +12,8 @@ import pghistory
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import BadRequest
+from django.core.exceptions import BadRequest, ValidationError
+from django.db import IntegrityError
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
@@ -32,21 +33,25 @@ from osidb.models import (
     Affect,
     AffectCVSS,
     AffectV1,
+    AliasLabel,
+    BULabel,
+    CollaboratorLabel,
     Erratum,
     Flaw,
     FlawAcknowledgment,
-    FlawCollaborator,
     FlawComment,
     FlawCVSS,
-    FlawLabel,
+    FlawLabelV2,
     FlawReference,
     Impact,
     Package,
     PackageVer,
+    ProductFamilyLabel,
     Profile,
     PsUpdateStream,
     Tracker,
     UpstreamData,
+    WorkflowLabel,
 )
 from osidb.models.affect import NotAffectedJustification
 from osidb.sync_manager import SyncManager
@@ -2109,92 +2114,130 @@ class FlawCVSSV2PostSerializer(FlawCVSSV2Serializer): ...
 class FlawCVSSV2PutSerializer(FlawCVSSV2Serializer): ...
 
 
-class FlawLabelSerializer(serializers.ModelSerializer):
+class FlawLabelSerializer(serializers.Serializer):
     """FlawLabel serializer"""
 
-    class Meta:
-        """filter fields"""
-
-        model = FlawLabel
-        fields = ["name", "type"]
+    name = serializers.CharField(max_length=255)
+    type = serializers.CharField(read_only=True)
 
 
 class FlawCollaboratorSerializer(TrackingMixinSerializer):
     """FlawCollaborator serializer"""
 
+    TYPE_TO_MODEL = {
+        FlawLabelV2.LabelType.ALIAS: AliasLabel,
+        FlawLabelV2.LabelType.BU: BULabel,
+        FlawLabelV2.LabelType.CONTEXT_BASED: CollaboratorLabel,
+        FlawLabelV2.LabelType.PRODUCT_FAMILY: ProductFamilyLabel,
+        FlawLabelV2.LabelType.WORKFLOW: WorkflowLabel,
+    }
+
     flaw = serializers.UUIDField(write_only=True, source="flaw_id")
+    label = serializers.CharField(source="name", max_length=255)
     type = serializers.ChoiceField(
-        choices=FlawLabel.FlawLabelType.choices,
+        choices=FlawLabelV2.LabelType.choices,
         required=False,
-        default=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        default=FlawLabelV2.LabelType.CONTEXT_BASED,
     )
+    state = serializers.ChoiceField(
+        choices=CollaboratorLabel.State.choices,
+        required=False,
+    )
+    contributor = serializers.CharField(
+        required=False, allow_blank=True, max_length=255
+    )
+    relevant = serializers.BooleanField(required=False)
 
     class Meta:
-        """filter fields"""
-
-        model = FlawCollaborator
+        model = FlawLabelV2
         fields = ["uuid", "flaw", "label", "state", "contributor", "relevant", "type"]
 
+    def _get_model_field_names(self, model_class):
+        return {f.name for f in model_class._meta.get_fields()}
+
+    def _strip_unsupported_fields(self, model_class, data):
+        model_fields = self._get_model_field_names(model_class)
+        for field in ("state", "contributor", "relevant"):
+            if field not in model_fields:
+                data.pop(field, None)
+
+    def to_representation(self, instance):
+        return {
+            "uuid": str(instance.uuid),
+            "label": instance.name,
+            "type": instance.type,
+            "state": getattr(instance, "state", "NEW"),
+            "contributor": getattr(instance, "contributor", ""),
+            "relevant": getattr(instance, "relevant", True),
+        }
+
     def create(self, validated_data):
-        # Alias and workflow labels are always relevant
-        if validated_data.get("type") in (
-            FlawLabel.FlawLabelType.ALIAS,
-            FlawLabel.FlawLabelType.WORKFLOW,
-        ):
-            validated_data["relevant"] = True
-            # Workflow labels are always in DONE state
-            if validated_data.get("type") == FlawLabel.FlawLabelType.WORKFLOW:
-                validated_data["state"] = FlawCollaborator.FlawCollaboratorState.DONE
-            return super().create(validated_data)
+        label_type = validated_data.pop("type", FlawLabelV2.LabelType.CONTEXT_BASED)
 
-        label = FlawLabel.objects.get(name=validated_data.get("label"))
-
-        if label.type not in [
-            FlawLabel.FlawLabelType.CONTEXT_BASED,
-            FlawLabel.FlawLabelType.BU,
-        ]:
+        if label_type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
             raise serializers.ValidationError(
                 {
-                    "label": f"Only context-based and alias labels can be manually added to flaws. '{label.name}' is a product-based label."
+                    "label": (
+                        "Only context-based and alias labels can be manually"
+                        f" added to flaws. '{validated_data.get('name')}'"
+                        " is a product-based label."
+                    )
                 }
             )
 
-        validated_data["type"] = label.type
-        validated_data["relevant"] = True
+        model_class = self.TYPE_TO_MODEL.get(label_type)
+        if model_class is None:
+            raise serializers.ValidationError(
+                {"type": f"Unknown label type '{label_type}'."}
+            )
 
-        return super().create(validated_data)
+        self._strip_unsupported_fields(model_class, validated_data)
+
+        try:
+            return model_class.objects.create(**validated_data)
+        except IntegrityError as e:
+            if "duplicate key value violates unique constraint" in str(e):
+                raise serializers.ValidationError(
+                    {"label": [f"Label '{validated_data.get('name')}' already exists."]}
+                )
+            raise
+        except ValidationError as e:
+            label_name = validated_data.get("name")
+            if hasattr(e, "message_dict"):
+                if "name" in e.message_dict:
+                    raise serializers.ValidationError({"label": e.message_dict["name"]})
+                if "__all__" in e.message_dict:
+                    raise serializers.ValidationError(
+                        {"label": [f"Label '{label_name}' already exists."]}
+                    )
+            raise
 
     def update(self, instance, validated_data):
-        if validated_data.get("label") != instance.label:
+        if validated_data.get("name") != instance.name:
             raise serializers.ValidationError(
                 {"label": "Label name cannot be changed."}
             )
+
+        validated_data.pop("type", None)
+        self._strip_unsupported_fields(type(instance), validated_data)
 
         return super().update(instance, validated_data)
 
 
 @extend_schema_serializer(exclude_fields=["flaw", "relevant"])
 class FlawCollaboratorPostSerializer(FlawCollaboratorSerializer):
-    # Extra serializer for POST request as there is no last update
-    # timestamp but we need to make the field mandatory otherwise.
-
-    # Override type field to exclude PRODUCT_FAMILY since users cannot manually set it
-    # BU type labels can be manually added
     type = serializers.ChoiceField(
         choices=[
-            (FlawLabel.FlawLabelType.ALIAS, FlawLabel.FlawLabelType.ALIAS.label),
-            (FlawLabel.FlawLabelType.BU, FlawLabel.FlawLabelType.BU.label),
+            (FlawLabelV2.LabelType.ALIAS, FlawLabelV2.LabelType.ALIAS.label),
+            (FlawLabelV2.LabelType.BU, FlawLabelV2.LabelType.BU.label),
             (
-                FlawLabel.FlawLabelType.CONTEXT_BASED,
-                FlawLabel.FlawLabelType.CONTEXT_BASED.label,
+                FlawLabelV2.LabelType.CONTEXT_BASED,
+                FlawLabelV2.LabelType.CONTEXT_BASED.label,
             ),
-            (
-                FlawLabel.FlawLabelType.WORKFLOW,
-                FlawLabel.FlawLabelType.WORKFLOW.label,
-            ),
+            (FlawLabelV2.LabelType.WORKFLOW, FlawLabelV2.LabelType.WORKFLOW.label),
         ],
         required=False,
-        default=FlawLabel.FlawLabelType.CONTEXT_BASED,
+        default=FlawLabelV2.LabelType.CONTEXT_BASED,
     )
 
 
@@ -2266,7 +2309,9 @@ class FlawSerializer(
     requires_cve_description = serializers.SerializerMethodField()
     selected_cve_description = serializers.ReadOnlyField()
 
-    labels = FlawCollaboratorSerializer(many=True, required=False, read_only=True)
+    labels = FlawCollaboratorSerializer(
+        source="labels_v2", many=True, required=False, read_only=True
+    )
 
     meta_attr = serializers.SerializerMethodField()
 

@@ -35,6 +35,7 @@ from packaging.utils import canonicalize_name
 from pghistory.models import Events
 from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -48,6 +49,7 @@ from rest_framework.status import (
 from rest_framework.utils.urls import remove_query_param, replace_query_param
 from rest_framework.views import APIView
 from rest_framework.viewsets import (
+    GenericViewSet,
     ModelViewSet,
     ReadOnlyModelViewSet,
     ViewSet,
@@ -63,7 +65,6 @@ from osidb.models import (
     AffectCVSS,
     AffectV1,
     Flaw,
-    FlawLabel,
     PsUpdateStream,
     Tracker,
 )
@@ -894,7 +895,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         "cvss_scores",
         "package_versions",
         "references",
-        "labels",
+        "labels_v2",
         "alerts",
         "upstream_data",
     )
@@ -918,7 +919,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         "cvss_scores": ("cvss_scores",),
         "package_versions": ("package_versions",),
         "references": ("references",),
-        "labels": ("labels",),
+        "labels": ("labels_v2",),
         "alerts": ("alerts",),
         "upstream_data": ("upstream_data",),
         # "affects" and "trackers" handled explicitly below because they are more nuanced.
@@ -2036,7 +2037,9 @@ class FlawLabelView(
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.type == FlawLabel.FlawLabelType.PRODUCT_FAMILY:
+        from osidb.models import FlawLabelV2
+
+        if instance.type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
             raise PermissionDenied(
                 {"label": "Product family labels cannot be deleted."}
             )
@@ -2045,11 +2048,60 @@ class FlawLabelView(
 
 class LabelView(
     RudimentaryUserPathLoggingMixin,
-    ReadOnlyModelViewSet,
+    ListModelMixin,
+    GenericViewSet,
 ):
-    queryset = FlawLabel.objects.all()
     serializer_class = FlawLabelSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    lookup_field = "uuid"
+
+    _DEFINITION_MODELS = None
+
+    @classmethod
+    def _get_definition_models(cls):
+        if cls._DEFINITION_MODELS is None:
+            from osidb.models import (
+                BULabelDefinition,
+                CollaboratorLabelDefinition,
+                FlawLabelV2,
+                ProductFamilyLabelDefinition,
+            )
+
+            cls._DEFINITION_MODELS = [
+                (CollaboratorLabelDefinition, FlawLabelV2.LabelType.CONTEXT_BASED),
+                (ProductFamilyLabelDefinition, FlawLabelV2.LabelType.PRODUCT_FAMILY),
+                (BULabelDefinition, FlawLabelV2.LabelType.BU),
+            ]
+        return cls._DEFINITION_MODELS
+
+    def get_queryset(self):
+        results = []
+        for model, label_type in self._get_definition_models():
+            for d in model.objects.all():
+                results.append({"name": d.name, "type": label_type})
+        return results
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "uuid",
+                type=OpenApiTypes.UUID,
+                location=OpenApiParameter.PATH,
+                description="A UUID string identifying this flaw label.",
+            )
+        ]
+    )
+    def retrieve(self, request, uuid=None, *args, **kwargs):
+        for model, label_type in self._get_definition_models():
+            try:
+                d = model.objects.get(uuid=uuid)
+                serializer = self.get_serializer({"name": d.name, "type": label_type})
+                return Response(serializer.data)
+            except model.DoesNotExist:
+                continue
+        from django.http import Http404
+
+        raise Http404
 
 
 # TODO: this view is temporary/undocumented and only applies to accessing JIRA stage and someday should be removed

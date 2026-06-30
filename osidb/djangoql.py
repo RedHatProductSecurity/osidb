@@ -9,8 +9,8 @@ from osidb.models import (
     Affect,
     Flaw,
     FlawAcknowledgment,
-    FlawCollaborator,
     FlawCVSS,
+    FlawLabelV2,
     FlawReference,
     Package,
     Tracker,
@@ -33,7 +33,7 @@ class FlawQLSchema(DjangoQLSchema):
         Affect,
         Flaw,
         FlawAcknowledgment,
-        FlawCollaborator,
+        FlawLabelV2,
         FlawCVSS,
         FlawReference,
         Package,
@@ -51,7 +51,7 @@ class FlawQLSchema(DjangoQLSchema):
             "source",
             "workflow_state",
         ],
-        FlawCollaborator: ["contributor", "label"],
+        FlawLabelV2: ["name"],
         FlawCVSS: ["issuer", "version"],
         FlawReference: ["type"],
         Tracker: ["resolution", "status", "type"],
@@ -69,8 +69,8 @@ class FlawQLSchema(DjangoQLSchema):
                 FlawNonCommunityAffectsNoTrackersField(),
                 FlawLabelsField(),
             ]
-        elif model == FlawCollaborator:
-            exclude += ["created_dt", "updated_dt", "uuid"]
+        elif model == FlawLabelV2:
+            exclude += ["created_dt", "updated_dt", "uuid", "polymorphic_ctype"]
         return set(fields) - set(exclude)
 
 
@@ -182,7 +182,7 @@ class FlawLabelsField(StrField):
     suggest_options = True
 
     def get_options(self, search):
-        return FlawCollaborator.objects.values_list("label", flat=True).distinct()
+        return FlawLabelV2.objects.values_list("name", flat=True).distinct()
 
     def get_lookup(self, path, operator, value):
         """
@@ -197,16 +197,16 @@ class FlawLabelsField(StrField):
         """
 
         if operator == "=":
-            return Q(labels__label=value)
+            return Q(labels_v2__name=value)
         elif operator == "!=":
-            return ~Q(labels__label=value)
+            return ~Q(labels_v2__name=value)
 
         num_labels = len(value)
 
         flaw_ids = (
-            FlawCollaborator.objects.filter(label__in=value)
+            FlawLabelV2.objects.filter(name__in=value)
             .values("flaw_id")
-            .annotate(label_count=models.Count("label", distinct=True))
+            .annotate(label_count=models.Count("name", distinct=True))
             .filter(label_count=num_labels)
             .values_list("flaw_id", flat=True)
         )
