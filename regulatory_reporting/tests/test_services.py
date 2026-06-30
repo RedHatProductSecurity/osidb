@@ -90,6 +90,7 @@ class TestMappingNotificationSignal:
         assert notification.upstream_project == project
         assert notification.status == UpstreamNotification.NotificationStatus.BLOCKED
 
+    @override_settings(CRA_NOTIFICATIONS_ENABLED=False)
     def test_flag_disabled_does_not_backfill(self):
         flaw = FlawFactory(embargoed=False, source=FlawSource.REDHAT)
         project = UpstreamProject.objects.create(component_name="test-component")

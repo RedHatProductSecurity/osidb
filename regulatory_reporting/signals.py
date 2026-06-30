@@ -103,13 +103,17 @@ def link_mapping_to_notification(sender, instance, created, **kwargs):
     if not created:
         return
 
-    notification = UpstreamNotification.objects.filter(
-        flaw=instance.flaw, upstream_project__isnull=True
-    ).first()
+    notification = (
+        UpstreamNotification.objects.filter(
+            flaw=instance.flaw, upstream_project__isnull=True
+        )
+        .order_by("created_dt")
+        .first()
+    )
 
     if notification:
         notification.upstream_project = instance.upstream_project
-        notification.save(update_fields=["upstream_project"])
+        notification.save(update_fields=["upstream_project", "updated_dt"])
         logger.info(
             f"Backfilled upstream_project on notification {notification.uuid} "
             f"for {instance.flaw.uuid}"
