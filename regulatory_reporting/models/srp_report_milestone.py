@@ -161,7 +161,7 @@ class SRPReportMilestone(SRPReportBase):
             ):
                 duration = timedelta(days=30)
             else:
-                raise ValidationError("Invalid reportable event type")
+                return None
         else:
             # Use static duration for 24h, 72h, etc.
             duration = self.MILESTONE_DURATION_BY_TYPE[self.milestone_type]
@@ -179,6 +179,16 @@ class SRPReportMilestone(SRPReportBase):
         Exception: LEVEL_ADDITIONAL_INFORMATION_RESPONSE milestones can have
         None due_at if request_received_at is not yet set.
         """
+        if (
+            self.milestone_type == self.MilestoneType.LEVEL_FINAL
+            and self.srp_report.reportable_event_type
+            not in {
+                SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY,
+                SRPReport.ReportableEventType.SEVERE_INCIDENT,
+            }
+        ):
+            raise ValidationError("Invalid reportable event type")
+
         if not self.due_at:
             # Allow None for additional info milestones without request time
             if (
