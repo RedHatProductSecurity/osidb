@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `upstream maintainer` notification models (OSIDB-5076)
 - Add create SRP report when Flaw is EXPLOITS_KEV_APPROVED or MAJOR_INCIDENT (OSIDB-5067)
 - Automatic creation of upsteam maintainer notification when criteria is met for flaw (OSIDB-5077)
+- Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
 
 ### Changed
 - align existing workflows with workflow framework concepts
@@ -45,18 +46,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Scope lib-newtopia queries by ecosystem derived from upstream PURLs (OSIDB-4966)
 - Add comment_zero in the description of community trackers (OSIDB-4776)
+ainer notification when criteria is met for flaw (OSIDB-5077)
+>>>>>>> 5d0b2638 (Fix changelog file)
 
 ### Changed
 - Make HashiCorp Vault integration credential-based opt-in (OSIDB-5108)
 - Performance improvements for pghistory-related queries (OSIDB-4906)
-- Make HashiCorp Vault integration credential-based opt-in (OSIDB-5108)
 
 ### Fixed
-- Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
-- Wrap external errors with affect context for bulk PUT endpoint (OSIDB-5038)
-- Wrapped bulk ACL updates - Exclude orphaned trackers from v1 flaw and tracker endpoints when filtering by tracker_ids(OSIDB-4927)
+- Fix FieldDoesNotExist being - Wrapped bulk ACL updates - Exclude orphaned trackers from v1 flaw and tracker endpoints when filtering by tracker_ids(OSIDB-4927)
 )
 >>>>>>> 5432c362 (OSIDB-5077- Mark flaw as Upstream Maintainer Notifiable When Criteria Are Met)
+ction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
+>>>>>>> 5d0b2638 (Fix changelog file)
 
 ## [5.11.1] - 2026-06-10
 ### Fixed
