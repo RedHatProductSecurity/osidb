@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from osidb.models import Flaw
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 
-from .models.upstream import UpstreamNotification
+from .models.upstream import FlawUpstreamMapping, UpstreamNotification
 from .services import is_flaw_upstream_notifiable
 
 logger = logging.getLogger(__name__)
@@ -82,6 +82,7 @@ def check_upstream_notifiable(sender, instance, **kwargs):
 
     notification, created = UpstreamNotification.objects.get_or_create(
         flaw=instance,
+        upstream_project=None,
         defaults={
             "status": UpstreamNotification.NotificationStatus.REQUIRED,
             "reportability_reason": UpstreamNotification.ReportabilityReason.RED_HAT_IDENTIFIED,
@@ -90,4 +91,41 @@ def check_upstream_notifiable(sender, instance, **kwargs):
     if created:
         logger.info(
             f"Created upstream notification {notification.uuid} for flaw {instance.uuid}"
+        )
+
+
+@receiver(post_save, sender=FlawUpstreamMapping)
+def link_mapping_to_notification(sender, instance, created, **kwargs):
+    """
+    On FlawUpstreamMapping creation, backfill the existing project
+    """
+    if not settings.CRA_NOTIFICATIONS_ENABLED:
+        return
+    if not created:
+        return
+
+    notification = (
+        UpstreamNotification.objects.filter(
+            flaw=instance.flaw, upstream_project__isnull=True
+        )
+        .order_by("created_dt")
+        .first()
+    )
+
+    if notification:
+        notification.upstream_project = instance.upstream_project
+        notification.save(update_fields=["upstream_project", "updated_dt"])
+        logger.info(
+            f"Backfilled upstream_project on notification {notification.uuid} "
+            f"for {instance.flaw.uuid}"
+        )
+    else:
+        notification = UpstreamNotification.objects.create(
+            flaw=instance.flaw,
+            upstream_project=instance.upstream_project,
+            status=UpstreamNotification.NotificationStatus.REQUIRED,
+            reportability_reason=UpstreamNotification.ReportabilityReason.RED_HAT_IDENTIFIED,
+        )
+        logger.info(
+            f"Created new notification {notification.uuid} for {instance.flaw.uuid}"
         )
