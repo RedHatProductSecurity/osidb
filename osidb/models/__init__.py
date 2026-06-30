@@ -16,7 +16,6 @@ __all__ = (
     "ComparableTextChoices",
     "CVSS",
     "CVEIDField",
-    "Erratum",
     "Flaw",
     "FlawAcknowledgment",
     "FlawComment",
@@ -41,7 +40,6 @@ __all__ = (
 )
 
 from .affect import Affect, AffectCVSS, AffectV1, NotAffectedJustification
-from .erratum import Erratum
 from .flaw.acknowledgment import FlawAcknowledgment
 from .flaw.comment import FlawComment
 from .flaw.cvss import FlawCVSS
