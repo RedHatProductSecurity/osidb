@@ -225,28 +225,48 @@ class TestSRPMilestoneAutoCreation:
             )
 
     @pytest.mark.enable_signals
-    def test_milestones_not_duplicated_on_flaw_resave(self):
+    def test_milestones_refreshed_in_place_on_flaw_resave(
+        self,
+        internal_read_groups,
+        internal_write_groups,
+        public_read_groups,
+        public_write_groups,
+    ):
         """
-        If a flaw is saved again without state changes, milestones should not be duplicated.
+        Re-saving a flaw with the same major-incident state should refresh existing
+        milestones in place rather than creating duplicates.
         """
 
         start_time = timezone.now()
         flaw = FlawFactory(
             major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
             major_incident_start_dt=start_time,
+            embargoed=False,
+            acl_read=internal_read_groups,
+            acl_write=internal_write_groups,
         )
 
-        # Verify initial milestones created
         srp_report = SRPReport.objects.get(flaw=flaw)
-        initial_count = SRPReportMilestone.objects.filter(srp_report=srp_report).count()
-        assert initial_count == 3
+        initial_uuids = set(
+            SRPReportMilestone.objects.filter(srp_report=srp_report).values_list(
+                "uuid", flat=True
+            )
+        )
+        assert len(initial_uuids) == 3
 
-        # Act - save flaw again without changes
+        flaw.acl_read = public_read_groups
+        flaw.acl_write = public_write_groups
         flaw.save()
 
-        # Assert no duplicates
-        final_count = SRPReportMilestone.objects.filter(srp_report=srp_report).count()
-        assert final_count == 3, "Should not create duplicate milestones on flaw resave"
+        refreshed = SRPReportMilestone.objects.filter(srp_report=srp_report)
+        assert refreshed.count() == 3
+        assert set(refreshed.values_list("uuid", flat=True)) == initial_uuids, (
+            "Should update existing milestones in place, not create duplicates"
+        )
+
+        for milestone in refreshed:
+            assert milestone.acl_read == public_read_groups
+            assert milestone.acl_write == public_write_groups
 
     @pytest.mark.enable_signals
     def test_additional_information_response_not_auto_created(self):
