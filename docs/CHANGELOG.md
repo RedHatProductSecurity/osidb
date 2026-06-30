@@ -6,28 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
-- Add new module "regulatory_reporting"
 - Scope lib-newtopia queries by ecosystem derived from upstream PURLs (OSIDB-4966)
 - Base auto-affect determination on upstream affected versions (OSIDB-5031)
 - Add new module "regulatory_reporting" (OSIDB-5127)
 - Add new Models SRPReport and SRPReportMilestone (OSIDB-5066)
-- Add `upstream maintainer` notification models (OSIDB-5076) 
+- Add `upstream maintainer` notification models (OSIDB-5076)
 - Add create SRP report when Flaw is EXPLOITS_KEV_APPROVED or MAJOR_INCIDENT (OSIDB-5067)
+- Automatic creation of upstream maintainer notification when criteria is met for flaw (OSIDB-5077)
 
 ### Changed
 - Make HashiCorp Vault integration credential-based opt-in (OSIDB-5108)
 - Performance improvements for pghistory-related queries (OSIDB-4906)
-- Make HashiCorp Vault integration credential-based opt-in (OSIDB-5108)
 
 ### Fixed
 - Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
 - Wrap external errors with affect context for bulk PUT endpoint (OSIDB-5038)
 - Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
-- Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
-- Add new module "regulatory_reporting" (OSIDB-5127)
-- Add new Models SRPReport and SRPReportMilestone (OSIDB-5066)
-- Add `upstream maintainer` notification models (OSIDB-5076)
-- Automatic creation of upsteam maintainer notification when criteria is met for flaw (OSIDB-5077)
 
 ## [5.11.1] - 2026-06-10
 ### Fixed
