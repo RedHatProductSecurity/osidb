@@ -119,15 +119,12 @@ def update_flaw_fields(sender, instance, **kwargs):
     update_major_incident_start_dt(instance)
 
 
-@receiver(post_save, sender=Affect)
 @receiver(post_save, sender=FlawReference)
 @receiver(post_save, sender=FlawAcknowledgment)
 @receiver(post_save, sender=FlawComment)
 @receiver(post_save, sender=FlawCollaborator)
 @receiver(post_save, sender=FlawCVSS)
 def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
-    if isinstance(instance, Affect):
-        instance.flaw.refresh_from_db()
     instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
 
 
