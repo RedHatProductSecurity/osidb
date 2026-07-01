@@ -13,6 +13,7 @@ import pghistory
 from django.contrib.postgres import fields
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from polymorphic.models import PolymorphicModel
 
 from osidb.mixins import TrackingMixin, ValidateMixin, validator
@@ -194,6 +195,60 @@ class ProductFamilyLabel(FlawLabelV2):
         verbose_name = "Product Family Label"
         verbose_name_plural = "Product Family Labels"
 
+    @staticmethod
+    def create_from_affect(affect):
+        """
+        Add new product family labels to the flaw based on the affect
+        """
+        existing = set(
+            affect.flaw.labels_v2.filter(
+                productfamilylabel__isnull=False,
+            ).values_list("name", flat=True)
+        )
+
+        definitions = ProductFamilyLabelDefinition.get_matching(
+            [affect.ps_module], [affect.ps_component]
+        )
+
+        for definition in definitions:
+            if definition.name not in existing:
+                ProductFamilyLabel.objects.create(
+                    flaw=affect.flaw,
+                    name=definition.name,
+                )
+
+    @staticmethod
+    def update_relevance(flaw):
+        """
+        Update product family label relevance based on current affects
+        """
+        from osidb.models import Affect
+
+        ps_values = Affect.objects.filter(flaw=flaw).values_list(
+            "ps_module", "ps_component"
+        )
+
+        if not ps_values:
+            current_names = set()
+        else:
+            ps_modules, ps_components = zip(*ps_values)
+            definitions = ProductFamilyLabelDefinition.get_matching(
+                ps_modules, ps_components
+            )
+            current_names = {d.name for d in definitions}
+
+        for label in ProductFamilyLabel.objects.filter(flaw=flaw):
+            new_relevant = label.name in current_names
+            if label.relevant != new_relevant:
+                label.relevant = new_relevant
+                label.save()
+
+            if label.name in current_names:
+                current_names.discard(label.name)
+
+        for name in current_names:
+            ProductFamilyLabel.objects.create(flaw=flaw, name=name)
+
 
 class WorkflowLabel(FlawLabelV2):
     """
@@ -290,3 +345,19 @@ class ProductFamilyLabelDefinition(BaseLabelDefinition):
     class Meta:
         verbose_name = "Product Family Label Definition"
         verbose_name_plural = "Product Family Label Definitions"
+
+    @staticmethod
+    def get_matching(ps_modules, ps_components):
+        """
+        Get definitions matching given ps_modules and ps_components
+        """
+        return ProductFamilyLabelDefinition.objects.filter(
+            (
+                Q(ps_modules__overlap=list(set(ps_modules)))
+                | Q(ps_components__overlap=list(set(ps_components)))
+            )
+            & ~(
+                Q(ps_modules_exclude__overlap=list(set(ps_modules)))
+                | Q(ps_components_exclude__overlap=list(set(ps_components)))
+            )
+        )
