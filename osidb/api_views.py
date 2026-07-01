@@ -1517,10 +1517,10 @@ def _run_post_save_effects_for_bulk(created_affects, flaw):
     Run the post_save side-effects that are normally triggered by signals
     after each individual Affect.save().  Called once after bulk_create.
     """
-    from osidb.models import FlawCollaborator
+    from osidb.models import ProductFamilyLabel
 
     for affect in created_affects:
-        FlawCollaborator.objects.create_from_affect(affect)
+        ProductFamilyLabel.create_from_affect(affect)
 
 
 @include_meta_attr_extend_schema_view

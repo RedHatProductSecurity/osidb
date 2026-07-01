@@ -23,7 +23,12 @@ from osidb.models.flaw.label_v2 import (
     ProductFamilyLabelDefinition,
     WorkflowLabel,
 )
-from osidb.tests.factories import AffectFactory, FlawFactory
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -249,6 +254,86 @@ class TestProductFamilyLabel:
         label.refresh_from_db()
 
         assert label.relevant is False
+
+    @pytest.mark.enable_signals
+    def test_create_from_affect_respects_cross_type_uniqueness(self):
+        """Test that create_from_affect checks all label types before creating"""
+        # Create ps_module and ps_update_stream using factories
+        ps_module = PsModuleFactory(name="test-module")
+        ps_update_stream = PsUpdateStreamFactory(
+            name="test-stream", ps_module=ps_module
+        )
+
+        # Create product family definition that will match our affect
+        ProductFamilyLabelDefinition.objects.create(
+            name="conflicting-name",
+            ps_modules=[ps_module.name],
+            ps_components=["test-component"],
+        )
+
+        flaw = FlawFactory(embargoed=False)
+
+        # Create an alias label with the same name that the product family would use
+        AliasLabel.objects.create(flaw=flaw, name="conflicting-name")
+
+        # Create affect that would trigger ProductFamilyLabel creation
+        # This should NOT raise IntegrityError because create_from_affect
+        # now checks all label types, not just ProductFamilyLabel
+        AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            ps_component="test-component",
+            ps_update_stream=ps_update_stream.name,
+        )
+
+        # Verify no ProductFamilyLabel was created (because name already exists)
+        assert not ProductFamilyLabel.objects.filter(
+            flaw=flaw, name="conflicting-name"
+        ).exists()
+
+        # Verify the AliasLabel still exists
+        assert AliasLabel.objects.filter(flaw=flaw, name="conflicting-name").exists()
+
+    @pytest.mark.enable_signals
+    def test_update_relevance_respects_cross_type_uniqueness(self):
+        """Test that update_relevance checks all label types before creating"""
+        # Create ps_module and ps_update_stream using factories
+        ps_module = PsModuleFactory(name="test-module2")
+        ps_update_stream = PsUpdateStreamFactory(
+            name="test-stream2", ps_module=ps_module
+        )
+
+        # Create product family definition
+        ProductFamilyLabelDefinition.objects.create(
+            name="another-conflict",
+            ps_modules=[ps_module.name],
+            ps_components=["test-component2"],
+        )
+
+        flaw = FlawFactory(embargoed=False)
+
+        # Create a WorkflowLabel with the conflicting name
+        WorkflowLabel.objects.create(flaw=flaw, name="another-conflict")
+
+        # Create affect that matches the ProductFamilyLabelDefinition
+        AffectFactory(
+            flaw=flaw,
+            ps_module=ps_module.name,
+            ps_component="test-component2",
+            ps_update_stream=ps_update_stream.name,
+        )
+
+        # Call update_relevance directly
+        # This should NOT raise IntegrityError
+        ProductFamilyLabel.update_relevance(flaw)
+
+        # Verify no ProductFamilyLabel was created
+        assert not ProductFamilyLabel.objects.filter(
+            flaw=flaw, name="another-conflict"
+        ).exists()
+
+        # Verify the WorkflowLabel still exists
+        assert WorkflowLabel.objects.filter(flaw=flaw, name="another-conflict").exists()
 
 
 class TestAliasLabel:
