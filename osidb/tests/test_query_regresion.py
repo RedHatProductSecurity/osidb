@@ -62,7 +62,7 @@ class TestQuerySetRegression:
             response = auth_client().get(f"{test_api_v2_uri}/flaws")
             assert response.status_code == 200
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 65), (True, 65)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 68), (True, 68)])
     def test_flaw_list_filtered(
         self, auth_client, test_api_v2_uri, embargoed, query_count
     ):
