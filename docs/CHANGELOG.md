@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exclude orphaned trackers from v1 flaw and tracker endpoints when filtering by tracker_ids(OSIDB-4927)
 tetime queries in API filters (OSIDB-5168)
 >>>>>>> 46ae7370 (feat: Add relative datetime filtering)
+ct creation (OSIDB-4952)
+>>>>>>> db0aa82b (Implement pre-filter logic before querying lib-newtopia)
 
 ## [5.12.0] - 2026-06-25
 ### Added
