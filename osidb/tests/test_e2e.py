@@ -587,11 +587,9 @@ class TestE2E:
         assert flaw2.is_internal
 
         # 6.1) Test rejecting collected flaw via rejected workflow label
-        from osidb.models import FlawCollaborator
+        from osidb.models import WorkflowLabel
 
-        FlawCollaborator.objects.create(
-            flaw=flaw2, label="rejected", type="workflow", contributor="test_user"
-        )
+        WorkflowLabel.objects.create(flaw=flaw2, name="rejected")
         flaw2.adjust_classification(save=False)
         flaw2.save(raise_validation_error=False)
         flaw2._create_or_update_task(jira_token)

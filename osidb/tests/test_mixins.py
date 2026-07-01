@@ -777,11 +777,9 @@ class TestBugzillaJiraMixinIntegration:
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Refinement"
 
-        from osidb.models import FlawCollaborator
+        from osidb.models import WorkflowLabel
 
-        FlawCollaborator.objects.create(
-            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
-        )
+        WorkflowLabel.objects.create(flaw=flaw, name="rejected")
         flaw.adjust_classification(save=False)
         flaw.save(
             jira_token=jira_token,
@@ -864,11 +862,9 @@ class TestBugzillaJiraMixinIntegration:
         issue = jtq.jira_conn.issue(flaw.task_key).raw
         assert issue["fields"]["status"]["name"] == "Refinement"
 
-        from osidb.models import FlawCollaborator
+        from osidb.models import WorkflowLabel
 
-        FlawCollaborator.objects.create(
-            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
-        )
+        WorkflowLabel.objects.create(flaw=flaw, name="rejected")
         flaw.adjust_classification(save=False)
         flaw.save(
             jira_token=jira_token,

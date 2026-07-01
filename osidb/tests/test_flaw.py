@@ -13,6 +13,8 @@ from osidb.constants import BZ_ID_SENTINEL
 from osidb.core import generate_acls
 from osidb.models import (
     Affect,
+    CollaboratorLabel,
+    CollaboratorLabelDefinition,
     Flaw,
     FlawAcknowledgment,
     FlawComment,
@@ -22,7 +24,6 @@ from osidb.models import (
     Impact,
     Tracker,
 )
-from osidb.models.flaw.label import FlawCollaborator, FlawLabel
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,
@@ -539,20 +540,20 @@ class TestFlaw:
         assert Flaw.objects.get(pk=f.uuid).local_updated_dt > og_local_updated_dt
 
     @pytest.mark.enable_signals
-    def test_local_updated_dt_flaw_collaborator(self):
+    def test_local_updated_dt_flaw_label(self):
         with freeze_time(tzdatetime(1998, 2, 25, 13, 27, 0)):
             f = FlawFactory(embargoed=False)
             _ = AffectFactory(flaw=f)
             f.workflow_state = "PRE_SECONDARY_ASSESSMENT"
             f.save()
+        CollaboratorLabelDefinition.objects.create(name="test_context")
         og_local_updated_dt = f.local_updated_dt
-        FlawCollaborator.objects.create(
-            label="test_context",
+        CollaboratorLabel.objects.create(
+            name="test_context",
             flaw=f,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            state=CollaboratorLabel.State.NEW,
         )
-        assert FlawCollaborator.objects.count()
+        assert CollaboratorLabel.objects.count()
         assert Flaw.objects.get(pk=f.uuid).local_updated_dt > og_local_updated_dt
 
     @pytest.mark.enable_signals

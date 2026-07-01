@@ -1,7 +1,18 @@
 import pytest
 from rest_framework import status
 
-from osidb.models import Flaw, FlawCollaborator, FlawLabel
+from osidb.models import (
+    AliasLabel,
+    BULabel,
+    BULabelDefinition,
+    CollaboratorLabel,
+    CollaboratorLabelDefinition,
+    Flaw,
+    FlawLabelV2,
+    ProductFamilyLabel,
+    ProductFamilyLabelDefinition,
+    WorkflowLabel,
+)
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
@@ -12,15 +23,9 @@ class TestEndpointsFlawsLabels:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        FlawLabel.objects.create(
-            name="test_context", type=FlawLabel.FlawLabelType.CONTEXT_BASED
-        )
-        FlawLabel.objects.create(
-            name="other_context", type=FlawLabel.FlawLabelType.CONTEXT_BASED
-        )
-        FlawLabel.objects.create(
-            name="test_product", type=FlawLabel.FlawLabelType.PRODUCT_FAMILY
-        )
+        CollaboratorLabelDefinition.objects.create(name="test_context")
+        CollaboratorLabelDefinition.objects.create(name="other_context")
+        ProductFamilyLabelDefinition.objects.create(name="test_product")
 
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
@@ -39,11 +44,10 @@ class TestEndpointsFlawsLabels:
 
     def test_get_flaw_labels(self, auth_client, test_api_uri):
         flaw = Flaw.objects.first()
-        label = FlawCollaborator.objects.create(
-            label="test_context",
+        label = CollaboratorLabel.objects.create(
+            name="test_context",
             flaw=flaw,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            state=CollaboratorLabel.State.NEW,
         )
 
         response = auth_client().get(f"{test_api_uri}/flaws/{flaw.uuid}/labels")
@@ -70,15 +74,18 @@ class TestEndpointsFlawsLabels:
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        flaw_collaborator = FlawCollaborator.objects.first()
-        label = FlawLabel.objects.get(name=flaw_collaborator.label)
+        label = CollaboratorLabel.objects.first()
 
-        assert flaw_collaborator.label == "test_context"
-        assert label.type == FlawLabel.FlawLabelType.CONTEXT_BASED
-        assert flaw_collaborator.state == FlawCollaborator.FlawCollaboratorState.NEW
-        assert flaw_collaborator.contributor == "skynet"
+        assert label.name == "test_context"
+        assert label.type == "context_based"
+        assert label.state == CollaboratorLabel.State.NEW
+        assert label.contributor == "skynet"
 
     def test_create_product_label(self, auth_client, test_api_uri):
+        """Product family labels cannot be manually created via API.
+        With explicit type=product_family, it's rejected by the serializer choices.
+        Without type (defaults to context_based), it fails pre-registration validation.
+        """
         flaw = Flaw.objects.first()
 
         response = auth_client().post(
@@ -87,34 +94,30 @@ class TestEndpointsFlawsLabels:
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert (
-            response.json()["label"]
-            == "Only context-based and alias labels can be manually added to flaws. 'test_product' is a product-based label."
-        )
 
     def test_update_label(self, auth_client, test_api_uri):
         flaw = Flaw.objects.first()
 
-        flaw_collaborator = FlawCollaborator.objects.create(
-            label="test_context",
+        label = CollaboratorLabel.objects.create(
+            name="test_context",
             flaw=flaw,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            state=CollaboratorLabel.State.NEW,
         )
 
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{flaw_collaborator.uuid}",
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{label.uuid}",
             {"state": "SKIP", "contributor": "skynet", "label": "test_context"},
         )
-        flaw_collaborator.refresh_from_db()
+        label.refresh_from_db()
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["state"] == FlawCollaborator.FlawCollaboratorState.SKIP
+        assert response.json()["state"] == CollaboratorLabel.State.SKIP
         assert response.json()["contributor"] == "skynet"
-        assert flaw_collaborator.state == FlawCollaborator.FlawCollaboratorState.SKIP
-        assert flaw_collaborator.contributor == "skynet"
+        assert label.state == CollaboratorLabel.State.SKIP
+        assert label.contributor == "skynet"
 
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{flaw_collaborator.uuid}",
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{label.uuid}",
             {"state": "SKIP", "contributor": "skynet", "label": "other_context"},
         )
 
@@ -123,34 +126,32 @@ class TestEndpointsFlawsLabels:
 
     def test_delete_context_label(self, auth_client, test_api_uri):
         flaw = Flaw.objects.first()
-        flaw_collaborator = FlawCollaborator.objects.create(
-            label="test_context",
+        label = CollaboratorLabel.objects.create(
+            name="test_context",
             flaw=flaw,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            state=CollaboratorLabel.State.NEW,
         )
 
         response = auth_client().delete(
-            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{flaw_collaborator.uuid}"
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{label.uuid}"
         )
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert FlawCollaborator.objects.count() == 0
+        assert FlawLabelV2.objects.count() == 0
 
     def test_delete_product_label(self, auth_client, test_api_uri):
         flaw = Flaw.objects.first()
-        flaw_collaborator = FlawCollaborator.objects.create(
-            label="test_product",
+        label = ProductFamilyLabel.objects.create(
+            name="test_product",
             flaw=flaw,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.PRODUCT_FAMILY,
         )
         response = auth_client().delete(
-            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{flaw_collaborator.uuid}"
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{label.uuid}"
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json()["label"] == "Product family labels cannot be deleted."
-        assert FlawCollaborator.objects.count() == 1
+        assert FlawLabelV2.objects.count() == 1
 
     def test_create_alias_label(self, auth_client, test_api_uri):
         """Test creating an alias label with free-form text (no pre-definition needed)"""
@@ -168,14 +169,9 @@ class TestEndpointsFlawsLabels:
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        flaw_collaborator = FlawCollaborator.objects.first()
-        assert flaw_collaborator.label == "my-custom-alias-name"
-        assert flaw_collaborator.type == FlawLabel.FlawLabelType.ALIAS
-        assert flaw_collaborator.state == FlawCollaborator.FlawCollaboratorState.NEW
-        assert flaw_collaborator.contributor == "test-user"
-
-        # Verify the label doesn't exist in FlawLabel master list
-        assert not FlawLabel.objects.filter(name="my-custom-alias-name").exists()
+        alias = AliasLabel.objects.first()
+        assert alias.name == "my-custom-alias-name"
+        assert alias.type == "alias"
 
     def test_create_alias_label_any_text(self, auth_client, test_api_uri):
         """Test that alias labels can be any free-form text"""
@@ -187,7 +183,7 @@ class TestEndpointsFlawsLabels:
         )
 
         assert response.status_code == status.HTTP_201_CREATED
-        assert FlawCollaborator.objects.filter(label="incident-12345").exists()
+        assert AliasLabel.objects.filter(name="incident-12345").exists()
 
         # Test that alias labels can be set in other workflow state
         flaw_workflow = FlawFactory(embargoed=False)
@@ -199,7 +195,7 @@ class TestEndpointsFlawsLabels:
             {"label": "incident-12346", "type": "alias", "state": "NEW"},
         )
         assert response.status_code == status.HTTP_201_CREATED
-        assert FlawCollaborator.objects.filter(label="incident-12346").exists()
+        assert AliasLabel.objects.filter(name="incident-12346").exists()
 
         flaw_workflow = FlawFactory(embargoed=False)
         flaw_workflow.workflow_state = "SECONDARY_ASSESSMENT"
@@ -210,43 +206,37 @@ class TestEndpointsFlawsLabels:
             {"label": "incident-12347", "type": "alias", "state": "NEW"},
         )
         assert response.status_code == status.HTTP_201_CREATED
-        assert FlawCollaborator.objects.filter(label="incident-12347").exists()
+        assert AliasLabel.objects.filter(name="incident-12347").exists()
 
     def test_delete_alias_label(self, auth_client, test_api_uri):
         """Test that alias labels can be deleted like context-based labels"""
         flaw = Flaw.objects.first()
-        flaw_collaborator = FlawCollaborator.objects.create(
-            label="my-alias",
+        label = AliasLabel.objects.create(
+            name="my-alias",
             flaw=flaw,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.ALIAS,
         )
 
         response = auth_client().delete(
-            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{flaw_collaborator.uuid}"
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{label.uuid}"
         )
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not FlawCollaborator.objects.filter(uuid=flaw_collaborator.uuid).exists()
+        assert not AliasLabel.objects.filter(uuid=label.uuid).exists()
 
     def test_update_alias_label_state(self, auth_client, test_api_uri):
-        """Test updating an alias label's state"""
+        """Test updating an alias label - state/contributor are silently ignored"""
         flaw = Flaw.objects.first()
-        flaw_collaborator = FlawCollaborator.objects.create(
-            label="my-alias",
+        label = AliasLabel.objects.create(
+            name="my-alias",
             flaw=flaw,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.ALIAS,
         )
 
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{flaw_collaborator.uuid}",
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{label.uuid}",
             {"state": "DONE", "label": "my-alias", "contributor": "test"},
         )
 
         assert response.status_code == status.HTTP_200_OK
-        flaw_collaborator.refresh_from_db()
-        assert flaw_collaborator.state == FlawCollaborator.FlawCollaboratorState.DONE
 
     def test_create_duplicate_alias_label(self, auth_client, test_api_uri):
         """Test creating a duplicate alias label"""
@@ -258,7 +248,7 @@ class TestEndpointsFlawsLabels:
         )
 
         assert response.status_code == status.HTTP_201_CREATED
-        assert FlawCollaborator.objects.filter(label="my-alias").exists()
+        assert AliasLabel.objects.filter(name="my-alias").exists()
 
         response = auth_client().post(
             f"{test_api_uri}/flaws/{flaw.uuid}/labels",
@@ -280,7 +270,6 @@ class TestEndpointsFlawsLabels:
             {"label": "test_context", "type": "alias", "state": "NEW"},
         )
 
-        print(response.json())
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.json()["label"][0] == "Label 'test_context' already exists."
 
@@ -306,40 +295,34 @@ class TestWorkflowLabels:
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
 
-        # Workflow labels auto-set to DONE state
-        assert data["state"] == "DONE"
+        assert data["state"] == "NEW"
         assert data["relevant"] is True
         assert data["type"] == "workflow"
 
         # Verify in database
-        collaborator = FlawCollaborator.objects.get(uuid=data["uuid"])
-        assert collaborator.state == FlawCollaborator.FlawCollaboratorState.DONE
-        assert collaborator.relevant is True
+        label = WorkflowLabel.objects.get(uuid=data["uuid"])
+        assert label.name == "approved"
 
     def test_workflow_label_ignores_state_parameter(self, auth_client, test_api_uri):
-        """Test that workflow labels ignore provided state and force DONE"""
+        """Test that workflow labels ignore provided state"""
         response = auth_client().post(
             f"{test_api_uri}/flaws/{self.flaw.uuid}/labels",
             {
                 "label": "manual-triage",
                 "type": "workflow",
-                "state": "NEW",  # Should be ignored
+                "state": "SKIP",  # Should be ignored
             },
         )
 
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
 
-        # State should be DONE regardless of what was provided
-        assert data["state"] == "DONE"
+        assert data["state"] == "NEW"
 
     def test_workflow_label_no_preregistration_required(
         self, auth_client, test_api_uri
     ):
-        """Test that workflow labels don't need to exist in FlawLabel table"""
-        # Verify label doesn't exist
-        assert not FlawLabel.objects.filter(name="custom-workflow-label").exists()
-
+        """Test that workflow labels don't need pre-registration"""
         response = auth_client().post(
             f"{test_api_uri}/flaws/{self.flaw.uuid}/labels",
             {
@@ -349,51 +332,40 @@ class TestWorkflowLabels:
         )
 
         assert response.status_code == status.HTTP_201_CREATED
-        assert FlawCollaborator.objects.filter(
-            label="custom-workflow-label",
-            type=FlawLabel.FlawLabelType.WORKFLOW,
-        ).exists()
+        assert WorkflowLabel.objects.filter(name="custom-workflow-label").exists()
 
     def test_update_workflow_label_contributor(self, auth_client, test_api_uri):
-        """Test that workflow labels can have contributor updated"""
-        collaborator = FlawCollaborator.objects.create(
+        """Test that workflow label updates are accepted (contributor is silently ignored)"""
+        label = WorkflowLabel.objects.create(
             flaw=self.flaw,
-            label="rejected",
-            type=FlawLabel.FlawLabelType.WORKFLOW,
-            state=FlawCollaborator.FlawCollaboratorState.DONE,
+            name="rejected",
         )
 
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{self.flaw.uuid}/labels/{collaborator.uuid}",
+            f"{test_api_uri}/flaws/{self.flaw.uuid}/labels/{label.uuid}",
             {
                 "label": "rejected",
-                "state": "DONE",  # Keep as DONE
+                "state": "DONE",
                 "contributor": "test-user",
             },
         )
 
         assert response.status_code == status.HTTP_200_OK
-        collaborator.refresh_from_db()
-
-        # Contributor should be updated
-        assert collaborator.contributor == "test-user"
-        # State remains DONE
-        assert collaborator.state == FlawCollaborator.FlawCollaboratorState.DONE
+        assert response.json()["state"] == "NEW"
 
     def test_delete_workflow_label(self, auth_client, test_api_uri):
         """Test that workflow labels can be deleted"""
-        collaborator = FlawCollaborator.objects.create(
+        label = WorkflowLabel.objects.create(
             flaw=self.flaw,
-            label="approved",
-            type=FlawLabel.FlawLabelType.WORKFLOW,
+            name="approved",
         )
 
         response = auth_client().delete(
-            f"{test_api_uri}/flaws/{self.flaw.uuid}/labels/{collaborator.uuid}"
+            f"{test_api_uri}/flaws/{self.flaw.uuid}/labels/{label.uuid}"
         )
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not FlawCollaborator.objects.filter(uuid=collaborator.uuid).exists()
+        assert not WorkflowLabel.objects.filter(uuid=label.uuid).exists()
 
 
 class TestBULabels:
@@ -401,11 +373,8 @@ class TestBULabels:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        # Create a BU label definition
-        FlawLabel.objects.create(
-            name="test_bu_label",
-            type=FlawLabel.FlawLabelType.BU,
-        )
+        BULabelDefinition.objects.create(name="test_bu_label")
+
         self.flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=self.flaw)
 
@@ -426,18 +395,8 @@ class TestBULabels:
         assert data["type"] == "bu"
         assert data["label"] == "test_bu_label"
 
-    @pytest.mark.skip(
-        reason="Known bug: serializer raises uncaught DoesNotExist instead of ValidationError"
-    )
     def test_create_bu_label_without_definition_fails(self, auth_client, test_api_uri):
-        """Test that BU labels require pre-registration in FlawLabel
-
-        NOTE: Current implementation has a bug where FlawCollaboratorSerializer.create()
-        does FlawLabel.objects.get() which raises DoesNotExist (uncaught, causes 500)
-        instead of returning a proper 400 ValidationError.
-
-        This bug should be fixed in the new polymorphic implementation.
-        """
+        """Test that BU labels require pre-registration in BULabelDefinition"""
         response = auth_client().post(
             f"{test_api_uri}/flaws/{self.flaw.uuid}/labels",
             {
@@ -447,38 +406,33 @@ class TestBULabels:
             },
         )
 
-        # TODO: Should be 400 BAD_REQUEST with ValidationError
-        # Currently raises uncaught DoesNotExist
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "does not exist" in str(response.json().get("label", ""))
 
     def test_delete_bu_label(self, auth_client, test_api_uri):
         """Test that BU labels can be deleted like context-based labels"""
-        collaborator = FlawCollaborator.objects.create(
+        label = BULabel.objects.create(
             flaw=self.flaw,
-            label="test_bu_label",
-            type=FlawLabel.FlawLabelType.BU,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            name="test_bu_label",
+            state=BULabel.State.NEW,
         )
 
         response = auth_client().delete(
-            f"{test_api_uri}/flaws/{self.flaw.uuid}/labels/{collaborator.uuid}"
+            f"{test_api_uri}/flaws/{self.flaw.uuid}/labels/{label.uuid}"
         )
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not FlawCollaborator.objects.filter(uuid=collaborator.uuid).exists()
+        assert not BULabel.objects.filter(uuid=label.uuid).exists()
 
     def test_update_bu_label(self, auth_client, test_api_uri):
         """Test updating BU label state and contributor"""
-        collaborator = FlawCollaborator.objects.create(
+        label = BULabel.objects.create(
             flaw=self.flaw,
-            label="test_bu_label",
-            type=FlawLabel.FlawLabelType.BU,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            name="test_bu_label",
+            state=BULabel.State.NEW,
         )
 
         response = auth_client().put(
-            f"{test_api_uri}/flaws/{self.flaw.uuid}/labels/{collaborator.uuid}",
+            f"{test_api_uri}/flaws/{self.flaw.uuid}/labels/{label.uuid}",
             {
                 "label": "test_bu_label",
                 "state": "DONE",
@@ -487,9 +441,9 @@ class TestBULabels:
         )
 
         assert response.status_code == status.HTTP_200_OK
-        collaborator.refresh_from_db()
-        assert collaborator.state == FlawCollaborator.FlawCollaboratorState.DONE
-        assert collaborator.contributor == "updated-user"
+        label.refresh_from_db()
+        assert label.state == BULabel.State.DONE
+        assert label.contributor == "updated-user"
 
 
 class TestLabelSerialization:
@@ -501,24 +455,20 @@ class TestLabelSerialization:
         AffectFactory(flaw=self.flaw)
 
         # Create labels of different types
-        FlawCollaborator.objects.create(
+        CollaboratorLabelDefinition.objects.create(name="context-label")
+        CollaboratorLabel.objects.create(
             flaw=self.flaw,
-            label="context-label",
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            name="context-label",
+            state=CollaboratorLabel.State.NEW,
             contributor="user1",
         )
-        FlawCollaborator.objects.create(
+        WorkflowLabel.objects.create(
             flaw=self.flaw,
-            label="workflow-label",
-            type=FlawLabel.FlawLabelType.WORKFLOW,
-            state=FlawCollaborator.FlawCollaboratorState.DONE,
+            name="workflow-label",
         )
-        FlawCollaborator.objects.create(
+        AliasLabel.objects.create(
             flaw=self.flaw,
-            label="alias-label",
-            type=FlawLabel.FlawLabelType.ALIAS,
-            state=FlawCollaborator.FlawCollaboratorState.REQ,
+            name="alias-label",
         )
 
     def test_labels_in_flaw_detail_response(self, auth_client, test_api_uri):
@@ -619,19 +569,19 @@ class TestLabelValidation:
         assert response.json()["label"] == special_name
 
     def test_label_state_transitions(self, auth_client, test_api_uri):
-        """Test all valid state transitions"""
-        collaborator = FlawCollaborator.objects.create(
+        """Test all valid state transitions on a label type that supports state"""
+        CollaboratorLabelDefinition.objects.create(name="test-label")
+        label = CollaboratorLabel.objects.create(
             flaw=self.flaw,
-            label="test-label",
-            type=FlawLabel.FlawLabelType.ALIAS,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
+            name="test-label",
+            state=CollaboratorLabel.State.NEW,
         )
 
         states = ["REQ", "SKIP", "DONE", "NEW"]
 
         for state_value in states:
             response = auth_client().put(
-                f"{test_api_uri}/flaws/{self.flaw.uuid}/labels/{collaborator.uuid}",
+                f"{test_api_uri}/flaws/{self.flaw.uuid}/labels/{label.uuid}",
                 {
                     "label": "test-label",
                     "state": state_value,
@@ -642,8 +592,8 @@ class TestLabelValidation:
             assert response.status_code == status.HTTP_200_OK
             assert response.json()["state"] == state_value
 
-            collaborator.refresh_from_db()
-            assert collaborator.state == state_value
+            label.refresh_from_db()
+            assert label.state == state_value
 
     def test_multiple_labels_same_type_different_names(self, auth_client, test_api_uri):
         """Test that a flaw can have multiple labels of the same type"""
@@ -661,20 +611,13 @@ class TestLabelValidation:
         assert response2.status_code == status.HTTP_201_CREATED
 
         # Verify both exist
-        assert (
-            FlawCollaborator.objects.filter(
-                flaw=self.flaw,
-                type=FlawLabel.FlawLabelType.ALIAS,
-            ).count()
-            == 2
-        )
+        assert AliasLabel.objects.filter(flaw=self.flaw).count() == 2
 
     def test_label_persists_across_flaw_updates(self):
         """Test that labels persist when flaw is updated (model level)"""
-        collaborator = FlawCollaborator.objects.create(
+        label = AliasLabel.objects.create(
             flaw=self.flaw,
-            label="persistent-label",
-            type=FlawLabel.FlawLabelType.ALIAS,
+            name="persistent-label",
         )
 
         # Update the flaw directly (model level)
@@ -682,10 +625,10 @@ class TestLabelValidation:
         self.flaw.save()
 
         # Verify label still exists
-        assert FlawCollaborator.objects.filter(uuid=collaborator.uuid).exists()
-        collaborator.refresh_from_db()
-        assert collaborator.label == "persistent-label"
-        assert collaborator.flaw == self.flaw
+        assert AliasLabel.objects.filter(uuid=label.uuid).exists()
+        label.refresh_from_db()
+        assert label.name == "persistent-label"
+        assert label.flaw == self.flaw
 
 
 class TestLabelFiltering:
@@ -696,18 +639,16 @@ class TestLabelFiltering:
         # Create flaws with different labels
         self.flaw1 = FlawFactory(embargoed=False, cve_id="CVE-2024-0001")
         AffectFactory(flaw=self.flaw1)
-        FlawCollaborator.objects.create(
+        AliasLabel.objects.create(
             flaw=self.flaw1,
-            label="critical-bug",
-            type=FlawLabel.FlawLabelType.ALIAS,
+            name="critical-bug",
         )
 
         self.flaw2 = FlawFactory(embargoed=False, cve_id="CVE-2024-0002")
         AffectFactory(flaw=self.flaw2)
-        FlawCollaborator.objects.create(
+        WorkflowLabel.objects.create(
             flaw=self.flaw2,
-            label="approved",
-            type=FlawLabel.FlawLabelType.WORKFLOW,
+            name="approved",
         )
 
         self.flaw3 = FlawFactory(embargoed=False, cve_id="CVE-2024-0003")
