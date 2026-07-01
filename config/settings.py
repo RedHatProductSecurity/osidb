@@ -304,6 +304,7 @@ SPECTACULAR_SETTINGS = {
     },
     "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
     "COMPONENT_SPLIT_REQUEST": True,
+    "OAS_VERSION": "3.1.0",
 }
 
 # Execute once a day by default
