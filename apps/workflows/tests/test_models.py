@@ -7,13 +7,13 @@ from osidb.mixins import ACLMixinVisibility
 from osidb.models import (
     Affect,
     Flaw,
-    FlawCollaborator,
     FlawCVSS,
     FlawReference,
     FlawSource,
     Impact,
     NotAffectedJustification,
     Tracker,
+    WorkflowLabel,
 )
 from osidb.tests.factories import (
     AffectFactory,
@@ -45,9 +45,7 @@ class TestCheckParser:
         flaw = FlawFactory()
         assert not check_func(flaw)
 
-        FlawCollaborator.objects.create(
-            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
-        )
+        WorkflowLabel.objects.create(flaw=flaw, name="rejected")
         assert check_func(flaw)
 
     def test_parameterized_method_multiple_labels(self):
@@ -61,15 +59,11 @@ class TestCheckParser:
         assert not check_rejected(flaw)
         assert not check_approved(flaw)
 
-        FlawCollaborator.objects.create(
-            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
-        )
+        WorkflowLabel.objects.create(flaw=flaw, name="rejected")
         assert check_rejected(flaw)
         assert not check_approved(flaw)
 
-        FlawCollaborator.objects.create(
-            flaw=flaw, label="approved", type="workflow", contributor="test_user"
-        )
+        WorkflowLabel.objects.create(flaw=flaw, name="approved")
         assert check_rejected(flaw)
         assert check_approved(flaw)
 
@@ -96,9 +90,7 @@ class TestCheckParser:
         # Flaw has no rejected label, so not_has_label_rejected should be True
         assert check_func(flaw)
 
-        FlawCollaborator.objects.create(
-            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
-        )
+        WorkflowLabel.objects.create(flaw=flaw, name="rejected")
         # Now flaw has rejected label, so not_has_label_rejected should be False
         assert not check_func(flaw)
 
@@ -1188,9 +1180,7 @@ class TestFlaw:
         assert flaw.classification["workflow"] == "DEFAULT"
 
         # Add rejected label - workflow uses has_label_rejected parameterized check
-        FlawCollaborator.objects.create(
-            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
-        )
+        WorkflowLabel.objects.create(flaw=flaw, name="rejected")
         flaw.adjust_classification()
 
         assert flaw.classification["workflow"] == "REJECTED"
@@ -1202,9 +1192,7 @@ class TestFlaw:
         flaw = FlawFactory(embargoed=False, task_key="TASK-789")
         AffectFactory(flaw=flaw)
 
-        workflow_label = FlawCollaborator.objects.create(
-            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
-        )
+        workflow_label = WorkflowLabel.objects.create(flaw=flaw, name="rejected")
         flaw.adjust_classification()
         assert flaw.classification["workflow"] == "REJECTED"
 
@@ -1218,14 +1206,10 @@ class TestFlaw:
         assert not flaw.has_label("rejected")
         assert not flaw.has_label("approved")
 
-        FlawCollaborator.objects.create(
-            flaw=flaw, label="rejected", type="workflow", contributor="test_user"
-        )
+        WorkflowLabel.objects.create(flaw=flaw, name="rejected")
         assert flaw.has_label("rejected")
         assert not flaw.has_label("approved")
 
-        FlawCollaborator.objects.create(
-            flaw=flaw, label="approved", type="workflow", contributor="test_user"
-        )
+        WorkflowLabel.objects.create(flaw=flaw, name="approved")
         assert flaw.has_label("rejected")
         assert flaw.has_label("approved")

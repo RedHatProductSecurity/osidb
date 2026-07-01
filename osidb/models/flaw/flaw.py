@@ -856,7 +856,7 @@ class Flaw(
         """
         check if the flaw has a label with the given name
         """
-        return self.labels.filter(label=label).exists()
+        return self.labels_v2.filter(name=label).exists()
 
     @property
     def is_placeholder(self):

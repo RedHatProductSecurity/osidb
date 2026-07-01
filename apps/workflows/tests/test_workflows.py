@@ -5,7 +5,7 @@ workflow definitions validation tests
 import pytest
 
 from apps.workflows.workflow import WorkflowFramework
-from osidb.models import Affect, FlawCollaborator, FlawLabel, Impact
+from osidb.models import Affect, Impact, WorkflowLabel
 from osidb.tests.factories import AffectFactory, FlawFactory, TrackerFactory
 
 pytestmark = pytest.mark.unit
@@ -158,11 +158,9 @@ class TestDefaultWorkflow:
         # --- SECONDARY_ASSESSMENT → DONE: requires label approved ---
 
         # creating the label triggers reclassification via signal
-        FlawCollaborator.objects.create(
+        WorkflowLabel.objects.create(
             flaw=flaw,
-            label="approved",
-            type=FlawLabel.FlawLabelType.WORKFLOW,
-            contributor="reviewer@redhat.com",
+            name="approved",
         )
         assert flaw.workflow_state == "DONE"
         assert flaw.workflow_name == "DEFAULT"
@@ -230,16 +228,14 @@ class TestDefaultWorkflow:
         tracker.save()
         affect.tracker = tracker
         affect.save(raise_validation_error=False)
-        collaborator = FlawCollaborator.objects.create(
+        label = WorkflowLabel.objects.create(
             flaw=flaw,
-            label="approved",
-            type=FlawLabel.FlawLabelType.WORKFLOW,
-            contributor="reviewer@redhat.com",
+            name="approved",
         )
         assert flaw.workflow_state == "DONE"
 
         # remove the approved label — should regress
-        collaborator.delete()
+        label.delete()
         flaw.refresh_from_db()
         assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
 
