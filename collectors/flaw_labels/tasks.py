@@ -7,7 +7,11 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from collectors.framework.models import collector
-from osidb.models import FlawLabel
+from osidb.models import (
+    BULabelDefinition,
+    CollaboratorLabelDefinition,
+    ProductFamilyLabelDefinition,
+)
 
 from .constants import FLAW_LABELS_REPO_BRANCH, FLAW_LABELS_REPO_URL
 from .core import fetch_flaw_labels, sync_flaw_labels
@@ -31,7 +35,11 @@ FLAW_LABELS_URL = "/".join(
 @collector(
     # Execute this every 3 hours
     crontab=crontab(minute="27", hour="*/3"),
-    data_models=[FlawLabel],
+    data_models=[
+        BULabelDefinition,
+        CollaboratorLabelDefinition,
+        ProductFamilyLabelDefinition,
+    ],
 )
 def flaw_labels_collector(collector_obj) -> None:
     """flaw labels collector"""
