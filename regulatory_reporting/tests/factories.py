@@ -2,7 +2,13 @@ import factory
 from django.utils import timezone
 
 from osidb.tests.factories import FlawFactory
-from regulatory_reporting.models import SRPReport, SRPReportMilestone
+from regulatory_reporting.models import (
+    FlawUpstreamMapping,
+    SRPReport,
+    SRPReportMilestone,
+    UpstreamNotification,
+    UpstreamProject,
+)
 
 
 class SRPReportFactory(factory.django.DjangoModelFactory):
@@ -28,3 +34,30 @@ class SRPReportMilestoneFactory(factory.django.DjangoModelFactory):
     milestone_type = SRPReportMilestone.MilestoneType.LEVEL_24H
     acl_read = factory.LazyAttribute(lambda o: o.srp_report.acl_read)
     acl_write = factory.LazyAttribute(lambda o: o.srp_report.acl_write)
+
+
+class UpstreamProjectFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = UpstreamProject
+
+    component_name = factory.Faker("word")
+    repository_url = factory.Faker("url")
+
+
+class UpstreamNotificationFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = UpstreamNotification
+
+    flaw = factory.SubFactory(FlawFactory)
+    upstream_project = factory.SubFactory(UpstreamProjectFactory)
+    status = UpstreamNotification.NotificationStatus.REQUIRED
+    acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
+    acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
+
+
+class FlawUpstreamMappingFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = FlawUpstreamMapping
+
+    flaw = factory.SubFactory(FlawFactory)
+    upstream_project = factory.SubFactory(UpstreamProjectFactory)
