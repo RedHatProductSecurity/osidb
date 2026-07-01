@@ -14,14 +14,19 @@ from osidb.helpers import get_env, get_execution_env
 from osidb.models import (
     Affect,
     AffectCVSS,
+    AliasLabel,
+    BULabel,
+    CollaboratorLabel,
     Flaw,
-    FlawCollaborator,
     FlawCVSS,
+    FlawLabelV2,
     Impact,
+    ProductFamilyLabel,
     Profile,
     PsModule,
     PsUpdateStream,
     Tracker,
+    WorkflowLabel,
 )
 from osidb.models.flaw.acknowledgment import FlawAcknowledgment
 from osidb.models.flaw.comment import FlawComment
@@ -122,8 +127,14 @@ def update_flaw_fields(sender, instance, **kwargs):
 @receiver(post_save, sender=FlawReference)
 @receiver(post_save, sender=FlawAcknowledgment)
 @receiver(post_save, sender=FlawComment)
-@receiver(post_save, sender=FlawCollaborator)
-@receiver(post_delete, sender=FlawCollaborator)
+@receiver(post_save, sender=AliasLabel)
+@receiver(post_save, sender=BULabel)
+@receiver(post_save, sender=CollaboratorLabel)
+@receiver(post_save, sender=ProductFamilyLabel)
+@receiver(post_save, sender=WorkflowLabel)
+@receiver(
+    post_delete, sender=FlawLabelV2
+)  # cascade deletion of multi-table inheritance fires from the parent
 @receiver(post_save, sender=FlawCVSS)
 def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
     if isinstance(instance, Affect):
@@ -159,14 +170,14 @@ def updated_local_updated_dt_affectcvss(sender, instance, **kwargs):
 @receiver(post_save, sender=Affect)
 def create_flaw_labels(sender, instance, **kwargs):
     if instance._state.adding:
-        FlawCollaborator.objects.create_from_affect(instance)
+        ProductFamilyLabel.create_from_affect(instance)
     else:
-        FlawCollaborator.objects.mark_irrelevant(instance.flaw)
+        ProductFamilyLabel.update_relevance(instance.flaw)
 
 
 @receiver(post_delete, sender=Affect)
 def delete_flaw_labels(sender, instance, **kwargs):
-    FlawCollaborator.objects.mark_irrelevant(instance.flaw)
+    ProductFamilyLabel.update_relevance(instance.flaw)
 
 
 @receiver(pre_save, sender=Affect)

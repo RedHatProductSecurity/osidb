@@ -7,7 +7,11 @@ from django.db import transaction
 from requests_gssapi import HTTPSPNEGOAuth
 
 from osidb.helpers import ensure_list, get_model_fields
-from osidb.models import FlawLabel
+from osidb.models import (
+    BULabelDefinition,
+    CollaboratorLabelDefinition,
+    ProductFamilyLabelDefinition,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,51 +43,33 @@ def sync_flaw_labels(context_based: dict, product_family: dict, bu_labels: dict)
     clean and re-create Flaw labels from given data
     """
 
-    flaw_labels = []
-    flaw_label_fields = get_model_fields(FlawLabel)
+    collaborator_defs = []
+    product_family_defs = []
+    bu_defs = []
+    pf_def_fields = get_model_fields(ProductFamilyLabelDefinition)
 
-    for flaw_label, filters in context_based.items():
+    for name, _filters in context_based.items():
+        collaborator_defs.append(CollaboratorLabelDefinition(name=name))
+
+    for name, filters in product_family.items():
         filtered_data = {
             key: ensure_list(value)
             for key, value in filters.items()
-            if key in flaw_label_fields
+            if key in pf_def_fields
         }
-        flaw_labels.append(
-            FlawLabel(
-                name=flaw_label,
-                type=FlawLabel.FlawLabelType.CONTEXT_BASED,
-                **filtered_data,
-            )
+        product_family_defs.append(
+            ProductFamilyLabelDefinition(name=name, **filtered_data)
         )
 
-    for flaw_label, filters in product_family.items():
-        filtered_data = {
-            key: ensure_list(value)
-            for key, value in filters.items()
-            if key in flaw_label_fields
-        }
-        flaw_labels.append(
-            FlawLabel(
-                name=flaw_label,
-                type=FlawLabel.FlawLabelType.PRODUCT_FAMILY,
-                **filtered_data,
-            )
-        )
-
-    for flaw_label, filters in bu_labels.items():
-        filtered_data = {
-            key: ensure_list(value)
-            for key, value in filters.items()
-            if key in flaw_label_fields
-        }
-        flaw_labels.append(
-            FlawLabel(
-                name=flaw_label,
-                type=FlawLabel.FlawLabelType.BU,
-                **filtered_data,
-            )
-        )
+    for name, _filters in bu_labels.items():
+        bu_defs.append(BULabelDefinition(name=name))
 
     with transaction.atomic():
-        FlawLabel.objects.all().delete()
-        FlawLabel.objects.bulk_create(flaw_labels)
+        CollaboratorLabelDefinition.objects.all().delete()
+        CollaboratorLabelDefinition.objects.bulk_create(collaborator_defs)
+
+        ProductFamilyLabelDefinition.objects.all().delete()
+        ProductFamilyLabelDefinition.objects.bulk_create(product_family_defs)
+
+        BULabelDefinition.objects.all().delete()
+        BULabelDefinition.objects.bulk_create(bu_defs)

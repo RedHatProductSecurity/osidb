@@ -2,7 +2,13 @@ import uuid
 
 import pytest
 
-from osidb.models import Flaw, FlawCollaborator, FlawLabel, FlawSource, Impact
+from osidb.models import (
+    CollaboratorLabel,
+    CollaboratorLabelDefinition,
+    Flaw,
+    FlawSource,
+    Impact,
+)
 
 from .factories import AffectFactory, FlawFactory
 
@@ -372,65 +378,53 @@ class TestSearch:
 
     def test_search_flaws_by_labels_query(self, auth_client, test_api_uri):
         """Test searching flaws by labels using djangoql query"""
-        label_a = FlawLabel.objects.create(
-            name="label_a", type=FlawLabel.FlawLabelType.CONTEXT_BASED
-        )
-        label_b = FlawLabel.objects.create(
-            name="label_b", type=FlawLabel.FlawLabelType.CONTEXT_BASED
-        )
-        label_c = FlawLabel.objects.create(
-            name="label_c", type=FlawLabel.FlawLabelType.CONTEXT_BASED
-        )
+        CollaboratorLabelDefinition.objects.create(name="label_a")
+        CollaboratorLabelDefinition.objects.create(name="label_b")
+        CollaboratorLabelDefinition.objects.create(name="label_c")
 
         flaw1 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw1)
         flaw1.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw1.save()
-        FlawCollaborator.objects.create(
+        CollaboratorLabel.objects.create(
             flaw=flaw1,
-            label=label_a.name,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            name="label_a",
+            state=CollaboratorLabel.State.NEW,
         )
 
         flaw2 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw2)
         flaw2.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw2.save()
-        FlawCollaborator.objects.create(
+        CollaboratorLabel.objects.create(
             flaw=flaw2,
-            label=label_a.name,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            name="label_a",
+            state=CollaboratorLabel.State.NEW,
         )
-        FlawCollaborator.objects.create(
+        CollaboratorLabel.objects.create(
             flaw=flaw2,
-            label=label_b.name,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            name="label_b",
+            state=CollaboratorLabel.State.NEW,
         )
 
         flaw3 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw3)
         flaw3.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw3.save()
-        FlawCollaborator.objects.create(
+        CollaboratorLabel.objects.create(
             flaw=flaw3,
-            label=label_a.name,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            name="label_a",
+            state=CollaboratorLabel.State.NEW,
         )
-        FlawCollaborator.objects.create(
+        CollaboratorLabel.objects.create(
             flaw=flaw3,
-            label=label_b.name,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            name="label_b",
+            state=CollaboratorLabel.State.NEW,
         )
-        FlawCollaborator.objects.create(
+        CollaboratorLabel.objects.create(
             flaw=flaw3,
-            label=label_c.name,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            name="label_c",
+            state=CollaboratorLabel.State.NEW,
         )
 
         response = auth_client().get(
