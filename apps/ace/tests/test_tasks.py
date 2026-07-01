@@ -13,7 +13,18 @@ from unittest.mock import MagicMock
 import pytest
 from packageurl import PackageURL
 
-from apps.ace.tasks import sync_flaw_affects_from_newcli
+from apps.ace.constants import (
+    LABEL_AUTO_AFFECTS,
+    LABEL_AUTO_REJECTED,
+    LABEL_MANUAL_TRIAGE,
+    LABEL_POTENTIAL_REJECTION,
+)
+from apps.ace.tasks import (
+    _is_go_stdlib,
+    _pre_filter_component,
+    _resolve_component,
+    sync_flaw_affects_from_newcli,
+)
 from osidb.models.affect import Affect
 from osidb.tests.factories import (
     FlawFactory,
@@ -44,6 +55,7 @@ def test_sync_creates_one_affect_per_result(
         "skipped": 0,
         "skipped_existing": 0,
         "marked_notaffected": 0,
+        "pre_filtered": 0,
     }
     assert flaw.affects.count() == n
     assert {
@@ -83,6 +95,7 @@ def test_sync_runs_query_per_flaw_component(
         "skipped": 0,
         "skipped_existing": 1,
         "marked_notaffected": 0,
+        "pre_filtered": 0,
     }
     assert flaw.affects.count() == n_urllib3
 
@@ -105,12 +118,14 @@ def test_sync_skips_existing_on_second_run(
         "skipped": 0,
         "skipped_existing": 0,
         "marked_notaffected": 0,
+        "pre_filtered": 0,
     }
     assert second == {
         "created": 0,
         "skipped": 0,
         "skipped_existing": n,
         "marked_notaffected": 0,
+        "pre_filtered": 0,
     }
 
 
@@ -138,6 +153,7 @@ def test_sync_includes_builds_as_affects(
         "skipped": 0,
         "skipped_existing": 0,
         "marked_notaffected": 0,
+        "pre_filtered": 0,
     }
     assert flaw.affects.count() == 2
 
@@ -177,6 +193,7 @@ def test_sync_multi_stream_with_duplicate(
         "skipped": 0,
         "skipped_existing": 1,
         "marked_notaffected": 0,
+        "pre_filtered": 0,
     }
     assert flaw.affects.count() == 5
 
@@ -197,6 +214,7 @@ def test_sync_multi_stream_with_duplicate(
         "skipped": 0,
         "skipped_existing": 6,
         "marked_notaffected": 0,
+        "pre_filtered": 0,
     }
     assert flaw.affects.count() == 5
 
@@ -454,6 +472,7 @@ def test_sync_returns_marked_notaffected_count(
         "skipped": 0,
         "skipped_existing": 0,
         "marked_notaffected": 2,
+        "pre_filtered": 0,
     }
 
 
@@ -568,3 +587,271 @@ def test_sync_queries_each_ecosystem_for_component(monkeypatch, ace_enabled):
     assert search_kwargs[0]["ecosystem"] == "npm"
     assert search_kwargs[1]["ecosystem"] == "pypi"
     assert stats["created"] == 2
+
+
+# ── Pre-filter tests ──────────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_pre_filter_blocklist_skips():
+    from collectors.component_mapping.models import BlocklistEntry
+
+    BlocklistEntry.objects.create(name="gitlab", reason="Not shipped by Red Hat")
+    flaw = FlawFactory(components=["GitLab"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "GitLab", "")
+
+    assert result.action == "skip"
+    assert result.label == LABEL_AUTO_REJECTED
+    assert "Blocked" in result.reason
+
+
+@pytest.mark.django_db
+def test_pre_filter_allows_non_blocked():
+    from collectors.component_mapping.models import StrictPackage
+
+    StrictPackage.objects.create(name="openssl", repos=["rhel-9"])
+    flaw = FlawFactory(components=["openssl"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "openssl", "")
+
+    assert result.action == "search"
+    assert result.label == LABEL_AUTO_AFFECTS
+    assert "openssl" in result.resolved_names
+
+
+@pytest.mark.django_db
+def test_resolve_component_from_db():
+    from collectors.component_mapping.models import ComponentMapEntry
+
+    ComponentMapEntry.objects.create(name="Django", upstream_packages="python-django")
+
+    assert _resolve_component("Django") == ["python-django"]
+    assert _resolve_component("django") == ["python-django"]
+
+
+@pytest.mark.django_db
+def test_resolve_component_list_mapping():
+    from collectors.component_mapping.models import ComponentMapEntry
+
+    ComponentMapEntry.objects.create(
+        name="Kafka", upstream_packages=["kafka", "kafka-clients"]
+    )
+
+    assert _resolve_component("Kafka") == ["kafka", "kafka-clients"]
+
+
+@pytest.mark.django_db
+def test_resolve_component_fallback_normalizes():
+    assert _resolve_component("JetBrains YouTrack") == ["JetBrains-YouTrack"]
+
+
+@pytest.mark.django_db
+def test_sync_skips_blocked_component(monkeypatch, ace_enabled, mock_querier):
+    from collectors.component_mapping.models import BlocklistEntry
+
+    BlocklistEntry.objects.create(name="gitlab", reason="Not shipped")
+    flaw = FlawFactory(components=["GitLab"], embargoed=False)
+
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_querier({"gitlab": []}))
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["created"] == 0
+    assert flaw.labels.filter(label=LABEL_AUTO_REJECTED).exists()
+
+
+@pytest.mark.django_db
+def test_sync_resolves_component_before_search(
+    monkeypatch, ace_enabled, urllib3_results
+):
+    from collectors.component_mapping.models import (
+        ComponentMapEntry,
+        StrictPackage,
+        VerifiedMapping,
+    )
+
+    ComponentMapEntry.objects.create(name="Django", upstream_packages="python-django")
+    VerifiedMapping.objects.create(name="Django", upstream_package="python-django")
+    StrictPackage.objects.create(name="python-django", repos=[])
+    flaw = FlawFactory(components=["Django"], embargoed=False)
+
+    search_terms = []
+
+    def _search(terms, **kwargs):
+        search_terms.append(terms[0])
+        qs = MagicMock()
+        qs.filter.return_value.all.return_value = []
+        return qs
+
+    mock_nq = MagicMock()
+    mock_nq.return_value.search.side_effect = _search
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_nq)
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert search_terms == ["python-django"]
+
+
+# ── Go stdlib / Chromium detection ────────────────────────────────────────────
+
+
+def test_is_go_stdlib_true():
+    assert _is_go_stdlib(["golang", "net/http"]) is True
+    assert _is_go_stdlib(["golang", "crypto/tls"]) is True
+
+
+def test_is_go_stdlib_false():
+    assert _is_go_stdlib(["golang"]) is False
+    assert _is_go_stdlib(["net/http"]) is False
+    assert _is_go_stdlib(["github.com/foo/bar", "golang"]) is False
+
+
+@pytest.mark.django_db
+def test_pre_filter_go_stdlib_manual_triage():
+    flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "golang", "")
+
+    assert result.action == "manual"
+    assert result.label == LABEL_MANUAL_TRIAGE
+    assert "Go stdlib" in result.reason
+
+
+@pytest.mark.django_db
+def test_pre_filter_chromium_manual_triage():
+    flaw = FlawFactory(components=["chromium"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "chromium", "")
+
+    assert result.action == "manual"
+    assert result.label == LABEL_MANUAL_TRIAGE
+    assert "Chromium" in result.reason
+
+
+# ── Cross-ecosystem guard ────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_pre_filter_cross_ecosystem_no_ecosystem():
+    from collectors.component_mapping.models import CrossEcosystemName
+
+    CrossEcosystemName.objects.create(name="redis", ecosystems=["npm", "pypi"])
+    flaw = FlawFactory(components=["redis"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "redis", "")
+
+    assert result.action == "manual"
+    assert result.label == LABEL_MANUAL_TRIAGE
+    assert "ecosystems" in result.reason
+
+
+@pytest.mark.django_db
+def test_pre_filter_cross_ecosystem_with_ecosystem_proceeds():
+    from collectors.component_mapping.models import CrossEcosystemName
+
+    CrossEcosystemName.objects.create(name="redis", ecosystems=["npm", "pypi"])
+    flaw = FlawFactory(components=["redis"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "redis", "npm")
+
+    assert result.action == "search"
+
+
+# ── Verified mapping guard ───────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_pre_filter_unverified_mapping_manual_triage():
+    from collectors.component_mapping.models import ComponentMapEntry
+
+    ComponentMapEntry.objects.create(
+        name="SomeGoLib", upstream_packages="github.com/foo/bar"
+    )
+    flaw = FlawFactory(components=["SomeGoLib"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "SomeGoLib", "")
+
+    assert result.action == "manual"
+    assert result.label == LABEL_MANUAL_TRIAGE
+    assert "not verified" in result.reason
+
+
+@pytest.mark.django_db
+def test_pre_filter_verified_mapping_proceeds():
+    from collectors.component_mapping.models import ComponentMapEntry, VerifiedMapping
+
+    ComponentMapEntry.objects.create(
+        name="Vault", upstream_packages="github.com/hashicorp/vault"
+    )
+    VerifiedMapping.objects.create(
+        name="Vault", upstream_package="github.com/hashicorp/vault"
+    )
+    flaw = FlawFactory(components=["Vault"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "Vault", "")
+
+    assert result.action == "search"
+
+
+# ── Semi-strict review ───────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_pre_filter_semi_strict_no_pick_manual_triage():
+    from collectors.component_mapping.models import SemiStrictReviewEntry
+
+    SemiStrictReviewEntry.objects.create(
+        name="accelerator", data={"candidates": ["pkg-a", "pkg-b"], "pick": ""}
+    )
+    flaw = FlawFactory(components=["accelerator"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "accelerator", "")
+
+    assert result.action == "manual"
+    assert result.label == LABEL_MANUAL_TRIAGE
+    assert "ambiguous" in result.reason
+
+
+@pytest.mark.django_db
+def test_pre_filter_semi_strict_with_pick_uses_picked():
+    from collectors.component_mapping.models import SemiStrictReviewEntry, StrictPackage
+
+    SemiStrictReviewEntry.objects.create(
+        name="accelerator", data={"candidates": ["pkg-a", "pkg-b"], "pick": "pkg-a"}
+    )
+    StrictPackage.objects.create(name="pkg-a", repos=[])
+    flaw = FlawFactory(components=["accelerator"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "accelerator", "")
+
+    assert result.action == "search"
+    assert result.label == LABEL_AUTO_AFFECTS
+    assert result.resolved_names == ["pkg-a"]
+
+
+# ── Confidence / strict packages ─────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_pre_filter_strict_package_auto_affects():
+    from collectors.component_mapping.models import StrictPackage
+
+    StrictPackage.objects.create(name="openssl", repos=["rhel-9"])
+    flaw = FlawFactory(components=["openssl"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "openssl", "")
+
+    assert result.action == "search"
+    assert result.label == LABEL_AUTO_AFFECTS
+
+
+@pytest.mark.django_db
+def test_pre_filter_non_strict_potential_rejection():
+    flaw = FlawFactory(components=["unknown-pkg"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "unknown-pkg", "")
+
+    assert result.action == "search"
+    assert result.label == LABEL_POTENTIAL_REJECTION
+    assert "Low confidence" in result.reason
