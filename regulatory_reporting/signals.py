@@ -82,6 +82,7 @@ def check_upstream_notifiable(sender, instance, **kwargs):
 
     notification, created = UpstreamNotification.objects.get_or_create(
         flaw=instance,
+        upstream_project=None,
         defaults={
             "status": UpstreamNotification.NotificationStatus.REQUIRED,
             "reportability_reason": UpstreamNotification.ReportabilityReason.RED_HAT_IDENTIFIED,
