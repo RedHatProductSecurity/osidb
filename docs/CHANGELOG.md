@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Base auto-affect determination on upstream affected versions (OSIDB-5031)
+- Component mapping collector and pre-filter for ACE affect creation (OSIDB-4952)
 
 ## [5.12.0] - 2026-06-25
 ### Added

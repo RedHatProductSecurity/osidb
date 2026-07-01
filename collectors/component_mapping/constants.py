@@ -1,0 +1,4 @@
+from osidb.helpers import get_env
+
+COMPONENT_MAPPING_REPO_URL = get_env("COMPONENT_MAPPING_URL", "")
+COMPONENT_MAPPING_REPO_BRANCH = get_env("COMPONENT_MAPPING_BRANCH", "main")
