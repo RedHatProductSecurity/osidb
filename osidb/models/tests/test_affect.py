@@ -133,15 +133,13 @@ class TestAffect:
     @pytest.mark.enable_signals
     def test_labels_field_auto_populated(self):
         """Test that the labels field is automatically populated when saving an affect"""
-        from osidb.models.flaw.label import FlawLabel
+        from osidb.models import ProductFamilyLabelDefinition
 
         ps_module = PsModuleFactory()
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
 
-        # Create a test label that matches our affect's ps_module and ps_component
-        FlawLabel.objects.create(
+        ProductFamilyLabelDefinition.objects.create(
             name="test-auto-label",
-            type=FlawLabel.FlawLabelType.PRODUCT_FAMILY,
             ps_modules=[ps_module.name],
             ps_components=["test-component"],
         )

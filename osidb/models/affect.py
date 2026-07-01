@@ -303,19 +303,16 @@ class Affect(
 
     def update_denormalized_labels(self):
         """Update the denormalized labels field based on current ps_module and ps_component."""
-        from osidb.models.flaw.label import FlawLabel
+        from osidb.models.flaw.label_v2 import ProductFamilyLabelDefinition
 
         if not self.ps_module or not self.ps_component:
             self.labels = []
             return
 
-        # Get matching labels using the existing manager logic
-        matching_labels = FlawLabel.objects.get_filtered(
+        matching = ProductFamilyLabelDefinition.get_matching(
             [self.ps_module], [self.ps_component]
         )
-
-        # Store as list of label names
-        self.labels = [label.name for label in matching_labels]
+        self.labels = [d.name for d in matching]
 
     def context_string(self, msg):
         affect_id = self.uuid
