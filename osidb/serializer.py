@@ -2231,6 +2231,133 @@ class FlawCollaboratorPostSerializer(FlawCollaboratorSerializer):
     )
 
 
+class FlawLabelV2Serializer(TrackingMixinSerializer):
+    """
+    Flaw label V2 serializer with type-specific fields
+    """
+
+    _OPTIONAL_FIELDS = ("state", "contributor", "relevant")
+
+    flaw = serializers.UUIDField(write_only=True, source="flaw_id")
+    name = serializers.CharField(max_length=255)
+    type = serializers.ChoiceField(
+        choices=FlawLabelV2.LabelType.choices,
+        required=False,
+    )
+    state = serializers.ChoiceField(
+        choices=CollaboratorLabel.State.choices,
+        required=False,
+    )
+    contributor = serializers.CharField(
+        required=False, allow_blank=True, max_length=255
+    )
+    relevant = serializers.BooleanField(required=False)
+
+    class Meta:
+        model = FlawLabelV2
+        fields = [
+            "uuid",
+            "flaw",
+            "name",
+            "type",
+            "state",
+            "contributor",
+            "relevant",
+        ]
+        validators = []
+
+    def _get_model_field_names(self, model_class):
+        return {f.name for f in model_class._meta.get_fields()}
+
+    def _strip_unsupported_fields(self, model_class, data):
+        model_fields = self._get_model_field_names(model_class)
+        for field in self._OPTIONAL_FIELDS:
+            if field not in model_fields:
+                data.pop(field, None)
+
+    def to_representation(self, instance):
+        data = {
+            "uuid": str(instance.uuid),
+            "name": instance.name,
+            "type": instance.type,
+        }
+        for field in self._OPTIONAL_FIELDS:
+            if hasattr(type(instance), field) or field in self._get_model_field_names(
+                type(instance)
+            ):
+                data[field] = getattr(instance, field)
+        return data
+
+    def create(self, validated_data):
+        label_type = validated_data.pop("type", None)
+
+        if label_type is None:
+            raise serializers.ValidationError(
+                {"type": "This field is required for creating labels."}
+            )
+
+        if label_type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
+            raise serializers.ValidationError(
+                {
+                    "name": (
+                        "Only context-based and alias labels can be manually"
+                        f" added to flaws. '{validated_data.get('name')}'"
+                        " is a product-based label."
+                    )
+                }
+            )
+
+        model_class = FlawLabelV2.TYPE_TO_MODEL.get(label_type)
+        if model_class is None:
+            raise serializers.ValidationError(
+                {"type": f"Unknown label type '{label_type}'."}
+            )
+
+        self._strip_unsupported_fields(model_class, validated_data)
+
+        try:
+            return model_class.objects.create(**validated_data)
+        except IntegrityError as e:
+            if "duplicate key value violates unique constraint" in str(e):
+                raise serializers.ValidationError(
+                    {"name": [f"Label '{validated_data.get('name')}' already exists."]}
+                )
+            raise
+        except ValidationError as e:
+            if hasattr(e, "message_dict"):
+                if "name" in e.message_dict:
+                    raise serializers.ValidationError({"name": e.message_dict["name"]})
+                if "__all__" in e.message_dict:
+                    raise serializers.ValidationError(
+                        {
+                            "name": [
+                                f"Label '{validated_data.get('name')}' already exists."
+                            ]
+                        }
+                    )
+            raise
+
+    def update(self, instance, validated_data):
+        if validated_data.get("name") != instance.name:
+            raise serializers.ValidationError({"name": "Label name cannot be changed."})
+
+        validated_data.pop("type", None)
+        self._strip_unsupported_fields(type(instance), validated_data)
+
+        return super().update(instance, validated_data)
+
+
+@extend_schema_serializer(exclude_fields=["flaw", "relevant"])
+class FlawLabelV2PostSerializer(FlawLabelV2Serializer):
+    type = serializers.ChoiceField(
+        choices=[
+            c
+            for c in FlawLabelV2.LabelType.choices
+            if c[0] != FlawLabelV2.LabelType.PRODUCT_FAMILY
+        ],
+    )
+
+
 @extend_schema_serializer(
     deprecate_fields=["group_key", "team_id", "requires_cve_description"]
 )

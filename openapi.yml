@@ -12304,6 +12304,219 @@ paths:
                   version:
                     type: string
           description: ''
+  /osidb/api/v2/flaws/{flaw_id}/labels:
+    get:
+      operationId: osidb_api_v2_flaws_labels_list
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedFlawLabelV2List'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: osidb_api_v2_flaws_labels_create
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawLabelV2'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v2/flaws/{flaw_id}/labels/{id}:
+    get:
+      operationId: osidb_api_v2_flaws_labels_retrieve
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawLabelV2'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: osidb_api_v2_flaws_labels_update
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawLabelV2'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    delete:
+      operationId: osidb_api_v2_flaws_labels_destroy
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /osidb/api/v2/flaws/{id}:
     get:
       operationId: osidb_api_v2_flaws_retrieve
@@ -15870,6 +16083,47 @@ components:
       - product_family
       - workflow
       type: string
+    FlawLabelV2:
+      type: object
+      description: Flaw label V2 serializer with type-specific fields
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        type:
+          $ref: '#/components/schemas/FlawLabelType'
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        contributor:
+          type: string
+          maxLength: 255
+        relevant:
+          type: boolean
+      required:
+      - name
+      - uuid
+    FlawLabelV2PostRequest:
+      type: object
+      description: Flaw label V2 serializer with type-specific fields
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        type:
+          $ref: '#/components/schemas/FlawCollaboratorPostTypeEnum'
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        contributor:
+          type: string
+          maxLength: 255
+      required:
+      - name
+      - type
     FlawPackageVersion:
       type: object
       description: Package model serializer
@@ -17330,6 +17584,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FlawLabel'
+    PaginatedFlawLabelV2List:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawLabelV2'
     PaginatedFlawList:
       type: object
       required:
