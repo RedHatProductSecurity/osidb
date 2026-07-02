@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic creation of upsteam maintainer notification when criteria is met for flaw (OSIDB-5077)
 - Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
 - Exclude orphaned trackers from v1 flaw and tracker endpoints when filtering by tracker_ids(OSIDB-4927)
+tetime queries in API filters (OSIDB-5168)
+>>>>>>> 46ae7370 (feat: Add relative datetime filtering)
 
 ## [5.12.0] - 2026-06-25
 ### Added
