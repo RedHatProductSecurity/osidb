@@ -3,7 +3,13 @@ import uuid
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
-from djangoql.schema import BoolField, DjangoQLSchema, StrField
+from django.utils import timezone
+from djangoql.schema import (
+    BoolField,
+    DateTimeField,
+    DjangoQLSchema,
+    StrField,
+)
 
 from osidb.models import (
     Affect,
@@ -17,6 +23,54 @@ from osidb.models import (
 )
 
 from .core import generate_acls
+from .datetime_utils import parse_relative_datetime
+
+
+class RelativeDateTimeQLField(DateTimeField):
+    """
+    DjangoQL DateTimeField that supports relative datetime strings.
+
+    Extends the standard DjangoQL DateTimeField to accept relative datetime
+    strings like "-1d", "+2h", "-30m", "-6M", "1y", etc., in addition to
+    absolute timestamps in "YYYY-MM-DD HH:MM" format.
+
+    Examples:
+        Absolute formats:
+            "2024-06-15"
+            "2024-06-15 14:30"
+            "2024-06-15 14:30:00"
+
+        Relative formats:
+            "-1d"   -> 1 day ago
+            "+2h"   -> 2 hours from now
+            "1h"    -> 1 hour from now (+ is optional)
+            "-30m"  -> 30 minutes ago
+            "-6M"   -> 6 months ago
+            "1y"   -> 1 year from now
+    """
+
+    value_types_description = (
+        'timestamps in "YYYY-MM-DD HH:MM" format or relative like -1d, +2h'
+    )
+
+    def get_lookup_value(self, value):
+        """
+        Parse datetime value, trying relative format first, then absolute.
+
+        First attempts to parse as a relative datetime string (e.g., "-1d", "2h").
+        If that fails (returns None), falls back to the parent class absolute
+        datetime parsing.
+        """
+        if not value:
+            return None
+
+        # Try relative datetime parsing first
+        parsed = parse_relative_datetime(value, timezone.now())
+        if parsed is not None:
+            return parsed
+
+        # Fall back to parent class absolute datetime parsing
+        return super().get_lookup_value(value)
 
 
 class FlawQLSchema(DjangoQLSchema):
@@ -56,6 +110,12 @@ class FlawQLSchema(DjangoQLSchema):
         FlawReference: ["type"],
         Tracker: ["resolution", "status", "type"],
     }
+
+    def get_field_cls(self, field):
+        """Override to use RelativeDateTimeQLField for DateTimeField instances."""
+        if isinstance(field, models.DateTimeField):
+            return RelativeDateTimeQLField
+        return super().get_field_cls(field)
 
     def get_fields(self, model):
         fields = super(FlawQLSchema, self).get_fields(model)

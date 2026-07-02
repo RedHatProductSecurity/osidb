@@ -2,9 +2,11 @@
 Implement filters for OSIDB REST API results
 """
 
+from copy import deepcopy
 from datetime import timedelta
 from typing import Union
 
+from django import forms
 from django.contrib.postgres.search import (
     SearchQuery,
     SearchRank,
@@ -15,6 +17,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.db.models import Max, Min, Q
+from django.utils import timezone
 from django_filters.rest_framework import (
     BaseInFilter,
     BooleanFilter,
@@ -48,6 +51,7 @@ from osidb.models import (
 )
 from osidb.sync_manager import SyncManager
 
+from .datetime_utils import parse_relative_datetime
 from .djangoql import FlawQLSchema
 from .mixins import ACLMixinVisibility, Alert
 
@@ -79,6 +83,71 @@ class UUIDInFilter(BaseInFilter, UUIDFilter):
     """
 
     pass
+
+
+class RelativeDateTimeField(forms.DateTimeField):
+    """
+    DateTimeField that accepts both absolute datetime values (default behavior)
+    and relative datetime strings like "-1d", "+2h", "-30m", "-6M", "+1y", etc.
+
+    Relative format: [+/-]<number><unit>
+    where unit is one of: s (seconds), m (minutes), h (hours), d (days),
+    w (weeks), M (months), y (years)
+
+    Examples:
+        -1d     -> 1 day ago
+        +2h     -> 2 hours from now
+        -30m    -> 30 minutes ago
+        -6M     -> 6 months ago (calendar arithmetic)
+         1y     -> 1 year from now
+
+    If the value doesn't match the relative format, it falls back to standard
+    absolute datetime parsing.
+
+    Notes:
+        - Month/year arithmetic uses calendar dates, not fixed durations
+        - If target day doesn't exist (e.g., Jan 31 + 1M), uses last day
+          of target month (Feb 28/29)
+        - Unit 'M' (uppercase) = months; 'm' (lowercase) = minutes
+    """
+
+    def strptime(self, value, format):
+        """
+        Parse a datetime string using the given format.
+
+        First tries standard strptime parsing with the given format.
+        If that fails, attempts to parse as a relative datetime.
+
+        This override is necessary because Django's DateTimeField.to_python()
+        internally calls strptime() in a loop for each input_format. Without this,
+        relative datetime strings would fail validation since they don't match
+        standard datetime formats.
+        """
+        try:
+            return super().strptime(value, format)
+        except (ValueError, TypeError):
+            parsed = parse_relative_datetime(value, timezone.now())
+            if parsed is not None:
+                return parsed
+            raise
+
+
+class RelativeDateTimeFilter(DateTimeFilter):
+    field_class = RelativeDateTimeField
+
+
+FILTER_FOR_DBFIELD_DEFAULTS = deepcopy(FilterSet.FILTER_DEFAULTS)
+FILTER_FOR_DBFIELD_DEFAULTS.update(
+    {
+        models.DateTimeField: {
+            "filter_class": RelativeDateTimeFilter,
+        },
+    }
+)
+
+
+class OSIDBFilterSet(FilterSet):
+    FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
 
 class PURLFilter(CharFilter):
@@ -208,7 +277,7 @@ class NullForeignKeyFilter(BooleanFilter):
         return method(query)
 
 
-class InFilterSet(FilterSet):
+class InFilterSet(OSIDBFilterSet):
     """
     Adds 'in' support for ChoiceFilter, CharFilter, and UUIDFilter fields for Meta fields.
     Does not add 'in' for date and numeric comparisons.
@@ -247,7 +316,7 @@ class InFilterSet(FilterSet):
         return filters
 
 
-class DistinctFilterSet(FilterSet):
+class DistinctFilterSet(OSIDBFilterSet):
     """
     Custom FilterSet which enforces the distinct for field names that starts
     with specified prefixes so filtering on related models would not cause
@@ -324,7 +393,7 @@ class DistinctOrderingFilter(OrderingFilter):
         return queryset
 
 
-class SparseFieldsFilterSet(FilterSet):
+class SparseFieldsFilterSet(OSIDBFilterSet):
     def _preprocess_fields(self, value):
         """
         Converts a comma-separated list of fields into an ORM-friendly format.
@@ -517,10 +586,10 @@ class FlawFilter(
     cve_id = CharInFilter(field_name="cve_id")
     components = CharInFilter(field_name="components", lookup_expr="contains")
 
-    changed_after = DateTimeFilter(
+    changed_after = RelativeDateTimeFilter(
         field_name="updated_dt", method="changed_after_filter"
     )
-    changed_before = DateTimeFilter(
+    changed_before = RelativeDateTimeFilter(
         field_name="updated_dt", method="changed_before_filter"
     )
 
