@@ -2025,12 +2025,17 @@ class AlertView(RudimentaryUserPathLoggingMixin, ModelViewSet):
 
 
 @extend_schema_view(
+    list=extend_schema(deprecated=True),
+    retrieve=extend_schema(deprecated=True),
     create=extend_schema(
         request=FlawCollaboratorPostSerializer,
+        deprecated=True,
     ),
     update=extend_schema(
         request=FlawCollaboratorPostSerializer,
+        deprecated=True,
     ),
+    destroy=extend_schema(deprecated=True),
 )
 class FlawLabelView(
     RudimentaryUserPathLoggingMixin,
@@ -2078,6 +2083,10 @@ class FlawLabelV2View(
         return super().destroy(request, *args, **kwargs)
 
 
+@extend_schema_view(
+    list=extend_schema(deprecated=True),
+    retrieve=extend_schema(deprecated=True),
+)
 class LabelView(
     RudimentaryUserPathLoggingMixin,
     ListModelMixin,
