@@ -129,6 +129,8 @@ from .serializer import (
     FlawCVSSV2PutSerializer,
     FlawCVSSV2Serializer,
     FlawLabelSerializer,
+    FlawLabelV2PostSerializer,
+    FlawLabelV2Serializer,
     FlawPackageVersionPostSerializer,
     FlawPackageVersionPutSerializer,
     FlawPackageVersionSerializer,
@@ -2047,6 +2049,32 @@ class FlawLabelView(
             raise PermissionDenied(
                 {"label": "Product family labels cannot be deleted."}
             )
+        return super().destroy(request, *args, **kwargs)
+
+
+@extend_schema_view(
+    create=extend_schema(
+        request=FlawLabelV2PostSerializer,
+    ),
+    update=extend_schema(
+        request=FlawLabelV2PostSerializer,
+    ),
+)
+class FlawLabelV2View(
+    RudimentaryUserPathLoggingMixin,
+    SubFlawViewGetMixin,
+    ModelViewSet,
+):
+    serializer_class = FlawLabelV2Serializer
+    http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        from osidb.models import FlawLabelV2
+
+        if instance.type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
+            raise PermissionDenied({"name": "Product family labels cannot be deleted."})
         return super().destroy(request, *args, **kwargs)
 
 
