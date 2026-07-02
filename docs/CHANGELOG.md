@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - unrestrict workflow state names (OSIDB-5049)
 - move automatic visibility change handling specification into the workflow definitions
 - align workflow definition YAMLs with the Argus requirements (OSIDB-5050)
+- introduce true labels and deprecate collaborator-centric pseudo-labels (OSIDB-5191)
 
 ### Fixed
 - Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
