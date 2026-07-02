@@ -1,6 +1,11 @@
 import pytest
 
-from ..core import _dedup_lower, _dedup_lower_list, sync_component_mapping
+from ..core import (
+    _dedup_lower,
+    _dedup_lower_list,
+    fetch_component_mapping,
+    sync_component_mapping,
+)
 from ..models import (
     AmbiguousNpmPackage,
     BlocklistEntry,
@@ -167,3 +172,34 @@ class TestSyncComponentMapping:
         sync_component_mapping(data)
         assert BlocklistEntry.objects.count() == 1
         assert BlocklistEntry.objects.get().reason == "reason1"
+
+
+COMPONENT_MAPPING_CASSETTE = "TestComponentMappingCollection.component_mapping.yaml"
+
+
+@pytest.mark.django_db
+class TestComponentMappingCollection:
+    @pytest.mark.default_cassette(COMPONENT_MAPPING_CASSETTE)
+    @pytest.mark.vcr
+    def test_fetch_component_mapping(self, component_mapping_url):
+        data = fetch_component_mapping(url=component_mapping_url)
+
+        assert data["metadata"]["version"] == 1
+        assert "blocklist" in data
+        assert "component_map" in data
+        assert "strict_packages" in data
+        assert "strict_npm_packages" in data
+
+    @pytest.mark.default_cassette(COMPONENT_MAPPING_CASSETTE)
+    @pytest.mark.vcr
+    def test_fetch_and_sync(self, component_mapping_url):
+        data = fetch_component_mapping(url=component_mapping_url)
+        counts = sync_component_mapping(data)
+
+        assert counts["blocklist"] > 0
+        assert counts["component_map"] > 0
+        assert counts["strict_packages"] > 0
+        assert counts["strict_npm_packages"] > 0
+        assert BlocklistEntry.objects.filter(name="gitlab").exists()
+        assert ComponentMapEntry.objects.filter(name="django").exists()
+        assert StrictPackage.objects.filter(name="openssl").exists()
