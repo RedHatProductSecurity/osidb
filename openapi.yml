@@ -5186,6 +5186,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       - {}
+      deprecated: true
       responses:
         '200':
           content:
@@ -5230,6 +5231,7 @@ paths:
         required: true
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '201':
           content:
@@ -5269,6 +5271,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       - {}
+      deprecated: true
       responses:
         '200':
           content:
@@ -5318,6 +5321,7 @@ paths:
         required: true
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -5355,6 +5359,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '204':
           content:
@@ -6587,6 +6592,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       - {}
+      deprecated: true
       responses:
         '200':
           content:
@@ -6622,6 +6628,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       - {}
+      deprecated: true
       responses:
         '200':
           content:
