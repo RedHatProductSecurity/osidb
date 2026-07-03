@@ -1,6 +1,7 @@
 import factory
 from django.utils import timezone
 
+from osidb.models import Flaw
 from osidb.tests.factories import FlawFactory
 from regulatory_reporting.models import (
     FlawUpstreamMapping,
@@ -11,16 +12,28 @@ from regulatory_reporting.models import (
 )
 
 
+class NonReportableFlawFactory(FlawFactory):
+    """
+    Flaw that does not trigger SRP auto-creation and is readable by public ACLs.
+
+    Use in API/factory tests that create reports or notifications manually.
+    """
+
+    embargoed = False
+    major_incident_state = Flaw.FlawMajorIncident.NOVALUE
+
+
 class SRPReportFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = SRPReport
 
-    flaw = factory.SubFactory(FlawFactory)
+    flaw = factory.SubFactory(NonReportableFlawFactory)
     title = factory.Faker("sentence", nb_words=4)
     responsibility_scope = SRPReport.ResponsibilityScope.MANUFACTURER
     reportable_event_type = (
         SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
     )
+
     timer_started_at = factory.LazyFunction(timezone.now)
     acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
     acl_write = factory.LazyAttribute(lambda o: o.flaw.acl_write)
@@ -48,7 +61,8 @@ class UpstreamNotificationFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = UpstreamNotification
 
-    flaw = factory.SubFactory(FlawFactory)
+    # Non-embargoed so ACL-filtered API tests can see created rows reliably.
+    flaw = factory.SubFactory(NonReportableFlawFactory)
     upstream_project = factory.SubFactory(UpstreamProjectFactory)
     status = UpstreamNotification.NotificationStatus.REQUIRED
     acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
@@ -59,5 +73,5 @@ class FlawUpstreamMappingFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = FlawUpstreamMapping
 
-    flaw = factory.SubFactory(FlawFactory)
+    flaw = factory.SubFactory(NonReportableFlawFactory)
     upstream_project = factory.SubFactory(UpstreamProjectFactory)

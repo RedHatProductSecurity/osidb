@@ -3,6 +3,7 @@ Tests for regulatory reporting serializers.
 """
 
 from datetime import timedelta
+from types import SimpleNamespace
 
 import pytest
 from django.utils import timezone
@@ -22,6 +23,17 @@ from regulatory_reporting.tests.factories import (
     UpstreamNotificationFactory,
     UpstreamProjectFactory,
 )
+
+
+def _patch_request(data):
+    """Minimal request stub for serializer.update() tests."""
+    return SimpleNamespace(
+        data=data,
+        query_params={},
+        method="PATCH",
+        user=SimpleNamespace(groups=SimpleNamespace(all=lambda: [])),
+    )
+
 
 pytestmark = [pytest.mark.unit, pytest.mark.enable_signals]
 
@@ -138,6 +150,44 @@ class TestSRPReportMilestoneSerializer:
         assert data["hours_remaining"] == 23
         assert data["is_overdue"] is False
 
+    def test_update_without_embargoed_preserves_acls(self):
+        """
+        PATCH without embargoed must not rewrite ACLs to public.
+
+        ACLMixinSerializer.update() reads request.data.get("embargoed") directly;
+        omitting it would otherwise resolve as public.
+        """
+        flaw = FlawFactory(
+            embargoed=True,
+            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+            major_incident_start_dt=timezone.now(),
+        )
+        milestone = flaw.srp_reports.get().milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+        assert milestone.is_embargoed
+        original_acl_read = list(milestone.acl_read)
+        original_acl_write = list(milestone.acl_write)
+
+        payload = {
+            "status": SRPReportMilestone.SRPReportStatus.PREPARED,
+            "updated_dt": milestone.updated_dt,
+        }
+        serializer = SRPReportMilestoneSerializer(
+            milestone,
+            data=payload,
+            partial=True,
+            context={"request": _patch_request(payload)},
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        updated.refresh_from_db()
+
+        assert updated.is_embargoed
+        assert list(updated.acl_read) == original_acl_read
+        assert list(updated.acl_write) == original_acl_write
+        assert updated.status == SRPReportMilestone.SRPReportStatus.PREPARED
+
 
 class TestSRPReportSerializer:
     """Test SRPReport serializer"""
@@ -192,3 +242,39 @@ class TestSRPReportSerializer:
         assert data["milestones"][2]["milestone_type"] == "final"
         assert data["milestones"][2]["hours_remaining"] == 30 * 24 - 1
         assert data["milestones"][2]["days_remaining"] == 29
+
+    def test_update_without_embargoed_preserves_acls(self):
+        """
+        PATCH without embargoed must not rewrite ACLs to public.
+
+        SRPReportSerializer inherits ACLMixinSerializer.update() but does not
+        expose embargoed; omitting it would otherwise resolve as public.
+        """
+        flaw = FlawFactory(
+            embargoed=True,
+            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+            major_incident_start_dt=timezone.now(),
+        )
+        report = flaw.srp_reports.get()
+        assert report.is_embargoed
+        original_acl_read = list(report.acl_read)
+        original_acl_write = list(report.acl_write)
+
+        payload = {
+            "status": SRPReport.SRPReportStatus.PREPARED,
+            "updated_dt": report.updated_dt,
+        }
+        serializer = SRPReportSerializer(
+            report,
+            data=payload,
+            partial=True,
+            context={"request": _patch_request(payload)},
+        )
+        assert serializer.is_valid(), serializer.errors
+        updated = serializer.save()
+        updated.refresh_from_db()
+
+        assert updated.is_embargoed
+        assert list(updated.acl_read) == original_acl_read
+        assert list(updated.acl_write) == original_acl_write
+        assert updated.status == SRPReport.SRPReportStatus.PREPARED
