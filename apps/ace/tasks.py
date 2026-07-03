@@ -1,10 +1,19 @@
 import importlib.metadata
+from dataclasses import dataclass, field
 from typing import Any
 
 from celery.utils.log import get_task_logger
 from django.db import transaction
 from packageurl import PackageURL
 
+from apps.ace.constants import (
+    CHROMIUM_NAMES,
+    GO_STDLIB_PACKAGES,
+    LABEL_AUTO_AFFECTS,
+    LABEL_AUTO_REJECTED,
+    LABEL_MANUAL_TRIAGE,
+    LABEL_POTENTIAL_REJECTION,
+)
 from apps.ace.osv_ranges import OsvPackageInfo, match_component_to_upstream
 from apps.ace.version import (
     OsvStatus,
@@ -12,10 +21,21 @@ from apps.ace.version import (
     extract_upstream_version,
     parse_version_range_or,
 )
+from collectors.component_mapping.models import (
+    AmbiguousNpmPackage,
+    BlocklistEntry,
+    ComponentMapEntry,
+    CrossEcosystemName,
+    SemiStrictReviewEntry,
+    StrictNpmPackage,
+    StrictPackage,
+    VerifiedMapping,
+)
 from config.celery import app
 from osidb.helpers import bypass_rls
 from osidb.models import Flaw
 from osidb.models.affect import Affect, AffectSettings, NotAffectedJustification
+from osidb.models.flaw.label import FlawCollaborator, FlawLabel
 from osidb.models.flaw.upstream import UpstreamData
 
 logger = get_task_logger(__name__)
@@ -34,6 +54,189 @@ def _flaw_components(flaw: Flaw) -> list[str]:
     if not components:
         raise ValueError(f"Flaw {flaw.uuid} has no non-empty components to search")
     return components
+
+
+@dataclass
+class PreFilterResult:
+    action: str
+    label: str = ""
+    resolved_names: list[str] = field(default_factory=list)
+    reason: str = ""
+
+
+def _resolve_component(component: str) -> tuple[list[str], bool]:
+    """
+    Translate an OSIDB component name to upstream package identifier.
+
+    Checks the ComponentMapEntry table (populated by the component_mapping
+    collector) with case-insensitive lookup. Falls back to "space to dash"
+    normalization if no mapping exists.
+
+    Returns ``(resolved_names, has_mapping)`` where ``has_mapping`` is True
+    when the component was found in the ComponentMapEntry table.
+    """
+    component = component.strip()
+    entry = ComponentMapEntry.objects.filter(name__iexact=component).first()
+    if entry:
+        pkgs = entry.upstream_packages
+        resolved = pkgs if isinstance(pkgs, list) else [pkgs]
+        return resolved, True
+    return [component.replace(" ", "-")], False
+
+
+def _is_go_stdlib(components: list[str]) -> bool:
+    """
+    Check if any component is a Go stdlib package.
+    """
+    has_golang = any(c.lower() == "golang" for c in components)
+    if not has_golang:
+        return False
+    for c in components:
+        first_seg = c.split("/")[0]
+        if (
+            "." not in first_seg
+            and "-" not in first_seg
+            and first_seg.lower() in GO_STDLIB_PACKAGES
+        ):
+            return True
+    return False
+
+
+def _is_verified_mapping(component: str, resolved: list[str]) -> bool:
+    """
+    Check if the component has a verified mapping using the table collected
+    by the component_mapping collector.
+    """
+    # List mappings (e.g. ["a2wsgi", "python-a2wsgi"]) are convention-based,
+    # auto-generated from SBOM data, and always trusted.
+    if isinstance(resolved, list) and len(resolved) > 1:
+        return True
+    if VerifiedMapping.objects.filter(name__iexact=component).exists():
+        return True
+    return False
+
+
+def _apply_label(flaw: Flaw, label: str) -> None:
+    if not label:
+        return
+    FlawCollaborator.objects.get_or_create(
+        flaw=flaw,
+        label=label,
+        defaults={
+            "type": FlawLabel.FlawLabelType.CONTEXT_BASED,
+            "state": FlawCollaborator.FlawCollaboratorState.NEW,
+        },
+    )
+
+
+def _pre_filter_component(
+    flaw: Flaw, component: str, ecosystem: str
+) -> PreFilterResult:
+    """
+    Check a component against mapping data (source-component-mapping)
+    before querying lib-newtopia.
+
+    Decision tree (checks run in order, first match wins):
+      1. Blocklist -> skip
+      2. Go stdlib -> manual triage
+      3. Chromium -> manual triage
+      4. Resolve component name
+      5. Verified mapping guard -> manual triage if unverified
+      6. Cross-ecosystem guard -> manual triage if ambiguous
+      7. Semi-strict review -> manual triage if unresolved
+      8. Confidence check -> potential-rejection if low confidence
+      9. All checks pass -> auto-affects, the rest of the process continues
+    """
+    component_lower = component.strip().lower()
+
+    # Blocklist check
+    block = BlocklistEntry.objects.filter(name=component_lower).first()
+    if block:
+        return PreFilterResult(
+            action="skip",
+            label=LABEL_AUTO_REJECTED,
+            reason=f"Blocked: {block.reason}",
+        )
+
+    # Go stdlib check
+    if _is_go_stdlib(flaw.components or []):
+        return PreFilterResult(
+            action="manual",
+            label=LABEL_MANUAL_TRIAGE,
+            reason="Go stdlib CVE, requires specialized workflow",
+        )
+
+    # Chromium check
+    if component_lower in CHROMIUM_NAMES:
+        return PreFilterResult(
+            action="manual",
+            label=LABEL_MANUAL_TRIAGE,
+            reason="Chromium CVE, requires specialized workflow",
+        )
+
+    resolved, has_custom_mapping = _resolve_component(component)
+
+    # Verified mapping guard
+    if has_custom_mapping and not _is_verified_mapping(component, resolved):
+        return PreFilterResult(
+            action="manual",
+            label=LABEL_MANUAL_TRIAGE,
+            resolved_names=resolved,
+            reason=f"Mapping '{component}' is not verified",
+        )
+
+    # Cross-ecosystem guard
+    cross_eco = CrossEcosystemName.objects.filter(name=component_lower).first()
+    if cross_eco and not ecosystem:
+        return PreFilterResult(
+            action="manual",
+            label=LABEL_MANUAL_TRIAGE,
+            resolved_names=resolved,
+            reason=(
+                f"'{component}' exists in ecosystems: {cross_eco.ecosystems}. "
+                "Ecosystem must be specified to proceed."
+            ),
+        )
+
+    # Semi-strict review
+    semi_strict = SemiStrictReviewEntry.objects.filter(name=component_lower).first()
+    if semi_strict:
+        pick = (
+            semi_strict.data.get("pick", "")
+            if isinstance(semi_strict.data, dict)
+            else ""
+        )
+        if not pick:
+            return PreFilterResult(
+                action="manual",
+                label=LABEL_MANUAL_TRIAGE,
+                resolved_names=resolved,
+                reason=f"'{component}' has ambiguous SBOM matches requiring review",
+            )
+        resolved = [pick]
+
+    # Strict package check
+    resolved_lower = [r.lower() for r in resolved]
+    is_strict = StrictPackage.objects.filter(name__in=resolved_lower).exists()
+    is_strict_npm = StrictNpmPackage.objects.filter(name__in=resolved_lower).exists()
+    is_ambiguous_npm = AmbiguousNpmPackage.objects.filter(
+        name__in=resolved_lower
+    ).exists()
+
+    if not (is_strict or is_strict_npm or (is_ambiguous_npm and ecosystem == "npm")):
+        return PreFilterResult(
+            action="search",
+            label=LABEL_POTENTIAL_REJECTION,
+            resolved_names=resolved,
+            reason="Low confidence, component not in strict package lists",
+        )
+
+    # Continue with auto-affects process
+    return PreFilterResult(
+        action="search",
+        label=LABEL_AUTO_AFFECTS,
+        resolved_names=resolved,
+    )
 
 
 def _query_newtopia(
@@ -238,16 +441,51 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
         "skipped": 0,
         "skipped_existing": 0,
         "marked_notaffected": 0,
+        "pre_filtered": 0,
     }
 
     osv_data = flaw.upstream_data.filter(source=UpstreamData.Source.OSV).first()
     upstream_purls: list[dict] = osv_data.upstream_purls if osv_data else []
     component_ecosystems = osv_data.component_ecosystems if osv_data else {}
 
+    # Pre-filter all components first. If any component triggers a skip
+    # (e.g. blocklist), the entire flaw is skipped — matching vulncli behavior.
+    pre_filter_results: list[tuple[str, str, PreFilterResult]] = []
     for flaw_component in components:
         ecosystems = component_ecosystems.get(flaw_component.strip().lower(), [""])
         for ecosystem in ecosystems:
-            results = _query_newtopia(flaw_component, ps_modules, ecosystem=ecosystem)
+            pf = _pre_filter_component(flaw, flaw_component, ecosystem)
+            pre_filter_results.append((flaw_component, ecosystem, pf))
+
+    skip_result = next(
+        (pf for _, _, pf in pre_filter_results if pf.action == "skip"), None
+    )
+    if skip_result:
+        _apply_label(flaw, skip_result.label)
+        logger.info(
+            "Pre-filter skip for flaw=%s: %s",
+            flaw_id,
+            skip_result.reason,
+        )
+        totals["pre_filtered"] += 1
+        return totals
+
+    for flaw_component, ecosystem, pre_filter in pre_filter_results:
+        _apply_label(flaw, pre_filter.label)
+
+        if pre_filter.action != "search":
+            logger.info(
+                "Pre-filter %s for flaw=%s component=%r: %s",
+                pre_filter.action,
+                flaw_id,
+                flaw_component,
+                pre_filter.reason,
+            )
+            totals["pre_filtered"] += 1
+            continue
+
+        for resolved_name in pre_filter.resolved_names:
+            results = _query_newtopia(resolved_name, ps_modules, ecosystem=ecosystem)
             stats = _sync_affects_from_results(
                 flaw,
                 results,
@@ -256,7 +494,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
                 ecosystem=ecosystem,
                 upstream_purls=upstream_purls,
             )
-            for key in totals:
+            for key in stats:
                 totals[key] += stats[key]
 
     logger.info(
