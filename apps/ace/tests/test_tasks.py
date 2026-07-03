@@ -886,3 +886,23 @@ def test_pre_filter_non_strict_potential_rejection():
     assert result.action == "search"
     assert result.label == LABEL_POTENTIAL_REJECTION
     assert "Low confidence" in result.reason
+
+
+def test_sync_does_not_set_impact_on_created_affects(
+    monkeypatch, ace_enabled, urllib3_results, mock_querier
+):
+    """ACE must not set impact on automatically created affects.
+
+    Impact is intended to be an override of the Flaw's impact set explicitly by
+    humans. Automation should leave it blank so that aggregated_impact falls back
+    to the parent flaw's impact instead.
+    """
+    flaw = FlawFactory(components=["urllib3"])
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"urllib3": urllib3_results})
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    for affect in flaw.affects.all():
+        assert affect.impact == ""

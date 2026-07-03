@@ -363,7 +363,6 @@ def _sync_affects_from_results(
                 purl=purl_str,
                 acl_read=flaw.acl_read,
                 acl_write=flaw.acl_write,
-                impact=flaw.impact,
                 created_by="AffectCreationEngine",
                 updated_by="AffectCreationEngine",
                 assist_meta={
