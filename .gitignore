@@ -42,3 +42,6 @@ pyrightconfig.json
 *~
 \#*\#
 .\#*
+
+# Codegraph knowledge graph directory
+.codegraph/
