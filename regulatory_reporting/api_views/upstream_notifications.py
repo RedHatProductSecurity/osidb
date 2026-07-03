@@ -14,18 +14,20 @@ from osidb.api_views import (
     include_exclude_fields_extend_schema_view,
 )
 from osidb.tasks import async_send_email
-
-from .filters import UpstreamNotificationFilter
-from .models.upstream import UpstreamNotification
-from .serializers.upstream import (
+from regulatory_reporting.filters import UpstreamNotificationFilter
+from regulatory_reporting.models.upstream import UpstreamNotification
+from regulatory_reporting.serializers.upstream import (
     UpstreamNotificationPreviewSerializer,
     UpstreamNotificationSerializer,
 )
-from .services import (
+from regulatory_reporting.services import (
     build_upstream_notification_context,
     render_upstream_notification_preview,
 )
-from .tasks import mark_upstream_notification_failed, mark_upstream_notification_sent
+from regulatory_reporting.tasks import (
+    mark_upstream_notification_failed,
+    mark_upstream_notification_sent,
+)
 
 
 @include_exclude_fields_extend_schema_view
