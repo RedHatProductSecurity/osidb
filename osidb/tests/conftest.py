@@ -3,10 +3,19 @@ from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
 import pytest
+from django.utils import timezone as django_timezone
+from freezegun import freeze_time
 
 from osidb.helpers import get_env
 from osidb.integrations import IntegrationRepository, IntegrationSettings
-from osidb.models import FlawSource
+from osidb.models import Affect, FlawSource, Tracker
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
+    TrackerFactory,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -129,3 +138,89 @@ def set_hvac_test_env_vars():
     os.environ.pop("OSIDB_VAULT_ADDR", None)
     os.environ.pop("OSIDB_ROLE_ID", None)
     os.environ.pop("OSIDB_SECRET_ID", None)
+
+
+# Fixtures for relative datetime filtering tests
+
+
+@pytest.fixture
+@freeze_time("2024-06-15 12:00:00")
+def affects_at_different_times():
+    """Create affects at different times for testing relative datetime filters"""
+    flaw = FlawFactory(embargoed=False)
+
+    return {
+        "flaw": flaw,
+        "affect_5_hours_ago": AffectFactory(
+            flaw=flaw,
+            created_dt=django_timezone.now() - django_timezone.timedelta(hours=5),
+        ),
+        "affect_2_hours_ago": AffectFactory(
+            flaw=flaw,
+            created_dt=django_timezone.now() - django_timezone.timedelta(hours=2),
+        ),
+        "affect_30_min_ago": AffectFactory(
+            flaw=flaw,
+            created_dt=django_timezone.now() - django_timezone.timedelta(minutes=30),
+        ),
+    }
+
+
+@pytest.fixture
+@freeze_time("2024-06-15 12:00:00")
+def trackers_at_different_times():
+    """Create trackers at different times for testing relative datetime filters"""
+    ps_module = PsModuleFactory(bts_name="bugzilla")
+    ps_stream = PsUpdateStreamFactory(ps_module=ps_module)
+    flaw = FlawFactory(embargoed=False)
+    affect = AffectFactory(
+        flaw=flaw,
+        ps_module=ps_module.name,
+        ps_update_stream=ps_stream.name,
+        affectedness=Affect.AffectAffectedness.AFFECTED,
+        resolution=Affect.AffectResolution.DELEGATED,
+    )
+
+    return {
+        "tracker_3_days_ago": TrackerFactory(
+            type=Tracker.TrackerType.BUGZILLA,
+            affects=[affect],
+            ps_update_stream=ps_stream.name,
+            created_dt=django_timezone.now() - django_timezone.timedelta(days=3),
+        ),
+        "tracker_1_day_ago": TrackerFactory(
+            type=Tracker.TrackerType.BUGZILLA,
+            affects=[affect],
+            ps_update_stream=ps_stream.name,
+            created_dt=django_timezone.now() - django_timezone.timedelta(days=1),
+        ),
+        "tracker_2_hours_ago": TrackerFactory(
+            type=Tracker.TrackerType.BUGZILLA,
+            affects=[affect],
+            ps_update_stream=ps_stream.name,
+            created_dt=django_timezone.now() - django_timezone.timedelta(hours=2),
+        ),
+    }
+
+
+@pytest.fixture
+@freeze_time("2024-06-15 12:00:00")
+def flaws_at_different_update_times():
+    """Create flaws with different updated_dt for testing changed_after and changed_before"""
+    return {
+        "flaw_3_days_ago": FlawFactory(
+            embargoed=False,
+            local_updated_dt=django_timezone.now() - django_timezone.timedelta(days=3),
+            updated_dt=django_timezone.now() - django_timezone.timedelta(days=3),
+        ),
+        "flaw_1_day_ago": FlawFactory(
+            embargoed=False,
+            local_updated_dt=django_timezone.now() - django_timezone.timedelta(days=1),
+            updated_dt=django_timezone.now() - django_timezone.timedelta(days=1),
+        ),
+        "flaw_2_hours_ago": FlawFactory(
+            embargoed=False,
+            local_updated_dt=django_timezone.now() - django_timezone.timedelta(hours=2),
+            updated_dt=django_timezone.now() - django_timezone.timedelta(hours=2),
+        ),
+    }
