@@ -91,6 +91,7 @@ MIDDLEWARE = [
     "osidb.middleware.OsidbHistoryMiddleware",  # adds request user to audit history context
     "django.middleware.gzip.GZipMiddleware",
     "osidb.middleware.PgCommon",
+    "regulatory_reporting.middleware.CRAReportingEnabledMiddleware",
 ]
 
 AUTHENTICATION_BACKENDS = [
