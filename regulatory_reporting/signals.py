@@ -71,7 +71,6 @@ def update_srp_report_milestones(srp_report: SRPReport):
         )
 
 
-@receiver(post_save, sender=Flaw)
 def create_srp_report(sender, instance: Flaw, created: bool, **kwargs):
     """
     Auto-create SRP Report and milestones when Flaw is marked as KEV or Major Incident approved.
@@ -119,13 +118,10 @@ def create_srp_report(sender, instance: Flaw, created: bool, **kwargs):
         )
 
 
-@receiver(post_save, sender=Flaw)
 def check_upstream_notifiable(sender, instance, **kwargs):
     """
     On Flaw save, check criteria for upstream maintainer notification.
     """
-    if not settings.CRA_NOTIFICATIONS_ENABLED:
-        return
     if not is_flaw_upstream_notifiable(instance):
         return
 
