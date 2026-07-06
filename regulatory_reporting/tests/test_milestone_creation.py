@@ -12,6 +12,7 @@ from datetime import timedelta
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.test import override_settings
 from django.utils import timezone
 
 from osidb.models import Flaw
@@ -19,13 +20,12 @@ from osidb.tests.factories import FlawFactory
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 from regulatory_reporting.models.abstracts import SRPReportBase
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.enable_signals, pytest.mark.cra_reporting]
 
 
 class TestSRPMilestoneAutoCreation:
     """Test automatic SRP Milestone creation when SRP Report is created"""
 
-    @pytest.mark.enable_signals
     def test_milestones_created_for_kev_report(self):
         """
         When SRP Report is created for KEV, create 24h, 72h, and final milestones
@@ -62,7 +62,6 @@ class TestSRPMilestoneAutoCreation:
             not in milestone_types
         )
 
-    @pytest.mark.enable_signals
     def test_milestones_created_for_severe_incident_report(self):
         """
         When SRP Report is created for Severe Incident, create 24h, 72h, and final milestones.
@@ -92,7 +91,6 @@ class TestSRPMilestoneAutoCreation:
         assert SRPReportMilestone.MilestoneType.LEVEL_72H in milestone_types
         assert SRPReportMilestone.MilestoneType.LEVEL_FINAL in milestone_types
 
-    @pytest.mark.enable_signals
     def test_milestone_due_dates_for_kev(self):
         """
         Verify correct due dates for KEV milestones:
@@ -138,7 +136,6 @@ class TestSRPMilestoneAutoCreation:
             "Final milestone for KEV should be due 14 days after start"
         )
 
-    @pytest.mark.enable_signals
     def test_milestone_due_dates_for_severe_incident(self):
         """
         Verify correct due dates for Severe Incident milestones:
@@ -180,7 +177,6 @@ class TestSRPMilestoneAutoCreation:
             "Final milestone for Severe Incident should be due 30 days after start"
         )
 
-    @pytest.mark.enable_signals
     def test_milestones_inherit_acl_from_srp_report(self):
         """
         All milestones should inherit ACL permissions from their parent SRP Report.
@@ -204,7 +200,6 @@ class TestSRPMilestoneAutoCreation:
                 f"{milestone.milestone_type} should inherit acl_write"
             )
 
-    @pytest.mark.enable_signals
     def test_milestone_status_defaults_to_required(self):
         """
         All auto-created milestones should have status = REQUIRED by default.
@@ -224,7 +219,6 @@ class TestSRPMilestoneAutoCreation:
                 f"{milestone.milestone_type} should have REQUIRED status"
             )
 
-    @pytest.mark.enable_signals
     def test_milestones_refreshed_in_place_on_flaw_resave(
         self,
         internal_read_groups,
@@ -268,7 +262,6 @@ class TestSRPMilestoneAutoCreation:
             assert milestone.acl_read == public_read_groups
             assert milestone.acl_write == public_write_groups
 
-    @pytest.mark.enable_signals
     def test_additional_information_response_not_auto_created(self):
         """
         LEVEL_ADDITIONAL_INFORMATION_RESPONSE should NOT be created automatically.
@@ -292,7 +285,6 @@ class TestSRPMilestoneAutoCreation:
             "Additional information response milestones should NOT be auto-created"
         )
 
-    @pytest.mark.enable_signals
     def test_milestones_created_for_both_event_types_on_state_transition(self):
         """
         If a flaw transitions from MAJOR_INCIDENT_APPROVED to EXPLOITS_KEV_APPROVED,
@@ -332,7 +324,6 @@ class TestSRPMilestoneAutoCreation:
             "Should have 6 total milestones (3 per report)"
         )
 
-    @pytest.mark.enable_signals
     def test_milestone_creation_on_flaw_creation_with_approved_state(self):
         """
         If a flaw is created with major_incident_state already set to an approved state,
@@ -351,7 +342,6 @@ class TestSRPMilestoneAutoCreation:
             "Milestones should be created even on initial flaw creation"
         )
 
-    @pytest.mark.enable_signals
     @pytest.mark.parametrize(
         "milestone_type",
         [
@@ -392,7 +382,6 @@ class TestSRPMilestoneAutoCreation:
                 acl_write=srp_report.acl_write,
             )
 
-    @pytest.mark.enable_signals
     def test_milestone_relationships_to_srp_report(self):
         """
         Verify the relationship between milestones and their parent SRP Report works correctly.
@@ -422,7 +411,6 @@ class TestSRPMilestoneAutoCreation:
             SRPReportMilestone.MilestoneType.LEVEL_FINAL in milestone_types_via_reverse
         )
 
-    @pytest.mark.enable_signals
     def test_milestones_not_created_for_non_approved_states(self):
         """
         Milestones should only be created when major_incident_state is APPROVED.
@@ -435,11 +423,27 @@ class TestSRPMilestoneAutoCreation:
         assert SRPReport.objects.filter(flaw=flaw).count() == 0
         assert SRPReportMilestone.objects.filter(srp_report__flaw=flaw).count() == 0
 
+    @pytest.mark.no_cra_reporting
+    def test_milestones_not_created_when_cra_reporting_is_disabled(self):
+        """
+        Milestones should not be created when CRA reporting is disabled.
+        """
+        start_time = timezone.now()
+        flaw = FlawFactory(
+            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_REQUESTED,
+            major_incident_start_dt=start_time,
+        )
+        assert SRPReport.objects.filter(flaw=flaw).count() == 0, (
+            "No SRP Report should be created"
+        )
+        assert SRPReportMilestone.objects.filter(srp_report__flaw=flaw).count() == 0, (
+            "No milestones should be created"
+        )
+
 
 class TestMilestoneDueDateProperty:
     """Test the due_at property calculation for different milestone types"""
 
-    @pytest.mark.enable_signals
     def test_due_at_calculation_uses_timer_started_at(self):
         """
         The due_at property should calculate from srp_report.timer_started_at,
@@ -462,7 +466,6 @@ class TestMilestoneDueDateProperty:
                 f"{milestone.milestone_type} due_at should be after start time"
             )
 
-    @pytest.mark.enable_signals
     def test_milestone_string_representation(self):
         """
         Test the __str__ method of milestones includes milestone type and CVE ID.
@@ -485,7 +488,6 @@ class TestMilestoneDueDateProperty:
         assert "24h" in milestone_str
         assert "CVE-2024-9999" in milestone_str
 
-    @pytest.mark.enable_signals
     def test_additional_information_response_due_at_uses_request_received_at(self):
         """
         LEVEL_ADDITIONAL_INFORMATION_RESPONSE milestones should calculate due_at
@@ -526,7 +528,6 @@ class TestMilestoneDueDateProperty:
             "Should NOT use timer_started_at for additional info milestones"
         )
 
-    @pytest.mark.enable_signals
     def test_additional_information_response_due_at_returns_none_without_request_time(
         self,
     ):
@@ -557,7 +558,6 @@ class TestMilestoneDueDateProperty:
             "due_at should be None when request_received_at is not set"
         )
 
-    @pytest.mark.enable_signals
     def test_additional_information_response_milestone_for_severe_incident(self):
         """
         LEVEL_ADDITIONAL_INFORMATION_RESPONSE should work the same for

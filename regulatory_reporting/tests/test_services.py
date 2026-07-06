@@ -10,6 +10,12 @@ from regulatory_reporting.models.upstream import (
 )
 from regulatory_reporting.services import is_flaw_upstream_notifiable
 
+pytestmark = [
+    pytest.mark.unit,
+    pytest.mark.enable_signals,
+    pytest.mark.cra_notifications,
+]
+
 
 @pytest.mark.django_db
 class TestIsFlawUpstreamNotifiable:
@@ -29,7 +35,6 @@ class TestIsFlawUpstreamNotifiable:
         assert is_flaw_upstream_notifiable(flaw) is False
 
 
-@pytest.mark.enable_signals
 @pytest.mark.django_db
 class TestUpstreamNotificationSignal:
     @override_settings(CRA_NOTIFICATIONS_ENABLED=True)
@@ -48,6 +53,7 @@ class TestUpstreamNotificationSignal:
         flaw = FlawFactory(source=FlawSource.NVD)
         assert not UpstreamNotification.objects.filter(flaw=flaw).exists()
 
+    @pytest.mark.no_cra_notifications
     def test_flag_disabled_does_not_create_notification(self):
         flaw = FlawFactory(
             embargoed=False,
