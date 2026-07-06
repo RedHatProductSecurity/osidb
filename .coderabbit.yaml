@@ -31,6 +31,8 @@ reviews:
     # package-lock.json, Cargo.lock) are deliberately kept so the supply-chain
     # path_instructions block fires on them.
     - "!yarn.lock"
+    # keeps complaining about empty line after header
+    - "!docs/CHANGELOG.md"
 
   auto_review:
     enabled: true
