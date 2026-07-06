@@ -15957,17 +15957,10 @@ components:
           maxLength: 255
         type:
           allOf:
-          - $ref: '#/components/schemas/FlawCollaboratorPostTypeEnum'
+          - $ref: '#/components/schemas/Type96fEnum'
           default: context_based
       required:
       - label
-    FlawCollaboratorPostTypeEnum:
-      enum:
-      - alias
-      - bu
-      - context_based
-      - workflow
-      type: string
     FlawCollaboratorRequest:
       type: object
       description: FlawCollaborator serializer
@@ -16122,7 +16115,7 @@ components:
           minLength: 1
           maxLength: 255
         type:
-          $ref: '#/components/schemas/FlawCollaboratorPostTypeEnum'
+          $ref: '#/components/schemas/Type96fEnum'
         state:
           $ref: '#/components/schemas/StateEnum'
         contributor:
@@ -18433,6 +18426,13 @@ components:
       - updated_dt
       - uuid
       - visibility
+    Type96fEnum:
+      enum:
+      - alias
+      - bu
+      - context_based
+      - workflow
+      type: string
     UpstreamData:
       type: object
       description: Serializer for OSV/collector upstream metadata attached to a flaw
