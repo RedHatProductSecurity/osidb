@@ -13,7 +13,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import BadRequest, ValidationError
-from django.db import IntegrityError
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
@@ -2160,6 +2159,21 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
             "relevant": getattr(instance, "relevant", True),
         }
 
+    def validate(self, attrs):
+        """Validate that the label doesn't already exist for this flaw"""
+        if self.instance is None:  # Only check on create, not update
+            flaw_id = attrs.get("flaw_id")
+            name = attrs.get("name")
+
+            if flaw_id and name:
+                # Check against base FlawLabelV2 model to catch duplicates across all label types
+                # The unique constraint is on (flaw, name) regardless of type
+                if FlawLabelV2.objects.filter(flaw_id=flaw_id, name=name).exists():
+                    raise serializers.ValidationError(
+                        {"label": [f"Label '{name}' already exists."]}
+                    )
+        return attrs
+
     def create(self, validated_data):
         label_type = validated_data.pop("type", FlawLabelV2.LabelType.CONTEXT_BASED)
 
@@ -2184,21 +2198,11 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
 
         try:
             return model_class.objects.create(**validated_data)
-        except IntegrityError as e:
-            if "duplicate key value violates unique constraint" in str(e):
-                raise serializers.ValidationError(
-                    {"label": [f"Label '{validated_data.get('name')}' already exists."]}
-                )
-            raise
         except ValidationError as e:
-            label_name = validated_data.get("name")
             if hasattr(e, "message_dict"):
+                # Map "name" field errors to "label" for API consistency
                 if "name" in e.message_dict:
                     raise serializers.ValidationError({"label": e.message_dict["name"]})
-                if "__all__" in e.message_dict:
-                    raise serializers.ValidationError(
-                        {"label": [f"Label '{label_name}' already exists."]}
-                    )
                 raise serializers.ValidationError(e.message_dict)
             raise serializers.ValidationError(e.messages)
 
@@ -2288,6 +2292,21 @@ class FlawLabelV2Serializer(TrackingMixinSerializer):
                 data[field] = getattr(instance, field)
         return data
 
+    def validate(self, attrs):
+        """Validate that the label doesn't already exist for this flaw"""
+        if self.instance is None:  # Only check on create, not update
+            flaw_id = attrs.get("flaw_id")
+            name = attrs.get("name")
+
+            if flaw_id and name:
+                # Check against base FlawLabelV2 model to catch duplicates across all label types
+                # The unique constraint is on (flaw, name) regardless of type
+                if FlawLabelV2.objects.filter(flaw_id=flaw_id, name=name).exists():
+                    raise serializers.ValidationError(
+                        {"name": [f"Label '{name}' already exists."]}
+                    )
+        return attrs
+
     def create(self, validated_data):
         label_type = validated_data.pop("type", None)
 
@@ -2317,25 +2336,10 @@ class FlawLabelV2Serializer(TrackingMixinSerializer):
 
         try:
             return model_class.objects.create(**validated_data)
-        except IntegrityError as e:
-            if "duplicate key value violates unique constraint" in str(e):
-                raise serializers.ValidationError(
-                    {"name": [f"Label '{validated_data.get('name')}' already exists."]}
-                )
-            raise
         except ValidationError as e:
             if hasattr(e, "message_dict"):
-                if "name" in e.message_dict:
-                    raise serializers.ValidationError({"name": e.message_dict["name"]})
-                if "__all__" in e.message_dict:
-                    raise serializers.ValidationError(
-                        {
-                            "name": [
-                                f"Label '{validated_data.get('name')}' already exists."
-                            ]
-                        }
-                    )
-            raise
+                raise serializers.ValidationError(e.message_dict)
+            raise serializers.ValidationError(e.messages)
 
     def update(self, instance, validated_data):
         if validated_data.get("name") != instance.name:

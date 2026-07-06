@@ -64,7 +64,12 @@ from osidb.models import (
     Affect,
     AffectCVSS,
     AffectV1,
+    BULabelDefinition,
+    CollaboratorLabelDefinition,
     Flaw,
+    FlawLabelV2,
+    ProductFamilyLabel,
+    ProductFamilyLabelDefinition,
     PsUpdateStream,
     Tracker,
 )
@@ -1519,8 +1524,6 @@ def _run_post_save_effects_for_bulk(created_affects, flaw):
     Run the post_save side-effects that are normally triggered by signals
     after each individual Affect.save().  Called once after bulk_create.
     """
-    from osidb.models import ProductFamilyLabel
-
     for affect in created_affects:
         ProductFamilyLabel.create_from_affect(affect)
 
@@ -2048,8 +2051,6 @@ class FlawLabelView(
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        from osidb.models import FlawLabelV2
-
         if instance.type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
             raise PermissionDenied(
                 {"label": "Product family labels cannot be deleted."}
@@ -2076,8 +2077,6 @@ class FlawLabelV2View(
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        from osidb.models import FlawLabelV2
-
         if instance.type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
             raise PermissionDenied({"name": "Product family labels cannot be deleted."})
         return super().destroy(request, *args, **kwargs)
@@ -2101,13 +2100,6 @@ class LabelView(
     @classmethod
     def _get_definition_models(cls):
         if cls._DEFINITION_MODELS is None:
-            from osidb.models import (
-                BULabelDefinition,
-                CollaboratorLabelDefinition,
-                FlawLabelV2,
-                ProductFamilyLabelDefinition,
-            )
-
             cls._DEFINITION_MODELS = [
                 (CollaboratorLabelDefinition, FlawLabelV2.LabelType.CONTEXT_BASED),
                 (ProductFamilyLabelDefinition, FlawLabelV2.LabelType.PRODUCT_FAMILY),
