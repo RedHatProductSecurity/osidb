@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("osidb", "0237_remove_default_workflow_name"),
+        ("osidb", "0239_remove_default_workflow_name"),
     ]
 
     operations = [

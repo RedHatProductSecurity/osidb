@@ -31,7 +31,7 @@ def clear_workflow_name_without_task_key(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('osidb', '0236_upstreamdata'),
+        ('osidb', '0238_exclude_last_validated_dt_from_history'),
     ]
 
     operations = [

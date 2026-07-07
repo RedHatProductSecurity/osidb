@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("osidb", "0238_exclude_last_validated_dt_from_history"),
-        ("osidb", "0240_workflow_state_free_form"),
+        ("osidb", "0242_workflow_state_free_form"),
     ]
 
     operations = []

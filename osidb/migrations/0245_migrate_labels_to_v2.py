@@ -106,7 +106,7 @@ def migrate_labels(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("contenttypes", "0002_remove_content_type_name"),
-        ("osidb", "0242_polymorphic_labels"),
+        ("osidb", "0244_polymorphic_labels"),
     ]
 
     operations = [
