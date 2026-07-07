@@ -35,7 +35,7 @@ from config.celery import app
 from osidb.helpers import bypass_rls
 from osidb.models import Flaw
 from osidb.models.affect import Affect, AffectSettings, NotAffectedJustification
-from osidb.models.flaw.label import FlawCollaborator, FlawLabel
+from osidb.models.flaw.label_v2 import WorkflowLabel
 from osidb.models.flaw.upstream import UpstreamData
 
 logger = get_task_logger(__name__)
@@ -119,14 +119,7 @@ def _is_verified_mapping(component: str, resolved: list[str]) -> bool:
 def _apply_label(flaw: Flaw, label: str) -> None:
     if not label:
         return
-    FlawCollaborator.objects.get_or_create(
-        flaw=flaw,
-        label=label,
-        defaults={
-            "type": FlawLabel.FlawLabelType.CONTEXT_BASED,
-            "state": FlawCollaborator.FlawCollaboratorState.NEW,
-        },
-    )
+    WorkflowLabel.objects.get_or_create(flaw=flaw, name=label)
 
 
 def _pre_filter_component(
