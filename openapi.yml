@@ -15056,16 +15056,21 @@ components:
           type: string
           description: The event label.
         pgh_context:
-          oneOf:
-          - {}
-          - type: 'null'
+          type:
+          - object
+          - 'null'
+          additionalProperties: {}
           description: The context associated with the event.
         pgh_diff:
+          type: object
+          additionalProperties: {}
           description: The diff between the previous event of the same label.
         pgh_data:
-          type: string
+          type: object
+          additionalProperties: {}
           readOnly: true
       required:
+      - pgh_context
       - pgh_created_at
       - pgh_data
       - pgh_diff

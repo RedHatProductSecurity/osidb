@@ -626,7 +626,20 @@ class AlertMixinSerializer(serializers.ModelSerializer):
 
 class AuditSerializer(serializers.ModelSerializer):
     pgh_data = serializers.SerializerMethodField()
+    pgh_context = serializers.DictField(
+        allow_null=True,
+        help_text="The context associated with the event.",
+    )
+    pgh_diff = serializers.DictField(
+        help_text="The diff between the previous event of the same label.",
+    )
 
+    @extend_schema_field(
+        {
+            "type": "object",
+            "additionalProperties": {},
+        }
+    )
     def get_pgh_data(self, obj):
         # remove acls from entity snapshot
         data = obj.pgh_data
