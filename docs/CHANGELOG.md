@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add support for relative datetime queries in API filters (OSIDB-5168)
 - Component mapping collector and pre-filter for ACE affect creation (OSIDB-4952)
 
+### Changed
+- Auto-affect creation no longer overrides Affect.impact
+
 ## [5.12.0] - 2026-06-25
 ### Added
 - Scope lib-newtopia queries by ecosystem derived from upstream PURLs (OSIDB-4966)
