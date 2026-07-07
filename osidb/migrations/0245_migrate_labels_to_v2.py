@@ -87,16 +87,14 @@ def migrate_labels(apps, schema_editor):
 
         subclass_model, content_type, extra_fields = config
 
-        base = FlawLabelV2.objects.create(
-            uuid=fc.uuid,
-            flaw_id=fc.flaw_id,
-            name=fc.label,
-            created_dt=fc.created_dt,
-            updated_dt=fc.updated_dt,
-            polymorphic_ctype=content_type,
-        )
-
-        sub_kwargs = {"flawlabelv2_ptr": base}
+        sub_kwargs = {
+            "uuid": fc.uuid,
+            "flaw_id": fc.flaw_id,
+            "name": fc.label,
+            "created_dt": fc.created_dt,
+            "updated_dt": fc.updated_dt,
+            "polymorphic_ctype": content_type,
+        }
         for field in extra_fields:
             sub_kwargs[field] = getattr(fc, field)
 
