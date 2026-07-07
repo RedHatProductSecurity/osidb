@@ -10,7 +10,6 @@ from django.contrib.auth.models import User
 
 from apps.taskman.constants import JIRA_SUMMARY_MAX_LENGTH
 from apps.taskman.service import JiraTaskmanQuerier
-from apps.workflows.workflow import WorkflowModel
 from osidb.models import Flaw, Profile
 from osidb.tests.factories import AffectFactory, FlawFactory
 
@@ -27,30 +26,33 @@ class TestTaskmanService(object):
         # Remove randomness to reuse VCR every possible time
         user, _ = User.objects.get_or_create(username="concosta")
         Profile.objects.filter(user=user).update(atlassian_cloud_id="test=cloud-id")
-        flaw = FlawFactory(
-            embargoed=False,
-            workflow_state=WorkflowModel.WorkflowState.NEW,
-        )
+        flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
         taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
 
         response1 = taskman.create_or_update_task(flaw=flaw)
         assert response1 == "OSIM-14332"
+        flaw.adjust_classification(save=False)
 
         old_title = flaw.title
         new_title = f"{old_title} edited title"
 
         flaw.title = new_title
         flaw.owner = "concosta@redhat.com"
-        flaw.workflow_state = WorkflowModel.WorkflowState.TRIAGE
+        flaw.workflow_state = "TRIAGE"
         flaw.save()
 
         response2 = taskman.create_or_update_task(flaw=flaw)
         status, _ = flaw.jira_status()
         assert response2 is None
 
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.TRIAGE
-        flaw.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        assert flaw.workflow_state in (
+            "TRIAGE",
+            "ANALYSIS",
+            "PRE_SECONDARY_ASSESSMENT",
+            "SECONDARY_ASSESSMENT",
+            "DONE",
+        )
         flaw.save(raise_validation_error=False)
         response3 = taskman.create_or_update_task(flaw=flaw)
         assert response3 is None

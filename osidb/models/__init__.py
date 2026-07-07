@@ -13,6 +13,11 @@ __all__ = (
     "Affect",
     "AffectV1",
     "AffectCVSS",
+    "AliasLabel",
+    "BULabel",
+    "BULabelDefinition",
+    "CollaboratorLabel",
+    "CollaboratorLabelDefinition",
     "ComparableTextChoices",
     "CVSS",
     "CVEIDField",
@@ -23,6 +28,7 @@ __all__ = (
     "FlawCollaborator",
     "FlawCVSS",
     "FlawLabel",
+    "FlawLabelV2",
     "FlawReference",
     "UpstreamData",
     "FlawSource",
@@ -30,6 +36,8 @@ __all__ = (
     "NotAffectedJustification",
     "Package",
     "PackageVer",
+    "ProductFamilyLabel",
+    "ProductFamilyLabelDefinition",
     "Profile",
     "PsContact",
     "PsModule",
@@ -38,6 +46,7 @@ __all__ = (
     "Snippet",
     "SpecialConsiderationPackage",
     "Tracker",
+    "WorkflowLabel",
 )
 
 from .affect import Affect, AffectCVSS, AffectV1, NotAffectedJustification
@@ -47,6 +56,17 @@ from .flaw.comment import FlawComment
 from .flaw.cvss import FlawCVSS
 from .flaw.flaw import Flaw
 from .flaw.label import FlawCollaborator, FlawLabel
+from .flaw.label_v2 import (
+    AliasLabel,
+    BULabel,
+    BULabelDefinition,
+    CollaboratorLabel,
+    CollaboratorLabelDefinition,
+    FlawLabelV2,
+    ProductFamilyLabel,
+    ProductFamilyLabelDefinition,
+    WorkflowLabel,
+)
 from .flaw.reference import FlawReference
 from .flaw.upstream import UpstreamData
 from .package_versions import Package, PackageVer

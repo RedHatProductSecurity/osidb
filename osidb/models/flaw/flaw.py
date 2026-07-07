@@ -22,7 +22,10 @@ from apps.taskman.constants import (
     TRANSITION_REQUIRED_FIELDS,
 )
 from apps.taskman.mixins import JiraTaskSyncMixin
-from apps.workflows.workflow import WorkflowModel, WorkflowModelManager
+from apps.workflows.workflow import (
+    WorkflowModel,
+    WorkflowModelManager,
+)
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
 from osidb.constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from osidb.helpers import deprecate_field
@@ -525,22 +528,6 @@ class Flaw(
             )
 
     @validator
-    def _validate_impact_and_cve_description(self, **kwargs):
-        """
-        Checks that if impact has MODERATE, IMPORTANT or CRITICAL value set,
-        then cve_description must not be missing.
-        """
-        if (
-            self.impact in [Impact.MODERATE, Impact.IMPORTANT, Impact.CRITICAL]
-            and not self.cve_description
-        ):
-            self.alert(
-                "impact_without_cve_description",
-                f"cve_description cannot be missing if impact is {self.impact}.",
-                **kwargs,
-            )
-
-    @validator
     def _validate_rh_cvss3_and_impact(self, **kwargs):
         """
         Validate that flaw's RH CVSSv3 score and impact comply with the following:
@@ -568,17 +555,6 @@ class Flaw(
                 )
 
     @validator
-    def _validate_nonempty_source(self, **kwargs):
-        """
-        checks that the source is not empty
-
-        we cannot enforce this by model definition
-        as the old flaws may have no source
-        """
-        if not self.source:
-            raise ValidationError("Source value is required.")
-
-    @validator
     def _validate_embargoed_source(self, **kwargs):
         """
         Checks that the source is private if the Flaw is embargoed.
@@ -602,14 +578,6 @@ class Flaw(
                 raise ValidationError(
                     f"Flaw is embargoed but contains public source: {self.source}"
                 )
-
-    @validator
-    def _validate_reported_date(self, **kwargs):
-        """
-        Checks that the flaw has non-empty reported_dt
-        """
-        if self.reported_dt is None:
-            raise ValidationError("Flaw has an empty reported_dt")
 
     @validator
     def _validate_public_unembargo_date(self, **kwargs):
@@ -742,60 +710,6 @@ class Flaw(
         old_flaw = Flaw.objects.get(pk=self.pk)
         if not old_flaw.embargoed and self.is_embargoed:
             raise ValidationError("Embargoing a public flaw is futile")
-
-    @validator
-    def _validate_flaw_without_affect(self, **kwargs):
-        """
-        Check if flaw have at least one affect
-        """
-        from osidb.models import Affect
-
-        # Skip validation at creation allowing to draft a Flaw
-        if self._state.adding:
-            return
-
-        if not Affect.objects.filter(flaw=self).exists():
-            # When a flaw without afects is saved, issue an alert
-            self.alert(
-                "_validate_flaw_without_affect",
-                "Flaw does not contain any affects.",
-                alert_type=Alert.AlertType.ERROR,
-                **kwargs,
-            )
-
-    @validator
-    def _validate_nonempty_components(self, **kwargs):
-        """
-        check that the component list is not empty
-
-        we cannot enforce this by model definition
-        as the old flaws may have no components
-
-        flaws in NOVALUE, NEW, or REJECTED workflow state are exempt as
-        components may not yet be known at the time of creation
-        and flaws can be rejected directly from NEW without them
-
-        however clearing existing components on legacy flaws
-        (NOVALUE state without a Jira task) is not allowed
-        """
-        if self.workflow_state in (
-            WorkflowModel.WorkflowState.NOVALUE,
-            WorkflowModel.WorkflowState.NEW,
-            WorkflowModel.WorkflowState.REJECTED,
-        ):
-            if (
-                self.workflow_state == WorkflowModel.WorkflowState.NOVALUE
-                and not self.components
-                and not self._state.adding
-            ):
-                old_flaw = Flaw.objects.get(uuid=self.uuid)
-                if old_flaw.components:
-                    raise ValidationError(
-                        "Components cannot be cleared on a flaw without a task."
-                    )
-            return
-        if not self.components:
-            raise ValidationError("Components value is required.")
 
     @validator
     def _validate_unsupported_impact_change(self, **kwargs):
@@ -938,6 +852,12 @@ class Flaw(
                     f"but only 1 is allowed."
                 )
 
+    def has_label(self, label):
+        """
+        check if the flaw has a label with the given name
+        """
+        return self.labels_v2.filter(name=label).exists()
+
     @property
     def is_placeholder(self):
         """
@@ -996,7 +916,7 @@ class Flaw(
         ).exists()
 
     @property
-    def affects_resolved(self):
+    def has_affects_resolved(self):
         """check that all affects have resolution"""
         from osidb.models import Affect
 
@@ -1119,13 +1039,6 @@ class Flaw(
                     JiraTaskSyncManager.schedule(str(self.uuid))
 
                 if transition_task:
-                    # workflow transition may result in ACL change
-                    self.adjust_acls(save=False)
-                    Flaw.objects.filter(uuid=self.uuid).update(
-                        acl_read=self.acl_read,
-                        acl_write=self.acl_write,
-                    )
-
                     JiraTaskTransitionManager.check_for_reschedules()
                     JiraTaskTransitionManager.schedule(str(self.uuid))
 
@@ -1134,13 +1047,6 @@ class Flaw(
                     self._create_or_update_task(jira_token, jira_email)
 
                 if transition_task:
-                    # workflow transition may result in ACL change
-                    self.adjust_acls(save=False)
-                    Flaw.objects.filter(uuid=self.uuid).update(
-                        acl_read=self.acl_read,
-                        acl_write=self.acl_write,
-                    )
-
                     self._transition_task(jira_token, jira_email)
 
     def _create_or_update_task(self, jira_token=None, jira_email=None):
@@ -1155,9 +1061,10 @@ class Flaw(
         # creation
         if not self.task_key:
             self.task_key = jtq.create_or_update_task(self)
-            self.workflow_state = WorkflowModel.WorkflowState.NEW
+            self.adjust_classification(save=False)
             Flaw.objects.filter(uuid=self.uuid).update(
                 task_key=self.task_key,
+                workflow_name=self.workflow_name,
                 workflow_state=self.workflow_state,
             )
         else:

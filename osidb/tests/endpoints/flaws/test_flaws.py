@@ -8,16 +8,15 @@ from django.utils.timezone import datetime, make_aware
 from freezegun import freeze_time
 from rest_framework import status
 
-from apps.workflows.workflow import WorkflowModel
 from osidb.core import set_user_acls
 from osidb.filters import FlawFilter
 from osidb.models import (
     Affect,
+    CollaboratorLabel,
+    CollaboratorLabelDefinition,
     Flaw,
-    FlawCollaborator,
     FlawComment,
     FlawCVSS,
-    FlawLabel,
     FlawReference,
     FlawSource,
     Impact,
@@ -738,65 +737,53 @@ class TestEndpointsFlaws:
 
     def test_list_flaws_filter_by_labels(self, auth_client, test_api_uri):
         """test multi-label filtering"""
-        label_a = FlawLabel.objects.create(
-            name="label_a", type=FlawLabel.FlawLabelType.CONTEXT_BASED
-        )
-        label_b = FlawLabel.objects.create(
-            name="label_b", type=FlawLabel.FlawLabelType.CONTEXT_BASED
-        )
-        label_c = FlawLabel.objects.create(
-            name="label_c", type=FlawLabel.FlawLabelType.CONTEXT_BASED
-        )
+        CollaboratorLabelDefinition.objects.create(name="label_a")
+        CollaboratorLabelDefinition.objects.create(name="label_b")
+        CollaboratorLabelDefinition.objects.create(name="label_c")
 
         flaw1 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw1)
-        flaw1.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw1.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw1.save()
-        FlawCollaborator.objects.create(
+        CollaboratorLabel.objects.create(
             flaw=flaw1,
-            label=label_a.name,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            name="label_a",
+            state=CollaboratorLabel.State.NEW,
         )
 
         flaw2 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw2)
-        flaw2.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw2.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw2.save()
-        FlawCollaborator.objects.create(
+        CollaboratorLabel.objects.create(
             flaw=flaw2,
-            label=label_a.name,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            name="label_a",
+            state=CollaboratorLabel.State.NEW,
         )
-        FlawCollaborator.objects.create(
+        CollaboratorLabel.objects.create(
             flaw=flaw2,
-            label=label_b.name,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            name="label_b",
+            state=CollaboratorLabel.State.NEW,
         )
 
         flaw3 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw3)
-        flaw3.workflow_state = WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT
+        flaw3.workflow_state = "PRE_SECONDARY_ASSESSMENT"
         flaw3.save()
-        FlawCollaborator.objects.create(
+        CollaboratorLabel.objects.create(
             flaw=flaw3,
-            label=label_a.name,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            name="label_a",
+            state=CollaboratorLabel.State.NEW,
         )
-        FlawCollaborator.objects.create(
+        CollaboratorLabel.objects.create(
             flaw=flaw3,
-            label=label_b.name,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            name="label_b",
+            state=CollaboratorLabel.State.NEW,
         )
-        FlawCollaborator.objects.create(
+        CollaboratorLabel.objects.create(
             flaw=flaw3,
-            label=label_c.name,
-            state=FlawCollaborator.FlawCollaboratorState.NEW,
-            type=FlawLabel.FlawLabelType.CONTEXT_BASED,
+            name="label_c",
+            state=CollaboratorLabel.State.NEW,
         )
 
         response = auth_client().get(f"{test_api_uri}/flaws?flaw_labels=label_a")
@@ -835,6 +822,39 @@ class TestEndpointsFlaws:
         body = response.json()
         assert body["count"] == 1
         assert {flaw["cve_id"] for flaw in body["results"]} == {flaw3.cve_id}
+
+    def test_list_flaws_filter_by_workflow_name(self, auth_client, test_api_uri):
+        """test filtering flaws by workflow_name"""
+        response = auth_client().get(f"{test_api_uri}/flaws")
+        assert response.status_code == 200
+        assert response.json()["count"] == 0
+
+        FlawFactory(workflow_name="DEFAULT")
+        FlawFactory(workflow_name="DEFAULT")
+        FlawFactory(workflow_name="EMBARGOED")
+        FlawFactory(workflow_name="REJECTED")
+
+        response = auth_client().get(f"{test_api_uri}/flaws?workflow_name=DEFAULT")
+        assert response.status_code == 200
+        assert response.json()["count"] == 2
+
+        response = auth_client().get(f"{test_api_uri}/flaws?workflow_name=EMBARGOED")
+        assert response.status_code == 200
+        assert response.json()["count"] == 1
+
+        response = auth_client().get(f"{test_api_uri}/flaws?workflow_name=REJECTED")
+        assert response.status_code == 200
+        assert response.json()["count"] == 1
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?workflow_name=DEFAULT,EMBARGOED"
+        )
+        assert response.status_code == 200
+        assert response.json()["count"] == 3
+
+        response = auth_client().get(f"{test_api_uri}/flaws?workflow_name=NONEXISTENT")
+        assert response.status_code == 200
+        assert response.json()["count"] == 0
 
     def test_list_flaws_invalid(self, auth_client, test_api_uri, datetime_with_tz):
         """retrieve list of flaws from endpoint"""
@@ -1800,7 +1820,7 @@ class TestEndpointsFlaws:
     def test_embargoed_deadlock(self, auth_client, test_api_v2_uri):
         flaw = FlawFactory(
             embargoed=True,
-            workflow_state=WorkflowModel.WorkflowState.TRIAGE,
+            workflow_state="TRIAGE",
             reported_dt=datetime(2025, 1, 1, tzinfo=timezone.utc),
         )
 
@@ -2162,11 +2182,11 @@ class TestEndpointsFlaws:
         assert "pgh_diff" not in flaw_json["history"]
 
     @pytest.mark.parametrize(
-        "workflow_status",
+        "workflow_status,workflow_name",
         (
-            WorkflowModel.WorkflowState.NEW,
-            WorkflowModel.WorkflowState.REJECTED,
-            WorkflowModel.WorkflowState.DONE,
+            ("NEW", "DEFAULT"),
+            ("DONE", "REJECTED"),
+            ("DONE", "DEFAULT"),
         ),
     )
     @pytest.mark.parametrize(
@@ -2175,6 +2195,7 @@ class TestEndpointsFlaws:
     def test_flaw_available(
         self,
         workflow_status,
+        workflow_name,
         embargoed,
         internal,
         client,
@@ -2199,6 +2220,7 @@ class TestEndpointsFlaws:
         AffectFactory(flaw=flaw)
 
         flaw.workflow_state = workflow_status
+        flaw.workflow_name = workflow_name
         assert flaw.save() is None
 
         # response should return a state with no data
@@ -2207,8 +2229,8 @@ class TestEndpointsFlaws:
 
         if (
             flaw.is_public
-            or flaw.workflow_state == WorkflowModel.WorkflowState.REJECTED
-            or flaw.workflow_state == WorkflowModel.WorkflowState.DONE
+            or flaw.workflow_name == "REJECTED"
+            or flaw.workflow_state == "DONE"
         ):
             assert response.status_code == 204
         else:

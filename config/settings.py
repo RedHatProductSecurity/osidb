@@ -301,6 +301,12 @@ SPECTACULAR_SETTINGS = {
         "FlawReferenceType": "osidb.models.flaw.reference.FlawReference.FlawReferenceType",
         "TrackerType": "osidb.models.Tracker.TrackerType",
         "FlawLabelType": "osidb.models.flaw.label.FlawLabel.FlawLabelType",
+        "FlawCollaboratorPostTypeEnum": [
+            ("alias", "Alias"),
+            ("bu", "BU"),
+            ("context_based", "Context Based"),
+            ("workflow", "Workflow"),
+        ],
         "UpstreamDataSource": "osidb.models.flaw.upstream.UpstreamData.Source",
     },
     "ENUM_GENERATE_CHOICE_DESCRIPTION": False,

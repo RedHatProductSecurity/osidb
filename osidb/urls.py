@@ -26,6 +26,7 @@ from .api_views import (
     FlawCVSSV2View,
     FlawCVSSView,
     FlawIntrospectionView,
+    FlawLabelV2View,
     FlawLabelView,
     FlawPackageVersionView,
     FlawReferenceView,
@@ -75,7 +76,7 @@ router.register(
     FlawLabelView,
     basename="flawlabels",
 )
-router.register("labels", LabelView)
+router.register("labels", LabelView, basename="labels")
 router.register(r"affects", AffectV1View)
 router.register(
     r"affects/(?P<affect_id>[^/.]+)/cvss_scores", AffectCVSSView, basename="affectcvss"
@@ -94,7 +95,11 @@ vnext_router.register(
     AffectCVSSV2View,
     basename="affectcvss",
 )
-# New views for the affects v2
+vnext_router.register(
+    r"flaws/(?P<flaw_id>[^/.]+)/labels",
+    FlawLabelV2View,
+    basename="flawlabelsv2",
+)
 vnext_router.register(r"flaws", FlawView)
 vnext_router.register(r"affects", AffectView, basename="affectsv2")
 vnext_router.register(r"trackers", TrackerView)

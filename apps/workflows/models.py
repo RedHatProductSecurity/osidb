@@ -2,8 +2,9 @@
 Workflows model definitions
 """
 
+from osidb.mixins import ACLMixinVisibility
+
 from .checks import CheckParser
-from .exceptions import MissingStateException
 
 
 class Check:
@@ -87,12 +88,16 @@ class State:
         self.name = state_desc["name"]
         self.jira_state = state_desc["jira_state"]
         self.jira_resolution = state_desc["jira_resolution"]
+        self.visibility = state_desc.get("visibility")
+        if self.visibility:
+            ACLMixinVisibility(self.visibility)
         self.requirements = [
             self.parse_requirement(requirement_desc)
             for requirement_desc in state_desc["requirements"]
         ]
 
-    def parse_requirement(self, requirement_desc):
+    @staticmethod
+    def parse_requirement(requirement_desc):
         """
         Parse a requirement, which can be a regular check or a logical condition involving
         several checks.
@@ -118,12 +123,20 @@ class Workflow:
     provides classification of the instance in the proper state
     """
 
+    @staticmethod
+    def parse_check(check_desc):
+        if isinstance(check_desc, str):
+            return Check(check_desc)
+        if isinstance(check_desc, dict):
+            return Condition(**check_desc)
+        raise ValueError(f"Invalid check format in workflow: {check_desc}")
+
     def __init__(self, workflow_desc):
         self.name = workflow_desc["name"]
         self.description = workflow_desc["description"]
         self.priority = int(workflow_desc["priority"])
         self.conditions = [
-            Check(requirement_desc) for requirement_desc in workflow_desc["conditions"]
+            self.parse_check(check_desc) for check_desc in workflow_desc["conditions"]
         ]
         self.states = [State(state_desc) for state_desc in workflow_desc["states"]]
 
@@ -152,36 +165,3 @@ class Workflow:
                 break
             last = state
         return last
-
-    def validate_classification(self, instance, target) -> list[str]:
-        """
-        This method will evaluate if it is possible to classify the current
-        instance as a target state
-
-        Returns a list of the missing requirements or [] when transitions is possible
-
-        This method does NOT update the instance classification
-
-        """
-        target_state = None
-
-        for state in self.states:
-            if state.name == target:
-                target_state = state
-                break
-
-        if not target_state:
-            raise MissingStateException(
-                f"Target state ({state}) was not found in workflow ({self.name})."
-            )
-
-        not_met_requirements = []
-        for condition in self.conditions:
-            if not condition(instance):
-                not_met_requirements.append(condition.name)
-
-        for requirement in target_state.requirements:
-            if not requirement(instance):
-                not_met_requirements.append(requirement.name)
-
-        return not_met_requirements

@@ -25,6 +25,7 @@ class ConditionSerializer(serializers.Serializer):
     def to_representation(self, instance):
         if isinstance(instance, Condition):
             return {
+                "name": instance.name,
                 "condition": instance.condition,
                 "requirements": [
                     (
@@ -98,8 +99,19 @@ class WorkflowSerializer(serializers.Serializer):
     name = serializers.CharField()
     description = serializers.CharField()
     priority = serializers.IntegerField()
-    conditions = CheckSerializer(many=True)
+    conditions = serializers.SerializerMethodField()
     states = StateSerializer(many=True)
+
+    @extend_schema_field(CheckSerializer(many=True))
+    def get_conditions(self, instance):
+        return [
+            (
+                CheckSerializer(cond).data
+                if isinstance(cond, Check)
+                else ConditionSerializer(cond).data
+            )
+            for cond in instance.conditions
+        ]
 
 
 class ClassificationSerializer(serializers.Serializer):
@@ -122,24 +134,92 @@ class ClassificationSerializer(serializers.Serializer):
 class ClassificationCheckSerializer(ClassificationSerializer, CheckSerializer):
     """Check serializer with classification"""
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        accepts = data.pop("accepts", None)
+        return {"accepts": accepts, **data}
+
+
+class ClassificationConditionSerializer(ClassificationSerializer, ConditionSerializer):
+    """Condition serializer with classification"""
+
+    def to_representation(self, instance):
+        flaw = self.context.get("flaw")
+        accepts = None if not flaw else instance.accepts(flaw)
+        data = ConditionSerializer.to_representation(self, instance)
+        if isinstance(instance, Condition):
+            data["requirements"] = [
+                (
+                    ClassificationCheckSerializer(check, context=self.context).data
+                    if isinstance(check, Check)
+                    else ClassificationConditionSerializer(
+                        check, context=self.context
+                    ).data
+                )
+                for check in instance.checks
+            ]
+        return {"accepts": accepts, **data}
+
 
 class ClassificationStateSerializer(ClassificationSerializer, StateSerializer):
     """State serializer with classification"""
 
-    requirements = ClassificationCheckSerializer(many=True)
+    def to_representation(self, instance):
+        flaw = self.context.get("flaw")
+        return {
+            "accepts": None if not flaw else instance.accepts(flaw),
+            "name": instance.name,
+            "requirements": [
+                (
+                    ClassificationCheckSerializer(req, context=self.context).data
+                    if isinstance(req, Check)
+                    else ClassificationConditionSerializer(
+                        req, context=self.context
+                    ).data
+                )
+                for req in instance.requirements
+            ],
+        }
 
 
 class ClassificationWorkflowSerializer(ClassificationSerializer, WorkflowSerializer):
     """Workflow serializer with classification"""
 
-    conditions = ClassificationCheckSerializer(many=True)
+    conditions = serializers.SerializerMethodField()
     states = ClassificationStateSerializer(many=True)
+    classified_state = serializers.SerializerMethodField()
+
+    @extend_schema_field(ClassificationCheckSerializer(many=True))
+    def get_conditions(self, instance):
+        return [
+            (
+                ClassificationCheckSerializer(cond, context=self.context).data
+                if isinstance(cond, Check)
+                else ClassificationConditionSerializer(cond, context=self.context).data
+            )
+            for cond in instance.conditions
+        ]
+
+    def get_classified_state(self, instance):
+        flaw = self.context.get("flaw")
+        if not flaw or not instance.accepts(flaw):
+            return None
+        return instance.classify(flaw).name
 
 
-class RejectSerializer(serializers.Serializer):
-    """Task rejection serializer"""
+class ClassificationResultSerializer(serializers.Serializer):
+    """Serializer for the workflow:state classification result"""
 
-    reason = serializers.CharField()
+    workflow = serializers.CharField()
+    state = serializers.CharField()
+
+
+class ClassificationResponseSerializer(serializers.Serializer):
+    """Response serializer for the classification endpoint"""
+
+    flaw = serializers.UUIDField()
+    classification = ClassificationResultSerializer()
+    workflows = ClassificationWorkflowSerializer(many=True, required=False)
 
 
 @extend_schema_serializer(deprecate_fields=["group_key", "team_id"])
@@ -157,10 +237,7 @@ class WorkflowModelSerializer(serializers.ModelSerializer):
             "type": "object",
             "properties": {
                 "workflow": {"type": "string"},
-                "state": {
-                    "type": "string",
-                    "enum": WorkflowModel.WorkflowState.values,
-                },
+                "state": {"type": "string"},
             },
         }
     )

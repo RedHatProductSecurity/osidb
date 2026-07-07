@@ -1,0 +1,59 @@
+---
+name: MANUAL
+description: >
+  Manual vulnerability processing workflow.
+  Applies to flaws that require human triage.
+priority: 1
+conditions:
+  - has label manual-triage
+states:
+  - name: NEW
+    description: >
+      A new flaw arrived into the queue and requires manual triage.
+    jira_state: New
+    jira_resolution: null
+    requirements: []
+
+  - name: TRIAGE
+    description: >
+      Queue captain has taken the flaw off the incoming queue and will evaluate
+      whether it should be rejected or analysed further.
+    jira_state: Refinement
+    jira_resolution: null
+    requirements:
+      - has owner
+
+  - name: PRE_SECONDARY_ASSESSMENT
+    description: >
+      A flaw was qualified for further work. It has the initial data filled
+      and the affectedness was assessed. The trackers can be filed.
+      Also the flaw data is complete enough to make it public.
+    jira_state: To Do
+    jira_resolution: null
+    visibility: PUBLIC
+    requirements:
+      - has affects
+      - has components
+      - has impact
+      - has reported_dt
+      - has source
+      - has title
+      - condition: OR
+        requirements:
+          - impact is low
+          - has cve_description
+
+  - name: SECONDARY_ASSESSMENT
+    description: The trackers were filed. The flaw is ready for the review.
+    jira_state: In Progress
+    jira_resolution: null
+    requirements:
+      - has trackers
+
+  - name: DONE
+    description: >
+      A flaw was approved and is considered done.
+    jira_state: Closed
+    jira_resolution: Done
+    requirements:
+      - has label approved

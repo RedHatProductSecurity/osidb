@@ -1338,22 +1338,21 @@ paths:
           type: string
           format: uuid
       - in: query
+        name: flaw__workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: flaw__workflow_state
         schema:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -3405,6 +3404,7 @@ paths:
             - -unembargo_dt
             - -updated_dt
             - -uuid
+            - -workflow_name
             - -workflow_state
             - acknowledgments__affiliation
             - acknowledgments__created_dt
@@ -3446,6 +3446,7 @@ paths:
             - unembargo_dt
             - updated_dt
             - uuid
+            - workflow_name
             - workflow_state
         description: |+
           Ordering
@@ -3965,22 +3966,30 @@ paths:
           - INTERNAL
           - PUBLIC
       - in: query
+        name: workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: workflow_name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: workflow_state
         schema:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -3989,17 +3998,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       tags:
@@ -5187,6 +5186,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       - {}
+      deprecated: true
       responses:
         '200':
           content:
@@ -5231,6 +5231,7 @@ paths:
         required: true
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '201':
           content:
@@ -5270,6 +5271,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       - {}
+      deprecated: true
       responses:
         '200':
           content:
@@ -5319,6 +5321,7 @@ paths:
         required: true
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -5356,6 +5359,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '204':
           content:
@@ -5765,8 +5769,12 @@ paths:
       description: |-
         workflow promotion API endpoint
 
-        try to adjust workflow classification of flaw to the next state available
-        return its workflow:state classification or errors if not possible to promote
+        DEPRECATED: Workflow classification is now automatic based on flaw data.
+        This endpoint no longer performs any action - it only returns the current
+        computed classification. This endpoint will be removed in a future version.
+
+        To change workflow state, update the flaw data directly (assign owner, create
+        affects, file trackers, etc.). Classification will update automatically.
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -5787,6 +5795,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -6219,9 +6228,13 @@ paths:
     post:
       operationId: osidb_api_v1_flaws_reject_create
       description: |-
-        workflow promotion API endpoint
+        workflow rejection API endpoint
 
-        try to reject a flaw / task
+        DEPRECATED: Workflow classification is now automatic based on flaw data.
+        This endpoint no longer performs any action - it only returns the current
+        computed classification. This endpoint will be removed in a future version.
+
+        Rejection is driven by a flaw data TODO.
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -6240,20 +6253,9 @@ paths:
         required: true
       tags:
       - osidb
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RejectRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/RejectRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/RejectRequest'
-        required: true
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -6277,9 +6279,13 @@ paths:
       description: |-
         Workflow reset API endpoint.
 
-        Try to adjust workflow classification of a Flaw to the initial state
-        of the default workflow, return its workflow:state classification or
-        errors if not possible to reset.
+        DEPRECATED: Workflow classification is now automatic based on flaw data.
+        This endpoint no longer performs any action - it only returns the current
+        computed classification. This endpoint will be removed in a future version.
+
+        Workflow state cannot be manually reset. Classification is determined by
+        the flaw's current data and will automatically reflect the appropriate
+        workflow and state.
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -6300,6 +6306,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -6323,9 +6330,13 @@ paths:
       description: |-
         Workflow revert API endpoint.
 
-        Try to adjust workflow classification of a Flaw to the previous state
-        available and return its workflow:state classification or errors if
-        not possible to revert.
+        DEPRECATED: Workflow classification is now automatic based on flaw data.
+        This endpoint no longer performs any action - it only returns the current
+        computed classification. This endpoint will be removed in a future version.
+
+        To change workflow state, update the flaw data directly. If requirements
+        for the current state are no longer met, classification will automatically
+        revert to the appropriate state.
       parameters:
       - in: header
         name: Bugzilla-Api-Key
@@ -6346,6 +6357,7 @@ paths:
       - osidb
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -6580,6 +6592,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       - {}
+      deprecated: true
       responses:
         '200':
           content:
@@ -6615,6 +6628,7 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       - {}
+      deprecated: true
       responses:
         '200':
           content:
@@ -8687,22 +8701,21 @@ paths:
           - INTERNAL
           - PUBLIC
       - in: query
+        name: flaw__workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: flaw__workflow_state
         schema:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -11197,6 +11210,7 @@ paths:
             - -unembargo_dt
             - -updated_dt
             - -uuid
+            - -workflow_name
             - -workflow_state
             - acknowledgments__affiliation
             - acknowledgments__created_dt
@@ -11258,6 +11272,7 @@ paths:
             - unembargo_dt
             - updated_dt
             - uuid
+            - workflow_name
             - workflow_state
         description: |+
           Ordering
@@ -11777,22 +11792,30 @@ paths:
           - INTERNAL
           - PUBLIC
       - in: query
+        name: workflow_name
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: workflow_name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
         name: workflow_state
         schema:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -11801,17 +11824,7 @@ paths:
           type: array
           items:
             type: string
-            enum:
-            - ''
-            - DONE
-            - NEW
-            - PRE_SECONDARY_ASSESSMENT
-            - REJECTED
-            - SECONDARY_ASSESSMENT
-            - TRIAGE
-        description: |+
-          Multiple values may be separated by commas.
-
+        description: Multiple values may be separated by commas.
         explode: false
         style: form
       tags:
@@ -12266,6 +12279,219 @@ paths:
         schema:
           type: string
         description: User generated api key for Bugzilla authentication.
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /osidb/api/v2/flaws/{flaw_id}/labels:
+    get:
+      operationId: osidb_api_v2_flaws_labels_list
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedFlawLabelV2List'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: osidb_api_v2_flaws_labels_create
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawLabelV2'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v2/flaws/{flaw_id}/labels/{id}:
+    get:
+      operationId: osidb_api_v2_flaws_labels_retrieve
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawLabelV2'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: osidb_api_v2_flaws_labels_update
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawLabelV2'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    delete:
+      operationId: osidb_api_v2_flaws_labels_destroy
+      parameters:
       - in: path
         name: flaw_id
         schema:
@@ -13902,6 +14128,7 @@ paths:
       - workflows
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -13927,6 +14154,7 @@ paths:
       - workflows
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
@@ -13954,6 +14182,8 @@ paths:
 
         params:
 
+            next - return the next state with requirement acceptance status
+
             verbose - return also workflows with flaw classification
                       which represents the reasoning of the result
       parameters:
@@ -13962,6 +14192,12 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: next
+        schema:
+          type: boolean
+        description: Return the next state in the workflow with its requirements and
+          their acceptance status. Null if the flaw is in the final state.
       - in: query
         name: verbose
         schema:
@@ -13972,22 +14208,25 @@ paths:
       - workflows
       security:
       - OsidbTokenAuthentication: []
+      - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
+                allOf:
+                - $ref: '#/components/schemas/ClassificationResponse'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
           description: ''
   /workflows/api/v1/workflows/{id}/adjust:
     post:
@@ -13995,11 +14234,12 @@ paths:
       description: |-
         workflow adjustion API endpoint
 
-        adjust workflow classification of flaw identified by UUID or CVE
-        and return its workflow:state classification (new if changed and old otherwise)
+        DEPRECATED: Workflow classification is now automatic on every flaw save.
+        This endpoint no longer performs any action - it only returns the current
+        computed classification. This endpoint will be removed in a future version.
 
-        adjust operation is idempotent so when the classification
-        is already adjusted running it results in no operation
+        To change workflow state, update the flaw data directly (owner, affects,
+        trackers, etc.). Classification will update automatically.
       parameters:
       - in: path
         name: id
@@ -14010,6 +14250,7 @@ paths:
       - workflows
       security:
       - OsidbTokenAuthentication: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -14155,8 +14396,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -14305,8 +14546,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -14403,8 +14644,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -14688,8 +14929,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -14834,6 +15075,97 @@ components:
     BlankEnum:
       enum:
       - ''
+    ClassificationCheck:
+      type: object
+      description: Check serializer with classification
+      properties:
+        accepts:
+          type: string
+          readOnly: true
+        name:
+          type: string
+        description:
+          type: string
+      required:
+      - accepts
+      - description
+      - name
+    ClassificationResponse:
+      type: object
+      description: Response serializer for the classification endpoint
+      properties:
+        flaw:
+          type: string
+          format: uuid
+        classification:
+          $ref: '#/components/schemas/ClassificationResult'
+        workflows:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassificationWorkflow'
+      required:
+      - classification
+      - flaw
+    ClassificationResult:
+      type: object
+      description: Serializer for the workflow:state classification result
+      properties:
+        workflow:
+          type: string
+        state:
+          type: string
+      required:
+      - state
+      - workflow
+    ClassificationState:
+      type: object
+      description: State serializer with classification
+      properties:
+        accepts:
+          type: string
+          readOnly: true
+        name:
+          type: string
+        requirements:
+          type: array
+          items: {}
+      required:
+      - accepts
+      - name
+      - requirements
+    ClassificationWorkflow:
+      type: object
+      description: Workflow serializer with classification
+      properties:
+        accepts:
+          type: string
+          readOnly: true
+        name:
+          type: string
+        description:
+          type: string
+        priority:
+          type: integer
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassificationCheck'
+          readOnly: true
+        states:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassificationState'
+        classified_state:
+          type: string
+          readOnly: true
+      required:
+      - accepts
+      - classified_state
+      - conditions
+      - description
+      - name
+      - priority
+      - states
     Comment:
       type: object
       description: FlawComment serializer for use by FlawSerializer
@@ -15109,8 +15441,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         created_dt:
           type: string
           format: date-time
@@ -15127,14 +15459,6 @@ components:
               type: string
             state:
               type: string
-              enum:
-              - ''
-              - NEW
-              - TRIAGE
-              - PRE_SECONDARY_ASSESSMENT
-              - SECONDARY_ASSESSMENT
-              - DONE
-              - REJECTED
           readOnly: true
         group_key:
           type: string
@@ -15208,8 +15532,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -15356,8 +15680,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -15514,8 +15838,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -15633,16 +15957,10 @@ components:
           maxLength: 255
         type:
           allOf:
-          - $ref: '#/components/schemas/FlawCollaboratorPostTypeEnum'
+          - $ref: '#/components/schemas/Type96fEnum'
           default: context_based
       required:
       - label
-    FlawCollaboratorPostTypeEnum:
-      enum:
-      - alias
-      - context_based
-      - bu
-      type: string
     FlawCollaboratorRequest:
       type: object
       description: FlawCollaborator serializer
@@ -15712,8 +16030,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
       required:
       - alerts
       - created_dt
@@ -15760,10 +16078,52 @@ components:
     FlawLabelType:
       enum:
       - alias
+      - bu
       - context_based
       - product_family
-      - bu
+      - workflow
       type: string
+    FlawLabelV2:
+      type: object
+      description: Flaw label V2 serializer with type-specific fields
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        type:
+          $ref: '#/components/schemas/FlawLabelType'
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        contributor:
+          type: string
+          maxLength: 255
+        relevant:
+          type: boolean
+      required:
+      - name
+      - uuid
+    FlawLabelV2PostRequest:
+      type: object
+      description: Flaw label V2 serializer with type-specific fields
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        type:
+          $ref: '#/components/schemas/Type96fEnum'
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        contributor:
+          type: string
+          maxLength: 255
+      required:
+      - name
+      - type
     FlawPackageVersion:
       type: object
       description: Package model serializer
@@ -15790,8 +16150,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         created_dt:
           type: string
           format: date-time
@@ -16054,8 +16414,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         created_dt:
           type: string
           format: date-time
@@ -16072,14 +16432,6 @@ components:
               type: string
             state:
               type: string
-              enum:
-              - ''
-              - NEW
-              - TRIAGE
-              - PRE_SECONDARY_ASSESSMENT
-              - SECONDARY_ASSESSMENT
-              - DONE
-              - REJECTED
           readOnly: true
         group_key:
           type: string
@@ -16153,8 +16505,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -16577,8 +16929,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         created_dt:
           type: string
           format: date-time
@@ -16595,14 +16947,6 @@ components:
               type: string
             state:
               type: string
-              enum:
-              - ''
-              - NEW
-              - TRIAGE
-              - PRE_SECONDARY_ASSESSMENT
-              - SECONDARY_ASSESSMENT
-              - DONE
-              - REJECTED
           readOnly: true
         group_key:
           type: string
@@ -17240,6 +17584,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FlawLabel'
+    PaginatedFlawLabelV2List:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawLabelV2'
     PaginatedFlawList:
       type: object
       required:
@@ -17509,15 +17876,6 @@ components:
       - eus
       - ps_update_stream
       - selected
-    RejectRequest:
-      type: object
-      description: Task rejection serializer
-      properties:
-        reason:
-          type: string
-          minLength: 1
-      required:
-      - reason
     ResolutionEnum:
       enum:
       - FIX
@@ -17733,8 +18091,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -17824,8 +18182,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -18035,8 +18393,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:
@@ -18068,6 +18426,13 @@ components:
       - updated_dt
       - uuid
       - visibility
+    Type96fEnum:
+      enum:
+      - alias
+      - bu
+      - context_based
+      - workflow
+      type: string
     UpstreamData:
       type: object
       description: Serializer for OSV/collector upstream metadata attached to a flaw
@@ -18094,8 +18459,8 @@ components:
         visibility:
           allOf:
           - $ref: '#/components/schemas/VisibilityEnum'
-          description: The visibility level of the resource based on ACL read groups.
           readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
         alerts:
           type: array
           items:

@@ -35,6 +35,7 @@ from packaging.utils import canonicalize_name
 from pghistory.models import Events
 from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -48,6 +49,7 @@ from rest_framework.status import (
 from rest_framework.utils.urls import remove_query_param, replace_query_param
 from rest_framework.views import APIView
 from rest_framework.viewsets import (
+    GenericViewSet,
     ModelViewSet,
     ReadOnlyModelViewSet,
     ViewSet,
@@ -55,7 +57,6 @@ from rest_framework.viewsets import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from apps.workflows.workflow import WorkflowModel
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 from osidb.helpers import bypass_rls, get_bugzilla_api_key, get_flaw_or_404
 from osidb.integrations import IntegrationRepository, IntegrationSettings
@@ -63,8 +64,12 @@ from osidb.models import (
     Affect,
     AffectCVSS,
     AffectV1,
+    BULabelDefinition,
+    CollaboratorLabelDefinition,
     Flaw,
-    FlawLabel,
+    FlawLabelV2,
+    ProductFamilyLabel,
+    ProductFamilyLabelDefinition,
     PsUpdateStream,
     Tracker,
 )
@@ -129,6 +134,8 @@ from .serializer import (
     FlawCVSSV2PutSerializer,
     FlawCVSSV2Serializer,
     FlawLabelSerializer,
+    FlawLabelV2PostSerializer,
+    FlawLabelV2Serializer,
     FlawPackageVersionPostSerializer,
     FlawPackageVersionPutSerializer,
     FlawPackageVersionSerializer,
@@ -895,7 +902,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         "cvss_scores",
         "package_versions",
         "references",
-        "labels",
+        "labels_v2",
         "alerts",
         "upstream_data",
     )
@@ -919,7 +926,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         "cvss_scores": ("cvss_scores",),
         "package_versions": ("package_versions",),
         "references": ("references",),
-        "labels": ("labels",),
+        "labels": ("labels_v2",),
         "alerts": ("alerts",),
         "upstream_data": ("upstream_data",),
         # "affects" and "trackers" handled explicitly below because they are more nuanced.
@@ -1289,8 +1296,8 @@ def flaw_available(request: Request, *args, **kwargs) -> Response:
 
     if (
         flaw.is_public
-        or flaw.workflow_state == WorkflowModel.WorkflowState.REJECTED
-        or flaw.workflow_state == WorkflowModel.WorkflowState.DONE
+        or flaw.workflow_name == "REJECTED"
+        or flaw.workflow_state == "DONE"
     ):
         return Response(status=HTTP_204_NO_CONTENT)
 
@@ -1517,13 +1524,8 @@ def _run_post_save_effects_for_bulk(created_affects, flaw):
     Run the post_save side-effects that are normally triggered by signals
     after each individual Affect.save().  Called once after bulk_create.
     """
-    from apps.workflows.workflow import WorkflowModel
-    from osidb.models import FlawCollaborator
-
-    # FlawCollaborator labels for PRE_SECONDARY_ASSESSMENT flaws
-    if flaw.workflow_state == WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT:
-        for affect in created_affects:
-            FlawCollaborator.objects.create_from_affect(affect)
+    for affect in created_affects:
+        ProductFamilyLabel.create_from_affect(affect)
 
 
 @include_meta_attr_extend_schema_view
@@ -2026,12 +2028,17 @@ class AlertView(RudimentaryUserPathLoggingMixin, ModelViewSet):
 
 
 @extend_schema_view(
+    list=extend_schema(deprecated=True),
+    retrieve=extend_schema(deprecated=True),
     create=extend_schema(
         request=FlawCollaboratorPostSerializer,
+        deprecated=True,
     ),
     update=extend_schema(
         request=FlawCollaboratorPostSerializer,
+        deprecated=True,
     ),
+    destroy=extend_schema(deprecated=True),
 )
 class FlawLabelView(
     RudimentaryUserPathLoggingMixin,
@@ -2044,20 +2051,90 @@ class FlawLabelView(
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.type == FlawLabel.FlawLabelType.PRODUCT_FAMILY:
+        if instance.type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
             raise PermissionDenied(
                 {"label": "Product family labels cannot be deleted."}
             )
         return super().destroy(request, *args, **kwargs)
 
 
+@extend_schema_view(
+    create=extend_schema(
+        request=FlawLabelV2PostSerializer,
+    ),
+    update=extend_schema(
+        request=FlawLabelV2PostSerializer,
+    ),
+)
+class FlawLabelV2View(
+    RudimentaryUserPathLoggingMixin,
+    SubFlawViewGetMixin,
+    ModelViewSet,
+):
+    serializer_class = FlawLabelV2Serializer
+    http_method_names = get_valid_http_methods(ModelViewSet)
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
+            raise PermissionDenied({"name": "Product family labels cannot be deleted."})
+        return super().destroy(request, *args, **kwargs)
+
+
+@extend_schema_view(
+    list=extend_schema(deprecated=True),
+    retrieve=extend_schema(deprecated=True),
+)
 class LabelView(
     RudimentaryUserPathLoggingMixin,
-    ReadOnlyModelViewSet,
+    ListModelMixin,
+    GenericViewSet,
 ):
-    queryset = FlawLabel.objects.all()
     serializer_class = FlawLabelSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    lookup_field = "uuid"
+
+    _DEFINITION_MODELS = None
+
+    @classmethod
+    def _get_definition_models(cls):
+        if cls._DEFINITION_MODELS is None:
+            cls._DEFINITION_MODELS = [
+                (CollaboratorLabelDefinition, FlawLabelV2.LabelType.CONTEXT_BASED),
+                (ProductFamilyLabelDefinition, FlawLabelV2.LabelType.PRODUCT_FAMILY),
+                (BULabelDefinition, FlawLabelV2.LabelType.BU),
+            ]
+        return cls._DEFINITION_MODELS
+
+    def get_queryset(self):
+        results = []
+        for model, label_type in self._get_definition_models():
+            for d in model.objects.all():
+                results.append({"name": d.name, "type": label_type})
+        return results
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "uuid",
+                type=OpenApiTypes.UUID,
+                location=OpenApiParameter.PATH,
+                description="A UUID string identifying this flaw label.",
+            )
+        ]
+    )
+    def retrieve(self, request, uuid=None, *args, **kwargs):
+        for model, label_type in self._get_definition_models():
+            try:
+                d = model.objects.get(uuid=uuid)
+                serializer = self.get_serializer({"name": d.name, "type": label_type})
+                return Response(serializer.data)
+            except model.DoesNotExist:
+                continue
+        from django.http import Http404
+
+        raise Http404
 
 
 # TODO: this view is temporary/undocumented and only applies to accessing JIRA stage and someday should be removed

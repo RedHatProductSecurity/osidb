@@ -2,6 +2,7 @@ import uuid
 from pathlib import Path
 
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils import timezone
 from freezegun import freeze_time
@@ -9,7 +10,7 @@ from freezegun import freeze_time
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.constants import TRACKERS_API_VERSION
 from apps.workflows.models import Workflow
-from apps.workflows.workflow import WorkflowFramework, WorkflowModel
+from apps.workflows.workflow import WorkflowFramework
 from collectors.cveorg import tests as cveorg_tests
 from collectors.cveorg.collectors import CVEorgCollector
 from collectors.cveorg.models import Keyword
@@ -17,6 +18,7 @@ from collectors.jiraffe.collectors import (
     JiraTrackerCollector,
     JiraTrackerDownloadManager,
 )
+from osidb.core import set_user_acls
 from osidb.models import Affect, Flaw, Profile, PsUpdateStream, Snippet, Tracker
 from osidb.sync_manager import (
     BZSyncManager,
@@ -279,14 +281,14 @@ class TestE2E:
         workflow_framework._workflows = []
 
         state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
+            "name": "NEW",
             "requirements": [],
             "jira_state": "New",
             "jira_resolution": None,
         }
 
         state_first = {
-            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
+            "name": "SECONDARY_ASSESSMENT",
             "requirements": ["has title"],
             "jira_state": "In Progress",
             "jira_resolution": None,
@@ -303,27 +305,19 @@ class TestE2E:
         )
         workflow_framework.register_workflow(workflow)
 
-        # 6.2) promote flaw
-        response = auth_client().post(
-            f"{test_api_uri}/flaws/{flaw.uuid}/promote",
-            data={},
-            format="json",
-            HTTP_BUGZILLA_API_KEY=bugzilla_token,
-            HTTP_JIRA_API_EMAIL=jira_email,
-            HTTP_JIRA_API_KEY=jira_token,
-        )
-        assert response.status_code == 200
+        # 6.2) reclassify flaw — classification is automatic based on data
+        # restore ACLs after unauthenticated API calls which reset them via middleware
+        set_user_acls(settings.ALL_GROUPS)
+        flaw.refresh_from_db()
+        flaw.adjust_classification()
 
-        # 6.3) validate promotion were applied
+        # 6.3) validate classification was applied
         response = auth_client().get(
             f"{test_api_v2_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id&include_history=true"
         )
         assert response.status_code == 200
         body = response.json()
-        assert (
-            body["classification"]["state"]
-            == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
-        )
+        assert body["classification"]["state"] == "SECONDARY_ASSESSMENT"
 
         # 7) validate users can unembargo flaw
         if embargoed:
@@ -393,28 +387,29 @@ class TestE2E:
         workflow_framework._workflows = []
 
         state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
+            "name": "NEW",
             "requirements": [],
             "jira_state": "New",
             "jira_resolution": None,
         }
 
         state_triage = {
-            "name": WorkflowModel.WorkflowState.TRIAGE,
+            "name": "TRIAGE",
             "requirements": ["has owner"],
             "jira_state": "Refinement",
             "jira_resolution": None,
         }
 
         state_sec = {
-            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
+            "name": "SECONDARY_ASSESSMENT",
             "requirements": ["has owner"],
             "jira_state": "In Progress",
             "jira_resolution": None,
+            "visibility": "PUBLIC",
         }
 
         state_done = {
-            "name": WorkflowModel.WorkflowState.DONE,
+            "name": "DONE",
             "requirements": [
                 {
                     "condition": "OR",
@@ -433,14 +428,14 @@ class TestE2E:
             {
                 "name": "DEFAULT",
                 "description": "random description",
-                "priority": 1,
+                "priority": 0,
                 "conditions": [],
                 "states": [state_new, state_triage, state_sec, state_done],
             }
         )
 
         state_reject = {
-            "name": WorkflowModel.WorkflowState.REJECTED,
+            "name": "DONE",
             "requirements": [],
             "jira_state": "Closed",
             "jira_resolution": "Won't Do",
@@ -449,8 +444,8 @@ class TestE2E:
             {
                 "name": "REJECTED",
                 "description": "random description",
-                "priority": 0,
-                "conditions": [],
+                "priority": 1,
+                "conditions": ["has label rejected"],
                 "states": [state_reject],
             }
         )
@@ -534,7 +529,7 @@ class TestE2E:
         )
         assert response.status_code == 200
         body = response.json()
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.NEW
+        assert body["classification"]["state"] == "NEW"
 
         # 4.2) validate access control
         flaw1.refresh_from_db()
@@ -545,89 +540,26 @@ class TestE2E:
         )
         assert response.status_code == 404
 
-        # 5) Validate workflow
-        response = auth_client().post(
-            f"{test_api_uri}/flaws/{flaw1.uuid}/promote",
-            format="json",
-            HTTP_BUGZILLA_API_KEY=bugzilla_token,
-            HTTP_JIRA_API_EMAIL=jira_email,
-            HTTP_JIRA_API_KEY=jira_token,
-        )
-        assert response.status_code == 200
+        # 5) Validate auto-classification and visibility auto-adjustment
+        # restore ACLs after unauthenticated API calls which reset them via middleware
+        set_user_acls(settings.ALL_GROUPS)
         flaw1.refresh_from_db()
+        flaw1.adjust_classification()
         flaw1._create_or_update_task(jira_token)
-        assert flaw1.workflow_state == WorkflowModel.WorkflowState.TRIAGE
-        assert flaw1.is_internal
+        assert flaw1.workflow_state == "DONE"
 
-        # 5.1) validate flaw is promoted
-        response = auth_client().get(
-            f"{test_api_uri}/flaws/{flaw1.uuid}?include_meta_attr=bz_id&include_history=true"
-        )
-        assert response.status_code == 200
-        body = response.json()
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.TRIAGE
-
-        # 5.2) validate access control
-        flaw1.refresh_from_db()
-        flaw1._create_or_update_task(jira_token)
-        assert flaw1.is_internal
-        response = client.get(
-            f"{test_api_uri}/flaws/{flaw1.uuid}?include_meta_attr=bz_id&include_history=true"
-        )
-        assert response.status_code == 404
-
-        # 5.3) Validate promotion to secondary assessment
-        response = auth_client().post(
-            f"{test_api_uri}/flaws/{flaw1.uuid}/promote",
-            format="json",
-            HTTP_BUGZILLA_API_KEY=bugzilla_token,
-            HTTP_JIRA_API_EMAIL=jira_email,
-            HTTP_JIRA_API_KEY=jira_token,
-        )
-        assert response.status_code == 200
-        flaw1.refresh_from_db()
-        flaw1._create_or_update_task(jira_token)
-        assert flaw1.workflow_state == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
-
-        # TODO remove this manual call after async task sync is calling it automatically
-        flaw1.adjust_acls(save=False)
-        flaw1.save(raise_validation_error=False)
-
+        # visibility is auto-adjusted to PUBLIC during classification
+        # because SECONDARY_ASSESSMENT defines visibility: PUBLIC
         assert not flaw1.is_internal
         assert flaw1.is_public
 
-        # 5.4) validate flaw is promoted and publicly accessible
+        # 5.1) validate classification and public access via API
         response = client.get(
             f"{test_api_uri}/flaws/{flaw1.uuid}?include_meta_attr=bz_id&include_history=true"
         )
         assert response.status_code == 200
         body = response.json()
-        assert (
-            body["classification"]["state"]
-            == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
-        )
-
-        # 5.4) Validate promotion to done
-        response = auth_client().post(
-            f"{test_api_uri}/flaws/{flaw1.uuid}/promote",
-            format="json",
-            HTTP_BUGZILLA_API_KEY=bugzilla_token,
-            HTTP_JIRA_API_EMAIL=jira_email,
-            HTTP_JIRA_API_KEY=jira_token,
-        )
-        assert response.status_code == 200
-        flaw1.refresh_from_db()
-        flaw1._create_or_update_task(jira_token)
-        assert flaw1.workflow_state == WorkflowModel.WorkflowState.DONE
-        assert not flaw1.is_internal
-        assert flaw1.is_public
-
-        response = client.get(
-            f"{test_api_uri}/flaws/{flaw1.uuid}?include_meta_attr=bz_id&include_history=true"
-        )
-        assert response.status_code == 200
-        body = response.json()
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.DONE
+        assert body["classification"]["state"] == "DONE"
 
         # 6) Test editing rejected collected flaw
         flaw_data = {
@@ -654,22 +586,22 @@ class TestE2E:
         flaw2._create_or_update_task(jira_token)
         assert flaw2.is_internal
 
-        # 6.1) Test rejecting collected flaw
-        response = auth_client().post(
-            f"{test_api_uri}/flaws/{flaw2.uuid}/reject",
-            data={"reason": "This was a spam."},
-            format="json",
-            HTTP_BUGZILLA_API_KEY=bugzilla_token,
-            HTTP_JIRA_API_EMAIL=jira_email,
-            HTTP_JIRA_API_KEY=jira_token,
-        )
-        body = response.json()
-        assert response.status_code == 200
-        assert body["classification"]["workflow"] == "REJECTED"
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.REJECTED
-        flaw2.refresh_from_db()
+        # 6.1) Test rejecting collected flaw via rejected workflow label
+        from osidb.models import WorkflowLabel
+
+        WorkflowLabel.objects.create(flaw=flaw2, name="rejected")
+        flaw2.adjust_classification(save=False)
+        flaw2.save(raise_validation_error=False)
         flaw2._create_or_update_task(jira_token)
+        assert flaw2.workflow_name == "REJECTED"
+        assert flaw2.workflow_state == "DONE"
         assert flaw2.is_internal
+
+        # 6.1.1) Verify rejected flaw stays internal after save
+        flaw2.save(raise_validation_error=False)
+        assert flaw2.is_internal, (
+            "Rejected flaws should stay internal even in DONE state"
+        )
 
         # 6.2) Test access control
         response = client.get(
@@ -681,7 +613,8 @@ class TestE2E:
         )
         assert response.status_code == 200
         body = response.json()
-        assert body["classification"]["state"] == WorkflowModel.WorkflowState.REJECTED
+        assert body["classification"]["state"] == "DONE"
+        assert body["classification"]["workflow"] == "REJECTED"
 
     @pytest.mark.vcr
     @freeze_time(tzdatetime(2024, 8, 6))

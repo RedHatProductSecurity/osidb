@@ -1,14 +1,13 @@
 """
 Workflows Framework
 
-    this is the heard of this app implementing the logic over the workflow models
+    this is the heart of this app implementing the logic over the workflow models
     the workflows themselves are defined separately in WORKFLOW_DIR defined in constants
 """
 
 import logging
 from os import listdir
 from os.path import join
-from typing import Optional
 
 import yaml
 from django.db import models
@@ -16,16 +15,9 @@ from django.db import models
 from osidb.helpers import deprecate_field
 
 from .constants import WORKFLOW_DIR
-from .exceptions import (
-    InitialStateException,
-    LastStateException,
-    MissingRequirementsException,
-    MissingStateException,
-    MissingWorkflowException,
-    WorkflowDefinitionError,
-)
+from .exceptions import WorkflowDefinitionError
 from .helpers import singleton
-from .models import State, Workflow
+from .models import Workflow
 
 logger = logging.getLogger(__name__)
 
@@ -95,59 +87,49 @@ class WorkflowFramework:
 
             (workflow, state) classification by default
             or only workflow classification if requested by state param set to False
+            None if instance has no task_key (flaws without Jira tasks are not classified)
         """
+        # Only classify instances that have a Jira task
+        if not instance.task_key:
+            return None
+
         for workflow in self.workflows:
             if workflow.accepts(instance):
                 return (workflow, workflow.classify(instance)) if state else workflow
 
-    def validate_classification(self, instance, target_workflow, target_state):
+    def get_effective_visibility(self, workflow_name, state_name):
         """
-        This method will evaluate if it is possible to classify the current
-        instance as a target state
+        Get the effective visibility for a state within a workflow.
 
-        Raise exception if instance lacks requirements for the target state
-
-        This method does NOT update the flaw classification
+        The effective visibility is the widest visibility defined across
+        all states from the beginning up to and including the given state
+        in the workflow's state sequence. This ensures that visibility
+        gates are not skipped when a flaw is classified multiple states
+        ahead, and that a later state cannot narrow visibility set by
+        an earlier one.
         """
+        from osidb.mixins import ACLMixinVisibility
+
         for workflow in self.workflows:
-            if workflow.name == target_workflow:
-                not_met_reqs = workflow.validate_classification(instance, target_state)
-                if len(not_met_reqs) > 0:
-                    error_message = ",".join(not_met_reqs)
-                    error_message = f'Requirements for state "{target_state}" from "{target_workflow}" workflow are missing: [{error_message}].'
-                    raise MissingRequirementsException(error_message)
-                else:
-                    return
-        raise MissingStateException(
-            f"Workflow ({target_workflow}) was not found in WorkflowFramework."
-        )
-
-    def jira_to_state(self, jira_state, jira_resolution):
-        """
-        Given the current Jira state and resolution, find the correponding workflow state
-        """
-        for workflow in self.workflows:
-            for state in workflow.states:
-                if (
-                    state.jira_state == jira_state
-                    and state.jira_resolution == jira_resolution
-                ):
-                    return workflow.name, state.name
-        return None, None
+            if workflow.name == workflow_name:
+                effective = None
+                for state in workflow.states:
+                    if state.visibility:
+                        visibility = ACLMixinVisibility(state.visibility)
+                        if effective is None or visibility > effective:
+                            effective = visibility
+                    if state.name == state_name:
+                        return effective
 
     def jira_status(self, instance):
         """
-        Given a instance, return expected jira status and resolution
+        Given an instance, return expected jira status and resolution
         """
-        for workflow in self.workflows:
-            if workflow.name == instance.workflow_name:
-                for state in workflow.states:
-                    if state.name == instance.workflow_state:
-                        return state.jira_state, state.jira_resolution
-
-        raise MissingStateException(
-            f"Combination of workflow ({instance.workflow_name}) and state ({instance.workflow_state}) was not found in WorkflowFramework."
-        )
+        result = self.classify(instance)
+        if result is None:
+            return None, None
+        _, state = result
+        return state.jira_state, state.jira_resolution
 
 
 class WorkflowModelManager(models.Manager):
@@ -172,24 +154,8 @@ class WorkflowModelManager(models.Manager):
 class WorkflowModel(models.Model):
     """workflow model base class"""
 
-    class WorkflowState(models.TextChoices):
-        """allowable workflow states"""
-
-        NOVALUE = ""
-        NEW = "NEW"
-        TRIAGE = "TRIAGE"
-        PRE_SECONDARY_ASSESSMENT = "PRE_SECONDARY_ASSESSMENT"
-        SECONDARY_ASSESSMENT = "SECONDARY_ASSESSMENT"
-        DONE = "DONE"
-        REJECTED = "REJECTED"
-
-    workflow_name = models.CharField(max_length=50, blank=True, default="DEFAULT")
-    workflow_state = models.CharField(
-        choices=WorkflowState.choices,
-        max_length=24,
-        blank=True,
-        default=WorkflowState.NOVALUE,
-    )
+    workflow_name = models.CharField(max_length=50, blank=True)
+    workflow_state = models.CharField(max_length=50, blank=True)
     owner = models.CharField(max_length=60, blank=True)
     group_key = deprecate_field(models.CharField(max_length=60, blank=True))
     task_key = models.CharField(max_length=60, blank=True)
@@ -201,57 +167,17 @@ class WorkflowModel(models.Model):
 
     def classify(self):
         """computed workflow classification"""
-        workflow, state = WorkflowFramework().classify(self)
+        result = WorkflowFramework().classify(self)
+        if result is None:
+            return {
+                "workflow": "",
+                "state": "",
+            }
+        workflow, state = result
         return {
             "workflow": workflow.name,
             "state": state.name,
         }
-
-    @property
-    def workflow_object(self) -> Workflow:
-        workflows = WorkflowFramework().workflows
-        for workflow in workflows:
-            if workflow.name == self.workflow_name:
-                return workflow
-        raise MissingWorkflowException(
-            f"Instance is classified with a non-registered workflow ({self.workflow_name})."
-        )
-
-    @property
-    def current_state(self) -> State:
-        for state in self.workflow_object.states:
-            if state.name == self.workflow_state:
-                return state
-        raise MissingStateException(
-            f"Instance is classified with a non-registered state ({self.workflow_state})."
-        )
-
-    def _nth_relative_state(self, n: int) -> Optional[State]:
-        states_len = len(self.workflow_object.states)
-        curr_state_index = self.workflow_object.states.index(self.current_state)
-        rel_state_index = curr_state_index + n
-        if rel_state_index < 0 or rel_state_index >= states_len:
-            return
-        else:
-            return self.workflow_object.states[rel_state_index]
-
-    @property
-    def next_state(self) -> State:
-        _next_state = self._nth_relative_state(1)
-        if _next_state is None:
-            raise LastStateException(
-                f"Instance is already in the last state ({self.workflow_state}) from its workflow ({self.workflow_name})."
-            )
-        return _next_state
-
-    @property
-    def previous_state(self) -> State:
-        _prev_state = self._nth_relative_state(-1)
-        if _prev_state is None:
-            raise InitialStateException(
-                f"Instance is already in the initial state ({self.workflow_state}) from its workflow ({self.workflow_name})."
-            )
-        return _prev_state
 
     @property
     def classification(self):
@@ -295,6 +221,11 @@ class WorkflowModel(models.Model):
 
         workflow model is by default saved on change which can be turned off by argument
         """
+        # Only classify if there is a task associated, otherwise workflow fields
+        # should remain empty
+        if not self.task_key:
+            return
+
         classification = self.classify()
 
         if classification == self.classification:
@@ -302,115 +233,19 @@ class WorkflowModel(models.Model):
             return
 
         self.classification = classification
+        self.adjust_acls()  # possibly adjust ACLs too
 
         if not save:
             return
 
         self.save()
 
-    def validate_classification(self, target_workflow, target_state):
-        """
-        This method will evaluate if it is possible to classify the current
-        instance as a target state and raise exception if instance lacks
-        requirements for the target state
-
-        This method does NOT update the flaw classification
-        """
-        WorkflowFramework().validate_classification(self, target_workflow, target_state)
-
-    def promote(self, save=True, jira_token=None, jira_email=None, **kwargs):
-        """
-        this is the cannonical way of changing classification
-
-        This method will change instance state to the next available state
-
-        Raise exception if instance lacks requirements for the target state
-        """
-        WorkflowFramework().validate_classification(
-            self, self.workflow_name, self.next_state.name
-        )
-
-        self.classification = (self.workflow_name, self.next_state.name)
-        if save:
-            self.save(
-                jira_token=jira_token,
-                jira_email=jira_email,
-                raise_validation_error=False,
-                **kwargs,
-            )
-
-    def revert(self, save=True, jira_token=None, jira_email=None, **kwargs) -> None:
-        """
-        This is the canonical way of reverting to a previous valid state.
-        """
-        WorkflowFramework().validate_classification(
-            self, self.workflow_name, self.previous_state.name
-        )
-
-        self.classification = (self.workflow_name, self.previous_state.name)
-        if save:
-            self.save(
-                jira_token=jira_token,
-                jira_email=jira_email,
-                raise_validation_error=False,
-                **kwargs,
-            )
-
-    def reset(self, save=True, jira_token=None, jira_email=None, **kwargs) -> None:
-        """
-        This is the canonical way of resetting to the default workflow.
-        """
-        default_workflow = "DEFAULT"
-
-        self.classification = (default_workflow, WorkflowModel.WorkflowState.NEW)
-        if save:
-            self.save(
-                jira_token=jira_token,
-                jira_email=jira_email,
-                raise_validation_error=False,
-                **kwargs,
-            )
-
-    def reject(self, save=True, jira_token=None, jira_email=None, **kwargs):
-        """
-        this is the cannonical way of rejecting a flaw / task
-
-        This method will change instance state to rejected if all conditions are met
-
-        Raise exception if instance lacks requirements for the rejected state
-        """
-        reject_workflow = "REJECTED"
-        WorkflowFramework().validate_classification(
-            self, reject_workflow, WorkflowModel.WorkflowState.REJECTED
-        )
-
-        self.classification = (reject_workflow, WorkflowModel.WorkflowState.REJECTED)
-        if save:
-            self.save(
-                jira_token=jira_token,
-                jira_email=jira_email,
-                raise_validation_error=False,
-                **kwargs,
-            )
-
     def jira_status(self):
         return WorkflowFramework().jira_status(self)
 
-    def adjust_acls(self, save=True):
-        # a flaw can have internal ACLs before the triage is
-        # completed or if it was rejected during the triage
-
-        public_stages = [
-            WorkflowModel.WorkflowState.PRE_SECONDARY_ASSESSMENT,
-            WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
-            WorkflowModel.WorkflowState.DONE,
-        ]
-
-        if self.is_internal and self.workflow_state in public_stages:
-            self.set_public()
-            # updates ACLs of all related objects except for snippets
-            self.set_public_nested()
-            self.set_history_public()
-
-        if save:
-            self.save()
+    def adjust_acls(self):
+        visibility = WorkflowFramework().get_effective_visibility(
+            self.workflow_name, self.workflow_state
+        )
+        if visibility:
+            self.visibility = visibility

@@ -74,10 +74,16 @@ class CheckParser:
         if check_desc.startswith("is_not_"):
             check_desc = "not_is_" + check_desc[7:]
         check_desc = check_desc.replace("_is_not_", "_not_is_")
+        if check_desc.startswith("has_not_"):
+            check_desc = "not_has_" + check_desc[8:]
+        # unlike is operator has can only be a part of a prefix
+        # so no need to make in the middle replacement
 
         for func in [
             self.desc2property,
             self.desc2not_property,
+            self.desc2parameterized_method,
+            self.desc2not_parameterized_method,
             self.desc2non_empty,
             # negative equality check must preceed the positive one
             # because of the limitations of the naive syntax parsing
@@ -136,6 +142,96 @@ class CheckParser:
                     lambda instance: not func(instance),
                 )
 
+    def desc2parameterized_method(self, check_desc, **kwargs):
+        """
+        parameterized method check
+
+        Resolves descriptions like "has label rejected" to a call
+        model.has_label(instance, "rejected").
+
+        The description is split on the last underscore: everything
+        before it becomes the method name, everything after becomes the
+        single string parameter. The method must exist accept exactly
+        two positional arguments - self + one parameter.
+
+        Limitations:
+          * Only one parameter is supported.
+          * The parameter value must not contain spaces or underscores -
+            spaces are already converted to underscores by _parse_string
+            and the last-underscore split would consume part of the value
+            as the method name.
+        """
+        if "_" not in check_desc:
+            return None
+
+        # split on last underscore
+        last_underscore = check_desc.rfind("_")
+        method_name = check_desc[:last_underscore]
+        parameter = check_desc[last_underscore + 1 :]
+
+        method_name = self.sanitize_attribute(method_name)
+
+        if not hasattr(self.model, method_name):
+            return None
+
+        func = getattr(self.model, method_name)
+
+        # check it is callable
+        if not callable(func):
+            return None
+
+        # check it accepts two params
+        # (self + one extra parameter)
+        try:
+            sig = inspect.signature(func)
+            params = list(sig.parameters.values())
+            if len(params) != 2:
+                return None
+        except (ValueError, TypeError):
+            return None
+
+        doc = f"check that {self.model.__name__}.{method_name}({parameter!r}) returns True"
+
+        def call_parameterized(instance):
+            return func(instance, parameter)
+
+        return (doc, call_parameterized)
+
+    def desc2not_parameterized_method(self, check_desc, **kwargs):
+        """
+        negative parameterized method check
+
+        Resolves descriptions like "has not label rejected" to a call
+        model.has_label(instance, "rejected") and return the negative
+        (not operator) of its return value.
+
+        Upon getting here the preprocessing already handled potential
+        "has not" so it is always in the for of not_has
+
+        First, not_ prefix is separated.
+        The description is split on the last underscore: everything
+        before it becomes the method name, everything after becomes the
+        single string parameter. The method must exist accept exactly
+        two positional arguments - self + one parameter.
+        At the end the negation is prefixed.
+
+        Limitations:
+          * Only one parameter is supported.
+          * The parameter value must not contain spaces or underscores -
+            spaces are already converted to underscores by _parse_string
+            and the last-underscore split would consume part of the value
+            as the method name.
+        """
+        if check_desc.startswith("not_"):
+            result = self.desc2parameterized_method(check_desc[4:])
+
+            if result is not None:
+                doc, func = result
+                return (
+                    f"negative of: {doc}",
+                    lambda instance: not func(instance),
+                )
+
     def desc2non_empty(self, check_desc, **kwargs):
         """attribute non-emptiness check"""
         if check_desc.startswith("has_"):
@@ -146,7 +242,7 @@ class CheckParser:
                 )
 
                 def has_element(instance):
-                    EMPTY_VALUES = [None, ""]
+                    EMPTY_VALUES = [None, "", []]
                     field = getattr(instance, attr)
 
                     if isinstance(field, models.manager.BaseManager):

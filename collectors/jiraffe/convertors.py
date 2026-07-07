@@ -11,7 +11,6 @@ from functools import cached_property
 from django.conf import settings
 from django.db import transaction
 
-from apps.workflows.workflow import WorkflowFramework
 from osidb.core import generate_acls, set_user_acls
 from osidb.models import Flaw, Tracker
 from osidb.validators import CVE_RE_STR
@@ -20,7 +19,7 @@ from ..utils import (
     get_module_from_update_stream,
     tracker_parse_update_stream_component,
 )
-from .constants import JIRA_DT_FULL_FMT, TASK_CHANGELOG_FIELD_MAPPING
+from .constants import JIRA_DT_FULL_FMT
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +30,6 @@ class JiraTaskConvertor:
         task_data,
     ):
         self._raw = task_data
-        self.histories = getattr(
-            getattr(task_data, "changelog", None),
-            "histories",
-            [],
-        )
         # important that this is last as it might require other fields on self
         self.task_data = self._normalize()
         # set osidb.acl to be able to CRUD database properly and essentially bypass ACLs as
@@ -61,17 +55,9 @@ class JiraTaskConvertor:
         """
         raw data normalization
         """
-        status = self.get_field_attr(self._raw, "status", "name")
-        resolution = self.get_field_attr(self._raw, "resolution", "name")
-        workflow, state = WorkflowFramework().jira_to_state(status, resolution)
-
         return {
             "external_system_id": self._raw.key,
             "labels": self._raw.fields.labels,
-            "jira_status": status,
-            "jira_resolution": resolution,
-            "workflow_state": state,
-            "workflow_name": workflow,
             "task_updated_dt": datetime.strptime(
                 self.get_field_attr(self._raw, "updated"), JIRA_DT_FULL_FMT
             ),
@@ -79,14 +65,6 @@ class JiraTaskConvertor:
 
     @property
     def flaw(self):
-        if not self.task_data["workflow_name"]:
-            logger.error(
-                f"Ignoring Jira task ({self.task_data['external_system_id']})"
-                "due invalid combination of status and resolution"
-                f"({self.task_data['jira_status']}),{self.task_data['jira_resolution']})."
-            )
-            return None
-
         flaw = None
         for label in self.task_data["labels"]:
             if CVE_RE_STR.match(label):
@@ -115,51 +93,15 @@ class JiraTaskConvertor:
             )
             return None
 
-        changed_fields = set()
-        for record in self.histories[::-1]:
-            record_dt = datetime.strptime(record.created, JIRA_DT_FULL_FMT)
-            if not flaw.task_updated_dt or record_dt > flaw.task_updated_dt:
-                for item in record.items:
-                    record_changed_fields = TASK_CHANGELOG_FIELD_MAPPING.get(item.field)
-                    if record_changed_fields:
-                        changed_fields.update(record_changed_fields)
-            else:
-                # no more new changes in history
-                break
-
-        # Avoid updating timestamp of flaws without real changes
         has_changes = (
-            flaw
-            and (
-                # ignore issue if query is outdated
-                not flaw.task_updated_dt
-                or flaw.task_updated_dt <= self.task_data["task_updated_dt"]
-            )
-            and (
-                flaw.task_key != self.task_data["external_system_id"] or changed_fields
-            )
+            flaw.task_key != self.task_data["external_system_id"]
+            or not flaw.task_updated_dt
+            or flaw.task_updated_dt < self.task_data["task_updated_dt"]
         )
 
         if has_changes:
             flaw.task_key = self.task_data["external_system_id"]
-
-            # NOTE: for some unexplainable reason, history record created timestamp
-            #       can actually be later in the future (by milliseconds) than Jira issue updated
-            #       timestamp, and thus we need to set the task_updated_dt to higher of
-            #       those values since it would later in the next download fetch changes
-            #       which were already downloaded and stored.
-            if self.histories:
-                latest_record_dt = datetime.strptime(
-                    self.histories[-1].created, JIRA_DT_FULL_FMT
-                )
-                flaw.task_updated_dt = max(
-                    latest_record_dt, self.task_data["task_updated_dt"]
-                )
-            else:
-                flaw.task_updated_dt = self.task_data["task_updated_dt"]
-
-            for field in changed_fields:
-                setattr(flaw, field, self.task_data[field])
+            flaw.task_updated_dt = self.task_data["task_updated_dt"]
             return JiraTaskSaver(flaw)
         return None
 
@@ -169,34 +111,10 @@ class JiraTaskSaver:
         self.flaw = flaw
 
     def save(self):
-        # only update the fields which are supposed
-        # to be potentially influenced by the collector
-        task_attributes = [
-            "task_key",
-            "task_updated_dt",
-            # the ACLs are not really directly fetched but can
-            # get modified due to state or resolution changes
-            "acl_read",
-            "acl_write",
-            # workflow name and state are mapped
-            # from Jira state and resolution
-            "workflow_name",
-            "workflow_state",
-        ]
-        with transaction.atomic():
-            self.flaw.adjust_acls(save=False)
-
-            kwargs = {}
-            # set only existing values
-            for attribute in task_attributes:
-                value = getattr(self.flaw, attribute)
-                if value is not None:
-                    kwargs[attribute] = value
-
-            Flaw.objects.filter(uuid=self.flaw.uuid).update(
-                auto_timestamps=False,  # we do not want to touch updated_dt
-                **kwargs,
-            )
+        self.flaw.save(
+            auto_timestamps=False,
+            raise_validation_error=False,
+        )
 
 
 class TrackerSaver:

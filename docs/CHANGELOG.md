@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Base auto-affect determination on upstream affected versions (OSIDB-5031)
 - Add support for relative datetime queries in API filters (OSIDB-5168)
 - Component mapping collector and pre-filter for ACE affect creation (OSIDB-4952)
+- document workflow framework
+- introduce EMBARGOED workflow
+- introduce workflow labels
+
+### Changed
+- align existing workflows with workflow framework concepts
+- auto-adjust workflow:state on Flaw.save
+- unrestrict workflow state names (OSIDB-5049)
+- move automatic visibility change handling specification into the workflow definitions
+- align workflow definition YAMLs with the Argus requirements (OSIDB-5050)
+- introduce true labels and deprecate collaborator-centric pseudo-labels (OSIDB-5191)
+
+### Fixed
+- Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
+- Wrap external errors with affect context for bulk PUT endpoint (OSIDB-5038)
+- Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
+- Fixed double error raise problem in sync_manager.
+
+### Removed
+- deprecate workflow manipulation endpoints
+- disconnect OSIDB workflow:state from the Jira
+- stop classifying legacy flaws
 
 ### Changed
 - Auto-affect creation no longer overrides Affect.impact
@@ -21,7 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Make HashiCorp Vault integration credential-based opt-in (OSIDB-5108)
 - Performance improvements for pghistory-related queries (OSIDB-4906)
-- Fixed double error raise problem in sync_manager.
 
 ### Fixed
 - Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)

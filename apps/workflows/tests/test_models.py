@@ -1,12 +1,9 @@
 import pytest
 
-from apps.workflows.exceptions import (
-    InitialStateException,
-    LastStateException,
-    MissingRequirementsException,
-)
+from apps.workflows.checks import CheckParser
 from apps.workflows.models import Check, Condition, State, Workflow
-from apps.workflows.workflow import WorkflowFramework, WorkflowModel
+from apps.workflows.workflow import WorkflowFramework
+from osidb.mixins import ACLMixinVisibility
 from osidb.models import (
     Affect,
     Flaw,
@@ -16,6 +13,7 @@ from osidb.models import (
     Impact,
     NotAffectedJustification,
     Tracker,
+    WorkflowLabel,
 )
 from osidb.tests.factories import (
     AffectFactory,
@@ -30,6 +28,71 @@ from osidb.tests.factories import (
 )
 
 pytestmark = pytest.mark.unit
+
+
+class TestCheckParser:
+    """Test CheckParser functionality"""
+
+    def test_parameterized_method_check(self):
+        """test that parameterized method checks work correctly"""
+        parser = CheckParser()
+
+        # Test has_label_rejected
+        doc, check_func = parser.parse("has_label_rejected")
+        assert "has_label" in doc
+        assert "rejected" in doc
+
+        flaw = FlawFactory()
+        assert not check_func(flaw)
+
+        WorkflowLabel.objects.create(flaw=flaw, name="rejected")
+        assert check_func(flaw)
+
+    def test_parameterized_method_multiple_labels(self):
+        """test parameterized checks with different labels"""
+        parser = CheckParser()
+
+        _, check_rejected = parser.parse("has_label_rejected")
+        _, check_approved = parser.parse("has_label_approved")
+
+        flaw = FlawFactory()
+        assert not check_rejected(flaw)
+        assert not check_approved(flaw)
+
+        WorkflowLabel.objects.create(flaw=flaw, name="rejected")
+        assert check_rejected(flaw)
+        assert not check_approved(flaw)
+
+        WorkflowLabel.objects.create(flaw=flaw, name="approved")
+        assert check_rejected(flaw)
+        assert check_approved(flaw)
+
+    def test_parameterized_vs_property_precedence(self):
+        """test that exact property matches take precedence over parameterized"""
+        parser = CheckParser()
+
+        # This should match the property, not be parsed as parameterized
+        # (assuming there's a property that could match this pattern)
+        doc, _ = parser.parse("has_owner")
+        # Should be the has_ non-empty check, not parameterized
+        assert "has a value set" in doc
+
+    def test_negative_parameterized_method(self):
+        """test negative parameterized method checks"""
+        parser = CheckParser()
+
+        doc, check_func = parser.parse("not_has_label_rejected")
+        assert "negative of:" in doc
+        assert "has_label" in doc
+        assert "rejected" in doc
+
+        flaw = FlawFactory()
+        # Flaw has no rejected label, so not_has_label_rejected should be True
+        assert check_func(flaw)
+
+        WorkflowLabel.objects.create(flaw=flaw, name="rejected")
+        # Now flaw has rejected label, so not_has_label_rejected should be False
+        assert not check_func(flaw)
 
 
 def assert_state_equals(current, expected):
@@ -547,6 +610,145 @@ class TestState:
 
         assert state.accepts(flaw)
 
+    def test_visibility_parsed_from_yaml(self):
+        """Test that the optional visibility field is parsed from state definition"""
+        state_with = State(
+            {
+                "name": "PUBLIC_STATE",
+                "jira_state": "To Do",
+                "jira_resolution": None,
+                "visibility": "PUBLIC",
+                "requirements": [],
+            }
+        )
+        assert state_with.visibility == "PUBLIC"
+
+        state_without = State(
+            {
+                "name": "NO_VIS_STATE",
+                "jira_state": "New",
+                "jira_resolution": None,
+                "requirements": [],
+            }
+        )
+        assert state_without.visibility is None
+
+    def test_visibility_invalid_value_rejected(self):
+        """Test that an invalid visibility value is rejected during state creation"""
+        with pytest.raises(ValueError):
+            State(
+                {
+                    "name": "BAD_STATE",
+                    "jira_state": "New",
+                    "jira_resolution": None,
+                    "visibility": "PUBLC",
+                    "requirements": [],
+                }
+            )
+
+
+class TestEffectiveVisibility:
+    def test_effective_visibility_from_current_state(self):
+        """
+        Test that effective visibility is returned when the current state
+        has a visibility property
+        """
+        wf = WorkflowFramework()
+        vis = wf.get_effective_visibility("DEFAULT", "PRE_SECONDARY_ASSESSMENT")
+        assert vis == ACLMixinVisibility.PUBLIC
+
+    def test_effective_visibility_inherited_from_earlier_state(self):
+        """
+        Test that effective visibility is inherited from an earlier state
+        when the current state has no visibility property (e.g. DONE
+        inherits PUBLIC from PRE_SECONDARY_ASSESSMENT)
+        """
+        wf = WorkflowFramework()
+        vis = wf.get_effective_visibility("DEFAULT", "DONE")
+        assert vis == ACLMixinVisibility.PUBLIC
+
+    def test_effective_visibility_none_before_gate(self):
+        """
+        Test that states before any visibility gate return None
+        """
+        wf = WorkflowFramework()
+        vis = wf.get_effective_visibility("DEFAULT", "NEW")
+        assert vis is None
+
+        vis = wf.get_effective_visibility("DEFAULT", "TRIAGE")
+        assert vis is None
+
+    def test_effective_visibility_none_for_rejected(self):
+        """
+        Test that the REJECTED workflow has no visibility gates
+        """
+        wf = WorkflowFramework()
+        vis = wf.get_effective_visibility("REJECTED", "DONE")
+        assert vis is None
+
+    def test_effective_visibility_none_for_embargoed(self):
+        """
+        Test that the EMBARGOED workflow has no visibility gates
+        """
+        wf = WorkflowFramework()
+        vis = wf.get_effective_visibility("EMBARGOED", "PRE_SECONDARY_ASSESSMENT")
+        assert vis is None
+
+    def test_effective_visibility_none_for_unknown(self):
+        """
+        Test that unknown workflow/state combinations return None
+        """
+        wf = WorkflowFramework()
+        assert wf.get_effective_visibility("NONEXISTENT", "NEW") is None
+        assert wf.get_effective_visibility("DEFAULT", "NONEXISTENT") is None
+
+    def test_effective_visibility_picks_widest(self):
+        """
+        Test that if multiple states define visibility, the widest is used
+        """
+        wf = WorkflowFramework()
+        wf._workflows = []
+        wf.register_workflow(
+            Workflow(
+                {
+                    "name": "TEST",
+                    "description": "test",
+                    "priority": 0,
+                    "conditions": [],
+                    "states": [
+                        {
+                            "name": "A",
+                            "jira_state": "New",
+                            "jira_resolution": None,
+                            "visibility": "INTERNAL",
+                            "requirements": [],
+                        },
+                        {
+                            "name": "B",
+                            "jira_state": "To Do",
+                            "jira_resolution": None,
+                            "visibility": "PUBLIC",
+                            "requirements": [],
+                        },
+                        {
+                            "name": "C",
+                            "jira_state": "In Progress",
+                            "jira_resolution": None,
+                            "visibility": "INTERNAL",
+                            "requirements": [],
+                        },
+                    ],
+                }
+            )
+        )
+
+        assert wf.get_effective_visibility("TEST", "A") == ACLMixinVisibility.INTERNAL
+        assert wf.get_effective_visibility("TEST", "B") == ACLMixinVisibility.PUBLIC
+        assert wf.get_effective_visibility("TEST", "C") == ACLMixinVisibility.PUBLIC
+
+        wf._workflows = []
+        wf.load_workflows()
+
 
 class TestWorkflow:
     def test_empty_conditions(self):
@@ -646,6 +848,38 @@ class TestWorkflow:
             f'flaw was wrongly accepted by workflow conditions "{conditions}"'
         )
 
+    def test_condition_with_or(self):
+        """test that a workflow condition can use an OR logical condition"""
+        workflow = Workflow(
+            {
+                "name": "test",
+                "description": "test",
+                "priority": 0,
+                "conditions": [
+                    {
+                        "condition": "OR",
+                        "requirements": [
+                            "has comment_zero",
+                            "has title",
+                        ],
+                    }
+                ],
+                "states": [],
+            }
+        )
+
+        flaw = FlawFactory()
+        flaw.comment_zero = ""
+        flaw.title = ""
+        assert not workflow.accepts(flaw)
+
+        flaw.comment_zero = "some comment"
+        assert workflow.accepts(flaw)
+
+        flaw.comment_zero = ""
+        flaw.title = "some title"
+        assert workflow.accepts(flaw)
+
     def test_classify(self):
         """test that a flaw is correctly classified in the workflow states"""
         state_new = {
@@ -691,50 +925,6 @@ class TestWorkflow:
         bypass_flaw.cwe_id = "CWE-1"
         assert_state_equals(workflow.classify(bypass_flaw), state_new)
 
-    @pytest.mark.parametrize(
-        "requirements,not_met_requirements",
-        [
-            (["has comment_zero"], ["has comment_zero"]),
-            (["has comment_zero", "has title"], ["has comment_zero", "has title"]),
-            (
-                [
-                    {
-                        "condition": "OR",
-                        "requirements": ["has comment_zero", "has title"],
-                    }
-                ],
-                ["has comment_zero OR has title"],
-            ),
-        ],
-    )
-    def test_validate_classification(self, requirements, not_met_requirements):
-        """test that the classification validation works as expected"""
-        state_first = {
-            "name": "First",
-            "requirements": [],
-            "jira_state": "New",
-            "jira_resolution": None,
-        }
-        state_second = {
-            "name": "Second",
-            "requirements": requirements,
-            "jira_state": "To Do",
-            "jira_resolution": None,
-        }
-
-        workflow = Workflow(
-            {
-                "name": "test workflow",
-                "description": "a two step workflow to test validation",
-                "priority": 0,
-                "conditions": [],
-                "states": [state_first, state_second],
-            }
-        )
-        flaw = Flaw()
-        assert_state_equals(workflow.classify(flaw), state_first)
-        assert not_met_requirements == workflow.validate_classification(flaw, "Second")
-
 
 class TestWorkflowFramework:
     def test_classify_priority(self):
@@ -777,7 +967,7 @@ class TestWorkflowFramework:
         workflow_framework.register_workflow(workflow_high)
         workflow_framework.register_workflow(workflow_low)
 
-        flaw = Flaw()
+        flaw = Flaw(task_key="TASK-123")
         classified_workflow, classified_state = workflow_framework.classify(flaw)
         assert_workflow_equals(classified_workflow, workflow_high)
         assert_state_equals(classified_state, new_high)
@@ -787,7 +977,7 @@ class TestWorkflowFramework:
         workflow_framework.register_workflow(workflow_low)
         workflow_framework.register_workflow(workflow_high)
 
-        flaw = Flaw()
+        flaw = Flaw(task_key="TASK-123")
         classified_workflow, classified_state = workflow_framework.classify(flaw)
         assert_workflow_equals(classified_workflow, workflow_high)
         assert_state_equals(classified_state, new_high)
@@ -795,19 +985,19 @@ class TestWorkflowFramework:
     def test_classify_complete(self):
         """test flaw classification in both workflow and state"""
         state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
+            "name": "NEW",
             "requirements": [],
             "jira_state": "New",
             "jira_resolution": None,
         }
         state_first = {
-            "name": WorkflowModel.WorkflowState.TRIAGE,
+            "name": "TRIAGE",
             "requirements": ["has comment_zero"],
             "jira_state": "To Do",
             "jira_resolution": None,
         }
         state_second = {
-            "name": WorkflowModel.WorkflowState.DONE,
+            "name": "DONE",
             "requirements": ["has title"],
             "jira_state": "Refinement",
             "jira_resolution": None,
@@ -824,7 +1014,7 @@ class TestWorkflowFramework:
         )
 
         state_not_affected = {
-            "name": WorkflowModel.WorkflowState.REJECTED,
+            "name": "DONE",
             "requirements": [],
             "jira_state": "Done",
             "jira_resolution": "Won't Do",
@@ -846,7 +1036,7 @@ class TestWorkflowFramework:
         workflow_framework.register_workflow(workflow_main)
         workflow_framework.register_workflow(workflow_reject)
 
-        flaw = FlawFactory()
+        flaw = FlawFactory(task_key="TASK-123")
         flaw.comment_zero = ""
         flaw.title = ""
 
@@ -886,10 +1076,11 @@ class TestWorkflowFramework:
 class TestFlaw:
     @pytest.mark.enable_signals
     def test_init(self):
-        """test that flaw gets workflow:state assigned on creation"""
+        """test that flaw without task_key has empty workflow fields"""
         flaw = FlawFactory()
-        assert flaw.workflow_name
-        assert flaw.workflow_state == WorkflowModel.WorkflowState.NOVALUE
+        # Flaws without task_key should have empty workflow fields
+        assert flaw.workflow_name == ""
+        assert flaw.workflow_state == ""
 
     @pytest.mark.enable_signals
     def test_adjust(self):
@@ -899,7 +1090,7 @@ class TestFlaw:
 
         state_new = State(
             {
-                "name": WorkflowModel.WorkflowState.NEW,
+                "name": "NEW",
                 "jira_state": "New",
                 "jira_resolution": None,
                 "requirements": [],
@@ -907,7 +1098,7 @@ class TestFlaw:
         )
         state_first = State(
             {
-                "name": WorkflowModel.WorkflowState.TRIAGE,
+                "name": "TRIAGE",
                 "jira_state": "To Do",
                 "jira_resolution": None,
                 "requirements": ["has comment_zero"],
@@ -915,7 +1106,7 @@ class TestFlaw:
         )
         state_second = State(
             {
-                "name": WorkflowModel.WorkflowState.DONE,
+                "name": "DONE",
                 "jira_state": "In Progress",
                 "jira_resolution": None,
                 "requirements": ["has title"],
@@ -954,7 +1145,8 @@ class TestFlaw:
         workflow_framework.register_workflow(workflow)
 
         flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+            task_key="TASK-123",  # Required for workflow classification
         )
         AffectFactory(flaw=flaw)
         flaw.adjust_classification()
@@ -969,295 +1161,55 @@ class TestFlaw:
     @pytest.mark.enable_signals
     def test_adjust_no_change(self):
         """test that adjusting classification has no effect without flaw modification"""
-        flaw = FlawFactory(
-            workflow_state=WorkflowModel.WorkflowState.NEW
-        )  # random flaw
+        # Flaw without task_key should have empty workflow fields
+        flaw = FlawFactory()
         classification = flaw.classification
         flaw.adjust_classification()
         assert classification == flaw.classification
+        # Verify workflow fields remain empty without task_key
+        assert flaw.workflow_name == ""
+        assert flaw.workflow_state == ""
 
     @pytest.mark.enable_signals
-    def test_promote(self):
-        """test flaw state promotion after data change"""
-        workflow_framework = WorkflowFramework()
-        workflow_framework._workflows = []
-
-        state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
-            "requirements": [],
-            "jira_state": "New",
-            "jira_resolution": None,
-        }
-
-        state_first = {
-            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
-            "requirements": ["has cwe"],
-            "jira_state": "To Do",
-            "jira_resolution": None,
-        }
-
-        state_second = {
-            "name": WorkflowModel.WorkflowState.DONE,
-            "requirements": ["has cve_description"],
-            "jira_state": "Refinement",
-            "jira_resolution": None,
-        }
-
-        workflow = Workflow(
-            {
-                "name": "DEFAULT",
-                "description": "random description",
-                "priority": 0,
-                "conditions": [],
-                "states": [state_new, state_first, state_second],
-            }
-        )
-        workflow_framework.register_workflow(workflow)
-
-        flaw = FlawFactory(
-            cwe_id="",
-            cve_description="",
-            workflow_state=WorkflowModel.WorkflowState.NEW,
-        )
+    def test_rejected_label_classifies_to_rejected_workflow(self):
+        """test that adding a rejected workflow label classifies flaw into REJECTED workflow using parameterized check"""
+        flaw = FlawFactory(embargoed=False, task_key="TASK-456")
         AffectFactory(flaw=flaw)
+        flaw.adjust_classification()
 
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
 
-        with pytest.raises(MissingRequirementsException, match="has cwe"):
-            flaw.promote()
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        # Add rejected label - workflow uses has_label_rejected parameterized check
+        WorkflowLabel.objects.create(flaw=flaw, name="rejected")
+        flaw.adjust_classification()
 
-        flaw.cwe_id = "CWE-1"
-        assert flaw.promote() is None
-        assert (
-            flaw.classification["state"]
-            == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
-        )
-
-        with pytest.raises(MissingRequirementsException, match="has cve_description"):
-            flaw.promote()
-        assert (
-            flaw.classification["state"]
-            == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
-        )
-
-        flaw.cve_description = "valid cve_description"
-        assert flaw.promote() is None
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
-
-        with pytest.raises(LastStateException):
-            flaw.promote()
-
-    @pytest.mark.enable_signals
-    def test_reject(self):
-        """test successful flaw rejection"""
-        workflow_framework = WorkflowFramework()
-        workflow_framework._workflows = []
-
-        # Create a default workflow
-        state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
-            "requirements": [],
-            "jira_state": "New",
-            "jira_resolution": None,
-        }
-        workflow = Workflow(
-            {
-                "name": "DEFAULT",
-                "description": "default workflow",
-                "priority": 0,
-                "conditions": [],
-                "states": [state_new],
-            }
-        )
-
-        # Create rejected workflow
-        state_rejected = {
-            "name": WorkflowModel.WorkflowState.REJECTED,
-            "requirements": [],
-            "jira_state": "Closed",
-            "jira_resolution": "Won't Do",
-        }
-        reject_workflow = Workflow(
-            {
-                "name": "REJECTED",
-                "description": "rejected workflow",
-                "priority": 0,
-                "conditions": [],
-                "states": [state_rejected],
-            }
-        )
-
-        workflow_framework.register_workflow(workflow)
-        workflow_framework.register_workflow(reject_workflow)
-
-        flaw = FlawFactory()
-        AffectFactory(flaw=flaw)
-
-        # Initially in default workflow
-        assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NOVALUE
-
-        # Reject the flaw
-        flaw.reject()
-
-        # Should now be in rejected workflow and state
         assert flaw.classification["workflow"] == "REJECTED"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.REJECTED
+        assert flaw.classification["state"] == "DONE"
 
     @pytest.mark.enable_signals
-    def test_revert(self):
-        """test flaw state reversion after data change"""
-        workflow_framework = WorkflowFramework()
-        workflow_framework._workflows = []
-
-        state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
-            "requirements": [],
-            "jira_state": "New",
-            "jira_resolution": None,
-        }
-
-        state_first = {
-            "name": WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT,
-            "requirements": ["has cwe"],
-            "jira_state": "To Do",
-            "jira_resolution": None,
-        }
-
-        state_second = {
-            "name": WorkflowModel.WorkflowState.DONE,
-            "requirements": ["has cve_description"],
-            "jira_state": "Refinement",
-            "jira_resolution": None,
-        }
-
-        workflow = Workflow(
-            {
-                "name": "DEFAULT",
-                "description": "random description",
-                "priority": 0,
-                "conditions": [],
-                "states": [state_new, state_first, state_second],
-            }
-        )
-        workflow_framework.register_workflow(workflow)
-
-        flaw = FlawFactory(
-            cwe_id="CWE-1",
-            cve_description="valid cve_description",
-            workflow_state=WorkflowModel.WorkflowState.DONE,
-        )
+    def test_removing_rejected_label_falls_back_to_default(self):
+        """test that removing the rejected label causes fallback to DEFAULT workflow"""
+        flaw = FlawFactory(embargoed=False, task_key="TASK-789")
         AffectFactory(flaw=flaw)
 
+        workflow_label = WorkflowLabel.objects.create(flaw=flaw, name="rejected")
+        flaw.adjust_classification()
+        assert flaw.classification["workflow"] == "REJECTED"
+
+        workflow_label.delete()
+        flaw.adjust_classification()
         assert flaw.classification["workflow"] == "DEFAULT"
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.DONE
 
-        # Revert from DONE to SECONDARY_ASSESSMENT
-        assert flaw.revert() is None
-        assert (
-            flaw.classification["state"]
-            == WorkflowModel.WorkflowState.SECONDARY_ASSESSMENT
-        )
+    def test_has_label_method(self):
+        """test the has_label method on Flaw"""
+        flaw = FlawFactory()
+        assert not flaw.has_label("rejected")
+        assert not flaw.has_label("approved")
 
-        # Revert from SECONDARY_ASSESSMENT to NEW
-        assert flaw.revert() is None
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
+        WorkflowLabel.objects.create(flaw=flaw, name="rejected")
+        assert flaw.has_label("rejected")
+        assert not flaw.has_label("approved")
 
-        # Try to revert from NEW (first state) - should raise InitialStateException
-        with pytest.raises(InitialStateException):
-            flaw.revert()
-        assert flaw.classification["state"] == WorkflowModel.WorkflowState.NEW
-
-    @pytest.mark.enable_signals
-    def test_reset(self):
-        """test flaw reset to default workflow"""
-        workflow_framework = WorkflowFramework()
-        workflow_framework._workflows = []
-
-        # Create default workflow with three states
-        state_new = {
-            "name": WorkflowModel.WorkflowState.NEW,
-            "requirements": [],
-            "jira_state": "New",
-            "jira_resolution": None,
-        }
-        state_triage = {
-            "name": WorkflowModel.WorkflowState.TRIAGE,
-            "requirements": ["has cwe"],
-            "jira_state": "To Do",
-            "jira_resolution": None,
-        }
-        state_done = {
-            "name": WorkflowModel.WorkflowState.DONE,
-            "requirements": ["has cve_description"],
-            "jira_state": "Done",
-            "jira_resolution": None,
-        }
-        default_workflow = Workflow(
-            {
-                "name": "DEFAULT",
-                "description": "default workflow",
-                "priority": 0,
-                "conditions": [],
-                "states": [state_new, state_triage, state_done],
-            }
-        )
-
-        # Create rejected workflow
-        state_rejected = {
-            "name": WorkflowModel.WorkflowState.REJECTED,
-            "requirements": [],
-            "jira_state": "Closed",
-            "jira_resolution": "Won't Do",
-        }
-        reject_workflow = Workflow(
-            {
-                "name": "REJECTED",
-                "description": "rejected workflow",
-                "priority": 0,
-                "conditions": [],
-                "states": [state_rejected],
-            }
-        )
-
-        workflow_framework.register_workflow(default_workflow)
-        workflow_framework.register_workflow(reject_workflow)
-
-        # Test reset from REJECTED workflow
-        flaw_rejected = FlawFactory(
-            workflow_name="REJECTED",
-            workflow_state=WorkflowModel.WorkflowState.REJECTED,
-        )
-        AffectFactory(flaw=flaw_rejected)
-
-        assert flaw_rejected.classification["workflow"] == "REJECTED"
-        assert (
-            flaw_rejected.classification["state"]
-            == WorkflowModel.WorkflowState.REJECTED
-        )
-
-        # Reset from REJECTED to DEFAULT
-        flaw_rejected.reset()
-
-        assert flaw_rejected.classification["workflow"] == "DEFAULT"
-        assert flaw_rejected.classification["state"] == WorkflowModel.WorkflowState.NEW
-
-        # Test reset from DEFAULT workflow (already in default, last state)
-        flaw_default = FlawFactory(
-            workflow_name="DEFAULT",
-            workflow_state=WorkflowModel.WorkflowState.DONE,
-            cwe_id="CWE-1",
-            cve_description="valid cve_description",
-        )
-        AffectFactory(flaw=flaw_default)
-
-        assert flaw_default.classification["workflow"] == "DEFAULT"
-        assert flaw_default.classification["state"] == WorkflowModel.WorkflowState.DONE
-
-        # Reset from DEFAULT DONE to DEFAULT NEW (skipping TRIAGE state)
-        flaw_default.reset()
-
-        assert flaw_default.classification["workflow"] == "DEFAULT"
-        assert flaw_default.classification["state"] == WorkflowModel.WorkflowState.NEW
+        WorkflowLabel.objects.create(flaw=flaw, name="approved")
+        assert flaw.has_label("rejected")
+        assert flaw.has_label("approved")
