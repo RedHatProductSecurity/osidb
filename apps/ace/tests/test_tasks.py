@@ -658,7 +658,7 @@ def test_sync_skips_blocked_component(monkeypatch, ace_enabled, mock_querier):
     stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
 
     assert stats["created"] == 0
-    assert flaw.labels.filter(label=LABEL_AUTO_REJECTED).exists()
+    assert flaw.labels_v2.filter(name=LABEL_AUTO_REJECTED).exists()
 
 
 @pytest.mark.django_db
@@ -688,8 +688,8 @@ def test_sync_blocked_component_skips_entire_flaw(
     assert stats["created"] == 0
     assert stats["pre_filtered"] == 1
     assert search_calls == []
-    assert flaw.labels.filter(label=LABEL_AUTO_REJECTED).exists()
-    assert not flaw.labels.filter(label=LABEL_AUTO_AFFECTS).exists()
+    assert flaw.labels_v2.filter(name=LABEL_AUTO_REJECTED).exists()
+    assert not flaw.labels_v2.filter(name=LABEL_AUTO_AFFECTS).exists()
 
 
 @pytest.mark.django_db
