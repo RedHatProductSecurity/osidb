@@ -1,3 +1,4 @@
+import enum
 import importlib.metadata
 from dataclasses import dataclass, field
 from typing import Any
@@ -56,12 +57,27 @@ def _flaw_components(flaw: Flaw) -> list[str]:
     return components
 
 
+class PreFilterAction(enum.Enum):
+    SEARCH = "search"
+    SKIP = "skip"
+    MANUAL = "manual"
+    SPECIAL = "special"
+
+
+class SpecialWorkflow(enum.Enum):
+    NONE = ""
+    CHROMIUM = "chromium"
+    GO_STDLIB = "go_stdlib"
+
+
 @dataclass
 class PreFilterResult:
-    action: str
+    action: PreFilterAction
     label: str = ""
     resolved_names: list[str] = field(default_factory=list)
     reason: str = ""
+    workflow: SpecialWorkflow = SpecialWorkflow.NONE
+    subcomponent: str = ""
 
 
 def _resolve_component(component: str) -> tuple[list[str], bool]:
@@ -146,7 +162,7 @@ def _pre_filter_component(
     block = BlocklistEntry.objects.filter(name=component_lower).first()
     if block:
         return PreFilterResult(
-            action="skip",
+            action=PreFilterAction.SKIP,
             label=LABEL_AUTO_REJECTED,
             reason=f"Blocked: {block.reason}",
         )
@@ -154,7 +170,7 @@ def _pre_filter_component(
     # Go stdlib check
     if _is_go_stdlib(flaw.components or []):
         return PreFilterResult(
-            action="manual",
+            action=PreFilterAction.MANUAL,
             label=LABEL_MANUAL_TRIAGE,
             reason="Go stdlib CVE, requires specialized workflow",
         )
@@ -162,9 +178,9 @@ def _pre_filter_component(
     # Chromium check
     if component_lower in CHROMIUM_NAMES:
         return PreFilterResult(
-            action="manual",
             label=LABEL_MANUAL_TRIAGE,
             reason="Chromium CVE, requires specialized workflow",
+            action=PreFilterAction.MANUAL,
         )
 
     resolved, has_custom_mapping = _resolve_component(component)
@@ -172,7 +188,7 @@ def _pre_filter_component(
     # Verified mapping guard
     if has_custom_mapping and not _is_verified_mapping(component, resolved):
         return PreFilterResult(
-            action="manual",
+            action=PreFilterAction.MANUAL,
             label=LABEL_MANUAL_TRIAGE,
             resolved_names=resolved,
             reason=f"Mapping '{component}' is not verified",
@@ -182,7 +198,7 @@ def _pre_filter_component(
     cross_eco = CrossEcosystemName.objects.filter(name=component_lower).first()
     if cross_eco and not ecosystem:
         return PreFilterResult(
-            action="manual",
+            action=PreFilterAction.MANUAL,
             label=LABEL_MANUAL_TRIAGE,
             resolved_names=resolved,
             reason=(
@@ -201,7 +217,7 @@ def _pre_filter_component(
         )
         if not pick:
             return PreFilterResult(
-                action="manual",
+                action=PreFilterAction.MANUAL,
                 label=LABEL_MANUAL_TRIAGE,
                 resolved_names=resolved,
                 reason=f"'{component}' has ambiguous SBOM matches requiring review",
@@ -218,7 +234,7 @@ def _pre_filter_component(
 
     if not (is_strict or is_strict_npm or (is_ambiguous_npm and ecosystem == "npm")):
         return PreFilterResult(
-            action="search",
+            action=PreFilterAction.SEARCH,
             label=LABEL_POTENTIAL_REJECTION,
             resolved_names=resolved,
             reason="Low confidence, component not in strict package lists",
@@ -226,7 +242,7 @@ def _pre_filter_component(
 
     # Continue with auto-affects process
     return PreFilterResult(
-        action="search",
+        action=PreFilterAction.SEARCH,
         label=LABEL_AUTO_AFFECTS,
         resolved_names=resolved,
     )
@@ -450,7 +466,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
             pre_filter_results.append((flaw_component, ecosystem, pf))
 
     skip_result = next(
-        (pf for _, _, pf in pre_filter_results if pf.action == "skip"), None
+        (pf for _, _, pf in pre_filter_results if pf.action is PreFilterAction.SKIP), None
     )
     if skip_result:
         _apply_label(flaw, skip_result.label)
@@ -465,7 +481,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
     for flaw_component, ecosystem, pre_filter in pre_filter_results:
         _apply_label(flaw, pre_filter.label)
 
-        if pre_filter.action != "search":
+        if pre_filter.action is not PreFilterAction.SEARCH:
             logger.info(
                 "Pre-filter %s for flaw=%s component=%r: %s",
                 pre_filter.action,

@@ -20,6 +20,8 @@ from apps.ace.constants import (
     LABEL_POTENTIAL_REJECTION,
 )
 from apps.ace.tasks import (
+    PreFilterAction,
+    SpecialWorkflow,
     _is_go_stdlib,
     _pre_filter_component,
     _resolve_component,
@@ -601,7 +603,7 @@ def test_pre_filter_blocklist_skips():
 
     result = _pre_filter_component(flaw, "GitLab", "")
 
-    assert result.action == "skip"
+    assert result.action is PreFilterAction.SKIP
     assert result.label == LABEL_AUTO_REJECTED
     assert "Blocked" in result.reason
 
@@ -615,7 +617,7 @@ def test_pre_filter_allows_non_blocked():
 
     result = _pre_filter_component(flaw, "openssl", "")
 
-    assert result.action == "search"
+    assert result.action is PreFilterAction.SEARCH
     assert result.label == LABEL_AUTO_AFFECTS
     assert "openssl" in result.resolved_names
 
@@ -744,7 +746,7 @@ def test_pre_filter_go_stdlib_manual_triage():
 
     result = _pre_filter_component(flaw, "golang", "")
 
-    assert result.action == "manual"
+    assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_MANUAL_TRIAGE
     assert "Go stdlib" in result.reason
 
@@ -772,7 +774,7 @@ def test_pre_filter_cross_ecosystem_no_ecosystem():
 
     result = _pre_filter_component(flaw, "redis", "")
 
-    assert result.action == "manual"
+    assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_MANUAL_TRIAGE
     assert "ecosystems" in result.reason
 
@@ -786,7 +788,7 @@ def test_pre_filter_cross_ecosystem_with_ecosystem_proceeds():
 
     result = _pre_filter_component(flaw, "redis", "npm")
 
-    assert result.action == "search"
+    assert result.action is PreFilterAction.SEARCH
 
 
 # ── Verified mapping guard ───────────────────────────────────────────────────
@@ -803,7 +805,7 @@ def test_pre_filter_unverified_mapping_manual_triage():
 
     result = _pre_filter_component(flaw, "SomeGoLib", "")
 
-    assert result.action == "manual"
+    assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_MANUAL_TRIAGE
     assert "not verified" in result.reason
 
@@ -822,7 +824,7 @@ def test_pre_filter_verified_mapping_proceeds():
 
     result = _pre_filter_component(flaw, "Vault", "")
 
-    assert result.action == "search"
+    assert result.action is PreFilterAction.SEARCH
 
 
 # ── Semi-strict review ───────────────────────────────────────────────────────
@@ -839,7 +841,7 @@ def test_pre_filter_semi_strict_no_pick_manual_triage():
 
     result = _pre_filter_component(flaw, "accelerator", "")
 
-    assert result.action == "manual"
+    assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_MANUAL_TRIAGE
     assert "ambiguous" in result.reason
 
@@ -856,7 +858,7 @@ def test_pre_filter_semi_strict_with_pick_uses_picked():
 
     result = _pre_filter_component(flaw, "accelerator", "")
 
-    assert result.action == "search"
+    assert result.action is PreFilterAction.SEARCH
     assert result.label == LABEL_AUTO_AFFECTS
     assert result.resolved_names == ["pkg-a"]
 
@@ -873,7 +875,7 @@ def test_pre_filter_strict_package_auto_affects():
 
     result = _pre_filter_component(flaw, "openssl", "")
 
-    assert result.action == "search"
+    assert result.action is PreFilterAction.SEARCH
     assert result.label == LABEL_AUTO_AFFECTS
 
 
@@ -883,7 +885,7 @@ def test_pre_filter_non_strict_potential_rejection():
 
     result = _pre_filter_component(flaw, "unknown-pkg", "")
 
-    assert result.action == "search"
+    assert result.action is PreFilterAction.SEARCH
     assert result.label == LABEL_POTENTIAL_REJECTION
     assert "Low confidence" in result.reason
 
