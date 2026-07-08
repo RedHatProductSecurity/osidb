@@ -14454,6 +14454,7 @@ components:
           - string
           - 'null'
           default: ''
+          maxLength: 255
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -14598,6 +14599,7 @@ components:
           - string
           - 'null'
           default: ''
+          maxLength: 255
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -14871,6 +14873,7 @@ components:
           - string
           - 'null'
           default: ''
+          maxLength: 255
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -14945,6 +14948,7 @@ components:
           - string
           - 'null'
           default: ''
+          maxLength: 255
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
