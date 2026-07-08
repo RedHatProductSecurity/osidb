@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `upstream maintainer` notification models (OSIDB-5076)
 - Add create SRP report when Flaw is EXPLOITS_KEV_APPROVED or MAJOR_INCIDENT (OSIDB-5067)
 - Automatic creation of upsteam maintainer notification when criteria is met for flaw (OSIDB-5077)
+- Add serializers for upstream maintainer notification (OSIDB-5081)
 - Add signal to trigger upstream maintainer notification creation on FlawUpstreamMapping save (OSIDB-5078)
 
 
