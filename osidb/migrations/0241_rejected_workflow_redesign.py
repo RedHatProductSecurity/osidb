@@ -53,7 +53,7 @@ def migrate_rejected_flaws(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("osidb", "0238_add_workflow_label_type"),
+        ("osidb", "0240_add_workflow_label_type"),
     ]
 
     operations = [

@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('contenttypes', '0002_remove_content_type_name'),
-        ('osidb', '0241_merge_workflow_improvements'),
+        ('osidb', '0243_merge_workflow_improvements'),
         ('pghistory', '0007_auto_20250421_0444'),
     ]
 

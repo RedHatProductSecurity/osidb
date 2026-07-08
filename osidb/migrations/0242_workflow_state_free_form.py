@@ -10,7 +10,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("osidb", "0239_rejected_workflow_redesign"),
+        ("osidb", "0241_rejected_workflow_redesign"),
     ]
 
     operations = [
