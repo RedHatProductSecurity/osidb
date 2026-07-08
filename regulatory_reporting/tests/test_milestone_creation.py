@@ -430,7 +430,7 @@ class TestSRPMilestoneAutoCreation:
         """
         start_time = timezone.now()
         flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_REQUESTED,
+            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
             major_incident_start_dt=start_time,
         )
         assert SRPReport.objects.filter(flaw=flaw).count() == 0, (

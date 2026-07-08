@@ -37,7 +37,6 @@ class TestIsFlawUpstreamNotifiable:
 
 @pytest.mark.django_db
 class TestUpstreamNotificationSignal:
-    @override_settings(CRA_NOTIFICATIONS_ENABLED=True)
     def test_redhat_flaw_creates_notification(self):
         flaw = FlawFactory(
             embargoed=False,
@@ -48,7 +47,6 @@ class TestUpstreamNotificationSignal:
         assert notification.status == UpstreamNotification.NotificationStatus.REQUIRED
         assert notification.upstream_project is None
 
-    @override_settings(CRA_NOTIFICATIONS_ENABLED=True)
     def test_nvd_flaw_does_not_create_notification(self):
         flaw = FlawFactory(source=FlawSource.NVD)
         assert not UpstreamNotification.objects.filter(flaw=flaw).exists()

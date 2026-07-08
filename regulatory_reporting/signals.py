@@ -1,9 +1,5 @@
 import logging
 
-from django.conf import settings
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
 from osidb.models import Flaw
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 
@@ -73,6 +69,7 @@ def update_srp_report_milestones(srp_report: SRPReport):
 
 def create_srp_report(sender, instance: Flaw, created: bool, **kwargs):
     """
+    SIGNAL attached to Flaw model in apps.py when Flaw is saved.
     Auto-create SRP Report and milestones when Flaw is marked as KEV or Major Incident approved.
 
     Triggers on:
