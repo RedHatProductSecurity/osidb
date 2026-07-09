@@ -1,0 +1,31 @@
+version: '3'
+
+# Worktree isolation override
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.worktree.yml up
+# Set COMPOSE_PROJECT_NAME to namespace containers/volumes per worktree
+
+services:
+  osidb-service:
+    container_name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required - run make worktree-generate-env first}-service
+
+  osidb-data:
+    container_name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required - run make worktree-generate-env first}-data
+
+  redis:
+    container_name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required - run make worktree-generate-env first}-redis
+
+  flower:
+    container_name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required - run make worktree-generate-env first}-flower
+
+  celery_beat:
+    container_name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required - run make worktree-generate-env first}-celery-beat
+
+  celery-fifo-1:
+    container_name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required - run make worktree-generate-env first}-celery-fifo-1
+
+  celery-fifo-2:
+    container_name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required - run make worktree-generate-env first}-celery-fifo-2
+
+volumes:
+  pg-data:
+    name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required - run make worktree-generate-env first}-pg-data
