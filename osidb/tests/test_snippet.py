@@ -163,3 +163,41 @@ class TestSnippet:
         flaw_from_snippet = snippet.flaw
         assert flaw_from_snippet.cve_id != undesired_cve_id
         assert flaw_from_snippet.cve_id == desired_cve_id
+
+    def test_create_flaw_from_snippet_ignores_duplicate_cvss_scores(self):
+        snippet = SnippetFactory(source=Snippet.Source.NVD)
+        content = snippet.content
+        first_cvss = content["cvss_scores"][0]
+        content["cvss_scores"].append(
+            first_cvss
+            | {
+                "score": 9.8,
+                "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+            }
+        )
+        snippet.content = content
+        snippet.save()
+
+        flaw = snippet._create_flaw()
+
+        assert flaw.cvss_scores.count() == 1
+        assert flaw.cvss_scores.get().vector == first_cvss["vector"]
+
+    def test_create_flaw_from_snippet_ignores_duplicate_references(self):
+        snippet = SnippetFactory(source=Snippet.Source.NVD)
+        content = snippet.content
+        first_reference = content["references"][0]
+        content["references"].append(
+            first_reference
+            | {
+                "description": "duplicate URL with different payload",
+                "type": FlawReference.FlawReferenceType.EXTERNAL,
+            }
+        )
+        snippet.content = content
+        snippet.save()
+
+        flaw = snippet._create_flaw()
+
+        assert flaw.references.count() == 1
+        assert flaw.references.get().type == first_reference["type"]
