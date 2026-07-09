@@ -16,7 +16,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -68,6 +68,7 @@ from osidb.models import (
     CollaboratorLabelDefinition,
     Flaw,
     FlawLabelV2,
+    Package,
     ProductFamilyLabel,
     ProductFamilyLabelDefinition,
     PsUpdateStream,
@@ -156,6 +157,7 @@ from .serializer import (
     TrackerV1Serializer,
     UserSerializer,
 )
+from .serializers_v1_optimized import FlawSerializerV1Optimized
 
 _PREVIOUS_ROW_NOT_LOADED = object()
 
@@ -1039,6 +1041,10 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         return Response({"results": queryset})
 
 
+@extend_schema_view(
+    list=extend_schema(responses=FlawV1Serializer(many=True)),
+    retrieve=extend_schema(responses=FlawSerializer),
+)
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
 class FlawV1View(FlawView):
@@ -1056,6 +1062,47 @@ class FlawV1View(FlawView):
         "upstream_data",
     ).all()
     filterset_class = FlawV1Filter
+
+    def get_queryset(self):
+        """Use optimized prefetch for reads, simple queryset for writes."""
+        # For write operations, use no prefetching to avoid stale data issues
+        if self.action in ("create", "update", "partial_update", "destroy"):
+            return Flaw.objects.all()
+
+        # For read operations, use optimized deep prefetching
+        return Flaw.objects.prefetch_related(
+            # Flaw's direct relations with their alerts
+            "acknowledgments__alerts",
+            "comments__alerts",
+            "cvss_scores__alerts",
+            "references__alerts",
+            "labels_v2",  # FlawCollaborator related name
+            "alerts",
+            "upstream_data__alerts",
+            # Package with nested versions (fixes N+1)
+            Prefetch(
+                "package_versions",
+                queryset=Package.objects.prefetch_related("versions", "alerts"),
+            ),
+            # Affects with optimized nested loading
+            Prefetch(
+                "affects",
+                queryset=Affect.objects.select_related(
+                    "tracker"  # FK - use select_related for JOIN
+                ).prefetch_related(
+                    "cvss_scores__alerts",
+                    "alerts",
+                    "tracker__errata",
+                    "tracker__alerts",
+                ),
+            ),
+        )
+
+    def get_serializer_class(self):
+        """Use optimized serializer for reads, FlawV1Serializer for writes."""
+        if self.action in ("list", "retrieve"):
+            return FlawSerializerV1Optimized
+        return super().get_serializer_class()
 
 
 class SubFlawViewDestroyMixin:
