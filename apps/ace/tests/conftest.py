@@ -3,6 +3,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from osidb.tests.factories import PsUpdateStreamFactory
+
 
 def _result(ps_update_stream: str, purl: str) -> SimpleNamespace:
     """Minimal stand-in for NewcliBuildResult / NewcliDepResult."""
@@ -141,3 +143,10 @@ def upstream_purls_nuget():
             "versions": [],
         }
     ]
+
+
+@pytest.fixture
+def chromium_streams(db):
+    """Create PsUpdateStream records needed by the Chromium workflow."""
+    PsUpdateStreamFactory(name="fedora-all")
+    PsUpdateStreamFactory(name="epel-all")

@@ -752,14 +752,14 @@ def test_pre_filter_go_stdlib_manual_triage():
 
 
 @pytest.mark.django_db
-def test_pre_filter_chromium_manual_triage():
+def test_pre_filter_chromium_special():
     flaw = FlawFactory(components=["chromium"], embargoed=False)
 
     result = _pre_filter_component(flaw, "chromium", "")
 
-    assert result.action == "manual"
-    assert result.label == LABEL_MANUAL_TRIAGE
-    assert "Chromium" in result.reason
+    assert result.action is PreFilterAction.SPECIAL
+    assert result.label == LABEL_AUTO_AFFECTS
+    assert result.workflow is SpecialWorkflow.CHROMIUM
 
 
 # ── Cross-ecosystem guard ────────────────────────────────────────────────────
@@ -908,3 +908,133 @@ def test_sync_does_not_set_impact_on_created_affects(
 
     for affect in flaw.affects.all():
         assert affect.impact == ""
+
+
+# ── Chromium workflow ─────────────────────────────────────────────────────────
+
+
+def test_handle_chromium_creates_affects(chromium_streams):
+    from apps.ace.tasks import _handle_chromium
+
+    flaw = FlawFactory(components=["chromium"], embargoed=False)
+
+    stats = _handle_chromium(flaw)
+
+    assert stats["created"] == 2
+    assert flaw.affects.filter(
+        ps_update_stream="fedora-all", ps_component="chromium"
+    ).exists()
+    assert flaw.affects.filter(
+        ps_update_stream="epel-all", ps_component="chromium"
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_handle_chromium_no_advisory_skips_metadata(chromium_streams):
+    """Without a Chrome blog reference, affects are created but metadata is unchanged."""
+    from apps.ace.tasks import _handle_chromium
+
+    flaw = FlawFactory(components=["chromium"], embargoed=False)
+    original_statement = flaw.statement
+    original_title = flaw.title
+
+    stats = _handle_chromium(flaw)
+
+    assert stats["created"] == 2
+    flaw.refresh_from_db()
+    assert flaw.statement == original_statement
+    assert flaw.title == original_title
+    assert flaw.cvss_scores.count() == 0
+
+
+@pytest.mark.django_db
+def test_handle_chromium_with_advisory(monkeypatch, chromium_streams):
+    """With a parseable advisory, statement/title/CVSS are set."""
+    from apps.ace.constants import CHROMIUM_STATEMENT
+    from apps.ace.tasks import _handle_chromium
+
+    flaw = FlawFactory(components=["chromium"], impact="LOW", embargoed=False)
+
+    monkeypatch.setattr(
+        "apps.ace.tasks._parse_chrome_advisory",
+        lambda url, cve: {
+            "title": "chromium-browser: Use after free in USB",
+            "cve_description": "A use after free flaw was found in USB.",
+            "impact": "IMPORTANT",
+        },
+    )
+    # Add a reference so the advisory path triggers
+    from osidb.models.flaw.reference import FlawReference
+
+    FlawReference(
+        flaw=flaw,
+        url="https://chromereleases.googleblog.com/2025/04/test.html",
+        type=FlawReference.FlawReferenceType.EXTERNAL,
+        acl_read=flaw.acl_read,
+        acl_write=flaw.acl_write,
+    ).save(raise_validation_error=False)
+
+    stats = _handle_chromium(flaw)
+
+    flaw.refresh_from_db()
+    assert stats["created"] == 2
+    assert flaw.statement == CHROMIUM_STATEMENT
+    assert flaw.title == "chromium-browser: Use after free in USB"
+    assert flaw.cve_description == "A use after free flaw was found in USB."
+    assert flaw.cvss_scores.filter(
+        issuer="RH", version="V3"
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_handle_chromium_idempotent(chromium_streams):
+    from apps.ace.tasks import _handle_chromium
+
+    flaw = FlawFactory(components=["chromium"], embargoed=False)
+
+    first = _handle_chromium(flaw)
+    second = _handle_chromium(flaw)
+
+    assert first["created"] == 2
+    assert second["created"] == 0
+    assert flaw.affects.count() == 2
+
+
+@pytest.mark.django_db
+def test_handle_chromium_skips_cvss_if_exists(monkeypatch, chromium_streams):
+    from apps.ace.tasks import _handle_chromium
+    from osidb.models.flaw.cvss import FlawCVSS
+    from osidb.models.flaw.reference import FlawReference
+
+    flaw = FlawFactory(components=["chromium"], impact="IMPORTANT", embargoed=False)
+
+    FlawCVSS.objects.create_cvss(
+        flaw=flaw,
+        issuer=FlawCVSS.CVSSIssuer.REDHAT,
+        version=FlawCVSS.CVSSVersion.VERSION3,
+        vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N",
+        acl_read=flaw.acl_read,
+        acl_write=flaw.acl_write,
+    ).save()
+
+    monkeypatch.setattr(
+        "apps.ace.tasks._parse_chrome_advisory",
+        lambda url, cve: {"title": "test", "cve_description": "test", "impact": "IMPORTANT"},
+    )
+    FlawReference(
+        flaw=flaw,
+        url="https://chromereleases.googleblog.com/2025/04/test.html",
+        type=FlawReference.FlawReferenceType.EXTERNAL,
+        acl_read=flaw.acl_read,
+        acl_write=flaw.acl_write,
+    ).save(raise_validation_error=False)
+
+    _handle_chromium(flaw)
+
+    assert (
+        flaw.cvss_scores.filter(
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+        ).count()
+        == 1
+    )

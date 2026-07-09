@@ -8,7 +8,10 @@ from django.db import transaction
 from packageurl import PackageURL
 
 from apps.ace.constants import (
+    CHROMIUM_CVSS_TABLE,
     CHROMIUM_NAMES,
+    CHROMIUM_STATEMENT,
+    CHROMIUM_STREAMS,
     GO_STDLIB_PACKAGES,
     LABEL_AUTO_AFFECTS,
     LABEL_AUTO_REJECTED,
@@ -34,7 +37,7 @@ from collectors.component_mapping.models import (
 )
 from config.celery import app
 from osidb.helpers import bypass_rls
-from osidb.models import Flaw
+from osidb.models import Flaw, FlawCVSS
 from osidb.models.affect import Affect, AffectSettings, NotAffectedJustification
 from osidb.models.flaw.label_v2 import WorkflowLabel
 from osidb.models.flaw.upstream import UpstreamData
@@ -178,9 +181,9 @@ def _pre_filter_component(
     # Chromium check
     if component_lower in CHROMIUM_NAMES:
         return PreFilterResult(
-            label=LABEL_MANUAL_TRIAGE,
-            reason="Chromium CVE, requires specialized workflow",
-            action=PreFilterAction.MANUAL,
+            action=PreFilterAction.SPECIAL,
+            label=LABEL_AUTO_AFFECTS,
+            workflow=SpecialWorkflow.CHROMIUM,
         )
 
     resolved, has_custom_mapping = _resolve_component(component)
@@ -246,6 +249,141 @@ def _pre_filter_component(
         label=LABEL_AUTO_AFFECTS,
         resolved_names=resolved,
     )
+
+
+def _parse_chrome_advisory(advisory_url: str, cve_id: str) -> dict:
+    """
+    Fetch and parse a Chrome release blog post containing CVE information,
+    returning per-CVE metadata.
+
+    Returns a dict with keys: title, cve_description, impact (or empty dict on failure)
+    """
+    if not advisory_url:
+        return {}
+    try:
+        from advisory_parser import Parser
+
+        flaws, _ = Parser.parse_from_url(advisory_url)
+        for flaw in flaws:
+            if cve_id in (flaw.cves or []):
+                # advisory-parser returns summary as "chromium-browser: <issue>"
+                # and impact is equivalent to lowercase RH impact (e.g., "important") as
+                # the parser explicitly converts the impacts in that way (e.g. "medium" -> "moderate")
+                return {
+                    "title": flaw.summary or "",
+                    "cve_description": getattr(flaw, "description", "") or "",
+                    "impact": (getattr(flaw, "impact", "") or "").upper(),
+                }
+    except Exception as exc:
+        logger.warning("Could not parse Chrome advisory %s: %s", advisory_url, exc)
+    return {}
+
+
+def _handle_chromium(flaw: Flaw) -> dict[str, int]:
+    """
+    Handle Chromium CVEs: create fedora-all + epel-all affects, parse the
+    Chrome advisory for CVE information, update flaw fields, and add CVSS estimate.
+    """
+    created = 0
+    tool_name = _ace_tool_name()
+
+    for ps_update_stream, ps_component in CHROMIUM_STREAMS:
+        if Affect.objects.filter(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream,
+            ps_component=ps_component,
+        ).exists():
+            continue
+
+        affect = Affect(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream,
+            ps_component=ps_component,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
+            impact=flaw.impact,
+            created_by="AffectCreationEngine",
+            updated_by="AffectCreationEngine",
+            assist_meta={
+                "tool_name": tool_name,
+                "workflow": "chromium",
+            },
+        )
+        affect.save(raise_validation_error=False)
+        created += 1
+
+    # Extract advisory URL from references
+    advisory_url = ""
+    cve_id = flaw.cve_id or ""
+    for ref in flaw.references.all():
+        url = ref.url or ""
+        if "chromereleases.googleblog.com" in url:
+            advisory_url = url
+            break
+
+    advisory = _parse_chrome_advisory(advisory_url, cve_id)
+
+    # If no advisory is found (URL not found or parsing failed) we don't need to go further
+    if not advisory:
+        logger.warning(
+            "Chromium workflow flaw=%s, created=%d: no advisory found",
+            flaw.uuid,
+            created,
+        )
+        return {
+            "created": created,
+            "skipped": 0,
+            "skipped_existing": 0,
+            "marked_notaffected": 0,
+        }
+
+    # Update flaw with advisory information
+    flaw.statement = CHROMIUM_STATEMENT
+    if advisory.get("title"):
+        flaw.title = advisory["title"]
+    if advisory.get("cve_description"):
+        flaw.cve_description = advisory["cve_description"]
+    flaw.save(raise_validation_error=False)
+
+    # Impact is only used for CVSS calculation, but ACE should not set the flaw's impact directly
+    cvss_added = False
+    impact = advisory.get("impact") or flaw.impact or ""
+    if (
+        impact
+        and not flaw.cvss_scores.filter(
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+        ).exists()
+    ):
+        vector = CHROMIUM_CVSS_TABLE.get(impact)
+        if vector:
+            cvss = FlawCVSS.objects.create_cvss(
+                flaw=flaw,
+                issuer=FlawCVSS.CVSSIssuer.REDHAT,
+                version=FlawCVSS.CVSSVersion.VERSION3,
+                vector=vector,
+                acl_read=flaw.acl_read,
+                acl_write=flaw.acl_write,
+            )
+            cvss.save()
+            cvss_added = True
+
+    logger.info(
+        "Chromium workflow flaw=%s: created=%d, cvss_added=%s, advisory=%s",
+        flaw.uuid,
+        created,
+        cvss_added,
+        advisory_url,
+    )
+
+    return {
+        "created": created,
+        "skipped": 0,
+        "skipped_existing": 0,
+        "marked_notaffected": 0,
+    }
 
 
 def _query_newtopia(
@@ -466,7 +604,8 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
             pre_filter_results.append((flaw_component, ecosystem, pf))
 
     skip_result = next(
-        (pf for _, _, pf in pre_filter_results if pf.action is PreFilterAction.SKIP), None
+        (pf for _, _, pf in pre_filter_results if pf.action is PreFilterAction.SKIP),
+        None,
     )
     if skip_result:
         _apply_label(flaw, skip_result.label)
@@ -480,6 +619,13 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
 
     for flaw_component, ecosystem, pre_filter in pre_filter_results:
         _apply_label(flaw, pre_filter.label)
+
+        if pre_filter.action is PreFilterAction.SPECIAL:
+            if pre_filter.workflow is SpecialWorkflow.CHROMIUM:
+                stats = _handle_chromium(flaw)
+                for key in stats:
+                    totals[key] += stats[key]
+            continue
 
         if pre_filter.action is not PreFilterAction.SEARCH:
             logger.info(
