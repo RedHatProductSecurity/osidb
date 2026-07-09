@@ -5,6 +5,7 @@ import pytest
 def enable_db_access_for_all_tests(db):
     pass
 
+
 def pytest_configure(config):
     config.addinivalue_line(
         "markers", "cra_reporting: connect CRA reporting signal for this test."
@@ -51,8 +52,14 @@ def cra_notification_signals(request, settings):
     from django.db.models.signals import post_save
 
     from osidb.models import Flaw
-    from regulatory_reporting.signals import check_upstream_notifiable
+    from regulatory_reporting.models.upstream import FlawUpstreamMapping
+    from regulatory_reporting.signals import (
+        check_upstream_notifiable,
+        link_mapping_to_notification,
+    )
 
     post_save.connect(check_upstream_notifiable, sender=Flaw)
+    post_save.connect(link_mapping_to_notification, sender=FlawUpstreamMapping)
     yield
     post_save.disconnect(check_upstream_notifiable, sender=Flaw)
+    post_save.disconnect(link_mapping_to_notification, sender=FlawUpstreamMapping)

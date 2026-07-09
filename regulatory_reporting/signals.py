@@ -3,7 +3,7 @@ import logging
 from osidb.models import Flaw
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 
-from .models.upstream import FlawUpstreamMapping, UpstreamNotification
+from .models.upstream import UpstreamNotification
 from .services import is_flaw_upstream_notifiable
 
 logger = logging.getLogger(__name__)
@@ -136,13 +136,10 @@ def check_upstream_notifiable(sender, instance, **kwargs):
         )
 
 
-@receiver(post_save, sender=FlawUpstreamMapping)
 def link_mapping_to_notification(sender, instance, created, **kwargs):
     """
     On FlawUpstreamMapping creation, backfill the existing project
     """
-    if not settings.CRA_NOTIFICATIONS_ENABLED:
-        return
     if not created:
         return
 
