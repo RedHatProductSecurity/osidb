@@ -159,6 +159,24 @@ def get_env(
     return value
 
 
+def get_env_groups(key: str) -> list:
+    """
+    Read an environment variable and normalize it to a list of group names.
+
+    Accepts either a JSON array or a plain string and always returns a list.
+    """
+    value = get_env(key)
+    if value is None:
+        raise OSIDBException(f"Required environment variable {key} is not set")
+    try:
+        parsed = json.loads(value)
+        if isinstance(parsed, list):
+            return parsed
+        return [str(parsed)]
+    except (json.JSONDecodeError, TypeError):
+        return [value]
+
+
 def get_env_date(key: str, default: str) -> Union[datetime, None]:
     """get a date environment variable of the ISO format (YYYY-MM-DD)"""
     value = getenv(key, default)
