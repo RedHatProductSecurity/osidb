@@ -22,7 +22,7 @@ from apps.ace.constants import (
 from apps.ace.tasks import (
     PreFilterAction,
     SpecialWorkflow,
-    _is_go_stdlib,
+    _is_go_stdlib_component,
     _pre_filter_component,
     _resolve_component,
     sync_flaw_affects_from_newcli,
@@ -729,26 +729,41 @@ def test_sync_resolves_component_before_search(
 # ── Go stdlib / Chromium detection ────────────────────────────────────────────
 
 
-def test_is_go_stdlib_true():
-    assert _is_go_stdlib(["golang", "net/http"]) is True
-    assert _is_go_stdlib(["golang", "crypto/tls"]) is True
+def test_is_go_stdlib_component_true():
+    comps = ["golang", "net/http"]
+    assert _is_go_stdlib_component("golang", comps) is True
+    assert _is_go_stdlib_component("net/http", comps) is True
 
 
-def test_is_go_stdlib_false():
-    assert _is_go_stdlib(["golang"]) is False
-    assert _is_go_stdlib(["net/http"]) is False
-    assert _is_go_stdlib(["github.com/foo/bar", "golang"]) is False
+def test_is_go_stdlib_component_false():
+    comps = ["golang", "net/http"]
+    assert _is_go_stdlib_component("openssl", comps) is False
+    assert _is_go_stdlib_component("net/http", ["net/http"]) is False
+    assert (
+        _is_go_stdlib_component("github.com/foo/bar", ["golang", "github.com/foo/bar"])
+        is False
+    )
 
 
 @pytest.mark.django_db
-def test_pre_filter_go_stdlib_manual_triage():
+def test_pre_filter_go_stdlib_subcomponent_special():
+    flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "net/http", "")
+
+    assert result.action is PreFilterAction.SPECIAL
+    assert result.label == LABEL_AUTO_AFFECTS
+    assert result.workflow is SpecialWorkflow.GO_STDLIB
+
+
+@pytest.mark.django_db
+def test_pre_filter_go_stdlib_golang_skipped():
+    """The 'golang' component itself is skipped — Phase 1 of the handler covers it."""
     flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
 
     result = _pre_filter_component(flaw, "golang", "")
 
     assert result.action is PreFilterAction.MANUAL
-    assert result.label == LABEL_MANUAL_TRIAGE
-    assert "Go stdlib" in result.reason
 
 
 @pytest.mark.django_db
@@ -981,9 +996,7 @@ def test_handle_chromium_with_advisory(monkeypatch, chromium_streams):
     assert flaw.statement == CHROMIUM_STATEMENT
     assert flaw.title == "chromium-browser: Use after free in USB"
     assert flaw.cve_description == "A use after free flaw was found in USB."
-    assert flaw.cvss_scores.filter(
-        issuer="RH", version="V3"
-    ).exists()
+    assert flaw.cvss_scores.filter(issuer="RH", version="V3").exists()
 
 
 @pytest.mark.django_db
@@ -1019,7 +1032,11 @@ def test_handle_chromium_skips_cvss_if_exists(monkeypatch, chromium_streams):
 
     monkeypatch.setattr(
         "apps.ace.tasks._parse_chrome_advisory",
-        lambda url, cve: {"title": "test", "cve_description": "test", "impact": "IMPORTANT"},
+        lambda url, cve: {
+            "title": "test",
+            "cve_description": "test",
+            "impact": "IMPORTANT",
+        },
     )
     FlawReference(
         flaw=flaw,
@@ -1038,3 +1055,104 @@ def test_handle_chromium_skips_cvss_if_exists(monkeypatch, chromium_streams):
         ).count()
         == 1
     )
+
+
+# ── Go stdlib workflow ────────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_handle_go_stdlib_preserves_existing_affects(
+    monkeypatch, ace_enabled, mock_querier
+):
+    """Existing affects are preserved — no replace/delete behavior."""
+    from apps.ace.tasks import _handle_go_stdlib
+
+    flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
+
+    existing = Affect(
+        flaw=flaw,
+        ps_update_stream="hummingbird-1",
+        ps_component="golang-existing",
+        affectedness=Affect.AffectAffectedness.NEW,
+        acl_read=flaw.acl_read,
+        acl_write=flaw.acl_write,
+        created_by="AffectCreationEngine",
+        updated_by="AffectCreationEngine",
+    )
+    existing.save(raise_validation_error=False)
+
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_querier({}))
+
+    _handle_go_stdlib(flaw, "net/http", ["hummingbird-1"], [])
+
+    assert flaw.affects.filter(ps_component="golang-existing").exists()
+
+
+@pytest.mark.django_db
+def test_handle_go_stdlib_preserves_analyst_affects(
+    monkeypatch, ace_enabled, mock_querier
+):
+    """Replace mode does not delete analyst-created or non-NEW affects."""
+    from apps.ace.tasks import _handle_go_stdlib
+
+    flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
+
+    # Create an analyst-created affect (not by ACE)
+    analyst_affect = Affect(
+        flaw=flaw,
+        ps_update_stream="rhel-9.6.z",
+        ps_component="golang",
+        affectedness=Affect.AffectAffectedness.AFFECTED,
+        acl_read=flaw.acl_read,
+        acl_write=flaw.acl_write,
+        created_by="analyst@redhat.com",
+        updated_by="analyst@redhat.com",
+    )
+    analyst_affect.save(raise_validation_error=False)
+
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_querier({}))
+
+    _handle_go_stdlib(flaw, "net/http", ["hummingbird-1"], [])
+
+    # Analyst-created affect should be preserved
+    assert flaw.affects.filter(
+        ps_component="golang", created_by="analyst@redhat.com"
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_handle_go_stdlib_phase4_creates_builder_affects(
+    monkeypatch, ace_enabled, mock_querier
+):
+    """Phase 4 creates golang-builder-container affects from PsModule active streams."""
+    from apps.ace.constants import GO_STDLIB_BUILDER_PURL
+    from apps.ace.tasks import _handle_go_stdlib
+
+    flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
+
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_querier({}))
+
+    # Create a PsModule with active streams for Phase 4
+    stream1 = PsUpdateStreamFactory(name="openshift-4.16.z")
+    stream2 = PsUpdateStreamFactory(name="openshift-4.17.z")
+    ps_module = stream1.ps_module
+    ps_module.name = "openshift-4"
+    ps_module.save()
+
+    # Link streams as active
+    stream1.active_to_ps_module = ps_module
+    stream1.save()
+    stream2.ps_module = ps_module
+    stream2.active_to_ps_module = ps_module
+    stream2.save()
+
+    _handle_go_stdlib(flaw, "net/http", ["hummingbird-1"], [])
+
+    builder_affects = flaw.affects.filter(
+        ps_component="openshift-golang-builder-container"
+    )
+    assert builder_affects.count() == 2
+    for a in builder_affects:
+        assert str(a.purl) == GO_STDLIB_BUILDER_PURL
+        assert a.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert a.resolution == Affect.AffectResolution.DELEGATED
