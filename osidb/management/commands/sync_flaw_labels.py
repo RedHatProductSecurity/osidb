@@ -11,9 +11,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         now = timezone.now()
-        context_based, product_based = fetch_flaw_labels(FLAW_LABELS_URL)
+        context_based, product_based, bu_labels = fetch_flaw_labels(FLAW_LABELS_URL)
 
-        sync_flaw_labels(context_based, product_based)
+        sync_flaw_labels(
+            context_based=context_based,
+            product_family=product_based,
+            bu_labels=bu_labels,
+        )
         cm = CollectorMetadata.objects.get(
             name="collectors.flaw_labels.tasks.flaw_labels_collector"
         )
