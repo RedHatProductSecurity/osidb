@@ -293,7 +293,7 @@ class ACLMixinManager(models.Manager):
                     models.When(
                         acl_read=[
                             uuid.UUID(acl)
-                            for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+                            for acl in generate_acls(settings.EMBARGO_READ_GROUPS)
                         ],
                         then=True,
                     ),
@@ -305,14 +305,14 @@ class ACLMixinManager(models.Manager):
                     models.When(
                         acl_read=[
                             uuid.UUID(acl)
-                            for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+                            for acl in generate_acls(settings.EMBARGO_READ_GROUPS)
                         ],
                         then=models.Value(ACLMixinVisibility.EMBARGOED),
                     ),
                     models.When(
                         acl_read=[
                             uuid.UUID(acl)
-                            for acl in generate_acls([settings.INTERNAL_READ_GROUP])
+                            for acl in generate_acls(settings.INTERNAL_READ_GROUPS)
                         ],
                         then=models.Value(ACLMixinVisibility.INTERNAL),
                     ),
@@ -357,7 +357,7 @@ class ACLMixin(models.Model):
         self.acls_all
 
     def get_embargoed_acl():
-        return [uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])]
+        return [uuid.UUID(acl) for acl in generate_acls(settings.EMBARGO_READ_GROUPS)]
 
     @property
     def is_embargoed(self):
@@ -476,7 +476,7 @@ class ACLMixin(models.Model):
         """
 
         self.set_acl_read(*settings.PUBLIC_READ_GROUPS)
-        self.set_acl_write(settings.PUBLIC_WRITE_GROUP)
+        self.set_acl_write(*settings.PUBLIC_WRITE_GROUPS)
         # Update the embargoed annotation to reflect the new ACL state
         self.embargoed = False
 
@@ -496,8 +496,8 @@ class ACLMixin(models.Model):
             >>> my_flaw.acl_read
             ... [UUID(...), UUID(...)]
         """
-        self.set_acl_read(settings.EMBARGO_READ_GROUP)
-        self.set_acl_write(settings.EMBARGO_WRITE_GROUP)
+        self.set_acl_read(*settings.EMBARGO_READ_GROUPS)
+        self.set_acl_write(*settings.EMBARGO_WRITE_GROUPS)
         # Update the embargoed annotation to reflect the new ACL state
         self.embargoed = True
 
@@ -517,8 +517,8 @@ class ACLMixin(models.Model):
             >>> my_flaw.acl_read
             ... [UUID(...), UUID(...)]
         """
-        self.set_acl_read(settings.INTERNAL_READ_GROUP)
-        self.set_acl_write(settings.INTERNAL_WRITE_GROUP)
+        self.set_acl_read(*settings.INTERNAL_READ_GROUPS)
+        self.set_acl_write(*settings.INTERNAL_WRITE_GROUPS)
         # Update the embargoed annotation to reflect the new ACL state
         self.embargoed = False
 
@@ -534,35 +534,35 @@ class ACLMixin(models.Model):
         """
         get set of public write ACLs
         """
-        return {self.group2acl(settings.PUBLIC_WRITE_GROUP)}
+        return {self.group2acl(group) for group in settings.PUBLIC_WRITE_GROUPS}
 
     @cached_property
     def acls_embargo_read(self):
         """
         get set of embargo read ACLs
         """
-        return {self.group2acl(settings.EMBARGO_READ_GROUP)}
+        return {self.group2acl(group) for group in settings.EMBARGO_READ_GROUPS}
 
     @cached_property
     def acls_embargo_write(self):
         """
         get set of embargo write ACLs
         """
-        return {self.group2acl(settings.EMBARGO_WRITE_GROUP)}
+        return {self.group2acl(group) for group in settings.EMBARGO_WRITE_GROUPS}
 
     @cached_property
     def acls_internal_read(self):
         """
         Get set of internal read ACLs
         """
-        return {self.group2acl(settings.INTERNAL_READ_GROUP)}
+        return {self.group2acl(group) for group in settings.INTERNAL_READ_GROUPS}
 
     @cached_property
     def acls_internal_write(self):
         """
         Get set of internal write ACLs
         """
-        return {self.group2acl(settings.INTERNAL_WRITE_GROUP)}
+        return {self.group2acl(group) for group in settings.INTERNAL_WRITE_GROUPS}
 
     @cached_property
     def acls_read(self):
@@ -1025,7 +1025,7 @@ class AlertMixin(ValidateMixin):
                 uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_READ_GROUPS)
             ]
             acl_write = [
-                uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_WRITE_GROUP])
+                uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_WRITE_GROUPS)
             ]
 
         # When Alert.objects.create_alert().save() raises IntegrityError,

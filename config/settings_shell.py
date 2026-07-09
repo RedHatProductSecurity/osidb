@@ -1,28 +1,29 @@
 from config.settings import *
 
-# Minimal group for read access of public flaws in OSIDB
 PUBLIC_READ_GROUPS = ["data-prodsec"]
-# Minimal group for write access of public flaws in OSIDB
-PUBLIC_WRITE_GROUP = "data-prodsec-write"
-# Minimal group for read access of embargoed flaws in OSIDB
-EMBARGO_READ_GROUP = "data-topsecret"
-# Minimal group for write access of embargoed flaws in OSIDB
-EMBARGO_WRITE_GROUP = "data-topsecret-write"
-# Minimal group for read access of internal flaws in OSIDB
-INTERNAL_READ_GROUP = "data-internal-read"
-# Minimal group for write access of internal flaws in OSIDB
-INTERNAL_WRITE_GROUP = "data-internal-write"
+PUBLIC_WRITE_GROUPS = ["data-prodsec-write"]
+INTERNAL_READ_GROUPS = ["data-internal-read"]
+INTERNAL_WRITE_GROUPS = ["data-internal-write"]
+EMBARGO_READ_GROUPS = ["data-topsecret"]
+EMBARGO_WRITE_GROUPS = ["data-topsecret-write"]
 # Contains all non-admin groups
 ALL_GROUPS = [
     *PUBLIC_READ_GROUPS,
-    PUBLIC_WRITE_GROUP,
-    EMBARGO_READ_GROUP,
-    EMBARGO_WRITE_GROUP,
-    INTERNAL_READ_GROUP,
-    INTERNAL_WRITE_GROUP,
+    *PUBLIC_WRITE_GROUPS,
+    *INTERNAL_READ_GROUPS,
+    *INTERNAL_WRITE_GROUPS,
+    *EMBARGO_READ_GROUPS,
+    *EMBARGO_WRITE_GROUPS,
 ]
-# Minimal group for managing the OSIDB service
+# Group for managing the OSIDB service (single value, used in LDAP DN lookups)
 SERVICE_MANAGE_GROUP = "osidb-service-manage"
+
+# Backward-compat aliases (singular) used by frozen migrations
+PUBLIC_WRITE_GROUP = PUBLIC_WRITE_GROUPS[0]
+INTERNAL_READ_GROUP = INTERNAL_READ_GROUPS[0]
+INTERNAL_WRITE_GROUP = INTERNAL_WRITE_GROUPS[0]
+EMBARGO_READ_GROUP = EMBARGO_READ_GROUPS[0]
+EMBARGO_WRITE_GROUP = EMBARGO_WRITE_GROUPS[0]
 
 DATABASES = {
     "default": {

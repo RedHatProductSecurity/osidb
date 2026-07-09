@@ -367,7 +367,7 @@ class JiraTrackerConvertor(TrackerConvertor):
         # embargo can be defined by two possible values of the security field name
         # historically by Security Issue and more recently by Embargoed Security Issue
         if security_level and "Security Issue" in security_level:
-            return [settings.EMBARGO_READ_GROUP]
+            return settings.EMBARGO_READ_GROUPS
 
         return settings.PUBLIC_READ_GROUPS
 
@@ -380,9 +380,9 @@ class JiraTrackerConvertor(TrackerConvertor):
         # embargo can be defined by two possible values of the security field name
         # historically by Security Issue and more recently by Embargoed Security Issue
         if security_level and "Security Issue" in security_level:
-            return [settings.EMBARGO_WRITE_GROUP]
+            return settings.EMBARGO_WRITE_GROUPS
 
-        return [settings.PUBLIC_WRITE_GROUP]
+        return settings.PUBLIC_WRITE_GROUPS
 
     @cached_property
     def acl_read(self):

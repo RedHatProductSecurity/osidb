@@ -8,10 +8,16 @@ Required env vars:
     OSIDB_REDIS_PASSWORD
     KRB5_HOSTNAME
     ET_URL
+    OSIDB_PUBLIC_READ_GROUPS        - List of LDAP groups for public read access
+    OSIDB_PUBLIC_WRITE_GROUPS       - List of LDAP groups for public write access
+    OSIDB_INTERNAL_READ_GROUPS      - List of LDAP groups for internal read access
+    OSIDB_INTERNAL_WRITE_GROUPS     - List of LDAP groups for internal write access
+    OSIDB_EMBARGO_READ_GROUPS       - List of LDAP groups for embargo read access
+    OSIDB_EMBARGO_WRITE_GROUPS      - List of LDAP groups for embargo write access
+    OSIDB_SERVICE_MANAGE_GROUP      - LDAP group for service management (single string)
 
 Optional env vars for per-environment tuning:
     OSIDB_ENV                       - Environment name for log file prefixes (default: "prod")
-    OSIDB_LDAP_GROUP_PREFIX         - Prefix for LDAP group names (default: "osidb-prod")
     OSIDB_DB_NAME                   - Database name (default: "osidb")
     OSIDB_CORS_LITERAL_ORIGINS_ONLY - Use literal CORS origins instead of regex (default: "False");
                                       requires OSIDB_CORS_ALLOWED_ORIGINS (JSON list of origin strings)
@@ -27,7 +33,6 @@ from .settings import *
 # --- Environment ---
 
 ENV = get_env("OSIDB_ENV", default="prod")
-LDAP_GROUP_PREFIX = get_env("OSIDB_LDAP_GROUP_PREFIX", default="osidb-prod")
 
 # --- Django core ---
 
@@ -40,24 +45,33 @@ USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # --- ACL groups ---
+# All group variables are lists, fully configurable via env vars.
+# Accepts JSON arrays (e.g. '["group-a", "group-b"]') or plain strings.
 
-PUBLIC_READ_GROUPS = [f"{LDAP_GROUP_PREFIX}-public-read", "red-hat-product-security"]
-PUBLIC_WRITE_GROUP = f"{LDAP_GROUP_PREFIX}-public-write"
-INTERNAL_READ_GROUP = f"{LDAP_GROUP_PREFIX}-internal-read"
-INTERNAL_WRITE_GROUP = f"{LDAP_GROUP_PREFIX}-internal-write"
-EMBARGO_READ_GROUP = f"{LDAP_GROUP_PREFIX}-embargo-read"
-EMBARGO_WRITE_GROUP = f"{LDAP_GROUP_PREFIX}-embargo-write"
+PUBLIC_READ_GROUPS = get_env_groups("OSIDB_PUBLIC_READ_GROUPS")
+PUBLIC_WRITE_GROUPS = get_env_groups("OSIDB_PUBLIC_WRITE_GROUPS")
+INTERNAL_READ_GROUPS = get_env_groups("OSIDB_INTERNAL_READ_GROUPS")
+INTERNAL_WRITE_GROUPS = get_env_groups("OSIDB_INTERNAL_WRITE_GROUPS")
+EMBARGO_READ_GROUPS = get_env_groups("OSIDB_EMBARGO_READ_GROUPS")
+EMBARGO_WRITE_GROUPS = get_env_groups("OSIDB_EMBARGO_WRITE_GROUPS")
 # Contains all non-admin groups
 ALL_GROUPS = [
     *PUBLIC_READ_GROUPS,
-    PUBLIC_WRITE_GROUP,
-    EMBARGO_READ_GROUP,
-    EMBARGO_WRITE_GROUP,
-    INTERNAL_READ_GROUP,
-    INTERNAL_WRITE_GROUP,
+    *PUBLIC_WRITE_GROUPS,
+    *INTERNAL_READ_GROUPS,
+    *INTERNAL_WRITE_GROUPS,
+    *EMBARGO_READ_GROUPS,
+    *EMBARGO_WRITE_GROUPS,
 ]
 # Minimal group for managing the OSIDB service
-SERVICE_MANAGE_GROUP = f"{LDAP_GROUP_PREFIX}-manage"
+SERVICE_MANAGE_GROUP = get_env("OSIDB_SERVICE_MANAGE_GROUP")
+
+# Backward-compat aliases (singular) used by frozen migrations
+PUBLIC_WRITE_GROUP = PUBLIC_WRITE_GROUPS[0]
+INTERNAL_READ_GROUP = INTERNAL_READ_GROUPS[0]
+INTERNAL_WRITE_GROUP = INTERNAL_WRITE_GROUPS[0]
+EMBARGO_READ_GROUP = EMBARGO_READ_GROUPS[0]
+EMBARGO_WRITE_GROUP = EMBARGO_WRITE_GROUPS[0]
 
 # --- LDAP ---
 

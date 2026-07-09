@@ -55,7 +55,6 @@ from .core import generate_acls
 from .exceptions import DataInconsistencyException
 from .helpers import (
     differ,
-    ensure_list,
     get_bugzilla_api_key,
     get_jira_api_email,
     get_jira_api_key,
@@ -353,12 +352,11 @@ class EmbargoedField(serializers.BooleanField):
 
     def validate_acl(self, embargoed):
         acl_read = (
-            settings.EMBARGO_READ_GROUP if embargoed else settings.PUBLIC_READ_GROUPS
+            settings.EMBARGO_READ_GROUPS if embargoed else settings.PUBLIC_READ_GROUPS
         )
         acl_write = (
-            settings.EMBARGO_WRITE_GROUP if embargoed else settings.PUBLIC_WRITE_GROUP
+            settings.EMBARGO_WRITE_GROUPS if embargoed else settings.PUBLIC_WRITE_GROUPS
         )
-        acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
 
         acls = [group.name for group in self.context["request"].user.groups.all()]
         can_read = any(user_group in acl_read for user_group in acls)
@@ -429,15 +427,15 @@ class ACLMixinSerializer(BaseSerializer):
     ACL_GROUPS = {
         ACLMixinVisibility.PUBLIC: (
             settings.PUBLIC_READ_GROUPS,
-            settings.PUBLIC_WRITE_GROUP,
+            settings.PUBLIC_WRITE_GROUPS,
         ),
         ACLMixinVisibility.INTERNAL: (
-            settings.INTERNAL_READ_GROUP,
-            settings.INTERNAL_WRITE_GROUP,
+            settings.INTERNAL_READ_GROUPS,
+            settings.INTERNAL_WRITE_GROUPS,
         ),
         ACLMixinVisibility.EMBARGOED: (
-            settings.EMBARGO_READ_GROUP,
-            settings.EMBARGO_WRITE_GROUP,
+            settings.EMBARGO_READ_GROUPS,
+            settings.EMBARGO_WRITE_GROUPS,
         ),
     }
 
@@ -470,8 +468,7 @@ class ACLMixinSerializer(BaseSerializer):
         generate ACLs based on visibility status
         """
 
-        read_group, write_group = self.ACL_GROUPS[acl_type]
-        acl_read, acl_write = ensure_list(read_group), ensure_list(write_group)
+        acl_read, acl_write = self.ACL_GROUPS[acl_type]
         return self.hash_acl(acl_read), self.hash_acl(acl_write)
 
     def embargoed2acls(self, validated_data, internal=False):
@@ -1866,12 +1863,11 @@ class FlawPackageVersionACLMixinSerializer(serializers.ModelSerializer):
         generate ACLs based on embargo status
         """
         acl_read = (
-            settings.EMBARGO_READ_GROUP if embargoed else settings.PUBLIC_READ_GROUPS
+            settings.EMBARGO_READ_GROUPS if embargoed else settings.PUBLIC_READ_GROUPS
         )
         acl_write = (
-            settings.EMBARGO_WRITE_GROUP if embargoed else settings.PUBLIC_WRITE_GROUP
+            settings.EMBARGO_WRITE_GROUPS if embargoed else settings.PUBLIC_WRITE_GROUPS
         )
-        acl_read, acl_write = ensure_list(acl_read), ensure_list(acl_write)
         return self.hash_acl(acl_read), self.hash_acl(acl_write)
 
     def embargoed2acls(self, validated_data):

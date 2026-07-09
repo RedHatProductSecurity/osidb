@@ -1741,10 +1741,10 @@ class TestFlawValidators:
             flaw.title = "EMBARGOED foo bar baz"
             flaw.source = FlawSource.CUSTOMER
             flaw.acl_read = [
-                uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+                uuid.UUID(acl) for acl in generate_acls(settings.EMBARGO_READ_GROUPS)
             ]
             flaw.acl_write = [
-                uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])
+                uuid.UUID(acl) for acl in generate_acls(settings.EMBARGO_WRITE_GROUPS)
             ]
             flaw.unembargo_dt = tzdatetime(2022, 1, 1)
             flaw.save()

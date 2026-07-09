@@ -526,10 +526,10 @@ class TestGenerateGroups:
         """
         flaw = FlawFactory(
             acl_read=[
-                uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])
+                uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_READ_GROUPS)
             ],
             acl_write=[
-                uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
+                uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_WRITE_GROUPS)
             ],
             embargoed=False,
             meta_attr={},

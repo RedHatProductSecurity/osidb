@@ -246,8 +246,8 @@ class TestEndpointsACLs:
     @pytest.mark.parametrize(
         "embargoed,acl_read,acl_write",
         [
-            (False, settings.INTERNAL_READ_GROUP, settings.INTERNAL_WRITE_GROUP),
-            (True, settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP),
+            (False, settings.INTERNAL_READ_GROUPS, settings.INTERNAL_WRITE_GROUPS),
+            (True, settings.EMBARGO_READ_GROUPS, settings.EMBARGO_WRITE_GROUPS),
         ],
     )
     def test_flaw_create(
@@ -290,8 +290,8 @@ class TestEndpointsACLs:
     @pytest.mark.parametrize(
         "embargoed,acl_read,acl_write",
         [
-            (False, settings.PUBLIC_READ_GROUPS, settings.PUBLIC_WRITE_GROUP),
-            (True, settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP),
+            (False, settings.PUBLIC_READ_GROUPS, settings.PUBLIC_WRITE_GROUPS),
+            (True, settings.EMBARGO_READ_GROUPS, settings.EMBARGO_WRITE_GROUPS),
         ],
     )
     def test_flaw_update(
@@ -345,10 +345,10 @@ class TestEndpointsACLs:
         test serializer does not change ACLs from internal flaws
         """
         internal_read = [
-            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])
+            uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_READ_GROUPS)
         ]
         internal_write = [
-            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
+            uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_WRITE_GROUPS)
         ]
         flaw = FlawFactory(
             embargoed=False,
@@ -384,18 +384,18 @@ class TestEndpointsACLs:
         "acl_read,acl_write,expected_visibility",
         [
             (
-                settings.EMBARGO_READ_GROUP,
-                settings.EMBARGO_WRITE_GROUP,
+                settings.EMBARGO_READ_GROUPS,
+                settings.EMBARGO_WRITE_GROUPS,
                 "EMBARGOED",
             ),
             (
-                settings.INTERNAL_READ_GROUP,
-                settings.INTERNAL_WRITE_GROUP,
+                settings.INTERNAL_READ_GROUPS,
+                settings.INTERNAL_WRITE_GROUPS,
                 "INTERNAL",
             ),
             (
                 settings.PUBLIC_READ_GROUPS,
-                settings.PUBLIC_WRITE_GROUP,
+                settings.PUBLIC_WRITE_GROUPS,
                 "PUBLIC",
             ),
         ],
@@ -654,7 +654,7 @@ class TestEndpointsACLs:
     @pytest.mark.parametrize(
         "embargoed,acl_read,acl_write",
         [
-            (False, settings.INTERNAL_READ_GROUP, settings.INTERNAL_WRITE_GROUP),
+            (False, settings.INTERNAL_READ_GROUPS, settings.INTERNAL_WRITE_GROUPS),
         ],
     )
     def test_prevent_unintentional_public_flaw(
@@ -687,10 +687,10 @@ class TestEndpointsACLs:
         flaw.save()
         assert not flaw.is_public
         internal_read = [
-            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])
+            uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_READ_GROUPS)
         ]
         internal_write = [
-            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
+            uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_WRITE_GROUPS)
         ]
         assert flaw.acl_read == internal_read
         assert flaw.acl_write == internal_write

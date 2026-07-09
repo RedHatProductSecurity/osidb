@@ -183,7 +183,7 @@ class FlawEmbargoedField(BoolField):
                     models.When(
                         acl_read=[
                             uuid.UUID(acl)
-                            for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+                            for acl in generate_acls(settings.EMBARGO_READ_GROUPS)
                         ],
                         then=True,
                     ),

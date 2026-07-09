@@ -244,15 +244,15 @@ class TestACLMixin:
     @pytest.mark.parametrize(
         "acl_read,acl_write,visibility",
         [
-            (settings.PUBLIC_READ_GROUPS, [settings.PUBLIC_WRITE_GROUP], "public"),
+            (settings.PUBLIC_READ_GROUPS, settings.PUBLIC_WRITE_GROUPS, "public"),
             (
-                [settings.EMBARGO_READ_GROUP],
-                [settings.EMBARGO_WRITE_GROUP],
+                settings.EMBARGO_READ_GROUPS,
+                settings.EMBARGO_WRITE_GROUPS,
                 "embargoed",
             ),
             (
-                [settings.INTERNAL_READ_GROUP],
-                [settings.INTERNAL_WRITE_GROUP],
+                settings.INTERNAL_READ_GROUPS,
+                settings.INTERNAL_WRITE_GROUPS,
                 "internal",
             ),
         ],
@@ -278,17 +278,17 @@ class TestACLMixin:
         [
             (
                 settings.PUBLIC_READ_GROUPS,
-                [settings.PUBLIC_WRITE_GROUP],
+                settings.PUBLIC_WRITE_GROUPS,
                 ACLMixinVisibility.PUBLIC,
             ),
             (
-                [settings.EMBARGO_READ_GROUP],
-                [settings.EMBARGO_WRITE_GROUP],
+                settings.EMBARGO_READ_GROUPS,
+                settings.EMBARGO_WRITE_GROUPS,
                 ACLMixinVisibility.EMBARGOED,
             ),
             (
-                [settings.INTERNAL_READ_GROUP],
-                [settings.INTERNAL_WRITE_GROUP],
+                settings.INTERNAL_READ_GROUPS,
+                settings.INTERNAL_WRITE_GROUPS,
                 ACLMixinVisibility.INTERNAL,
             ),
         ],
@@ -312,18 +312,18 @@ class TestACLMixin:
         """
         # Create flaws with different visibility levels
         embargoed_flaw = self.create_flaw(
-            acl_read=[settings.EMBARGO_READ_GROUP],
-            acl_write=[settings.EMBARGO_WRITE_GROUP],
+            acl_read=settings.EMBARGO_READ_GROUPS,
+            acl_write=settings.EMBARGO_WRITE_GROUPS,
             save=False,
         )
         internal_flaw = self.create_flaw(
-            acl_read=[settings.INTERNAL_READ_GROUP],
-            acl_write=[settings.INTERNAL_WRITE_GROUP],
+            acl_read=settings.INTERNAL_READ_GROUPS,
+            acl_write=settings.INTERNAL_WRITE_GROUPS,
             save=False,
         )
         public_flaw = self.create_flaw(
             acl_read=settings.PUBLIC_READ_GROUPS,
-            acl_write=[settings.PUBLIC_WRITE_GROUP],
+            acl_write=settings.PUBLIC_WRITE_GROUPS,
             save=False,
         )
 
