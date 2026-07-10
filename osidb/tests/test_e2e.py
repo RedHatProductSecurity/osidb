@@ -677,10 +677,10 @@ class TestE2E:
         from osidb.core import generate_acls
 
         expected_read_acls = [
-            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])
+            uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_READ_GROUPS)
         ]
         expected_write_acls = [
-            uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
+            uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_WRITE_GROUPS)
         ]
 
         assert flaw.acl_read == expected_read_acls
@@ -722,10 +722,10 @@ class TestE2E:
 
         # Check that ACLs match expected embargoed groups
         expected_embargoed_read_acls = [
-            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])
+            uuid.UUID(acl) for acl in generate_acls(settings.EMBARGO_READ_GROUPS)
         ]
         expected_embargoed_write_acls = [
-            uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])
+            uuid.UUID(acl) for acl in generate_acls(settings.EMBARGO_WRITE_GROUPS)
         ]
 
         assert embargoed_flaw.acl_read == expected_embargoed_read_acls

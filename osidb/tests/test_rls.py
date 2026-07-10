@@ -24,8 +24,8 @@ class TestRLS:
     @pytest.mark.parametrize(
         "embargoed,acls",
         [
-            (False, settings.PUBLIC_READ_GROUPS + [settings.PUBLIC_WRITE_GROUP]),
-            (True, [settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP]),
+            (False, settings.PUBLIC_READ_GROUPS + settings.PUBLIC_WRITE_GROUPS),
+            (True, settings.EMBARGO_READ_GROUPS + settings.EMBARGO_WRITE_GROUPS),
         ],
     )
     def test_create_flaw(self, embargoed, acls):
@@ -43,8 +43,8 @@ class TestRLS:
     @pytest.mark.parametrize(
         "embargoed,acls",
         [
-            (False, settings.PUBLIC_READ_GROUPS + [settings.PUBLIC_WRITE_GROUP]),
-            (True, [settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP]),
+            (False, settings.PUBLIC_READ_GROUPS + settings.PUBLIC_WRITE_GROUPS),
+            (True, settings.EMBARGO_READ_GROUPS + settings.EMBARGO_WRITE_GROUPS),
         ],
     )
     def test_read_flaw(self, embargoed, acls):
@@ -77,7 +77,7 @@ class TestRLS:
         assert Flaw.objects.count() == 1
         assert Flaw.objects.first().uuid == f_public_uuid
 
-        set_user_acls([settings.EMBARGO_READ_GROUP])
+        set_user_acls(settings.EMBARGO_READ_GROUPS)
         assert Flaw.objects.count() == 1
         assert Flaw.objects.first().uuid == f_embargo_uuid
 
@@ -96,7 +96,7 @@ class TestRLS:
             vector="CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
         )
 
-        set_user_acls(settings.PUBLIC_READ_GROUPS + [settings.PUBLIC_WRITE_GROUP])
+        set_user_acls(settings.PUBLIC_READ_GROUPS + settings.PUBLIC_WRITE_GROUPS)
         f1.title = "baz"
         f1.save(raise_validation_error=False)
         assert f1.title == "baz"
@@ -108,7 +108,7 @@ class TestRLS:
             ):
                 f2.save(raise_validation_error=False)
 
-        set_user_acls([settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP])
+        set_user_acls(settings.EMBARGO_READ_GROUPS + settings.EMBARGO_WRITE_GROUPS)
         f2 = Flaw.objects.first()
         f2.title = "quux"
         f2.save(raise_validation_error=False)
@@ -122,7 +122,7 @@ class TestRLS:
         f1 = FlawFactory(title="foo", embargoed=False)
         f2 = FlawFactory(title="bar", embargoed=True)
 
-        set_user_acls(settings.PUBLIC_READ_GROUPS + [settings.PUBLIC_WRITE_GROUP])
+        set_user_acls(settings.PUBLIC_READ_GROUPS + settings.PUBLIC_WRITE_GROUPS)
         assert Flaw.objects.count() == 1
         assert f1.delete()
         assert Flaw.objects.count() == 0
@@ -133,7 +133,7 @@ class TestRLS:
             ):
                 Flaw.objects.get(pk=f2.uuid).delete()
 
-        set_user_acls([settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP])
+        set_user_acls(settings.EMBARGO_READ_GROUPS + settings.EMBARGO_WRITE_GROUPS)
         assert Flaw.objects.count() == 1
         assert Flaw.objects.get(pk=f2.uuid).delete()
         assert Flaw.objects.count() == 0

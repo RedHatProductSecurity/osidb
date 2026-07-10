@@ -13,7 +13,7 @@ from django.core.management.utils import get_random_secret_key
 from pghistory.config import ObjForeignKey
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from osidb.helpers import get_env
+from osidb.helpers import get_env, get_env_groups
 
 DEBUG: bool = get_env("OSIDB_DEBUG", default="False", is_bool=True)
 

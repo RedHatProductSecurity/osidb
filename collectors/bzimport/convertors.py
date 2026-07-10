@@ -71,13 +71,13 @@ class BugzillaGroupsConvertorMixin:
         mapping = {
             "read": {
                 "public": settings.PUBLIC_READ_GROUPS,
-                "internal": [settings.INTERNAL_READ_GROUP],
-                "embargo": [settings.EMBARGO_READ_GROUP],
+                "internal": settings.INTERNAL_READ_GROUPS,
+                "embargo": settings.EMBARGO_READ_GROUPS,
             },
             "write": {
-                "public": [settings.PUBLIC_WRITE_GROUP],
-                "internal": [settings.INTERNAL_WRITE_GROUP],
-                "embargo": [settings.EMBARGO_WRITE_GROUP],
+                "public": settings.PUBLIC_WRITE_GROUPS,
+                "internal": settings.INTERNAL_WRITE_GROUPS,
+                "embargo": settings.EMBARGO_WRITE_GROUPS,
             },
         }
 

@@ -193,8 +193,9 @@ class FlawFactory(BaseFactory):
             else [
                 uuid.uuid5(
                     uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_READ_GROUP}",
+                    f"https://osidb.prod.redhat.com/ns/acls#{group}",
                 )
+                for group in settings.EMBARGO_READ_GROUPS
             ]
         )
     )
@@ -203,15 +204,17 @@ class FlawFactory(BaseFactory):
             [
                 uuid.uuid5(
                     uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
+                    f"https://osidb.prod.redhat.com/ns/acls#{group}",
                 )
+                for group in settings.PUBLIC_WRITE_GROUPS
             ]
             if o.embargoed is False
             else [
                 uuid.uuid5(
                     uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_WRITE_GROUP}",
+                    f"https://osidb.prod.redhat.com/ns/acls#{group}",
                 )
+                for group in settings.EMBARGO_WRITE_GROUPS
             ]
         )
     )
@@ -582,9 +585,9 @@ class SnippetFactory(factory.django.DjangoModelFactory):
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     updated_dt = factory.Faker("date_time", tzinfo=UTC)
 
-    acl_read = [uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])]
+    acl_read = [uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_READ_GROUPS)]
     acl_write = [
-        uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])
+        uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_WRITE_GROUPS)
     ]
 
 
@@ -622,8 +625,9 @@ class TrackerFactory(BaseFactory):
             else [
                 uuid.uuid5(
                     uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_READ_GROUP}",
+                    f"https://osidb.prod.redhat.com/ns/acls#{group}",
                 )
+                for group in settings.EMBARGO_READ_GROUPS
             ]
         )
     )
@@ -632,15 +636,17 @@ class TrackerFactory(BaseFactory):
             [
                 uuid.uuid5(
                     uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{settings.PUBLIC_WRITE_GROUP}",
+                    f"https://osidb.prod.redhat.com/ns/acls#{group}",
                 )
+                for group in settings.PUBLIC_WRITE_GROUPS
             ]
             if o.embargoed is False
             else [
                 uuid.uuid5(
                     uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{settings.EMBARGO_WRITE_GROUP}",
+                    f"https://osidb.prod.redhat.com/ns/acls#{group}",
                 )
+                for group in settings.EMBARGO_WRITE_GROUPS
             ]
         )
     )

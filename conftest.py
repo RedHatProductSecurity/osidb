@@ -695,28 +695,28 @@ def public_read_groups():
 @pytest.fixture
 def embargoed_read_groups():
     """Embargoed read ACL group (restricted to embargo group)."""
-    return [uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_READ_GROUP])]
+    return [uuid.UUID(acl) for acl in generate_acls(settings.EMBARGO_READ_GROUPS)]
 
 
 @pytest.fixture
 def internal_read_groups():
     """Internal read ACL group (restricted to internal group)."""
-    return [uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_READ_GROUP])]
+    return [uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_READ_GROUPS)]
 
 
 @pytest.fixture
 def public_write_groups():
     """Public write ACL group."""
-    return [uuid.UUID(acl) for acl in generate_acls([settings.PUBLIC_WRITE_GROUP])]
+    return [uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_WRITE_GROUPS)]
 
 
 @pytest.fixture
 def embargoed_write_groups():
     """Embargoed write ACL group."""
-    return [uuid.UUID(acl) for acl in generate_acls([settings.EMBARGO_WRITE_GROUP])]
+    return [uuid.UUID(acl) for acl in generate_acls(settings.EMBARGO_WRITE_GROUPS)]
 
 
 @pytest.fixture
 def internal_write_groups():
     """Internal write ACL group."""
-    return [uuid.UUID(acl) for acl in generate_acls([settings.INTERNAL_WRITE_GROUP])]
+    return [uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_WRITE_GROUPS)]
