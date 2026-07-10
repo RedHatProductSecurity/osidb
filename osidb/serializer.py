@@ -729,6 +729,7 @@ class HistoryMixinSerializer(serializers.ModelSerializer):
         fields = ["history"]
 
 
+@extend_schema_serializer(deprecate_fields=["errata"])
 class TrackerSerializer(
     ACLMixinSerializer,
     AlertMixinSerializer,
