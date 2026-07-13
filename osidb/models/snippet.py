@@ -8,7 +8,9 @@ from django.db import models
 from collectors.bzimport.constants import BZ_API_KEY
 from osidb.mixins import ACLMixin, AlertMixin, TrackingMixin, validator
 
+from .flaw.cvss import FlawCVSS
 from .flaw.flaw import Flaw
+from .flaw.reference import FlawReference
 
 
 class Snippet(ACLMixin, AlertMixin, TrackingMixin):
@@ -126,6 +128,14 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         # creates related models (e.g. FlawCVSS)
         for model, list_of_data in related_models.items():
             for data in list_of_data:
+                lookup = self._related_model_lookup(model, flaw, data)
+                if lookup is not None:
+                    defaults = {
+                        k: v for k, v in (data | shared_acl).items() if k not in lookup
+                    }
+                    model.objects.get_or_create(**lookup, defaults=defaults)
+                    continue
+
                 related_model = model(flaw=flaw, **data, **shared_acl)
                 related_model.save()
 
@@ -142,6 +152,20 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         )
 
         return Flaw.objects.get(uuid=flaw.uuid)
+
+    @staticmethod
+    def _related_model_lookup(model, flaw: Flaw, data: dict) -> dict | None:
+        if model is FlawCVSS and data.get("issuer") and data.get("version"):
+            return {
+                "flaw": flaw,
+                "issuer": data["issuer"],
+                "version": data["version"],
+            }
+
+        if model is FlawReference and data.get("url"):
+            return {"flaw": flaw, "url": data["url"]}
+
+        return None
 
     @validator
     def _validate_acl_identical_to_parent_flaw(self, **kwargs) -> None:
