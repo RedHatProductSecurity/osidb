@@ -1,3 +1,4 @@
+import enum
 import importlib.metadata
 from dataclasses import dataclass, field
 from typing import Any
@@ -7,7 +8,12 @@ from django.db import transaction
 from packageurl import PackageURL
 
 from apps.ace.constants import (
+    CHROMIUM_CVSS_TABLE,
     CHROMIUM_NAMES,
+    CHROMIUM_STATEMENT,
+    CHROMIUM_STREAMS,
+    GO_STDLIB_BUILDER_PRODUCTS,
+    GO_STDLIB_BUILDER_PURL,
     GO_STDLIB_PACKAGES,
     LABEL_AUTO_AFFECTS,
     LABEL_AUTO_REJECTED,
@@ -33,7 +39,7 @@ from collectors.component_mapping.models import (
 )
 from config.celery import app
 from osidb.helpers import bypass_rls
-from osidb.models import Flaw
+from osidb.models import Flaw, FlawCVSS, PsModule
 from osidb.models.affect import Affect, AffectSettings, NotAffectedJustification
 from osidb.models.flaw.label_v2 import WorkflowLabel
 from osidb.models.flaw.upstream import UpstreamData
@@ -56,12 +62,26 @@ def _flaw_components(flaw: Flaw) -> list[str]:
     return components
 
 
+class PreFilterAction(enum.Enum):
+    SEARCH = "search"
+    SKIP = "skip"
+    MANUAL = "manual"
+    SPECIAL = "special"
+
+
+class SpecialWorkflow(enum.Enum):
+    NONE = ""
+    CHROMIUM = "chromium"
+    GO_STDLIB = "go_stdlib"
+
+
 @dataclass
 class PreFilterResult:
-    action: str
+    action: PreFilterAction
     label: str = ""
     resolved_names: list[str] = field(default_factory=list)
     reason: str = ""
+    workflow: SpecialWorkflow = SpecialWorkflow.NONE
 
 
 def _resolve_component(component: str) -> tuple[list[str], bool]:
@@ -84,22 +104,23 @@ def _resolve_component(component: str) -> tuple[list[str], bool]:
     return [component.replace(" ", "-")], False
 
 
-def _is_go_stdlib(components: list[str]) -> bool:
+def _is_go_stdlib_component(component: str, all_components: list[str]) -> bool:
     """
-    Check if any component is a Go stdlib package.
+    Check if ``component`` is part of a Go stdlib CVE.
+
+    Returns True when ``component`` is either "golang" or a stdlib package
+    path (e.g., "net/http"), AND "golang" is present in the flaw's components.
     """
-    has_golang = any(c.lower() == "golang" for c in components)
-    if not has_golang:
+    if component.lower() == "golang":
+        return True
+    if not any(c.lower() == "golang" for c in all_components):
         return False
-    for c in components:
-        first_seg = c.split("/")[0]
-        if (
-            "." not in first_seg
-            and "-" not in first_seg
-            and first_seg.lower() in GO_STDLIB_PACKAGES
-        ):
-            return True
-    return False
+    first_seg = component.split("/")[0]
+    return (
+        "." not in first_seg
+        and "-" not in first_seg
+        and first_seg.lower() in GO_STDLIB_PACKAGES
+    )
 
 
 def _is_verified_mapping(component: str, resolved: list[str]) -> bool:
@@ -130,15 +151,15 @@ def _pre_filter_component(
     before querying lib-newtopia.
 
     Decision tree (checks run in order, first match wins):
-      1. Blocklist -> skip
-      2. Go stdlib -> manual triage
-      3. Chromium -> manual triage
+      1. Blocklist -> skip (auto-rejected)
+      2. Go stdlib -> special workflow
+      3. Chromium -> special workflow
       4. Resolve component name
       5. Verified mapping guard -> manual triage if unverified
       6. Cross-ecosystem guard -> manual triage if ambiguous
       7. Semi-strict review -> manual triage if unresolved
       8. Confidence check -> potential-rejection if low confidence
-      9. All checks pass -> auto-affects, the rest of the process continues
+      9. All checks pass -> search (auto-affects)
     """
     component_lower = component.strip().lower()
 
@@ -146,25 +167,31 @@ def _pre_filter_component(
     block = BlocklistEntry.objects.filter(name=component_lower).first()
     if block:
         return PreFilterResult(
-            action="skip",
+            action=PreFilterAction.SKIP,
             label=LABEL_AUTO_REJECTED,
             reason=f"Blocked: {block.reason}",
         )
 
-    # Go stdlib check
-    if _is_go_stdlib(flaw.components or []):
+    # Go stdlib check: the handler runs per stdlib subcomponent path.
+    # "golang" component itself is skipped here as it's automatically handled later.
+    if _is_go_stdlib_component(component, flaw.components or []):
+        if component_lower == "golang":
+            return PreFilterResult(
+                action=PreFilterAction.MANUAL,
+                reason="Go stdlib CVE: golang component handled by go stdlib workflow",
+            )
         return PreFilterResult(
-            action="manual",
-            label=LABEL_MANUAL_TRIAGE,
-            reason="Go stdlib CVE, requires specialized workflow",
+            action=PreFilterAction.SPECIAL,
+            label=LABEL_AUTO_AFFECTS,
+            workflow=SpecialWorkflow.GO_STDLIB,
         )
 
     # Chromium check
     if component_lower in CHROMIUM_NAMES:
         return PreFilterResult(
-            action="manual",
-            label=LABEL_MANUAL_TRIAGE,
-            reason="Chromium CVE, requires specialized workflow",
+            action=PreFilterAction.SPECIAL,
+            label=LABEL_AUTO_AFFECTS,
+            workflow=SpecialWorkflow.CHROMIUM,
         )
 
     resolved, has_custom_mapping = _resolve_component(component)
@@ -172,7 +199,7 @@ def _pre_filter_component(
     # Verified mapping guard
     if has_custom_mapping and not _is_verified_mapping(component, resolved):
         return PreFilterResult(
-            action="manual",
+            action=PreFilterAction.MANUAL,
             label=LABEL_MANUAL_TRIAGE,
             resolved_names=resolved,
             reason=f"Mapping '{component}' is not verified",
@@ -182,7 +209,7 @@ def _pre_filter_component(
     cross_eco = CrossEcosystemName.objects.filter(name=component_lower).first()
     if cross_eco and not ecosystem:
         return PreFilterResult(
-            action="manual",
+            action=PreFilterAction.MANUAL,
             label=LABEL_MANUAL_TRIAGE,
             resolved_names=resolved,
             reason=(
@@ -201,7 +228,7 @@ def _pre_filter_component(
         )
         if not pick:
             return PreFilterResult(
-                action="manual",
+                action=PreFilterAction.MANUAL,
                 label=LABEL_MANUAL_TRIAGE,
                 resolved_names=resolved,
                 reason=f"'{component}' has ambiguous SBOM matches requiring review",
@@ -218,7 +245,7 @@ def _pre_filter_component(
 
     if not (is_strict or is_strict_npm or (is_ambiguous_npm and ecosystem == "npm")):
         return PreFilterResult(
-            action="search",
+            action=PreFilterAction.SEARCH,
             label=LABEL_POTENTIAL_REJECTION,
             resolved_names=resolved,
             reason="Low confidence, component not in strict package lists",
@@ -226,21 +253,301 @@ def _pre_filter_component(
 
     # Continue with auto-affects process
     return PreFilterResult(
-        action="search",
+        action=PreFilterAction.SEARCH,
         label=LABEL_AUTO_AFFECTS,
         resolved_names=resolved,
     )
 
 
+def _parse_chrome_advisory(advisory_url: str, cve_id: str) -> dict:
+    """
+    Fetch and parse a Chrome release blog post containing CVE information,
+    returning per-CVE metadata.
+
+    Returns a dict with keys: title, cve_description, impact (or empty dict on failure)
+    """
+    if not advisory_url:
+        return {}
+    try:
+        from advisory_parser import Parser
+
+        flaws, _ = Parser.parse_from_url(advisory_url)
+        for flaw in flaws:
+            if cve_id in (flaw.cves or []):
+                # advisory-parser returns summary as "chromium-browser: <issue>"
+                # and impact is equivalent to lowercase RH impact (e.g., "important") as
+                # the parser explicitly converts the impacts in that way (e.g. "medium" -> "moderate")
+                return {
+                    "title": flaw.summary or "",
+                    "cve_description": getattr(flaw, "description", "") or "",
+                    "impact": (getattr(flaw, "impact", "") or "").upper(),
+                }
+    except Exception as exc:
+        logger.warning("Could not parse Chrome advisory %s: %s", advisory_url, exc)
+    return {}
+
+
+def _handle_chromium(flaw: Flaw) -> dict[str, int]:
+    """
+    Handle Chromium CVEs: create fedora-all + epel-all affects, parse the
+    Chrome advisory for CVE information, update flaw fields, and add CVSS estimate.
+    """
+    created = 0
+    tool_name = _ace_tool_name()
+
+    for ps_update_stream, ps_component in CHROMIUM_STREAMS:
+        if Affect.objects.filter(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream,
+            ps_component=ps_component,
+        ).exists():
+            continue
+
+        affect = Affect(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream,
+            ps_component=ps_component,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
+            impact=flaw.impact,
+            created_by="AffectCreationEngine",
+            updated_by="AffectCreationEngine",
+            assist_meta={
+                "tool_name": tool_name,
+                "workflow": "chromium",
+            },
+        )
+        affect.save(raise_validation_error=False)
+        created += 1
+
+    # Extract advisory URL from references
+    advisory_url = ""
+    cve_id = flaw.cve_id or ""
+    for ref in flaw.references.all():
+        url = ref.url or ""
+        if "chromereleases.googleblog.com" in url:
+            advisory_url = url
+            break
+
+    advisory = _parse_chrome_advisory(advisory_url, cve_id)
+
+    # If no advisory is found (URL not found or parsing failed) we don't need to go further
+    if not advisory:
+        logger.info(
+            "Chromium workflow flaw=%s: created=%d, no advisory URL found",
+            flaw.uuid,
+            created,
+        )
+        return {
+            "created": created,
+            "skipped": 0,
+            "skipped_existing": 0,
+            "marked_notaffected": 0,
+        }
+
+    # Update flaw with advisory information
+    flaw.statement = CHROMIUM_STATEMENT
+    if advisory.get("title"):
+        flaw.title = advisory["title"]
+    if advisory.get("cve_description"):
+        flaw.cve_description = advisory["cve_description"]
+    flaw.save(raise_validation_error=False)
+
+    # Impact is only used for CVSS calculation, but ACE should not set the flaw's impact directly
+    cvss_added = False
+    impact = advisory.get("impact") or flaw.impact or ""
+    if (
+        impact
+        and not flaw.cvss_scores.filter(
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+        ).exists()
+    ):
+        vector = CHROMIUM_CVSS_TABLE.get(impact)
+        if vector:
+            cvss = FlawCVSS.objects.create_cvss(
+                flaw=flaw,
+                issuer=FlawCVSS.CVSSIssuer.REDHAT,
+                version=FlawCVSS.CVSSVersion.VERSION3,
+                vector=vector,
+                acl_read=flaw.acl_read,
+                acl_write=flaw.acl_write,
+            )
+            cvss.save()
+            cvss_added = True
+
+    logger.info(
+        "Chromium workflow flaw=%s: created=%d, cvss_added=%s, advisory=%s",
+        flaw.uuid,
+        created,
+        cvss_added,
+        advisory_url,
+    )
+
+    return {
+        "created": created,
+        "skipped": 0,
+        "skipped_existing": 0,
+        "marked_notaffected": 0,
+    }
+
+
+def _handle_go_stdlib(
+    flaw: Flaw,
+    component: str,
+    ps_modules: list[str],
+    upstream_purls: list[dict],
+) -> dict[str, int]:
+    """
+    Handle Go stdlib CVEs with a 4-phase affect creation workflow.
+
+    Phase 1: golang compiler builds
+    Phase 2: component RPM affects
+    Phase 3: component container affects (one per product)
+    Phase 4: openshift-golang-builder-container for OCP/CNV/OSSM active streams
+    """
+    totals: dict[str, int] = {
+        "created": 0,
+        "skipped": 0,
+        "skipped_existing": 0,
+        "marked_notaffected": 0,
+    }
+
+    def _run_phase(phase_description, results):
+        stats = _sync_affects_from_results(
+            flaw,
+            results,
+            component,
+            ps_modules,
+            ecosystem="golang",
+            upstream_purls=upstream_purls,
+        )
+        for key in stats:
+            totals[key] += stats[key]
+        logger.info(
+            "Go stdlib %s flaw=%s: created=%d",
+            phase_description,
+            flaw.uuid,
+            stats["created"],
+        )
+
+    # Phase 1: golang compiler builds
+    try:
+        results = _query_newtopia(
+            "golang",
+            ps_modules,
+            builds_only=True,
+            no_community=True,
+        )
+        _run_phase("Phase 1 (golang builds)", results)
+    except Exception as exc:
+        logger.warning("Go stdlib Phase 1 failed for flaw=%s: %s", flaw.uuid, exc)
+
+    # Phase 2: component RPM affects
+    try:
+        results = _query_newtopia(
+            component,
+            ps_modules,
+            ecosystem="golang",
+            build_type="rpm",
+            no_community=True,
+        )
+        _run_phase("Phase 2 (RPMs)", results)
+    except Exception as exc:
+        logger.warning("Go stdlib Phase 2 failed for flaw=%s: %s", flaw.uuid, exc)
+
+    # Phase 3: component container affects (one per product)
+    try:
+        results = _query_newtopia(
+            component,
+            ps_modules,
+            ecosystem="golang",
+            build_type="container",
+            one_component=True,
+            no_community=True,
+        )
+        _run_phase("Phase 3 (containers)", results)
+    except Exception as exc:
+        logger.warning("Go stdlib Phase 3 failed for flaw=%s: %s", flaw.uuid, exc)
+
+    # Phase 4: openshift-golang-builder-container for active streams
+    tool_name = _ace_tool_name()
+    phase4_created = 0
+    for product_name in GO_STDLIB_BUILDER_PRODUCTS:
+        try:
+            ps_module = PsModule.objects.get(name=product_name)
+        except PsModule.DoesNotExist:
+            logger.warning(
+                "Go stdlib Phase 4: PsModule %r not found",
+                product_name,
+            )
+            continue
+
+        for stream in ps_module.active_ps_update_streams.all():
+            if Affect.objects.filter(
+                flaw=flaw,
+                ps_update_stream=stream.name,
+                ps_component="openshift-golang-builder-container",
+            ).exists():
+                totals["skipped_existing"] += 1
+                continue
+
+            affect = Affect(
+                flaw=flaw,
+                ps_update_stream=stream.name,
+                purl=GO_STDLIB_BUILDER_PURL,
+                ps_component="openshift-golang-builder-container",
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                acl_read=flaw.acl_read,
+                acl_write=flaw.acl_write,
+                impact=flaw.impact,
+                created_by="AffectCreationEngine",
+                updated_by="AffectCreationEngine",
+                assist_meta={
+                    "tool_name": tool_name,
+                    "workflow": "go_stdlib",
+                    "phase": "4-builder-container",
+                },
+            )
+            affect.save(raise_validation_error=False)
+            phase4_created += 1
+
+    totals["created"] += phase4_created
+    logger.info(
+        "Go stdlib Phase 4 (builder-container) flaw=%s: created=%d",
+        flaw.uuid,
+        phase4_created,
+    )
+
+    return totals
+
+
 def _query_newtopia(
-    flaw_component: str, ps_modules: list[str], ecosystem: str = ""
+    flaw_component: str,
+    ps_modules: list[str],
+    ecosystem: str = "",
+    builds_only: bool = False,
+    build_type: str = "",
+    one_component: bool = False,
+    no_community: bool = False,
 ) -> list:
     nq = NewtopiaQuerier()  # type: ignore[misc]
-    return (
-        nq.search([flaw_component], strict=True, ecosystem=ecosystem)
-        .filter(products=ps_modules)
-        .all()
+    qs = nq.search(
+        [flaw_component],
+        strict=True,
+        ecosystem=ecosystem,
+        builds_only=builds_only,
+        no_community=no_community,
     )
+    if build_type:
+        qs = qs.filter(build_type=build_type)
+    qs = qs.filter(products=ps_modules)
+    if one_component:
+        qs = qs.deduplicate(aggressive=True)
+    return qs.all()
 
 
 def _ace_tool_name() -> str:
@@ -450,7 +757,8 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
             pre_filter_results.append((flaw_component, ecosystem, pf))
 
     skip_result = next(
-        (pf for _, _, pf in pre_filter_results if pf.action == "skip"), None
+        (pf for _, _, pf in pre_filter_results if pf.action is PreFilterAction.SKIP),
+        None,
     )
     if skip_result:
         _apply_label(flaw, skip_result.label)
@@ -465,7 +773,24 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
     for flaw_component, ecosystem, pre_filter in pre_filter_results:
         _apply_label(flaw, pre_filter.label)
 
-        if pre_filter.action != "search":
+        if pre_filter.action is PreFilterAction.SPECIAL:
+            # Special workflow handling
+            if pre_filter.workflow is SpecialWorkflow.CHROMIUM:
+                stats = _handle_chromium(flaw)
+            elif pre_filter.workflow is SpecialWorkflow.GO_STDLIB:
+                stats = _handle_go_stdlib(
+                    flaw,
+                    flaw_component,
+                    ps_modules,
+                    upstream_purls,
+                )
+            else:
+                stats = {}
+            for key in stats:
+                totals[key] += stats[key]
+            continue
+
+        if pre_filter.action is not PreFilterAction.SEARCH:
             logger.info(
                 "Pre-filter %s for flaw=%s component=%r: %s",
                 pre_filter.action,

@@ -20,7 +20,9 @@ from apps.ace.constants import (
     LABEL_POTENTIAL_REJECTION,
 )
 from apps.ace.tasks import (
-    _is_go_stdlib,
+    PreFilterAction,
+    SpecialWorkflow,
+    _is_go_stdlib_component,
     _pre_filter_component,
     _resolve_component,
     sync_flaw_affects_from_newcli,
@@ -601,7 +603,7 @@ def test_pre_filter_blocklist_skips():
 
     result = _pre_filter_component(flaw, "GitLab", "")
 
-    assert result.action == "skip"
+    assert result.action is PreFilterAction.SKIP
     assert result.label == LABEL_AUTO_REJECTED
     assert "Blocked" in result.reason
 
@@ -615,7 +617,7 @@ def test_pre_filter_allows_non_blocked():
 
     result = _pre_filter_component(flaw, "openssl", "")
 
-    assert result.action == "search"
+    assert result.action is PreFilterAction.SEARCH
     assert result.label == LABEL_AUTO_AFFECTS
     assert "openssl" in result.resolved_names
 
@@ -727,37 +729,52 @@ def test_sync_resolves_component_before_search(
 # ── Go stdlib / Chromium detection ────────────────────────────────────────────
 
 
-def test_is_go_stdlib_true():
-    assert _is_go_stdlib(["golang", "net/http"]) is True
-    assert _is_go_stdlib(["golang", "crypto/tls"]) is True
+def test_is_go_stdlib_component_true():
+    comps = ["golang", "net/http"]
+    assert _is_go_stdlib_component("golang", comps) is True
+    assert _is_go_stdlib_component("net/http", comps) is True
 
 
-def test_is_go_stdlib_false():
-    assert _is_go_stdlib(["golang"]) is False
-    assert _is_go_stdlib(["net/http"]) is False
-    assert _is_go_stdlib(["github.com/foo/bar", "golang"]) is False
+def test_is_go_stdlib_component_false():
+    comps = ["golang", "net/http"]
+    assert _is_go_stdlib_component("openssl", comps) is False
+    assert _is_go_stdlib_component("net/http", ["net/http"]) is False
+    assert (
+        _is_go_stdlib_component("github.com/foo/bar", ["golang", "github.com/foo/bar"])
+        is False
+    )
 
 
 @pytest.mark.django_db
-def test_pre_filter_go_stdlib_manual_triage():
+def test_pre_filter_go_stdlib_subcomponent_special():
+    flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "net/http", "")
+
+    assert result.action is PreFilterAction.SPECIAL
+    assert result.label == LABEL_AUTO_AFFECTS
+    assert result.workflow is SpecialWorkflow.GO_STDLIB
+
+
+@pytest.mark.django_db
+def test_pre_filter_go_stdlib_golang_skipped():
+    """The 'golang' component itself is skipped — Phase 1 of the handler covers it."""
     flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
 
     result = _pre_filter_component(flaw, "golang", "")
 
-    assert result.action == "manual"
-    assert result.label == LABEL_MANUAL_TRIAGE
-    assert "Go stdlib" in result.reason
+    assert result.action is PreFilterAction.MANUAL
 
 
 @pytest.mark.django_db
-def test_pre_filter_chromium_manual_triage():
+def test_pre_filter_chromium_special():
     flaw = FlawFactory(components=["chromium"], embargoed=False)
 
     result = _pre_filter_component(flaw, "chromium", "")
 
-    assert result.action == "manual"
-    assert result.label == LABEL_MANUAL_TRIAGE
-    assert "Chromium" in result.reason
+    assert result.action is PreFilterAction.SPECIAL
+    assert result.label == LABEL_AUTO_AFFECTS
+    assert result.workflow is SpecialWorkflow.CHROMIUM
 
 
 # ── Cross-ecosystem guard ────────────────────────────────────────────────────
@@ -772,7 +789,7 @@ def test_pre_filter_cross_ecosystem_no_ecosystem():
 
     result = _pre_filter_component(flaw, "redis", "")
 
-    assert result.action == "manual"
+    assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_MANUAL_TRIAGE
     assert "ecosystems" in result.reason
 
@@ -786,7 +803,7 @@ def test_pre_filter_cross_ecosystem_with_ecosystem_proceeds():
 
     result = _pre_filter_component(flaw, "redis", "npm")
 
-    assert result.action == "search"
+    assert result.action is PreFilterAction.SEARCH
 
 
 # ── Verified mapping guard ───────────────────────────────────────────────────
@@ -803,7 +820,7 @@ def test_pre_filter_unverified_mapping_manual_triage():
 
     result = _pre_filter_component(flaw, "SomeGoLib", "")
 
-    assert result.action == "manual"
+    assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_MANUAL_TRIAGE
     assert "not verified" in result.reason
 
@@ -822,7 +839,7 @@ def test_pre_filter_verified_mapping_proceeds():
 
     result = _pre_filter_component(flaw, "Vault", "")
 
-    assert result.action == "search"
+    assert result.action is PreFilterAction.SEARCH
 
 
 # ── Semi-strict review ───────────────────────────────────────────────────────
@@ -839,7 +856,7 @@ def test_pre_filter_semi_strict_no_pick_manual_triage():
 
     result = _pre_filter_component(flaw, "accelerator", "")
 
-    assert result.action == "manual"
+    assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_MANUAL_TRIAGE
     assert "ambiguous" in result.reason
 
@@ -856,7 +873,7 @@ def test_pre_filter_semi_strict_with_pick_uses_picked():
 
     result = _pre_filter_component(flaw, "accelerator", "")
 
-    assert result.action == "search"
+    assert result.action is PreFilterAction.SEARCH
     assert result.label == LABEL_AUTO_AFFECTS
     assert result.resolved_names == ["pkg-a"]
 
@@ -873,7 +890,7 @@ def test_pre_filter_strict_package_auto_affects():
 
     result = _pre_filter_component(flaw, "openssl", "")
 
-    assert result.action == "search"
+    assert result.action is PreFilterAction.SEARCH
     assert result.label == LABEL_AUTO_AFFECTS
 
 
@@ -883,7 +900,7 @@ def test_pre_filter_non_strict_potential_rejection():
 
     result = _pre_filter_component(flaw, "unknown-pkg", "")
 
-    assert result.action == "search"
+    assert result.action is PreFilterAction.SEARCH
     assert result.label == LABEL_POTENTIAL_REJECTION
     assert "Low confidence" in result.reason
 
@@ -906,3 +923,236 @@ def test_sync_does_not_set_impact_on_created_affects(
 
     for affect in flaw.affects.all():
         assert affect.impact == ""
+
+
+# ── Chromium workflow ─────────────────────────────────────────────────────────
+
+
+def test_handle_chromium_creates_affects(chromium_streams):
+    from apps.ace.tasks import _handle_chromium
+
+    flaw = FlawFactory(components=["chromium"], embargoed=False)
+
+    stats = _handle_chromium(flaw)
+
+    assert stats["created"] == 2
+    assert flaw.affects.filter(
+        ps_update_stream="fedora-all", ps_component="chromium"
+    ).exists()
+    assert flaw.affects.filter(
+        ps_update_stream="epel-all", ps_component="chromium"
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_handle_chromium_no_advisory_skips_metadata(chromium_streams):
+    """Without a Chrome blog reference, affects are created but metadata is unchanged."""
+    from apps.ace.tasks import _handle_chromium
+
+    flaw = FlawFactory(components=["chromium"], embargoed=False)
+    original_statement = flaw.statement
+    original_title = flaw.title
+
+    stats = _handle_chromium(flaw)
+
+    assert stats["created"] == 2
+    flaw.refresh_from_db()
+    assert flaw.statement == original_statement
+    assert flaw.title == original_title
+    assert flaw.cvss_scores.count() == 0
+
+
+@pytest.mark.django_db
+def test_handle_chromium_with_advisory(monkeypatch, chromium_streams):
+    """With a parseable advisory, statement/title/CVSS are set."""
+    from apps.ace.constants import CHROMIUM_STATEMENT
+    from apps.ace.tasks import _handle_chromium
+
+    flaw = FlawFactory(components=["chromium"], impact="LOW", embargoed=False)
+
+    monkeypatch.setattr(
+        "apps.ace.tasks._parse_chrome_advisory",
+        lambda url, cve: {
+            "title": "chromium-browser: Use after free in USB",
+            "cve_description": "A use after free flaw was found in USB.",
+            "impact": "IMPORTANT",
+        },
+    )
+    # Add a reference so the advisory path triggers
+    from osidb.models.flaw.reference import FlawReference
+
+    FlawReference(
+        flaw=flaw,
+        url="https://chromereleases.googleblog.com/2025/04/test.html",
+        type=FlawReference.FlawReferenceType.EXTERNAL,
+        acl_read=flaw.acl_read,
+        acl_write=flaw.acl_write,
+    ).save(raise_validation_error=False)
+
+    stats = _handle_chromium(flaw)
+
+    flaw.refresh_from_db()
+    assert stats["created"] == 2
+    assert flaw.statement == CHROMIUM_STATEMENT
+    assert flaw.title == "chromium-browser: Use after free in USB"
+    assert flaw.cve_description == "A use after free flaw was found in USB."
+    assert flaw.cvss_scores.filter(issuer="RH", version="V3").exists()
+
+
+@pytest.mark.django_db
+def test_handle_chromium_idempotent(chromium_streams):
+    from apps.ace.tasks import _handle_chromium
+
+    flaw = FlawFactory(components=["chromium"], embargoed=False)
+
+    first = _handle_chromium(flaw)
+    second = _handle_chromium(flaw)
+
+    assert first["created"] == 2
+    assert second["created"] == 0
+    assert flaw.affects.count() == 2
+
+
+@pytest.mark.django_db
+def test_handle_chromium_skips_cvss_if_exists(monkeypatch, chromium_streams):
+    from apps.ace.tasks import _handle_chromium
+    from osidb.models.flaw.cvss import FlawCVSS
+    from osidb.models.flaw.reference import FlawReference
+
+    flaw = FlawFactory(components=["chromium"], impact="IMPORTANT", embargoed=False)
+
+    FlawCVSS.objects.create_cvss(
+        flaw=flaw,
+        issuer=FlawCVSS.CVSSIssuer.REDHAT,
+        version=FlawCVSS.CVSSVersion.VERSION3,
+        vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:N",
+        acl_read=flaw.acl_read,
+        acl_write=flaw.acl_write,
+    ).save()
+
+    monkeypatch.setattr(
+        "apps.ace.tasks._parse_chrome_advisory",
+        lambda url, cve: {
+            "title": "test",
+            "cve_description": "test",
+            "impact": "IMPORTANT",
+        },
+    )
+    FlawReference(
+        flaw=flaw,
+        url="https://chromereleases.googleblog.com/2025/04/test.html",
+        type=FlawReference.FlawReferenceType.EXTERNAL,
+        acl_read=flaw.acl_read,
+        acl_write=flaw.acl_write,
+    ).save(raise_validation_error=False)
+
+    _handle_chromium(flaw)
+
+    assert (
+        flaw.cvss_scores.filter(
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+        ).count()
+        == 1
+    )
+
+
+# ── Go stdlib workflow ────────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_handle_go_stdlib_preserves_existing_affects(
+    monkeypatch, ace_enabled, mock_querier
+):
+    """Existing affects are preserved — no replace/delete behavior."""
+    from apps.ace.tasks import _handle_go_stdlib
+
+    flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
+
+    existing = Affect(
+        flaw=flaw,
+        ps_update_stream="hummingbird-1",
+        ps_component="golang-existing",
+        affectedness=Affect.AffectAffectedness.NEW,
+        acl_read=flaw.acl_read,
+        acl_write=flaw.acl_write,
+        created_by="AffectCreationEngine",
+        updated_by="AffectCreationEngine",
+    )
+    existing.save(raise_validation_error=False)
+
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_querier({}))
+
+    _handle_go_stdlib(flaw, "net/http", ["hummingbird-1"], [])
+
+    assert flaw.affects.filter(ps_component="golang-existing").exists()
+
+
+@pytest.mark.django_db
+def test_handle_go_stdlib_preserves_analyst_affects(
+    monkeypatch, ace_enabled, mock_querier
+):
+    """Replace mode does not delete analyst-created or non-NEW affects."""
+    from apps.ace.tasks import _handle_go_stdlib
+
+    flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
+
+    # Create an analyst-created affect (not by ACE)
+    analyst_affect = Affect(
+        flaw=flaw,
+        ps_update_stream="rhel-9.6.z",
+        ps_component="golang",
+        affectedness=Affect.AffectAffectedness.AFFECTED,
+        acl_read=flaw.acl_read,
+        acl_write=flaw.acl_write,
+        created_by="analyst@redhat.com",
+        updated_by="analyst@redhat.com",
+    )
+    analyst_affect.save(raise_validation_error=False)
+
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_querier({}))
+
+    _handle_go_stdlib(flaw, "net/http", ["hummingbird-1"], [])
+
+    # Analyst-created affect should be preserved
+    assert flaw.affects.filter(
+        ps_component="golang", created_by="analyst@redhat.com"
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_handle_go_stdlib_phase4_creates_builder_affects(
+    monkeypatch, ace_enabled, mock_querier
+):
+    """Phase 4 creates golang-builder-container affects from PsModule active streams."""
+    from apps.ace.constants import GO_STDLIB_BUILDER_PURL
+    from apps.ace.tasks import _handle_go_stdlib
+
+    flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
+
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_querier({}))
+
+    # Create a PsModule with active streams for Phase 4
+    stream1 = PsUpdateStreamFactory(name="openshift-4.16.z")
+    stream2 = PsUpdateStreamFactory(name="openshift-4.17.z")
+    ps_module = stream1.ps_module
+    ps_module.name = "openshift-4"
+    ps_module.save()
+
+    # Link streams as active
+    stream1.active_to_ps_module = ps_module
+    stream1.save()
+    stream2.ps_module = ps_module
+    stream2.active_to_ps_module = ps_module
+    stream2.save()
+
+    _handle_go_stdlib(flaw, "net/http", ["hummingbird-1"], [])
+
+    builder_affects = flaw.affects.filter(
+        ps_component="openshift-golang-builder-container"
+    )
+    assert builder_affects.count() == 2
+    for a in builder_affects:
+        assert str(a.purl) == GO_STDLIB_BUILDER_PURL
+        assert a.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert a.resolution == Affect.AffectResolution.DELEGATED

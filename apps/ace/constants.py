@@ -81,6 +81,31 @@ CHROMIUM_NAMES = frozenset(
     }
 )
 
+# Chromium workflow constants
+CHROMIUM_STATEMENT = (
+    "Red Hat Product Security rates the severity of this flaw as determined "
+    "by the Google Chrome Security Advisory."
+)
+
+CHROMIUM_CVSS_TABLE: dict[str, str] = {
+    "CRITICAL": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H",
+    "IMPORTANT": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "MODERATE": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N",
+    "LOW": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:L",
+}
+
+CHROMIUM_STREAMS = [
+    ("fedora-all", "chromium"),
+    ("epel-all", "chromium"),
+]
+
+# Go stdlib workflow constants
+GO_STDLIB_BUILDER_PRODUCTS = ["openshift-4", "cnv-4", "ossm-2", "ossm-3"]
+GO_STDLIB_BUILDER_PURL = (
+    "pkg:oci/openshift-golang-builder-container"
+    "?repository_url=registry.redhat.io/openshift-golang-builder-container"
+)
+
 # Labels applied by ACE pre-filter
 LABEL_AUTO_REJECTED = "auto-rejected"
 LABEL_MANUAL_TRIAGE = "manual-triage"
