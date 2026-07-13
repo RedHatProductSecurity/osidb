@@ -281,53 +281,45 @@ class ACLMixinVisibility(ComparableTextChoices):
     PUBLIC = "PUBLIC", "Public"
 
 
-class ACLMixinManager(models.Manager):
-    def get_queryset(self):
-        """define base queryset for retrieving models that uses ACLs"""
-        return (
-            super()
-            .get_queryset()
-            .annotate(
-                # annotate queryset with embargoed pseudo-attribute as it is fully based on the ACLs
-                embargoed=models.Case(
-                    models.When(
-                        acl_read=[
-                            uuid.UUID(acl)
-                            for acl in generate_acls(settings.EMBARGO_READ_GROUPS)
-                        ],
-                        then=True,
-                    ),
-                    default=False,
-                    output_field=models.BooleanField(),
+class ACLMixinQuerySet(models.QuerySet):
+    def with_acl_annotations(self):
+        """Add embargoed/visibility CASE annotations for API filtering and serialization."""
+        embargo_acls = [
+            uuid.UUID(acl) for acl in generate_acls(settings.EMBARGO_READ_GROUPS)
+        ]
+        internal_acls = [
+            uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_READ_GROUPS)
+        ]
+        public_acls = [
+            uuid.UUID(acl) for acl in generate_acls(settings.PUBLIC_READ_GROUPS)
+        ]
+
+        return self.annotate(
+            embargoed=models.Case(
+                models.When(acl_read=embargo_acls, then=True),
+                default=False,
+                output_field=models.BooleanField(),
+            ),
+            visibility=models.Case(
+                models.When(
+                    acl_read=embargo_acls,
+                    then=models.Value(ACLMixinVisibility.EMBARGOED),
                 ),
-                # annotate queryset with visibility pseudo-attribute based on ACL read groups
-                visibility=models.Case(
-                    models.When(
-                        acl_read=[
-                            uuid.UUID(acl)
-                            for acl in generate_acls(settings.EMBARGO_READ_GROUPS)
-                        ],
-                        then=models.Value(ACLMixinVisibility.EMBARGOED),
-                    ),
-                    models.When(
-                        acl_read=[
-                            uuid.UUID(acl)
-                            for acl in generate_acls(settings.INTERNAL_READ_GROUPS)
-                        ],
-                        then=models.Value(ACLMixinVisibility.INTERNAL),
-                    ),
-                    models.When(
-                        acl_read=[
-                            uuid.UUID(acl)
-                            for acl in generate_acls(settings.PUBLIC_READ_GROUPS)
-                        ],
-                        then=models.Value(ACLMixinVisibility.PUBLIC),
-                    ),
-                    default=models.Value(ACLMixinVisibility.PUBLIC),
-                    output_field=models.CharField(),
+                models.When(
+                    acl_read=internal_acls,
+                    then=models.Value(ACLMixinVisibility.INTERNAL),
                 ),
-            )
+                models.When(
+                    acl_read=public_acls, then=models.Value(ACLMixinVisibility.PUBLIC)
+                ),
+                default=models.Value(ACLMixinVisibility.PUBLIC),
+                output_field=models.CharField(),
+            ),
         )
+
+
+class ACLMixinManager(models.Manager.from_queryset(ACLMixinQuerySet)):
+    pass
 
 
 class ACLMixin(models.Model):
@@ -355,6 +347,13 @@ class ACLMixin(models.Model):
         # requesting all the ACLs performs the init
         # caching the ACLs and building the group map
         self.acls_all
+
+    def __getattr__(self, name):
+        if name == "embargoed":
+            return self.is_embargoed
+        raise AttributeError(
+            f"'{type(self).__name__}' object has no attribute '{name}'"
+        )
 
     def get_embargoed_acl():
         return [uuid.UUID(acl) for acl in generate_acls(settings.EMBARGO_READ_GROUPS)]

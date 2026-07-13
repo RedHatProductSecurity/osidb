@@ -886,7 +886,7 @@ class FlawIntrospectionView(RudimentaryUserPathLoggingMixin, APIView):
     ),
 )
 class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
-    queryset = Flaw.objects.all()
+    queryset = Flaw.objects.with_acl_annotations()
     serializer_class = FlawSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = FlawFilter
@@ -969,7 +969,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         return top_level
 
     def get_queryset(self):
-        queryset = Flaw.objects.all()
+        queryset = Flaw.objects.with_acl_annotations()
         include_fields = self._include_fields_top_level()
 
         # Avoid prefetching affects for actions that don't need them.
@@ -1045,16 +1045,20 @@ class FlawV1View(FlawView):
     """View for the flaw model adapted to affects v1"""
 
     serializer_class = FlawV1Serializer
-    queryset = Flaw.objects.prefetch_related(
-        "acknowledgments",
-        "alerts",
-        "comments",
-        "cvss_scores",
-        "package_versions",
-        "references",
-        "labels",
-        "upstream_data",
-    ).all()
+    queryset = (
+        Flaw.objects.with_acl_annotations()
+        .prefetch_related(
+            "acknowledgments",
+            "alerts",
+            "comments",
+            "cvss_scores",
+            "package_versions",
+            "references",
+            "labels",
+            "upstream_data",
+        )
+        .all()
+    )
     filterset_class = FlawV1Filter
 
 
@@ -1544,15 +1548,19 @@ class AffectView(
     SubFlawViewDestroyMixin,
     ModelViewSet,
 ):
-    queryset = Affect.objects.prefetch_related(
-        "alerts",
-        "cvss_scores",
-        "cvss_scores__alerts",
-        "tracker",
-        "tracker__errata",
-        "tracker__affects",
-        "tracker__alerts",
-    ).all()
+    queryset = (
+        Affect.objects.with_acl_annotations()
+        .prefetch_related(
+            "alerts",
+            "cvss_scores",
+            "cvss_scores__alerts",
+            "tracker",
+            "tracker__errata",
+            "tracker__affects",
+            "tracker__alerts",
+        )
+        .all()
+    )
     serializer_class = AffectSerializer
     filterset_class = AffectFilter
     http_method_names = get_valid_http_methods(ModelViewSet)
@@ -1852,7 +1860,7 @@ class AffectView(
 @include_exclude_fields_extend_schema_view
 @include_history_extend_schema_view
 class AffectV1View(BulkHistoryMixin, ReadOnlyModelViewSet):
-    queryset = AffectV1.objects.filter(embargoed=False)
+    queryset = AffectV1.objects.with_acl_annotations().filter(embargoed=False)
     serializer_class = AffectV1Serializer
     filterset_class = AffectV1Filter
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -1970,7 +1978,9 @@ class AffectCVSSV2View(RudimentaryUserPathLoggingMixin, ModelViewSet):
     ),
 )
 class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
-    queryset = Tracker.objects.prefetch_related("alerts", "errata", "affects").all()
+    queryset = Tracker.objects.with_acl_annotations().prefetch_related(
+        "alerts", "errata", "affects"
+    )
     serializer_class = TrackerSerializer
     filterset_class = TrackerFilter
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
@@ -1987,7 +1997,9 @@ class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
 class TrackerV1View(TrackerView):
     """View for the tracker model adapted to affects v1"""
 
-    queryset = Tracker.objects.prefetch_related("alerts", "errata").all()
+    queryset = Tracker.objects.with_acl_annotations().prefetch_related(
+        "alerts", "errata"
+    )
     serializer_class = TrackerV1Serializer
     http_method_names = get_valid_http_methods(
         ModelViewSet, excluded=["delete", "post", "put"]

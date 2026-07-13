@@ -1068,15 +1068,18 @@ class FlawV1Filter(FlawFilter):
 
     def affects_embargoed_filter(self, queryset, name, value):
         flaw_ids = (
-            AffectV1.objects.filter(embargoed=value)
+            AffectV1.objects.with_acl_annotations()
+            .filter(embargoed=value)
             .values_list("flaw_id", flat=True)
             .distinct()
         )
         return queryset.filter(uuid__in=flaw_ids)
 
     def affects_trackers_embargoed_filter(self, queryset, name, value):
-        tracker_uuids = Tracker.objects.filter(embargoed=value).values_list(
-            "uuid", flat=True
+        tracker_uuids = (
+            Tracker.objects.with_acl_annotations()
+            .filter(embargoed=value)
+            .values_list("uuid", flat=True)
         )
 
         flaw_ids = (
@@ -1334,9 +1337,10 @@ class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFil
 
     def _filter_by_tracker_attribute(self, queryset, filter_key, value):
         """Helper method to find affects v1 from its trackers' fields"""
-        tracker_uuids = Tracker.objects.filter(**{filter_key: value}).values_list(
-            "uuid", flat=True
-        )
+        qs = Tracker.objects.all()
+        if filter_key == "embargoed":
+            qs = qs.with_acl_annotations()
+        tracker_uuids = qs.filter(**{filter_key: value}).values_list("uuid", flat=True)
 
         if not tracker_uuids.exists():
             return queryset.none()
@@ -1808,8 +1812,11 @@ class TrackerV1Filter(TrackerFilter):
         """
         Helper to get all tracker ids from affect v1 objects that match a given filter.
         """
+        qs = Affect.objects.all()
+        if any("embargoed" in k for k in affect_v1_filter):
+            qs = qs.with_acl_annotations()
         return (
-            Affect.objects.filter(**affect_v1_filter)
+            qs.filter(**affect_v1_filter)
             .exclude(tracker__isnull=True)
             .values_list("tracker__uuid", flat=True)
             .distinct()

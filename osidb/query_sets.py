@@ -1,8 +1,9 @@
-from django.db import models
 from django.utils import timezone
 
+from osidb.mixins import ACLMixinQuerySet
 
-class CustomQuerySetUpdatedDt(models.QuerySet):
+
+class CustomQuerySetUpdatedDt(ACLMixinQuerySet):
     """Extend QuerySet to inject updated_dt on update"""
 
     def update(self, auto_timestamps=True, **kwargs):

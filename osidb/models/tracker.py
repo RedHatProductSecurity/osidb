@@ -325,7 +325,9 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         if (
             not self.is_embargoed
-            and Flaw.objects.filter(affects__tracker=self, embargoed=True).exists()
+            and Flaw.objects.with_acl_annotations()
+            .filter(affects__tracker=self, embargoed=True)
+            .exists()
         ):
             raise ValidationError(
                 "Tracker is public but is associated with an embargoed flaw."
@@ -443,7 +445,11 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         """
         # enforce the reload from DB or
         # we can see an outdated state
-        return not self.affects.filter(embargoed=True).exists()
+        return (
+            not Affect.objects.with_acl_annotations()
+            .filter(tracker=self, embargoed=True)
+            .exists()
+        )
 
     @property
     def aggregated_impact(self):

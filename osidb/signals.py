@@ -179,16 +179,20 @@ def delete_flaw_labels(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Affect)
 def update_last_impact_increase_dt_affect(sender, instance, **kwargs):
-    if not instance._state.adding and Impact(instance.impact) > Impact(
-        Affect.objects.get(pk=instance.pk).impact
-    ):
-        if (
-            instance.tracker is not None
-            and Impact(instance.impact) > instance.tracker.aggregated_impact
-        ):
-            Tracker.objects.filter(uuid=instance.tracker.uuid).update(
-                last_impact_increase_dt=timezone.now()
-            )
+    if not instance._state.adding:
+        old_impact = (
+            Affect.objects.filter(pk=instance.pk)
+            .values_list("impact", flat=True)
+            .first()
+        )
+        if old_impact is not None and Impact(instance.impact) > Impact(old_impact):
+            if (
+                instance.tracker is not None
+                and Impact(instance.impact) > instance.tracker.aggregated_impact
+            ):
+                Tracker.objects.filter(uuid=instance.tracker.uuid).update(
+                    last_impact_increase_dt=timezone.now()
+                )
 
 
 @receiver(pre_save, sender=Affect)
@@ -203,22 +207,23 @@ def remove_not_affected_justification(sender, instance, **kwargs):
 
 @receiver(pre_save, sender=Flaw)
 def update_last_impact_increase_dt_flaw(sender, instance, **kwargs):
-    if not instance._state.adding and Impact(instance.impact) > Impact(
-        Flaw.objects.get(pk=instance.pk).impact
-    ):
-        to_update = set()
-        for tracker in Tracker.objects.filter(affects__flaw=instance).distinct():
-            # Tracker will only take the flaw's impact if none of its affects have an impact
-            if (
-                not tracker.affects.exclude(impact="").exists()
-                and Impact(instance.impact) > tracker.aggregated_impact
-            ):
-                to_update.add(tracker.uuid)
+    if not instance._state.adding:
+        old_impact = (
+            Flaw.objects.filter(pk=instance.pk).values_list("impact", flat=True).first()
+        )
+        if old_impact is not None and Impact(instance.impact) > Impact(old_impact):
+            to_update = set()
+            for tracker in Tracker.objects.filter(affects__flaw=instance).distinct():
+                if (
+                    not tracker.affects.exclude(impact="").exists()
+                    and Impact(instance.impact) > tracker.aggregated_impact
+                ):
+                    to_update.add(tracker.uuid)
 
-        if to_update:
-            Tracker.objects.filter(uuid__in=to_update).update(
-                last_impact_increase_dt=timezone.now()
-            )
+            if to_update:
+                Tracker.objects.filter(uuid__in=to_update).update(
+                    last_impact_increase_dt=timezone.now()
+                )
 
 
 @receiver(pre_save, sender=Flaw)
@@ -226,9 +231,11 @@ def update_denormalized_cve_ids_on_flaw_update(sender, instance, **kwargs):
     # while it's very unlikely for a Flaw's CVE ID to be updated, it's best
     # to cover this scenario for denormalized CVE IDs in other models.
     if not instance._state.adding:
-        db_instance = Flaw.objects.get(pk=instance.pk)
+        old_cve_id = (
+            Flaw.objects.filter(pk=instance.pk).values_list("cve_id", flat=True).first()
+        )
         trackers = set()
-        if instance.cve_id != db_instance.cve_id:
+        if instance.cve_id != old_cve_id:
             instance.affects.all().update(cve_id=instance.cve_id)
             for affect in instance.affects.all():
                 if affect.tracker is not None:
@@ -280,11 +287,12 @@ def update_denormalized_labels_on_affect_change(sender, instance, **kwargs):
         instance.update_denormalized_labels()
     else:
         # Existing affect - check if ps_module or ps_component changed
-        db_instance = Affect.objects.get(pk=instance.pk)
-        if (
-            instance.ps_module != db_instance.ps_module
-            or instance.ps_component != db_instance.ps_component
-        ):
+        old = (
+            Affect.objects.filter(pk=instance.pk)
+            .values_list("ps_module", "ps_component")
+            .first()
+        )
+        if old and (instance.ps_module != old[0] or instance.ps_component != old[1]):
             instance.update_denormalized_labels()
 
 
@@ -305,10 +313,13 @@ def send_email_on_incident_state_change(
         return
     elif not instance._state.adding:
         # No notification on Flaw update with no incident state changes
-        db_instance = Flaw.objects.get(pk=instance.pk)
-        if instance.major_incident_state == db_instance.major_incident_state:
+        previous_incident_state = (
+            Flaw.objects.filter(pk=instance.pk)
+            .values_list("major_incident_state", flat=True)
+            .first()
+        )
+        if instance.major_incident_state == previous_incident_state:
             return
-        previous_incident_state = db_instance.major_incident_state
 
     def get_osim_url():
         if (env := get_execution_env()) == "prod":
