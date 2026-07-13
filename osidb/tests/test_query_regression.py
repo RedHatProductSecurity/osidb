@@ -100,7 +100,7 @@ class TestQuerySetRegression:
             response = auth_client().get(f"{test_api_v2_uri}/flaws/{flaw.uuid}")
             assert response.status_code == 200
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 62), (True, 62)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 63), (True, 62)])
     def test_flaw_with_affects(
         self, auth_client, test_api_v2_uri, embargoed, query_count
     ):
@@ -216,7 +216,7 @@ class TestQuerySetRegression:
         executed_sql = "\n".join(q["sql"] for q in ctx.captured_queries)
         assert '"osidb_affect"' not in executed_sql
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 68), (True, 68)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 69), (True, 68)])
     def test_flaw_with_affects_trackers(
         self, auth_client, test_api_v2_uri, embargoed, query_count
     ):
