@@ -23,7 +23,7 @@ from regulatory_reporting.tests.factories import (
     UpstreamProjectFactory,
 )
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.enable_signals]
 
 
 class TestUpstreamProjectSerializer:
@@ -172,7 +172,7 @@ class TestSRPReportSerializer:
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
         )
         assert final_milestone_obj.due_at == srp_report.timer_started_at + timedelta(
-            days=14
+            days=30
         )
 
         final_milestone = next(
@@ -193,5 +193,5 @@ class TestSRPReportSerializer:
         assert data["milestones"][1]["hours_remaining"] == 71
         assert data["milestones"][1]["days_remaining"] == 2
         assert data["milestones"][2]["milestone_type"] == "final"
-        assert data["milestones"][2]["hours_remaining"] == 14 * 24 - 1
-        assert data["milestones"][2]["days_remaining"] == 13
+        assert data["milestones"][2]["hours_remaining"] == 30 * 24 - 1
+        assert data["milestones"][2]["days_remaining"] == 29

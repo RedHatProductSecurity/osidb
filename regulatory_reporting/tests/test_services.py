@@ -10,6 +10,12 @@ from regulatory_reporting.models.upstream import (
 )
 from regulatory_reporting.services import is_flaw_upstream_notifiable
 
+pytestmark = [
+    pytest.mark.unit,
+    pytest.mark.enable_signals,
+    pytest.mark.cra_notifications,
+]
+
 
 @pytest.mark.django_db
 class TestIsFlawUpstreamNotifiable:
@@ -29,10 +35,8 @@ class TestIsFlawUpstreamNotifiable:
         assert is_flaw_upstream_notifiable(flaw) is False
 
 
-@pytest.mark.enable_signals
 @pytest.mark.django_db
 class TestUpstreamNotificationSignal:
-    @override_settings(CRA_NOTIFICATIONS_ENABLED=True)
     def test_redhat_flaw_creates_notification(self):
         flaw = FlawFactory(
             embargoed=False,
@@ -43,11 +47,11 @@ class TestUpstreamNotificationSignal:
         assert notification.status == UpstreamNotification.NotificationStatus.REQUIRED
         assert notification.upstream_project is None
 
-    @override_settings(CRA_NOTIFICATIONS_ENABLED=True)
     def test_nvd_flaw_does_not_create_notification(self):
         flaw = FlawFactory(source=FlawSource.NVD)
         assert not UpstreamNotification.objects.filter(flaw=flaw).exists()
 
+    @pytest.mark.no_cra_notifications
     def test_flag_disabled_does_not_create_notification(self):
         flaw = FlawFactory(
             embargoed=False,
@@ -59,7 +63,6 @@ class TestUpstreamNotificationSignal:
 @pytest.mark.enable_signals
 @pytest.mark.django_db
 class TestMappingNotificationSignal:
-    @override_settings(CRA_NOTIFICATIONS_ENABLED=True)
     def test_backfills_existing_blank_notification(self):
         flaw = FlawFactory(embargoed=False, source=FlawSource.REDHAT)
         notification = UpstreamNotification.objects.get(flaw=flaw)
@@ -70,7 +73,6 @@ class TestMappingNotificationSignal:
         assert notification.upstream_project == project
         assert UpstreamNotification.objects.filter(flaw=flaw).count() == 1
 
-    @override_settings(CRA_NOTIFICATIONS_ENABLED=True)
     def test_second_mapping_creates_separate_notification(self):
         flaw = FlawFactory(embargoed=False, source=FlawSource.REDHAT)
         project1 = UpstreamProject.objects.create(component_name="comp-1")
@@ -79,7 +81,6 @@ class TestMappingNotificationSignal:
         FlawUpstreamMapping.objects.create(flaw=flaw, upstream_project=project2)
         assert UpstreamNotification.objects.filter(flaw=flaw).count() == 2
 
-    @override_settings(CRA_NOTIFICATIONS_ENABLED=True)
     def test_backfills_even_if_status_already_blocked(self):
         flaw = FlawFactory(embargoed=False, source=FlawSource.REDHAT)
         notification = UpstreamNotification.objects.get(flaw=flaw)
@@ -91,7 +92,7 @@ class TestMappingNotificationSignal:
         assert notification.upstream_project == project
         assert notification.status == UpstreamNotification.NotificationStatus.BLOCKED
 
-    @override_settings(CRA_NOTIFICATIONS_ENABLED=False)
+    @pytest.mark.no_cra_notifications
     def test_flag_disabled_does_not_backfill(self):
         flaw = FlawFactory(embargoed=False, source=FlawSource.REDHAT)
         project = UpstreamProject.objects.create(component_name="test-component")
