@@ -31,4 +31,4 @@ class UpstreamProjectFilter(FilterSet):
 
     class Meta:
         model = UpstreamProject
-        fields = ["component", "repository_url"]
+        fields = ["component", "repository_url", "purl"]
