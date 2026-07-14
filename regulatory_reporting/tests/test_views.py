@@ -1,10 +1,11 @@
 from unittest.mock import patch
 
 import pytest
+from rest_framework import status
 
 from osidb.models.flaw import FlawSource
 from osidb.tests.factories import FlawFactory
-from regulatory_reporting.models.upstream import UpstreamNotification
+from regulatory_reporting.models.upstream import UpstreamNotification, UpstreamProject
 
 from .factories import UpstreamNotificationFactory, UpstreamProjectFactory
 
@@ -156,3 +157,95 @@ class TestSendEmailAction:
         )
 
         assert response.status_code == 400
+
+
+class TestUpstreamProjectView:
+    def test_list_upstream_projects(self, auth_client, test_api_v2_uri):
+        UpstreamProjectFactory.create_batch(3)
+
+        response = auth_client().get(f"{test_api_v2_uri}/upstream-projects")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == 3
+
+    def test_retrieve_upstream_project(self, auth_client, test_api_v2_uri):
+        project = UpstreamProjectFactory()
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/upstream-projects/{project.uuid}"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["uuid"] == str(project.uuid)
+        assert response.json()["component_name"] == project.component_name
+
+    def test_create_upstream_project(self, auth_client, test_api_v2_uri):
+        payload = {
+            "component_name": "test-component",
+            "repository_url": "https://github.com/test/test",
+            "security_contact": "security@test.com",
+            "contact_method": "email",
+        }
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/upstream-projects", payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert UpstreamProject.objects.filter(component_name="test-component").exists()
+
+    def test_update_upstream_project(self, auth_client, test_api_v2_uri):
+        project = UpstreamProjectFactory(component_name="old-name")
+
+        response = auth_client().put(
+            f"{test_api_v2_uri}/upstream-projects/{project.uuid}",
+            {
+                "component_name": "new-name",
+                "repository_url": project.repository_url,
+                "security_contact": project.security_contact,
+                "contact_method": project.contact_method,
+                "updated_dt": project.updated_dt.isoformat(),
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        project.refresh_from_db()
+        assert project.component_name == "new-name"
+
+    def test_filter_by_component(self, auth_client, test_api_v2_uri):
+        UpstreamProjectFactory(component_name="curl")
+        UpstreamProjectFactory(component_name="openssl")
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/upstream-projects?component=curl"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        assert len(results) == 1
+        assert results[0]["component_name"] == "curl"
+
+    def test_filter_by_repository_url(self, auth_client, test_api_v2_uri):
+        UpstreamProjectFactory(repository_url="https://github.com/test/curl")
+        UpstreamProjectFactory(repository_url="https://github.com/test/openssl")
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/upstream-projects?repository_url=curl"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        assert len(results) == 1
+        assert "curl" in results[0]["repository_url"]
+
+    def test_filter_by_purl_aliases_component(self, auth_client, test_api_v2_uri):
+        UpstreamProjectFactory(component_name="curl")
+        UpstreamProjectFactory(component_name="openssl")
+
+        response = auth_client().get(f"{test_api_v2_uri}/upstream-projects?purl=curl")
+
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        assert len(results) == 1
+        assert results[0]["component_name"] == "curl"
