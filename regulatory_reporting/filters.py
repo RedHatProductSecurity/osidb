@@ -11,9 +11,10 @@ from django_filters.rest_framework import (
 )
 from djangoql.schema import DjangoQLSchema
 
+from osidb.filters import PURLFilter
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 
-from .models.upstream import UpstreamNotification
+from .models.upstream import UpstreamNotification, UpstreamProject
 
 
 class UpstreamNotificationFilter(FilterSet):
@@ -117,3 +118,17 @@ class SRPReportMilestoneFilter(FilterSet):
             "request_source",
             "request_text",
         ]
+
+
+class UpstreamProjectFilter(FilterSet):
+    """
+    Filters queries to UpstreamProjectView based on UpstreamProject fields.
+    """
+
+    component = CharFilter(field_name="component_name", lookup_expr="icontains")
+    purl = PURLFilter(field_name="purl", lookup_expr="exact")
+    repository_url = CharFilter(field_name="repository_url", lookup_expr="icontains")
+
+    class Meta:
+        model = UpstreamProject
+        fields = ["component", "purl", "repository_url"]

@@ -4,6 +4,7 @@ import pghistory
 from django.db import models
 
 from osidb.mixins import ACLMixin, TrackingMixin
+from osidb.models.fields import PURLField
 
 
 class UpstreamProject(TrackingMixin):
@@ -36,6 +37,7 @@ class UpstreamProject(TrackingMixin):
     stewarded_awareness_marked_by = models.CharField(max_length=255, blank=True)
     stewarded_awareness_marked_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True)
+    purl = PURLField(blank=True)
 
     class Meta:
         verbose_name = "Upstream Project"

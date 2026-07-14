@@ -1,19 +1,18 @@
 from unittest.mock import patch
 
 import pytest
+from rest_framework import status
 from rest_framework.test import APIClient
 
 from osidb.models.abstract import Impact
 from osidb.models.flaw import FlawSource
-from regulatory_reporting.models.upstream import UpstreamNotification
+from regulatory_reporting.models.upstream import UpstreamNotification, UpstreamProject
 
 from .factories import (
     NonReportableFlawFactory,
     UpstreamNotificationFactory,
     UpstreamProjectFactory,
 )
-
-UPSTREAM_NOTIFICATIONS_URI = "/regulatory-reporting/api/v1/notifications/upstream"
 
 
 class TestUpstreamNotificationView:
@@ -22,7 +21,9 @@ class TestUpstreamNotificationView:
         UpstreamNotificationFactory()
         UpstreamNotificationFactory()
 
-        response = auth_client().get(UPSTREAM_NOTIFICATIONS_URI)
+        response = auth_client().get(
+            "/regulatory-reporting/api/v1/notifications/upstream"
+        )
         assert response.status_code == 200
         assert response.json()["count"] == 2
 
@@ -31,7 +32,7 @@ class TestUpstreamNotificationView:
         notification = UpstreamNotificationFactory()
 
         response = auth_client().get(
-            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}"
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}"
         )
         assert response.status_code == 200
         assert response.json()["uuid"] == str(notification.uuid)
@@ -45,7 +46,9 @@ class TestUpstreamNotificationView:
             status=UpstreamNotification.NotificationStatus.REQUIRED,
         )
 
-        response = auth_client().get(f"{UPSTREAM_NOTIFICATIONS_URI}?status=sent")
+        response = auth_client().get(
+            "/regulatory-reporting/api/v1/notifications/upstream?status=sent"
+        )
         assert response.status_code == 200
         assert response.json()["count"] == 1
 
@@ -58,7 +61,9 @@ class TestUpstreamNotificationView:
             method=UpstreamNotification.NotificationMethod.GITHUB_ISSUE,
         )
 
-        response = auth_client().get(f"{UPSTREAM_NOTIFICATIONS_URI}?method=email")
+        response = auth_client().get(
+            "/regulatory-reporting/api/v1/notifications/upstream?method=email"
+        )
         assert response.status_code == 200
         assert response.json()["count"] == 1
 
@@ -69,7 +74,7 @@ class TestUpstreamNotificationView:
         UpstreamNotificationFactory()
 
         response = auth_client().get(
-            f"{UPSTREAM_NOTIFICATIONS_URI}?upstream_project={upstream_project.uuid}"
+            f"/regulatory-reporting/api/v1/notifications/upstream?upstream_project={upstream_project.uuid}"
         )
         assert response.status_code == 200
         assert response.json()["count"] == 1
@@ -80,7 +85,9 @@ class TestUpstreamNotificationView:
         UpstreamNotificationFactory(flaw=flaw)
         UpstreamNotificationFactory()
 
-        response = auth_client().get(f"{UPSTREAM_NOTIFICATIONS_URI}?flaw={flaw.uuid}")
+        response = auth_client().get(
+            f"/regulatory-reporting/api/v1/notifications/upstream?flaw={flaw.uuid}"
+        )
         assert response.status_code == 200
         assert response.json()["count"] == 1
 
@@ -97,7 +104,7 @@ class TestUpstreamNotificationView:
         )
 
         response = auth_client().get(
-            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/preview"
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}/preview"
         )
 
         assert response.status_code == 200
@@ -115,19 +122,19 @@ class TestUpstreamNotificationView:
         )
 
         response = auth_client().get(
-            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/preview"
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}/preview"
         )
 
         assert response.status_code == 400
         assert "upstream_project" in response.json()
 
     def test_preview_requires_authentication(self):
-        """Test anonymous requests to preview are rejected."""
+        """Test  anonymous requests to preview are rejected."""
 
         notification = UpstreamNotificationFactory()
 
         response = APIClient().get(
-            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/preview"
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}/preview"
         )
 
         assert response.status_code == 401
@@ -136,8 +143,10 @@ class TestUpstreamNotificationView:
 @pytest.mark.no_cra_notifications
 class TestUpstreamNotificationAPIDisabled:
     def test_list_returns_404_when_notifications_disabled(self, auth_client):
-        """notifications/upstream 404s when CRA_NOTIFICATIONS_ENABLED is False."""
-        response = auth_client().get(UPSTREAM_NOTIFICATIONS_URI)
+        """/regulatory-reporting/api/v1/notifications/ 404s when CRA_NOTIFICATIONS_ENABLED is False."""
+        response = auth_client().get(
+            "/regulatory-reporting/api/v1/notifications/upstream"
+        )
         assert response.status_code == 404
 
 
@@ -157,7 +166,7 @@ class TestSendEmailAction:
         )
 
         response = auth_client().post(
-            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/send-email"
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}/send-email"
         )
 
         assert response.status_code == 200
@@ -179,7 +188,7 @@ class TestSendEmailAction:
         )
 
         response = auth_client().post(
-            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/send-email"
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}/send-email"
         )
 
         assert response.status_code == 400
@@ -194,7 +203,7 @@ class TestSendEmailAction:
         )
 
         response = auth_client().post(
-            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/send-email"
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}/send-email"
         )
 
         assert response.status_code == 400
@@ -207,7 +216,7 @@ class TestSendEmailAction:
         )
 
         response = auth_client().post(
-            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/send-email"
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}/send-email"
         )
 
         assert response.status_code == 400
@@ -231,7 +240,7 @@ class TestSendEmailAction:
         )
 
         response = auth_client().post(
-            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/send-email"
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}/send-email"
         )
 
         assert response.status_code == 200
@@ -258,7 +267,7 @@ class TestSendEmailAction:
         )
 
         response = auth_client().post(
-            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/send-email"
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}/send-email"
         )
 
         assert response.status_code == 200
@@ -267,3 +276,94 @@ class TestSendEmailAction:
             "This information is confidential until public disclosure."
             in notification.payload_text
         )
+
+
+class TestUpstreamProjectView:
+    def test_list_upstream_projects(self, auth_client):
+        UpstreamProjectFactory.create_batch(3)
+
+        response = auth_client().get("/regulatory-reporting/api/v1/upstream-projects")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == 3
+
+    def test_retrieve_upstream_project(self, auth_client):
+        project = UpstreamProjectFactory()
+
+        response = auth_client().get(
+            f"/regulatory-reporting/api/v1/upstream-projects/{project.uuid}"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["uuid"] == str(project.uuid)
+        assert response.json()["component_name"] == project.component_name
+
+    def test_create_upstream_project(self, auth_client):
+        payload = {
+            "component_name": "test-component",
+            "repository_url": "https://github.com/test/test",
+            "security_contact": "security@test.com",
+            "contact_method": "email",
+        }
+
+        response = auth_client().post(
+            "/regulatory-reporting/api/v1/upstream-projects", payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert UpstreamProject.objects.filter(component_name="test-component").exists()
+
+    def test_update_upstream_project(self, auth_client):
+        project = UpstreamProjectFactory(component_name="old-name")
+
+        response = auth_client().put(
+            f"/regulatory-reporting/api/v1/upstream-projects/{project.uuid}",
+            {
+                "component_name": "new-name",
+                "repository_url": project.repository_url,
+                "security_contact": project.security_contact,
+                "contact_method": project.contact_method,
+                "updated_dt": project.updated_dt.isoformat(),
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        project.refresh_from_db()
+        assert project.component_name == "new-name"
+
+    def test_filter_by_component(self, auth_client):
+        UpstreamProjectFactory(component_name="curl")
+        UpstreamProjectFactory(component_name="openssl")
+
+        response = auth_client().get(
+            "/regulatory-reporting/api/v1/upstream-projects?component=curl"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        assert len(results) == 1
+        assert results[0]["component_name"] == "curl"
+
+    def test_filter_by_repository_url(self, auth_client):
+        UpstreamProjectFactory(repository_url="https://github.com/test/curl")
+        UpstreamProjectFactory(repository_url="https://github.com/test/openssl")
+
+        response = auth_client().get(
+            "/regulatory-reporting/api/v1/upstream-projects?repository_url=curl"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        assert len(results) == 1
+        assert "curl" in results[0]["repository_url"]
+
+    def test_filter_by_purl(self, auth_client):
+        UpstreamProjectFactory(purl="pkg:github/example/repo")
+        response = auth_client().get(
+            "/regulatory-reporting/api/v1/upstream-projects?purl=pkg:github/example/repo"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()["results"]
+        assert len(results) == 1
+        assert results[0]["purl"] == "pkg:github/example/repo"

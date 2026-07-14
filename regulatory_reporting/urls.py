@@ -12,6 +12,7 @@ from regulatory_reporting.api_views import (
     SRPReportMilestoneViewSet,
     SRPReportViewSet,
     UpstreamNotificationView,
+    UpstreamProjectView,
 )
 from regulatory_reporting.constants import UUID_PATH_REGEX
 
@@ -41,11 +42,18 @@ router.register(
     basename="flawsrpreportmilestones",
 )
 
-# Upstream maintainer notifications
+# Upstream Maintainer Notifications
 router.register(
     r"notifications/upstream",
     UpstreamNotificationView,
     basename="upstreamnotifications",
+)
+
+# Upstream Projects
+router.register(
+    r"upstream-projects",
+    UpstreamProjectView,
+    basename="upstreamprojects",
 )
 
 urlpatterns = router.urls
