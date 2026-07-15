@@ -124,6 +124,22 @@ def community_ps_stream_with_tracker():
 
 
 @pytest.fixture
+def hummingbird_ps_stream_with_moderate_tracker():
+    """
+    Hummingbird (bts_key="HUM") stream that passes OOSS and WONTFIX checks.
+    Used to verify that the mod7 DEFER check is skipped for HUM modules.
+    """
+    ps_product = PsProductFactory(business_unit="RHEL")
+    ps_module = PsModuleFactory(ps_product=ps_product, bts_key="HUM")
+    return PsUpdateStreamFactory(
+        ps_module=ps_module,
+        active_to_ps_module=ps_module,
+        moderate_to_ps_module=ps_module,
+        unacked_to_ps_module=None,
+    )
+
+
+@pytest.fixture
 def flaw_with_cvss():
     """
     Factory fixture: call with (impact, cvss_vector) to get a saved Flaw with
