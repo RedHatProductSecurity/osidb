@@ -60,6 +60,7 @@ class UpstreamNotification(ACLMixin, TrackingMixin):
         CONTACT_NEEDED = "contact_needed"
         PREPARED = "prepared"
         REVIEWED = "reviewed"
+        QUEUED = "queued"
         SENT = "sent"
         DEFERRED = "deferred"
         BLOCKED = "blocked"
@@ -108,6 +109,7 @@ class UpstreamNotification(ACLMixin, TrackingMixin):
     )
     timer_started_at = models.DateTimeField(null=True, blank=True)
     last_error = models.TextField(blank=True)
+    payload_text = models.TextField(blank=True)
 
     class Meta:
         verbose_name = "Upstream Notification"

@@ -17,7 +17,11 @@ from regulatory_reporting.tests.factories import (
     SRPReportMilestoneFactory,
 )
 
-pytestmark = pytest.mark.unit
+pytestmark = [
+    pytest.mark.unit,
+    pytest.mark.no_cra_reporting,
+    pytest.mark.no_cra_notifications,
+]
 
 
 def _report_kwargs(**overrides):

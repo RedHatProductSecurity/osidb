@@ -1,0 +1,20 @@
+This notification is regarding a security vulnerability affecting your component.
+
+Identifier: {{ flaw_id }}
+
+Summary: {{ vulnerability_summary }}
+
+Affected component: {{ upstream_component }}
+
+Severity: {{ severity }}
+{% if exploitation_state %}
+Known exploitation state: {{ exploitation_state }}
+{% endif %}
+{% if embargo_notice %}
+{{ embargo_notice }}
+{% endif %}
+{% if corrective_measure %}
+Corrective or mitigating measure: {{ corrective_measure }}
+{% endif %}
+
+Sent by Red Hat Product Security under applicable regulatory requirements.

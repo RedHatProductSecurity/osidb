@@ -16,13 +16,16 @@ from osidb.models import Flaw
 from osidb.tests.factories import FlawFactory
 from regulatory_reporting.models import SRPReport
 
-pytestmark = pytest.mark.unit
+pytestmark = [
+    pytest.mark.unit,
+    pytest.mark.enable_signals,
+    pytest.mark.cra_reporting,
+]
 
 
 class TestSRPReportAutoCreation:
     """Test automatic SRP Report creation via signals"""
 
-    @pytest.mark.enable_signals
     def test_srp_report_created_when_kev_approved(self):
         """
         When a flaw's major_incident_state is set to EXPLOITS_KEV_APPROVED,
@@ -62,7 +65,6 @@ class TestSRPReportAutoCreation:
         assert report.title  # Title should be populated from flaw
         assert flaw.cve_id in report.title or flaw.title in report.title
 
-    @pytest.mark.enable_signals
     def test_srp_report_created_when_major_incident_approved(self):
         """
         When a flaw's major_incident_state is set to MAJOR_INCIDENT_APPROVED,
@@ -98,7 +100,6 @@ class TestSRPReportAutoCreation:
         assert report.status == SRPReport.SRPReportStatus.REQUIRED
         assert report.responsibility_scope == SRPReport.ResponsibilityScope.MANUFACTURER
 
-    @pytest.mark.enable_signals
     def test_srp_report_created_on_flaw_creation_with_kev_approved(self):
         """
         When a flaw is created with major_incident_state already set to
@@ -122,7 +123,6 @@ class TestSRPReportAutoCreation:
         )
         assert report.timer_started_at == start_time
 
-    @pytest.mark.enable_signals
     def test_srp_report_not_created_for_other_states(self):
         """
         When a flaw's major_incident_state is set to values other than
@@ -137,7 +137,6 @@ class TestSRPReportAutoCreation:
         # Assert
         assert SRPReport.objects.filter(flaw=flaw).count() == 0
 
-    @pytest.mark.enable_signals
     def test_srp_report_not_duplicated_if_already_exists(self):
         """
         If an SRP Report already exists for a flaw with the same
@@ -160,7 +159,6 @@ class TestSRPReportAutoCreation:
         # Assert - no duplicate created
         assert SRPReport.objects.filter(flaw=flaw).count() == 1
 
-    @pytest.mark.enable_signals
     def test_srp_report_uses_major_incident_start_dt(self):
         """
         The timer_started_at field should use the flaw's major_incident_start_dt
@@ -183,7 +181,6 @@ class TestSRPReportAutoCreation:
         assert report.timer_started_at == start_time
         assert report.timer_started_at == flaw.major_incident_start_dt
 
-    @pytest.mark.enable_signals
     def test_srp_report_inherits_acl_from_flaw(self):
         """
         The automatically created SRP Report should inherit ACL permissions
@@ -201,7 +198,6 @@ class TestSRPReportAutoCreation:
         assert report.acl_read == flaw.acl_read
         assert report.acl_write == flaw.acl_write
 
-    @pytest.mark.enable_signals
     def test_srp_report_created_when_transitioning_states(self):
         """
         Test that SRP Reports are created when transitioning from one
@@ -227,7 +223,6 @@ class TestSRPReportAutoCreation:
             == SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
         )
 
-    @pytest.mark.enable_signals
     def test_flaw_can_have_both_event_type_reports(self):
         """
         A flaw could theoretically transition from MAJOR_INCIDENT_APPROVED
@@ -303,7 +298,6 @@ class TestSRPReportNoAutoCreation:
             "EXPLOITS_KEV_REJECTED",
         ],
     )
-    @pytest.mark.enable_signals
     def test_srp_report_not_created_for_non_approved_states(self, state):
         """
         SRP Reports should only be created for APPROVED states, not for
@@ -320,7 +314,6 @@ class TestSRPReportNoAutoCreation:
         # Assert
         assert SRPReport.objects.filter(flaw=flaw).count() == 0
 
-    @pytest.mark.enable_signals
     def test_srp_report_not_created_when_only_start_dt_changes(self):
         """
         If only major_incident_start_dt changes but major_incident_state
@@ -339,7 +332,6 @@ class TestSRPReportNoAutoCreation:
         # Assert
         assert SRPReport.objects.filter(flaw=flaw).count() == 0
 
-    @pytest.mark.enable_signals
     def test_srp_report_status_is_not_changed_when_flaw_is_saved(self):
         """
         The status of the SRP Report should not be changed when the flaw is saved.
@@ -362,7 +354,6 @@ class TestSRPReportNoAutoCreation:
         srp_report.refresh_from_db()
         assert srp_report.status == SRPReport.SRPReportStatus.PREPARED
 
-    @pytest.mark.enable_signals
     def test_srp_report_title_is_updated_when_flaw_is_saved(self):
         """
         The title of the SRP Report should be updated when the flaw is saved.
@@ -381,7 +372,6 @@ class TestSRPReportNoAutoCreation:
         assert SRPReport.objects.filter(flaw=flaw).count() == 1
         assert SRPReport.objects.get(flaw=flaw).title == "New title"
 
-    @pytest.mark.enable_signals
     def test_srp_report_acl_is_updated_when_flaw_is_saved(
         self,
         internal_read_groups,
