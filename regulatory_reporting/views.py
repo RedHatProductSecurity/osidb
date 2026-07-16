@@ -143,13 +143,20 @@ def _redact_query_string_for_logging(request):
 
 
 @include_exclude_fields_extend_schema_view
-class UpstreamProjectView(RudimentaryUserPathLoggingMixin, viewsets.ModelViewSet):
+class UpstreamProjectView(
+    RudimentaryUserPathLoggingMixin,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
     """
     API endpoint for listing, creating, retrieving, and updating upstream project.
     """
 
     http_method_names = get_valid_http_methods(
-        viewsets.ModelViewSet, excluded=["delete"]
+        viewsets.GenericViewSet, excluded=["delete"]
     )
     queryset = UpstreamProject.objects.all()
     serializer_class = UpstreamProjectSerializer
