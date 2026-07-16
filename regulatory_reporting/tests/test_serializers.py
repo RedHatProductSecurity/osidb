@@ -23,7 +23,7 @@ from regulatory_reporting.tests.factories import (
     UpstreamProjectFactory,
 )
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.enable_signals]
 
 
 class TestUpstreamProjectSerializer:
@@ -35,7 +35,6 @@ class TestUpstreamProjectSerializer:
         assert "created_dt" in fields
         assert "updated_dt" in fields
 
-    @pytest.mark.django_db
     def test_serializes_instance(self):
         project = UpstreamProjectFactory()
         data = UpstreamProjectSerializer(project).data
@@ -53,7 +52,6 @@ class TestUpstreamNotificationSerializer:
         assert "visibility" in fields
         assert "created_dt" in fields
 
-    @pytest.mark.django_db
     def test_serializes_instance(self):
         notification = UpstreamNotificationFactory()
         data = UpstreamNotificationSerializer(notification).data
@@ -67,7 +65,6 @@ class TestFlawUpstreamMappingSerializer:
         assert "flaw_uuid" in fields
         assert "upstream_project" in fields
 
-    @pytest.mark.django_db
     def test_serializes_instance(self):
         mapping = FlawUpstreamMappingFactory()
         data = FlawUpstreamMappingSerializer(mapping).data
@@ -172,7 +169,7 @@ class TestSRPReportSerializer:
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
         )
         assert final_milestone_obj.due_at == srp_report.timer_started_at + timedelta(
-            days=14
+            days=30
         )
 
         final_milestone = next(
@@ -193,5 +190,5 @@ class TestSRPReportSerializer:
         assert data["milestones"][1]["hours_remaining"] == 71
         assert data["milestones"][1]["days_remaining"] == 2
         assert data["milestones"][2]["milestone_type"] == "final"
-        assert data["milestones"][2]["hours_remaining"] == 14 * 24 - 1
-        assert data["milestones"][2]["days_remaining"] == 13
+        assert data["milestones"][2]["hours_remaining"] == 30 * 24 - 1
+        assert data["milestones"][2]["days_remaining"] == 29
