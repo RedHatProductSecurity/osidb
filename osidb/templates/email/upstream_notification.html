@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Security Vulnerability Notification</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <p>This notification is regarding a security vulnerability affecting your component.</p>
+
+    <p><strong>Identifier:</strong> {{ flaw_id }}</p>
+    <p><strong>Summary:</strong> {{ vulnerability_summary }}</p>
+    <p><strong>Affected component:</strong> {{ upstream_component }}</p>
+    <p><strong>Severity:</strong> {{ severity }}</p>
+    {% if exploitation_state %}
+    <p><strong>Known exploitation state:</strong> {{ exploitation_state }}</p>
+    {% endif %}
+    {% if embargo_notice %}
+    <p>{{ embargo_notice }}</p>
+    {% endif %}
+    {% if corrective_measure %}
+    <p><strong>Corrective or mitigating measure:</strong> {{ corrective_measure }}</p>
+    {% endif %}
+
+    <p>Sent by Red Hat Product Security under applicable regulatory requirements.</p>
+</body>
+</html>

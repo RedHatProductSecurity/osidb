@@ -1,6 +1,10 @@
 from rest_framework import serializers
 
-from osidb.serializer import ACLMixinSerializer, TrackingMixinSerializer
+from osidb.serializer import (
+    ACLMixinSerializer,
+    IncludeExcludeFieldsMixin,
+    TrackingMixinSerializer,
+)
 from regulatory_reporting.models.upstream import (
     FlawUpstreamMapping,
     UpstreamNotification,
@@ -47,7 +51,9 @@ class FlawUpstreamMappingSerializer(TrackingMixinSerializer):
         ]
 
 
-class UpstreamNotificationSerializer(ACLMixinSerializer, TrackingMixinSerializer):
+class UpstreamNotificationSerializer(
+    ACLMixinSerializer, TrackingMixinSerializer, IncludeExcludeFieldsMixin
+):
     uuid = serializers.UUIDField(read_only=True)
     flaw_uuid = serializers.UUIDField(read_only=True, source="flaw.uuid")
     last_error = serializers.CharField(read_only=True)

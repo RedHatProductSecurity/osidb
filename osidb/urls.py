@@ -2,6 +2,7 @@
 define urls
 """
 
+from django.conf import settings
 from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
@@ -13,6 +14,7 @@ from apps.workflows.api import (
     RevertWorkflow,
 )
 from osidb.helpers import get_execution_env
+from regulatory_reporting.views import UpstreamNotificationView
 
 from .api_views import (
     AffectCVSSV2View,
@@ -103,6 +105,12 @@ vnext_router.register(
 vnext_router.register(r"flaws", FlawView)
 vnext_router.register(r"affects", AffectView, basename="affectsv2")
 vnext_router.register(r"trackers", TrackerView)
+if settings.CRA_NOTIFICATIONS_ENABLED:
+    vnext_router.register(
+        r"notifications/upstream",
+        UpstreamNotificationView,
+        basename="upstreamnotifications",
+    )
 
 
 urlpatterns = [
