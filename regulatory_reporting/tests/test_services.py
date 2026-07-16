@@ -1,5 +1,4 @@
 import pytest
-from django.test import override_settings
 
 from osidb.models import FlawSource
 from osidb.tests.factories import FlawFactory
@@ -17,7 +16,6 @@ pytestmark = [
 ]
 
 
-@pytest.mark.django_db
 class TestIsFlawUpstreamNotifiable:
     def test_redhat_source_is_notifiable(self):
         flaw = FlawFactory(
@@ -34,8 +32,12 @@ class TestIsFlawUpstreamNotifiable:
         flaw = FlawFactory(source=FlawSource.CVEORG)
         assert is_flaw_upstream_notifiable(flaw) is False
 
+    def test_embargoed_flaw_is_not_notifiable(self):
+        flaw = FlawFactory(embargoed=True, source=FlawSource.REDHAT)
+        assert is_flaw_upstream_notifiable(flaw) is False
 
-@pytest.mark.django_db
+
+@pytest.mark.enable_signals
 class TestUpstreamNotificationSignal:
     def test_redhat_flaw_creates_notification(self):
         flaw = FlawFactory(
@@ -59,9 +61,12 @@ class TestUpstreamNotificationSignal:
         )
         assert not UpstreamNotification.objects.filter(flaw=flaw).exists()
 
+    def test_embargoed_flaw_does_not_create_notification(self):
+        flaw = FlawFactory(embargoed=True, source=FlawSource.REDHAT)
+        assert not UpstreamNotification.objects.filter(flaw=flaw).exists()
+
 
 @pytest.mark.enable_signals
-@pytest.mark.django_db
 class TestMappingNotificationSignal:
     def test_backfills_existing_blank_notification(self):
         flaw = FlawFactory(embargoed=False, source=FlawSource.REDHAT)

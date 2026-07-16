@@ -128,6 +128,8 @@ def check_upstream_notifiable(sender, instance, **kwargs):
         defaults={
             "status": UpstreamNotification.NotificationStatus.REQUIRED,
             "reportability_reason": UpstreamNotification.ReportabilityReason.RED_HAT_IDENTIFIED,
+            "acl_read": instance.acl_read,
+            "acl_write": instance.acl_write,
         },
     )
     if created:
@@ -164,6 +166,8 @@ def link_mapping_to_notification(sender, instance, created, **kwargs):
             upstream_project=instance.upstream_project,
             status=UpstreamNotification.NotificationStatus.REQUIRED,
             reportability_reason=UpstreamNotification.ReportabilityReason.RED_HAT_IDENTIFIED,
+            acl_read=instance.flaw.acl_read,
+            acl_write=instance.flaw.acl_write,
         )
         logger.info(
             f"Created new notification {notification.uuid} for {instance.flaw.uuid}"

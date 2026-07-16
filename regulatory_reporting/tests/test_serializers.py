@@ -35,7 +35,6 @@ class TestUpstreamProjectSerializer:
         assert "created_dt" in fields
         assert "updated_dt" in fields
 
-    @pytest.mark.django_db
     def test_serializes_instance(self):
         project = UpstreamProjectFactory()
         data = UpstreamProjectSerializer(project).data
@@ -53,7 +52,6 @@ class TestUpstreamNotificationSerializer:
         assert "visibility" in fields
         assert "created_dt" in fields
 
-    @pytest.mark.django_db
     def test_serializes_instance(self):
         notification = UpstreamNotificationFactory()
         data = UpstreamNotificationSerializer(notification).data
@@ -67,7 +65,6 @@ class TestFlawUpstreamMappingSerializer:
         assert "flaw_uuid" in fields
         assert "upstream_project" in fields
 
-    @pytest.mark.django_db
     def test_serializes_instance(self):
         mapping = FlawUpstreamMappingFactory()
         data = FlawUpstreamMappingSerializer(mapping).data
