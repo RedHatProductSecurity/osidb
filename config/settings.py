@@ -328,6 +328,9 @@ CRA_NOTIFICATIONS_ENABLED = get_env(
     "CRA_NOTIFICATIONS_ENABLED", default="False", is_bool=True
 )
 
+# opt-in-flag for CRA upstream reporting
+CRA_REPORTING_ENABLED = get_env("CRA_REPORTING_ENABLED", default="False", is_bool=True)
+
 # sets the Access-Control-Allow-Origin response header - accepts regex
 # example value: [ r"^https://([^.]*\.)?\.example\.com$" ]
 CORS_ALLOWED_ORIGIN_REGEXES = get_env(

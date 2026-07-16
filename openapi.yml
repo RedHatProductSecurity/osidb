@@ -12718,6 +12718,241 @@ paths:
                   version:
                     type: string
           description: ''
+  /osidb/api/v2/notifications/upstream:
+    get:
+      operationId: osidb_api_v2_notifications_upstream_list
+      description: API endpoint for listing, creating, retrieving, and updating upstream
+        maintainer notifications.
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: flaw
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: method
+        schema:
+          type: string
+          enum:
+          - email
+          - forgejo_issue
+          - github_issue
+          - gitlab_issue
+          - other_manual
+          - website_form
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - blocked
+          - contact_needed
+          - deferred
+          - failed
+          - not_applicable
+          - not_required
+          - prepared
+          - queued
+          - required
+          - reviewed
+          - sent
+      - in: query
+        name: upstream_project
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedUpstreamNotificationList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v2/notifications/upstream/{notification_uuid}:
+    get:
+      operationId: osidb_api_v2_notifications_upstream_retrieve
+      description: API endpoint for listing, creating, retrieving, and updating upstream
+        maintainer notifications.
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: path
+        name: notification_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Upstream Notification.
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/UpstreamNotification'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: osidb_api_v2_notifications_upstream_update
+      description: API endpoint for listing, creating, retrieving, and updating upstream
+        maintainer notifications.
+      parameters:
+      - in: path
+        name: notification_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Upstream Notification.
+        required: true
+      tags:
+      - osidb
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpstreamNotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UpstreamNotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpstreamNotificationRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/UpstreamNotification'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /osidb/api/v2/notifications/upstream/{notification_uuid}/send-email:
+    post:
+      operationId: osidb_api_v2_notifications_upstream_send_email_create
+      description: API endpoint for listing, creating, retrieving, and updating upstream
+        maintainer notifications.
+      parameters:
+      - in: path
+        name: notification_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Upstream Notification.
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/UpstreamNotification'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /osidb/api/v2/trackers:
     get:
       operationId: osidb_api_v2_trackers_list
@@ -17172,6 +17407,15 @@ components:
       - 2
       - 3
       type: integer
+    MethodEnum:
+      enum:
+      - email
+      - github_issue
+      - gitlab_issue
+      - forgejo_issue
+      - website_form
+      - other_manual
+      type: string
     ModuleComponent:
       type: object
       properties:
@@ -17842,6 +18086,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TrackerV1'
+    PaginatedUpstreamNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpstreamNotification'
     PatchedIntegrationTokenPatchRequest:
       type: object
       properties:
@@ -17881,6 +18148,12 @@ components:
       - eus
       - ps_update_stream
       - selected
+    ReportabilityReasonEnum:
+      enum:
+      - red_hat_identified
+      - jointly_identified
+      - manual_override
+      type: string
     ResolutionEnum:
       enum:
       - FIX
@@ -17906,6 +18179,20 @@ components:
       - REQ
       - SKIP
       - DONE
+      type: string
+    StatusEnum:
+      enum:
+      - not_applicable
+      - not_required
+      - required
+      - contact_needed
+      - prepared
+      - reviewed
+      - queued
+      - sent
+      - deferred
+      - blocked
+      - failed
       type: string
     StreamComponent:
       type: object
@@ -18517,6 +18804,109 @@ components:
       - OSV
       - CVEORG
       type: string
+    UpstreamNotification:
+      type: object
+      description: |-
+        ACLMixin class serializer
+        translates embargoed boolean to ACLs
+      properties:
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        flaw_uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        upstream_project:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        reportability_reason:
+          oneOf:
+          - $ref: '#/components/schemas/ReportabilityReasonEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        method:
+          oneOf:
+          - $ref: '#/components/schemas/MethodEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        timer_started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        last_error:
+          type: string
+          readOnly: true
+      required:
+      - created_dt
+      - embargoed
+      - flaw_uuid
+      - last_error
+      - updated_dt
+      - uuid
+      - visibility
+    UpstreamNotificationRequest:
+      type: object
+      description: |-
+        ACLMixin class serializer
+        translates embargoed boolean to ACLs
+      properties:
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        upstream_project:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        reportability_reason:
+          oneOf:
+          - $ref: '#/components/schemas/ReportabilityReasonEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        method:
+          oneOf:
+          - $ref: '#/components/schemas/MethodEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        timer_started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      required:
+      - embargoed
+      - updated_dt
     User:
       type: object
       properties:
