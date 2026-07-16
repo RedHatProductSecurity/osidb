@@ -8,11 +8,15 @@ resolution-markers = [
 
 [[package]]
 name = "advisory-parser"
-version = "1.13"
-source = { git = "https://github.com/RedHatProductSecurity/advisory-parser.git?rev=e45e57ea65fdbf787d60a06888bea992651b8fb1#e45e57ea65fdbf787d60a06888bea992651b8fb1" }
+version = "1.14"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "cvss" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/04/a5/053374e0f2bbb6f1a9b3e96635b44e1b98cbdc80489c47d2f3ae7204b8ae/advisory_parser-1.14.tar.gz", hash = "sha256:60224f94a5182ebfcf427263b7b86d71ec882444bf25daf8bf03fd1efe52523a", size = 93041, upload-time = "2026-07-16T06:49:26.873Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f1/67/0b1f5f551d3262ad9021501f8625afd944395c8060433619c8e3d24ee889/advisory_parser-1.14-py2.py3-none-any.whl", hash = "sha256:607505b11570d0c0a6f54fc4e85e1048438f37043d3756d57eff1c3393b84549", size = 18781, upload-time = "2026-07-16T06:49:25.11Z" },
 ]
 
 [[package]]
@@ -1140,7 +1144,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "advisory-parser", git = "https://github.com/RedHatProductSecurity/advisory-parser.git?rev=e45e57ea65fdbf787d60a06888bea992651b8fb1" },
+    { name = "advisory-parser", specifier = ">=1.14" },
     { name = "backoff", specifier = ">=1.11.1" },
     { name = "celery", extras = ["gevent"], specifier = ">=5.5.2" },
     { name = "celery-redbeat", specifier = ">=2.1.1" },
