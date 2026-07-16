@@ -9,6 +9,9 @@ def _is_public_feed_only(flaw: Flaw) -> bool:
 
 
 def is_flaw_upstream_notifiable(flaw: Flaw) -> bool:
+    if flaw.is_embargoed:
+        return False
+
     source = FlawSource(flaw.source)
     if source in REDHAT_IDENTIFIED_SOURCES:
         return True
