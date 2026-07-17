@@ -21,6 +21,7 @@ from .filters import UpstreamNotificationFilter, UpstreamProjectFilter
 from .models.upstream import UpstreamNotification, UpstreamProject
 from .serializers.upstream import (
     UpstreamNotificationSerializer,
+    UpstreamProjectPostSerializer,
     UpstreamProjectSerializer,
 )
 from .tasks import mark_upstream_notification_failed, mark_upstream_notification_sent
@@ -168,3 +169,8 @@ class UpstreamProjectView(
     def initialize_request(self, request, *args, **kwargs):
         with _redact_query_string_for_logging(request):
             return super().initialize_request(request, *args, **kwargs)
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return UpstreamProjectPostSerializer
+        return self.serializer_class

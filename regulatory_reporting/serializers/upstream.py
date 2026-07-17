@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 from osidb.serializer import (
@@ -35,6 +36,12 @@ class UpstreamProjectSerializer(TrackingMixinSerializer):
             "stewarded_awareness_marked_at",
             "notes",
         ]
+
+
+@extend_schema_serializer(exclude_fields=["updated_dt"])
+class UpstreamProjectPostSerializer(UpstreamProjectSerializer):
+    # Extra serializer for POST request as there is no last update
+    ...
 
 
 class FlawUpstreamMappingSerializer(TrackingMixinSerializer):

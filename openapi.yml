@@ -14189,13 +14189,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpstreamProjectRequest'
+              $ref: '#/components/schemas/UpstreamProjectPostRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/UpstreamProjectRequest'
+              $ref: '#/components/schemas/UpstreamProjectPostRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UpstreamProjectRequest'
+              $ref: '#/components/schemas/UpstreamProjectPostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -14205,7 +14205,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/UpstreamProject'
+                - $ref: '#/components/schemas/UpstreamProjectPost'
                 - type: object
                   properties:
                     dt:
@@ -19223,6 +19223,125 @@ components:
       - created_dt
       - updated_dt
       - uuid
+    UpstreamProjectPost:
+      type: object
+      description: TrackingMixin class serializer
+      properties:
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        component_name:
+          type: string
+          maxLength: 255
+        repository_url:
+          type: string
+          format: uri
+          maxLength: 200
+        security_contact:
+          type: string
+          maxLength: 255
+        contact_method:
+          oneOf:
+          - $ref: '#/components/schemas/ContactMethodEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        contact_url:
+          type: string
+          format: uri
+          maxLength: 200
+        source:
+          type: string
+          maxLength: 255
+        confidence:
+          type: string
+          maxLength: 50
+        verified_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        verified_by:
+          type: string
+          maxLength: 255
+        unsupported:
+          type: boolean
+        stewarded_awareness:
+          type: boolean
+        stewarded_awareness_reason:
+          type: string
+        stewarded_awareness_marked_by:
+          type: string
+          maxLength: 255
+        stewarded_awareness_marked_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        notes:
+          type: string
+      required:
+      - component_name
+      - created_dt
+      - uuid
+    UpstreamProjectPostRequest:
+      type: object
+      description: TrackingMixin class serializer
+      properties:
+        component_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        repository_url:
+          type: string
+          format: uri
+          maxLength: 200
+        security_contact:
+          type: string
+          maxLength: 255
+        contact_method:
+          oneOf:
+          - $ref: '#/components/schemas/ContactMethodEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        contact_url:
+          type: string
+          format: uri
+          maxLength: 200
+        source:
+          type: string
+          maxLength: 255
+        confidence:
+          type: string
+          maxLength: 50
+        verified_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        verified_by:
+          type: string
+          maxLength: 255
+        unsupported:
+          type: boolean
+        stewarded_awareness:
+          type: boolean
+        stewarded_awareness_reason:
+          type: string
+        stewarded_awareness_marked_by:
+          type: string
+          maxLength: 255
+        stewarded_awareness_marked_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        notes:
+          type: string
+      required:
+      - component_name
     UpstreamProjectRequest:
       type: object
       description: TrackingMixin class serializer
