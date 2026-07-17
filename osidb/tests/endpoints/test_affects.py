@@ -1,9 +1,11 @@
 from unittest.mock import patch
 
 import pytest
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from rest_framework import status
 
+from osidb.core import set_user_acls
 from osidb.models import Affect, AffectCVSS, Tracker
 from osidb.tests.factories import (
     AffectCVSSFactory,
@@ -1918,6 +1920,7 @@ class TestEndpointsAffectsCVSSScoresV2:
         assert response.status_code == status.HTTP_201_CREATED
         # CVSS scores created through API should always be of type Red Hat
         assert response.data["issuer"] == AffectCVSS.CVSSIssuer.REDHAT
+        set_user_acls(settings.ALL_GROUPS)
         assert AffectCVSS.objects.count() == 1
 
     @pytest.mark.enable_signals
@@ -1972,6 +1975,7 @@ class TestEndpointsAffectsCVSSScoresV2:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "Only Red Hat CVSS scores can be edited" in response.json()["issuer"]
+        set_user_acls(settings.ALL_GROUPS)
         refreshed_cvss = AffectCVSS.objects.first()
         assert refreshed_cvss and refreshed_cvss.vector == cvss.vector
 
@@ -1984,6 +1988,7 @@ class TestEndpointsAffectsCVSSScoresV2:
         url = f"{test_api_v2_uri}/affects/{str(affect.uuid)}/cvss-scores/{cvss.uuid}"
         response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="foo")
         assert response.status_code == status.HTTP_204_NO_CONTENT
+        set_user_acls(settings.ALL_GROUPS)
         assert AffectCVSS.objects.count() == 0
 
     @pytest.mark.enable_signals
@@ -1996,6 +2001,7 @@ class TestEndpointsAffectsCVSSScoresV2:
         response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="foo")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "Only Red Hat CVSS scores can be edited" in response.json()["issuer"]
+        set_user_acls(settings.ALL_GROUPS)
         assert AffectCVSS.objects.count() == 1
 
 
