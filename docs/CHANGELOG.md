@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ACE: Add Go stdlib special CVE workflow (OSIDB-5033)
 
 ### Changed
+- Replace `ACLMixinManager` with `ACL` enum abstraction for ACL handling (OSIDB-5236)
 - align existing workflows with workflow framework concepts
 - auto-adjust workflow:state on Flaw.save
 - unrestrict workflow state names (OSIDB-5049)
