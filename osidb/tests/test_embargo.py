@@ -27,7 +27,7 @@ class TestEmbargo(object):
 
     @pytest.mark.parametrize("embargoed", [False, True])
     @freeze_time(timezone.datetime(2022, 11, 25))
-    def test_embargoed_annotation(
+    def test_embargoed_db_field(
         self,
         public_read_groups,
         public_write_groups,
@@ -70,16 +70,21 @@ class TestEmbargo(object):
     def test_embargoed_readonly(
         self, public_read_groups, public_write_groups, embargoed
     ):
-        with pytest.raises(TypeError) as ex:
-            flaw = Flaw(
-                acl_read=public_read_groups,
-                acl_write=public_write_groups,
-                cve_id="CVE-2000-11111",
-                impact="LOW",
-                title="test",
-                comment_zero="test",
-                embargoed=embargoed,
-                reported_dt=timezone.now(),
-            )
-            flaw.save()
-        assert "Flaw() got unexpected keyword arguments: 'embargoed'" in str(ex)
+        """
+        embargoed is a GeneratedField computed from ACLs — passing a value
+        to the constructor is accepted but ignored by the database.
+        """
+        flaw = Flaw(
+            acl_read=public_read_groups,
+            acl_write=public_write_groups,
+            cve_id="CVE-2000-11111",
+            impact="LOW",
+            title="test",
+            comment_zero="test",
+            embargoed=embargoed,
+            reported_dt=timezone.now(),
+            unembargo_dt=timezone.now(),
+        )
+        flaw.save()
+        flaw.refresh_from_db()
+        assert flaw.embargoed is False

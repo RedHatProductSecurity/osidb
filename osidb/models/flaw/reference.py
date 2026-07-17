@@ -7,7 +7,6 @@ from django.db import models
 
 from osidb.mixins import (
     ACLMixin,
-    ACLMixinManager,
     AlertMixin,
     TrackingMixin,
     TrackingMixinManager,
@@ -18,7 +17,7 @@ from osidb.query_sets import CustomQuerySetUpdatedDt
 from .flaw import Flaw
 
 
-class FlawReferenceManager(ACLMixinManager, TrackingMixinManager):
+class FlawReferenceManager(TrackingMixinManager):
     """flawreference manager"""
 
     @staticmethod

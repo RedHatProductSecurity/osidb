@@ -19,7 +19,6 @@ from polymorphic.models import PolymorphicModel
 
 from osidb.mixins import (
     ACLMixin,
-    ACLMixinManager,
     TrackingMixin,
     TrackingMixinManager,
     ValidateMixin,
@@ -27,7 +26,7 @@ from osidb.mixins import (
 )
 
 
-class FlawLabelManager(ACLMixinManager, PolymorphicManager, TrackingMixinManager):
+class FlawLabelManager(PolymorphicManager, TrackingMixinManager):
     """Manager combining ACL annotations with polymorphic queries."""
 
 

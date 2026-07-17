@@ -4,9 +4,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from osidb.acls import ACL
 from osidb.api_views import RudimentaryUserPathLoggingMixin
 from osidb.helpers import strtobool
-from osidb.mixins import ACLMixin
 from osidb.models import Affect, PsModule, PsUpdateStream
 
 from .product_definition_handlers.base import ProductDefinitionRules
@@ -45,7 +45,7 @@ class TrackerFileSuggestionV1View(RudimentaryUserPathLoggingMixin, APIView):
         # prepare the list of applicable affects which
         # 1) has the correct affectedness:resolution
         # 2) are either public or permit embargoed trackers
-        embargoed_acl = ACLMixin.get_embargoed_acl()
+        embargoed_acl = ACL.EMBARGO.uuid_read
         affects = selected_affects.filter(
             Q(
                 affectedness=Affect.AffectAffectedness.AFFECTED,

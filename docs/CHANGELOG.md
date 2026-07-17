@@ -50,6 +50,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Use a stored search vector for full-text search on Flaws, replacing per-query computation with a DB trigger and GIN index (OSIDB-5283)
+- Replace `ACLMixinManager` with `ACL` enum abstraction for ACL handling (OSIDB-5236)
+- Replace `embargoed` and `visibility` queryset annotations with persisted `GeneratedField` columns (OSIDB-5236)
+- Simplify serializer ACL logic: introduce `_apply_acls` and `_unembargo_if_requested` helpers (OSIDB-5236)
+- Refactor internal ACL and embargo/visibility handling for consistency (OSIDB-5236)
 - align existing workflows with workflow framework concepts
 - auto-adjust workflow:state on Flaw.save
 - unrestrict workflow state names (OSIDB-5049)

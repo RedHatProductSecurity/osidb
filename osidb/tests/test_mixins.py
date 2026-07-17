@@ -15,6 +15,7 @@ from apps.trackers.models import JiraBugIssuetype
 from apps.trackers.tests.factories import JiraProjectFieldsFactory
 from apps.workflows.models import Workflow
 from apps.workflows.workflow import WorkflowFramework
+from osidb.acls import ACL
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
 from osidb.mixins import ACLMixinVisibility, Alert, AlertMixin, SearchVectorMixin
@@ -245,24 +246,12 @@ class TestACLMixin:
         assert len(my_flaw.acl_write) == 1
 
     @pytest.mark.parametrize(
-        "acl_read,acl_write,visibility",
-        [
-            (settings.PUBLIC_READ_GROUPS, settings.PUBLIC_WRITE_GROUPS, "public"),
-            (
-                settings.EMBARGO_READ_GROUPS,
-                settings.EMBARGO_WRITE_GROUPS,
-                "embargoed",
-            ),
-            (
-                settings.INTERNAL_READ_GROUPS,
-                settings.INTERNAL_WRITE_GROUPS,
-                "internal",
-            ),
-        ],
+        "acl",
+        [ACL.PUBLIC, ACL.INTERNAL],
     )
-    def test_set_acls(self, acl_read, acl_write, visibility):
+    def test_set_acls(self, acl):
         """
-        Test that ACLMixin.set_{public,embargoed,internal} works correctly.
+        Test that ACLMixin.set_acls works correctly.
         """
         my_flaw = self.create_flaw(acl_read=["foo"], acl_write=["bar"], save=False)
         original_acl_read = my_flaw.acl_read
@@ -270,11 +259,54 @@ class TestACLMixin:
         assert original_acl_read == [self.group2acl("foo")]
         assert original_acl_write == [self.group2acl("bar")]
 
-        getattr(my_flaw, f"set_{visibility}")()
+        my_flaw.set_acls(acl)
         assert my_flaw.acl_read != original_acl_read
         assert my_flaw.acl_write != original_acl_write
-        assert my_flaw.acl_read == [self.group2acl(g) for g in acl_read]
-        assert my_flaw.acl_write == [self.group2acl(g) for g in acl_write]
+        assert my_flaw.acl_read == acl.uuid_read
+        assert my_flaw.acl_write == acl.uuid_write
+
+    @pytest.mark.parametrize(
+        "start,target,expected",
+        [
+            (ACL.EMBARGO, ACL.PUBLIC, ACL.PUBLIC),
+            (ACL.EMBARGO, ACL.INTERNAL, ACL.INTERNAL),
+            (ACL.INTERNAL, ACL.PUBLIC, ACL.PUBLIC),
+            (ACL.PUBLIC, ACL.EMBARGO, ACL.PUBLIC),
+            (ACL.PUBLIC, ACL.INTERNAL, ACL.PUBLIC),
+            (ACL.INTERNAL, ACL.EMBARGO, ACL.INTERNAL),
+            (ACL.INTERNAL, ACL.INTERNAL, ACL.INTERNAL),
+        ],
+    )
+    def test_widen_acls_never_narrows(self, start, target, expected):
+        """
+        Test that ACLMixin.widen_acls only ever moves to a wider (or equal)
+        ACL and is a no-op when the target would narrow visibility.
+        """
+        my_flaw = self.create_flaw(save=False)
+        my_flaw.set_acls(start)
+
+        my_flaw.widen_acls(target)
+
+        assert my_flaw.current_acl == expected
+
+    @pytest.mark.parametrize(
+        "setter,acl",
+        [("set_public", ACL.PUBLIC), ("set_internal", ACL.INTERNAL)],
+    )
+    def test_named_setters_widen_only(self, setter, acl):
+        """
+        Test that set_public/set_internal widen from the narrowest ACL and
+        are a no-op once already at or beyond their target.
+        """
+        my_flaw = self.create_flaw(save=False)
+        my_flaw.set_acls(ACL.EMBARGO)
+
+        getattr(my_flaw, setter)()
+        assert my_flaw.current_acl == acl
+
+        my_flaw.set_acls(ACL.PUBLIC)
+        getattr(my_flaw, setter)()
+        assert my_flaw.current_acl == ACL.PUBLIC
 
     @pytest.mark.parametrize(
         "acl_read,acl_write,expected_visibility",
@@ -296,22 +328,23 @@ class TestACLMixin:
             ),
         ],
     )
-    def test_visibility_annotation(self, acl_read, acl_write, expected_visibility):
+    def test_visibility_db_field(self, acl_read, acl_write, expected_visibility):
         """
-        Test that the visibility annotation is correctly set based on ACL read groups
+        Test that the visibility GeneratedField is correctly computed based on ACL read groups
         """
         flaw = self.create_flaw(acl_read=acl_read, acl_write=acl_write, save=False)
         flaw.save(raise_validation_error=False)
 
-        # Retrieve from queryset to get annotation
+        # Retrieve from DB to get the GeneratedField value
         flaw_from_db = Flaw.objects.get(uuid=flaw.uuid)
 
         assert hasattr(flaw_from_db, "visibility")
         assert flaw_from_db.visibility == expected_visibility
 
-    def test_visibility_fallback_properties(self):
+    def test_visibility_boolean_properties(self):
         """
-        Test that visibility fallback works when annotation is not available
+        Test that is_public / is_embargoed / is_internal properties are correct
+        for unsaved instances (visibility is computed from acl_read/acl_write).
         """
         # Create flaws with different visibility levels
         embargoed_flaw = self.create_flaw(
@@ -345,27 +378,24 @@ class TestACLMixin:
 
     def test_visibility_property_getter(self):
         """
-        Test that the visibility property returns the correct ACLMixinVisibility value
+        Test that the visibility GeneratedField returns the correct value
         """
-        embargoed = self.create_flaw(
-            acl_read=[settings.EMBARGO_READ_GROUP],
-            acl_write=[settings.EMBARGO_WRITE_GROUP],
-            save=False,
-        )
-        internal = self.create_flaw(
-            acl_read=[settings.INTERNAL_READ_GROUP],
-            acl_write=[settings.INTERNAL_WRITE_GROUP],
-            save=False,
-        )
-        public = self.create_flaw(
-            acl_read=settings.PUBLIC_READ_GROUPS,
-            acl_write=[settings.PUBLIC_WRITE_GROUP],
-            save=False,
-        )
+        embargoed_flaw = FlawFactory(embargoed=True)
+        embargoed_flaw.refresh_from_db()
 
-        assert embargoed.visibility == ACLMixinVisibility.EMBARGOED
-        assert internal.visibility == ACLMixinVisibility.INTERNAL
-        assert public.visibility == ACLMixinVisibility.PUBLIC
+        internal_flaw = FlawFactory(
+            embargoed=False,
+            acl_read=ACL.INTERNAL.uuid_read,
+            acl_write=ACL.INTERNAL.uuid_write,
+        )
+        internal_flaw.refresh_from_db()
+
+        public_flaw = FlawFactory(embargoed=False)
+        public_flaw.refresh_from_db()
+
+        assert embargoed_flaw.visibility == ACLMixinVisibility.EMBARGOED
+        assert internal_flaw.visibility == ACLMixinVisibility.INTERNAL
+        assert public_flaw.visibility == ACLMixinVisibility.PUBLIC
 
     def test_visibility_ordering(self):
         """
@@ -374,108 +404,6 @@ class TestACLMixin:
         assert ACLMixinVisibility.EMBARGOED < ACLMixinVisibility.INTERNAL
         assert ACLMixinVisibility.INTERNAL < ACLMixinVisibility.PUBLIC
         assert ACLMixinVisibility.EMBARGOED < ACLMixinVisibility.PUBLIC
-
-    def test_visibility_setter_widens(self):
-        """
-        Test that setting visibility widens from more restricted to less restricted
-        """
-        flaw = self.create_flaw(
-            acl_read=[settings.INTERNAL_READ_GROUP],
-            acl_write=[settings.INTERNAL_WRITE_GROUP],
-            save=False,
-        )
-        assert flaw.visibility == ACLMixinVisibility.INTERNAL
-
-        flaw.visibility = ACLMixinVisibility.PUBLIC
-        assert flaw.visibility == ACLMixinVisibility.PUBLIC
-        assert flaw.is_public
-
-    def test_visibility_setter_widens_embargoed_to_internal(self):
-        """
-        Test that setting visibility widens from embargoed to internal
-        """
-        flaw = self.create_flaw(
-            acl_read=[settings.EMBARGO_READ_GROUP],
-            acl_write=[settings.EMBARGO_WRITE_GROUP],
-            save=False,
-        )
-        assert flaw.visibility == ACLMixinVisibility.EMBARGOED
-
-        flaw.visibility = ACLMixinVisibility.INTERNAL
-        assert flaw.visibility == ACLMixinVisibility.INTERNAL
-        assert flaw.is_internal
-
-    def test_visibility_setter_noop_on_same_level(self):
-        """
-        Test that setting visibility to the current level is a no-op
-        """
-        flaw = self.create_flaw(
-            acl_read=settings.PUBLIC_READ_GROUPS,
-            acl_write=[settings.PUBLIC_WRITE_GROUP],
-            save=False,
-        )
-        assert flaw.visibility == ACLMixinVisibility.PUBLIC
-
-        flaw.visibility = ACLMixinVisibility.PUBLIC
-        assert flaw.is_public
-
-    def test_visibility_setter_noop_on_narrowing(self):
-        """
-        Test that setting visibility to a more restricted level is a no-op
-        """
-        flaw = self.create_flaw(
-            acl_read=settings.PUBLIC_READ_GROUPS,
-            acl_write=[settings.PUBLIC_WRITE_GROUP],
-            save=False,
-        )
-        assert flaw.visibility == ACLMixinVisibility.PUBLIC
-
-        flaw.visibility = ACLMixinVisibility.INTERNAL
-        assert flaw.is_public
-
-        flaw.visibility = ACLMixinVisibility.EMBARGOED
-        assert flaw.is_public
-
-    def test_visibility_setter_propagates_to_nested(self):
-        """
-        Test that setting visibility propagates ACLs to related objects
-        """
-        flaw = FlawFactory(
-            embargoed=False,
-        )
-        flaw.set_internal()
-        flaw.save(raise_validation_error=False)
-
-        affect = AffectFactory(flaw=flaw)
-        affect.set_internal()
-        affect.save(raise_validation_error=False)
-
-        assert flaw.is_internal
-        assert affect.is_internal
-
-        flaw.visibility = ACLMixinVisibility.PUBLIC
-        flaw.save(raise_validation_error=False)
-
-        affect.refresh_from_db()
-        assert flaw.is_public
-        assert affect.is_public
-
-    def test_visibility_setter_propagates_embargoed_to_internal(self):
-        """
-        Test that widening from embargoed to internal propagates to children
-        """
-        flaw = FlawFactory(embargoed=True)
-        affect = AffectFactory(flaw=flaw)
-
-        assert flaw.is_embargoed
-        assert affect.is_embargoed
-
-        flaw.visibility = ACLMixinVisibility.INTERNAL
-        flaw.save(raise_validation_error=False)
-
-        affect.refresh_from_db()
-        assert flaw.is_internal
-        assert affect.is_internal
 
 
 class TestTrackingMixin:

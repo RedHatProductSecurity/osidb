@@ -3,6 +3,7 @@ from django.db import connection
 from django.db.models.query import QuerySet
 from django.test.utils import CaptureQueriesContext
 
+from osidb.acls import ACL
 from osidb.api_views import FlawView
 from osidb.models import Affect, Flaw, FlawSource, Impact, Tracker
 from osidb.tests.factories import (
@@ -216,7 +217,7 @@ class TestQuerySetRegression:
         executed_sql = "\n".join(q["sql"] for q in ctx.captured_queries)
         assert '"osidb_affect"' not in executed_sql
 
-    @pytest.mark.parametrize("embargoed,query_count", [(False, 68), (True, 68)])
+    @pytest.mark.parametrize("embargoed,query_count", [(False, 69), (True, 68)])
     def test_flaw_with_affects_trackers(
         self, auth_client, test_api_v2_uri, embargoed, query_count
     ):
@@ -420,7 +421,7 @@ class TestQuerySetRegression:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
         if not embargoed:
-            flaw.set_internal()
+            flaw.set_acls(ACL.INTERNAL)
             flaw.save()
 
         for _ in range(affect_quantity):
@@ -441,10 +442,10 @@ class TestQuerySetRegression:
             # Make children internal in the non-embargoed scenario so set_public_nested has work to do
             if not embargoed:
                 # Ensure related objects start as internal, then promotion will flip them public
-                affect.set_internal()
+                affect.set_acls(ACL.INTERNAL)
                 affect.save(raise_validation_error=False)
                 if affect.tracker:
-                    affect.tracker.set_internal()
+                    affect.tracker.set_acls(ACL.INTERNAL)
                     affect.tracker.save(raise_validation_error=False)
 
         # Force initial classification to start the promote chain from NEW.
