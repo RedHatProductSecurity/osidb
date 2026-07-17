@@ -3,14 +3,14 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
-from osidb.mixins import ACLMixinManager, TrackingMixin, TrackingMixinManager
+from osidb.mixins import TrackingMixin, TrackingMixinManager
 from osidb.models.abstract import CVSS
 from osidb.query_sets import CustomQuerySetUpdatedDt
 
 from .flaw import Flaw
 
 
-class FlawCVSSManager(ACLMixinManager, TrackingMixinManager):
+class FlawCVSSManager(TrackingMixinManager):
     @staticmethod
     def create_cvss(flaw, issuer, version, **extra_fields):
         """return a new CVSS or update an existing CVSS without saving"""

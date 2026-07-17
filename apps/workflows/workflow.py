@@ -248,4 +248,4 @@ class WorkflowModel(models.Model):
             self.workflow_name, self.workflow_state
         )
         if visibility:
-            self.visibility = visibility
+            self.set_visibility(visibility)

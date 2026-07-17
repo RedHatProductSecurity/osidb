@@ -31,7 +31,6 @@ from osidb.constants import CVSS3_SEVERITY_SCALE, OSIDB_API_VERSION
 from osidb.helpers import deprecate_field
 from osidb.mixins import (
     ACLMixin,
-    ACLMixinManager,
     Alert,
     AlertMixin,
     NullStrFieldsMixin,
@@ -52,7 +51,7 @@ from osidb.validators import no_future_date, validate_cwe_id
 logger = logging.getLogger(__name__)
 
 
-class FlawManager(ACLMixinManager, TrackingMixinManager, WorkflowModelManager):
+class FlawManager(TrackingMixinManager, WorkflowModelManager):
     """flaw manager"""
 
     @staticmethod

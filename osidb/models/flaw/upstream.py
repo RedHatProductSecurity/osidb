@@ -7,7 +7,6 @@ from packageurl import PackageURL
 from apps.ace.constants import OSV_ECOSYSTEM_MAP
 from osidb.mixins import (
     ACLMixin,
-    ACLMixinManager,
     AlertMixin,
     TrackingMixin,
     TrackingMixinManager,
@@ -17,7 +16,7 @@ from osidb.query_sets import CustomQuerySetUpdatedDt
 from .flaw import Flaw
 
 
-class UpstreamDataManager(ACLMixinManager, TrackingMixinManager):
+class UpstreamDataManager(TrackingMixinManager):
     """Manager for UpstreamData (mirrors FlawCVSSManager patterns)."""
 
     @staticmethod

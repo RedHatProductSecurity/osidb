@@ -7,7 +7,6 @@ from django.db import models
 from apps.bbsync.mixins import BugzillaSyncMixin
 from osidb.mixins import (
     ACLMixin,
-    ACLMixinManager,
     AlertMixin,
     TrackingMixin,
     TrackingMixinManager,
@@ -23,7 +22,7 @@ class VersionStatus(models.TextChoices):
     UNKNOWN = "UNKNOWN"
 
 
-class PackageManager(ACLMixinManager, TrackingMixinManager):
+class PackageManager(TrackingMixinManager):
     @staticmethod
     def create_package(flaw, package, **extra_fields):
         """

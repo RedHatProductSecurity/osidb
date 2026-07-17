@@ -15,7 +15,6 @@ from apps.trackers.constants import SYNC_TO_JIRA
 from apps.trackers.models import JiraBugIssuetype
 from osidb.mixins import (
     ACLMixin,
-    ACLMixinManager,
     AlertMixin,
     NullStrFieldsMixin,
     TrackingMixin,
@@ -31,7 +30,7 @@ from .ps_update_stream import PsUpdateStream
 logger = logging.getLogger(__name__)
 
 
-class TrackerManager(ACLMixinManager, TrackingMixinManager):
+class TrackerManager(TrackingMixinManager):
     """tracker manager"""
 
     @staticmethod
