@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace `ACLMixinManager` with `ACL` enum abstraction for ACL handling (OSIDB-5236)
 - Replace `embargoed` and `visibility` queryset annotations with persisted `GeneratedField` columns (OSIDB-5236)
 - Simplify serializer ACL logic: introduce `_apply_acls` and `_unembargo_if_requested` helpers (OSIDB-5236)
+- Remove `FlawEmbargoedField` DjangoQL custom field in favor of `GeneratedField` (OSIDB-5236)
 - align existing workflows with workflow framework concepts
 - auto-adjust workflow:state on Flaw.save
 - unrestrict workflow state names (OSIDB-5049)

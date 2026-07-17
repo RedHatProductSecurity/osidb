@@ -1,6 +1,3 @@
-import uuid
-
-from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -22,7 +19,6 @@ from osidb.models import (
     Tracker,
 )
 
-from .core import generate_acls
 from .datetime_utils import parse_relative_datetime
 
 
@@ -125,7 +121,6 @@ class FlawQLSchema(DjangoQLSchema):
             fields.remove("components")
             fields += [
                 FlawComponentField(),
-                FlawEmbargoedField(),
                 FlawNonCommunityAffectsNoTrackersField(),
                 FlawLabelsField(),
             ]
@@ -166,32 +161,6 @@ class FlawComponentField(StrField):
             return ~Q(**{f"components__{lookup}": value})
         elif operator == "=":
             return Q(**{f"components__{lookup}": value})
-
-
-class FlawEmbargoedField(BoolField):
-    """Embargoed field is calculated based on the ACLs."""
-
-    model = Flaw
-    name = "embargoed"
-
-    def get_options(self, search):
-        return (
-            super()
-            .get_options(search)
-            .annotate(
-                embargoed=models.Case(
-                    models.When(
-                        acl_read=[
-                            uuid.UUID(acl)
-                            for acl in generate_acls(settings.EMBARGO_READ_GROUPS)
-                        ],
-                        then=True,
-                    ),
-                    default=False,
-                    output_field=models.BooleanField(),
-                )
-            )
-        )
 
 
 class FlawNonCommunityAffectsNoTrackersField(BoolField):
