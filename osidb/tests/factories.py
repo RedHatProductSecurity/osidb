@@ -11,6 +11,7 @@ from cvss.constants4 import METRICS_VALUE_NAMES as CVSS4_METRICS_VALUE_NAMES
 from django.conf import settings
 from pytz import UTC
 
+from osidb.acls import ACL
 from osidb.constants import DATETIME_FMT
 from osidb.core import generate_acls
 from osidb.models import (
@@ -182,40 +183,15 @@ class FlawFactory(BaseFactory):
         ),
     )
     acl_read = factory.LazyAttribute(
-        lambda o: (
-            [
-                uuid.uuid5(
-                    uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}"
-                )
-                for group in settings.PUBLIC_READ_GROUPS
-            ]
-            if o.embargoed is False
-            else [
-                uuid.uuid5(
-                    uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{group}",
-                )
-                for group in settings.EMBARGO_READ_GROUPS
-            ]
+        lambda o: ACL.generate_acl_uuids(
+            settings.EMBARGO_READ_GROUPS if o.embargoed else settings.PUBLIC_READ_GROUPS
         )
     )
     acl_write = factory.LazyAttribute(
-        lambda o: (
-            [
-                uuid.uuid5(
-                    uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{group}",
-                )
-                for group in settings.PUBLIC_WRITE_GROUPS
-            ]
-            if o.embargoed is False
-            else [
-                uuid.uuid5(
-                    uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{group}",
-                )
-                for group in settings.EMBARGO_WRITE_GROUPS
-            ]
+        lambda o: ACL.generate_acl_uuids(
+            settings.EMBARGO_WRITE_GROUPS
+            if o.embargoed
+            else settings.PUBLIC_WRITE_GROUPS
         )
     )
     # valid flaw is expected to have certain meta attributes present
@@ -232,32 +208,15 @@ class FlawFactory(BaseFactory):
     )
 
     @classmethod
-    def _create(cls, model_class, *args, **kwargs):
-        """
-        instance creation
-        with saving to DB
-        """
-        # bz_id is not a real model attribute
-        # it is just a shortcut to set it in the meta_attr
+    def _build(cls, model_class, *args, **kwargs):
+        kwargs.pop("embargoed")
         kwargs.pop("bz_id", None)
-        flaw = cls._build(model_class, *args, **kwargs)
-        # turn of automatic timestamps
-        # so we can explicitly assign them
-        flaw.save(auto_timestamps=False)
-        return flaw
+        return super()._build(model_class, *args, **kwargs)
 
     @classmethod
-    def _build(cls, model_class, *args, **kwargs):
-        """
-        instance build
-        without saving to DB
-        """
-        # embargoed is not a real model attribute but annotation so it is read-only
-        # but we want preserve it as writable factory attribute as it is easier to work with
-        # than with ACLs so we need to remove it for the flaw creation and emulate annotation
-        embargoed = kwargs.pop("embargoed")
-        flaw = super()._build(model_class, *args, **kwargs)
-        flaw.embargoed = embargoed
+    def _create(cls, model_class, *args, **kwargs):
+        flaw = cls._build(model_class, *args, **kwargs)
+        flaw.save(auto_timestamps=False)
         return flaw
 
 
@@ -614,40 +573,15 @@ class TrackerFactory(BaseFactory):
 
     embargoed = factory.Faker("random_element", elements=[False, True])
     acl_read = factory.LazyAttribute(
-        lambda o: (
-            [
-                uuid.uuid5(
-                    uuid.NAMESPACE_URL, f"https://osidb.prod.redhat.com/ns/acls#{group}"
-                )
-                for group in settings.PUBLIC_READ_GROUPS
-            ]
-            if o.embargoed is False
-            else [
-                uuid.uuid5(
-                    uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{group}",
-                )
-                for group in settings.EMBARGO_READ_GROUPS
-            ]
+        lambda o: ACL.generate_acl_uuids(
+            settings.EMBARGO_READ_GROUPS if o.embargoed else settings.PUBLIC_READ_GROUPS
         )
     )
     acl_write = factory.LazyAttribute(
-        lambda o: (
-            [
-                uuid.uuid5(
-                    uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{group}",
-                )
-                for group in settings.PUBLIC_WRITE_GROUPS
-            ]
-            if o.embargoed is False
-            else [
-                uuid.uuid5(
-                    uuid.NAMESPACE_URL,
-                    f"https://osidb.prod.redhat.com/ns/acls#{group}",
-                )
-                for group in settings.EMBARGO_WRITE_GROUPS
-            ]
+        lambda o: ACL.generate_acl_uuids(
+            settings.EMBARGO_WRITE_GROUPS
+            if o.embargoed
+            else settings.PUBLIC_WRITE_GROUPS
         )
     )
 
@@ -683,13 +617,10 @@ class TrackerFactory(BaseFactory):
         instance build
         without saving to DB
         """
-        # embargoed is not a real model attribute but annotation so it is read-only
-        # but we want preserve it as writable factory attribute as it is easier to work with
-        # than with ACLs so we need to remove it for the tracker creation and emulate annotation
-        embargoed = kwargs.pop("embargoed")
-        tracker = super()._build(model_class, *args, **kwargs)
-        tracker.embargoed = embargoed
-        return tracker
+        # embargoed is a factory-level param used to set acl_read/acl_write; it is
+        # not a real model kwarg (GeneratedField), so strip it before construction.
+        kwargs.pop("embargoed")
+        return super()._build(model_class, *args, **kwargs)
 
 
 class CVSSFactory(factory.django.DjangoModelFactory):

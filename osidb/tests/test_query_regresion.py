@@ -3,6 +3,7 @@ from django.db import connection
 from django.db.models.query import QuerySet
 from django.test.utils import CaptureQueriesContext
 
+from osidb.acls import ACL
 from osidb.api_views import FlawView
 from osidb.models import Affect, Flaw, FlawSource, Impact, Tracker
 from osidb.tests.factories import (
@@ -420,7 +421,8 @@ class TestQuerySetRegression:
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
         if not embargoed:
-            flaw.set_internal()
+            flaw.acl_read = ACL.INTERNAL.uuid_read
+            flaw.acl_write = ACL.INTERNAL.uuid_write
             flaw.save()
 
         for _ in range(affect_quantity):
@@ -441,10 +443,12 @@ class TestQuerySetRegression:
             # Make children internal in the non-embargoed scenario so set_public_nested has work to do
             if not embargoed:
                 # Ensure related objects start as internal, then promotion will flip them public
-                affect.set_internal()
+                affect.acl_read = ACL.INTERNAL.uuid_read
+                affect.acl_write = ACL.INTERNAL.uuid_write
                 affect.save(raise_validation_error=False)
                 if affect.tracker:
-                    affect.tracker.set_internal()
+                    affect.tracker.acl_read = ACL.INTERNAL.uuid_read
+                    affect.tracker.acl_write = ACL.INTERNAL.uuid_write
                     affect.tracker.save(raise_validation_error=False)
 
         # Force initial classification to start the promote chain from NEW.

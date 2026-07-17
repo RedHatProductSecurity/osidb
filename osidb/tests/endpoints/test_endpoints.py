@@ -616,6 +616,27 @@ class TestEndpointsACLs:
             in str(response.content)
         )
 
+    def test_flaw_create_validates_against_internal_acl(
+        self, auth_client, test_api_uri
+    ):
+        """
+        Test that creating a non-embargoed flaw validates LDAP groups against
+        INTERNAL (the ACL actually applied on create), not PUBLIC.
+        """
+        flaw_data = {
+            "title": "Foo",
+            "comment_zero": "test",
+            "reported_dt": "2022-11-22T15:55:22.830Z",
+            "unembargo_dt": "2000-1-1T22:03:26.065Z",
+            "embargoed": False,
+            "bz_api_key": "SECRET",
+        }
+        response = auth_client("anon").post(
+            f"{test_api_uri}/flaws", flaw_data, format="json"
+        )
+        assert response.status_code == 400
+        assert settings.INTERNAL_READ_GROUPS[0] in str(response.content)
+
     @override_settings(PUBLIC_READ_GROUPS=["data-prodsec", "company-wide-group"])
     def test_partial_acl(
         self, auth_client, test_api_uri, jira_email, jira_token, bugzilla_token
