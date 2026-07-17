@@ -14,7 +14,7 @@ from apps.workflows.api import (
     RevertWorkflow,
 )
 from osidb.helpers import get_execution_env
-from regulatory_reporting.views import UpstreamNotificationView
+from regulatory_reporting.views import UpstreamNotificationView, UpstreamProjectView
 
 from .api_views import (
     AffectCVSSV2View,
@@ -110,6 +110,11 @@ if settings.CRA_NOTIFICATIONS_ENABLED:
         r"notifications/upstream",
         UpstreamNotificationView,
         basename="upstreamnotifications",
+    )
+    vnext_router.register(
+        r"upstream-projects",
+        UpstreamProjectView,
+        basename="upstreamprojects",
     )
 
 

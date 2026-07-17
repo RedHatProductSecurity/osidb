@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -15,9 +17,13 @@ from osidb.api_views import (
 )
 from osidb.tasks import async_send_email
 
-from .filters import UpstreamNotificationFilter
-from .models.upstream import UpstreamNotification
-from .serializers.upstream import UpstreamNotificationSerializer
+from .filters import UpstreamNotificationFilter, UpstreamProjectFilter
+from .models.upstream import UpstreamNotification, UpstreamProject
+from .serializers.upstream import (
+    UpstreamNotificationSerializer,
+    UpstreamProjectPostSerializer,
+    UpstreamProjectSerializer,
+)
 from .tasks import mark_upstream_notification_failed, mark_upstream_notification_sent
 
 
@@ -121,3 +127,50 @@ class UpstreamNotificationView(
             raise
 
         return Response(self.get_serializer(notification).data, status=200)
+
+
+@contextmanager
+def _redact_query_string_for_logging(request):
+    """
+    Temporarily clears the request's query string so that it filters sensitive values
+    """
+    request.GET  # noqa: B018
+    original_query_string = request.META.get("QUERY_STRING", "")
+    request.META["QUERY_STRING"] = ""
+    try:
+        yield
+    finally:
+        request.META["QUERY_STRING"] = original_query_string
+
+
+@include_exclude_fields_extend_schema_view
+class UpstreamProjectView(
+    RudimentaryUserPathLoggingMixin,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    API endpoint for listing, creating, retrieving, and updating upstream project.
+    """
+
+    http_method_names = get_valid_http_methods(
+        viewsets.GenericViewSet, excluded=["delete"]
+    )
+    queryset = UpstreamProject.objects.all()
+    serializer_class = UpstreamProjectSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = UpstreamProjectFilter
+    lookup_url_kwarg = "upstream_project_uuid"
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def initialize_request(self, request, *args, **kwargs):
+        with _redact_query_string_for_logging(request):
+            return super().initialize_request(request, *args, **kwargs)
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return UpstreamProjectPostSerializer
+        return self.serializer_class
