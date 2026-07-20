@@ -84,6 +84,8 @@ class SRPReportMilestoneSerializer(
             "hours_remaining",
             "days_remaining",
             "is_overdue",
+            "acl_read",
+            "acl_write",
             "alerts",
         ]
 

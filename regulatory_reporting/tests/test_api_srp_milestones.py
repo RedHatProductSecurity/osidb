@@ -227,6 +227,29 @@ class TestSRPMilestoneUpdate:
         milestone.refresh_from_db()
         assert milestone.milestone_type == SRPReportMilestone.MilestoneType.LEVEL_24H
 
+    def test_update_acl_fields_ignored(self, authenticated_client, create_flaw_report):
+        """ACL fields are not mutable via PATCH."""
+        milestones_report = create_flaw_report()
+        milestone = milestones_report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+        original_acl_read = list(milestone.acl_read)
+        original_acl_write = list(milestone.acl_write)
+
+        response = authenticated_client.patch(
+            f"/regulatory-reporting/api/v1/srp-reports/{milestones_report.uuid}/milestones/{milestone.uuid}",
+            {
+                "acl_read": ["00000000-0000-0000-0000-000000000001"],
+                "acl_write": ["00000000-0000-0000-0000-000000000002"],
+                "status": SRPReportMilestone.SRPReportStatus.PREPARED,
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        milestone.refresh_from_db()
+        assert list(milestone.acl_read) == original_acl_read
+        assert list(milestone.acl_write) == original_acl_write
+        assert milestone.status == SRPReportMilestone.SRPReportStatus.PREPARED
+
     def test_full_update_milestone(self, authenticated_client, create_flaw_report):
         """Can perform full update with PUT."""
         milestones_report = create_flaw_report()
