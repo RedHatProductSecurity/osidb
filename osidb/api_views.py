@@ -1791,12 +1791,15 @@ class AffectView(
 
     @extend_schema(
         methods=["DELETE"],
-        responses={
-            200: {},
+        responses={200: {}},
+        request={
+            "type": "array",
+            "items": {"type": "string", "format": "uuid"},
+            "example": [
+                "3b8e9d40-0395-4a42-8a8f-0c5a5e0e5e8a",
+                "b6b6e8b4-1f2a-4e3b-9c4d-5e6f7a8b9c0d",
+            ],
         },
-        # Ignored because of https://github.com/tfranzel/drf-spectacular/issues/379
-        # and https://swagger.io/docs/specification/describing-request-body/#:~:text=GET%2C-,DELETE,-and%20HEAD%20are
-        request={"type": "array", "items": {"type": "string"}},
         parameters=[bz_api_key_param],
     )
     @bulk_put.mapping.delete
