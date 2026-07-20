@@ -5,11 +5,13 @@ Provides REST API serialization for CRA compliance reporting.
 """
 
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 from osidb.serializer import (
     ACLMixinSerializer,
     AlertMixinSerializer,
+    EmbargoedField,
     IncludeMetaAttrMixin,
     TrackingMixinSerializer,
 )
@@ -28,59 +30,88 @@ class SRPReportMilestoneSerializer(
     Includes computed fields for deadline tracking and status.
     """
 
-    # Computed fields
-    due_at = serializers.SerializerMethodField()
+    # Declared so drf-spectacular includes them in openapi.yml
+    due_at = serializers.DateTimeField(read_only=True, allow_null=True)
+    hours_remaining = serializers.IntegerField(read_only=True, allow_null=True)
+    days_remaining = serializers.IntegerField(read_only=True, allow_null=True)
+    is_overdue = serializers.BooleanField(read_only=True)
+    # ACLs are inherited from the parent report; not mutable via this API.
+    # Must be declared read_only: Meta.read_only_fields does not apply to
+    # fields declared on ACLMixinSerializer.
+    embargoed = EmbargoedField(
+        source="*",
+        read_only=True,
+        help_text=(
+            "The embargoed boolean attribute is technically read-only as it just "
+            "indirectly modifies the ACLs but is mandatory as it controls the access "
+            "to the resource."
+        ),
+    )
 
     class Meta:
         model = SRPReportMilestone
-        fields = [
-            # Primary key
-            "uuid",
-            # Foreign key
-            "srp_report",
-            # Core fields
-            "milestone_type",
-            "status",
-            "request_received_at",
-            "request_source",
-            "request_text",
-            # Tracking fields
-            "created_dt",
-            "updated_dt",
-            # ACL fields
-            "acl_read",
-            "acl_write",
-            # Computed fields
-            "due_at",
-        ] + AlertMixinSerializer.Meta.fields
+        fields = (
+            [
+                # Primary key
+                "uuid",
+                # Foreign key
+                "srp_report",
+                # Core fields
+                "milestone_type",
+                "status",
+                "request_received_at",
+                "request_source",
+                "request_text",
+                # Tracking fields
+                "created_dt",
+                "updated_dt",
+                # Computed fields
+                "due_at",
+                "hours_remaining",
+                "days_remaining",
+                "is_overdue",
+            ]
+            + ACLMixinSerializer.Meta.fields
+            + AlertMixinSerializer.Meta.fields
+        )
         read_only_fields = [
             "uuid",
+            "srp_report",
+            "milestone_type",
             "created_dt",
             "updated_dt",
             "due_at",
+            "hours_remaining",
+            "days_remaining",
+            "is_overdue",
+            "acl_read",
+            "acl_write",
             "alerts",
         ]
 
-    def get_due_at(self, obj):
-        """Get the milestone due date from the model property."""
-        return obj.due_at
-
     def to_representation(self, instance):
-        rep = super().to_representation(instance)
         due_at = instance.due_at
-        rep["due_at"] = due_at
         if due_at is None:
-            rep["hours_remaining"] = None
-            rep["days_remaining"] = None
-            rep["is_overdue"] = False
+            instance.hours_remaining = None
+            instance.days_remaining = None
+            instance.is_overdue = False
         else:
-            now = timezone.now()
-            delta = due_at - now
-            total_seconds = delta.total_seconds()
-            rep["hours_remaining"] = int(total_seconds / 3600)
-            rep["days_remaining"] = int(total_seconds / 86400)
-            rep["is_overdue"] = total_seconds < 0
-        return rep
+            total_seconds = (due_at - timezone.now()).total_seconds()
+            instance.hours_remaining = int(total_seconds / 3600)
+            instance.days_remaining = int(total_seconds / 86400)
+            instance.is_overdue = total_seconds < 0
+        return super().to_representation(instance)
+
+
+@extend_schema_serializer(exclude_fields=["updated_dt"])
+class SRPReportMilestoneCreateSerializer(SRPReportMilestoneSerializer):
+    """
+    Serializer for creating SRP Report Milestones.
+
+    Only additional_information_response milestones can be created via the API;
+    all other milestone types are auto-created by signals.
+    ACLs are inherited from the parent report in the view's perform_create.
+    """
 
 
 class SRPReportSerializer(

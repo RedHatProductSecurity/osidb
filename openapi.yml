@@ -14261,6 +14261,807 @@ paths:
                     version:
                       type: string
           description: ''
+  /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports:
+    get:
+      operationId: regulatory_reporting_api_v1_flaws_srp_reports_list
+      description: |-
+        ViewSet for flaw SRP reports (read-only subresource).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports - List reports for a flaw
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{uuid} - Retrieve single report
+
+        Read-only convenience wrapper. Updates must use top-level endpoints.
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedSRPReportList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{report_uuid}/milestones:
+    get:
+      operationId: regulatory_reporting_api_v1_flaws_srp_reports_milestones_list
+      description: |-
+        ViewSet for flaw SRP report milestones (read-only subresource).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{report_uuid}/milestones - List milestones
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve milestone
+
+        Read-only convenience wrapper. Updates must use top-level endpoints.
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: path
+        name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedSRPReportMilestoneList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{report_uuid}/milestones/{uuid}:
+    get:
+      operationId: regulatory_reporting_api_v1_flaws_srp_reports_milestones_retrieve
+      description: |-
+        ViewSet for flaw SRP report milestones (read-only subresource).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{report_uuid}/milestones - List milestones
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve milestone
+
+        Read-only convenience wrapper. Updates must use top-level endpoints.
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: path
+        name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReportMilestone'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{uuid}:
+    get:
+      operationId: regulatory_reporting_api_v1_flaws_srp_reports_retrieve
+      description: |-
+        ViewSet for flaw SRP reports (read-only subresource).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports - List reports for a flaw
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{uuid} - Retrieve single report
+
+        Read-only convenience wrapper. Updates must use top-level endpoints.
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReport'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/srp-reports:
+    get:
+      operationId: regulatory_reporting_api_v1_srp_reports_list
+      description: |-
+        ViewSet for SRP Reports (top-level).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports - List all reports with filtering
+        - GET /regulatory-reporting/api/v1/srp-reports/{uuid} - Retrieve single report
+        - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Full update
+        - PATCH /regulatory-reporting/api/v1/srp-reports/{uuid} - Partial update
+
+        No POST/DELETE - reports are auto-created by signals.
+      parameters:
+      - in: query
+        name: created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: reportable_event_type
+        schema:
+          type: string
+      - in: query
+        name: responsibility_scope
+        schema:
+          type: string
+      - in: query
+        name: srp_reference_id
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: timer_started_at__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: timer_started_at__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: title
+        schema:
+          type: string
+      - in: query
+        name: updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedSRPReportList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones:
+    get:
+      operationId: regulatory_reporting_api_v1_srp_reports_milestones_list
+      description: |-
+        ViewSet for SRP Report Milestones (nested under reports).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - List milestones for a report
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve single milestone
+        - POST /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - Create additional_information_response milestone
+        - PUT /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Full update
+        - PATCH /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Partial update
+
+        Standard milestones (24h, 72h, final) are auto-created by signals.
+        Only additional_information_response milestones can be created via POST.
+      parameters:
+      - in: query
+        name: created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: milestone_type
+        schema:
+          type: string
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: path
+        name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: query
+        name: request_source
+        schema:
+          type: string
+      - in: query
+        name: request_text
+        schema:
+          type: string
+      - in: query
+        name: srp_report
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedSRPReportMilestoneList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: regulatory_reporting_api_v1_srp_reports_milestones_create
+      description: |-
+        ViewSet for SRP Report Milestones (nested under reports).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - List milestones for a report
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve single milestone
+        - POST /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - Create additional_information_response milestone
+        - PUT /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Full update
+        - PATCH /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Partial update
+
+        Standard milestones (24h, 72h, final) are auto-created by signals.
+        Only additional_information_response milestones can be created via POST.
+      parameters:
+      - in: path
+        name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SRPReportMilestoneCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SRPReportMilestoneCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SRPReportMilestoneCreateRequest'
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReportMilestoneCreate'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid}:
+    get:
+      operationId: regulatory_reporting_api_v1_srp_reports_milestones_retrieve
+      description: |-
+        ViewSet for SRP Report Milestones (nested under reports).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - List milestones for a report
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve single milestone
+        - POST /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - Create additional_information_response milestone
+        - PUT /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Full update
+        - PATCH /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Partial update
+
+        Standard milestones (24h, 72h, final) are auto-created by signals.
+        Only additional_information_response milestones can be created via POST.
+      parameters:
+      - in: path
+        name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReportMilestone'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: regulatory_reporting_api_v1_srp_reports_milestones_update
+      description: |-
+        ViewSet for SRP Report Milestones (nested under reports).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - List milestones for a report
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve single milestone
+        - POST /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - Create additional_information_response milestone
+        - PUT /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Full update
+        - PATCH /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Partial update
+
+        Standard milestones (24h, 72h, final) are auto-created by signals.
+        Only additional_information_response milestones can be created via POST.
+      parameters:
+      - in: path
+        name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SRPReportMilestoneRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SRPReportMilestoneRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SRPReportMilestoneRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReportMilestone'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    patch:
+      operationId: regulatory_reporting_api_v1_srp_reports_milestones_partial_update
+      description: |-
+        ViewSet for SRP Report Milestones (nested under reports).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - List milestones for a report
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve single milestone
+        - POST /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - Create additional_information_response milestone
+        - PUT /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Full update
+        - PATCH /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Partial update
+
+        Standard milestones (24h, 72h, final) are auto-created by signals.
+        Only additional_information_response milestones can be created via POST.
+      parameters:
+      - in: path
+        name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSRPReportMilestoneRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSRPReportMilestoneRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSRPReportMilestoneRequest'
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReportMilestone'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/srp-reports/{uuid}:
+    get:
+      operationId: regulatory_reporting_api_v1_srp_reports_retrieve
+      description: |-
+        ViewSet for SRP Reports (top-level).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports - List all reports with filtering
+        - GET /regulatory-reporting/api/v1/srp-reports/{uuid} - Retrieve single report
+        - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Full update
+        - PATCH /regulatory-reporting/api/v1/srp-reports/{uuid} - Partial update
+
+        No POST/DELETE - reports are auto-created by signals.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReport'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: regulatory_reporting_api_v1_srp_reports_update
+      description: |-
+        ViewSet for SRP Reports (top-level).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports - List all reports with filtering
+        - GET /regulatory-reporting/api/v1/srp-reports/{uuid} - Retrieve single report
+        - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Full update
+        - PATCH /regulatory-reporting/api/v1/srp-reports/{uuid} - Partial update
+
+        No POST/DELETE - reports are auto-created by signals.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SRPReportRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SRPReportRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SRPReportRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReport'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    patch:
+      operationId: regulatory_reporting_api_v1_srp_reports_partial_update
+      description: |-
+        ViewSet for SRP Reports (top-level).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports - List all reports with filtering
+        - GET /regulatory-reporting/api/v1/srp-reports/{uuid} - Retrieve single report
+        - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Full update
+        - PATCH /regulatory-reporting/api/v1/srp-reports/{uuid} - Partial update
+
+        No POST/DELETE - reports are auto-created by signals.
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSRPReportRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSRPReportRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSRPReportRequest'
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReport'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /trackers/api/v1/file:
     post:
       operationId: trackers_api_v1_file_create
@@ -17416,6 +18217,13 @@ components:
       - website_form
       - other_manual
       type: string
+    MilestoneTypeEnum:
+      enum:
+      - 24h
+      - 72h
+      - final
+      - additional_information_response
+      type: string
     ModuleComponent:
       type: object
       properties:
@@ -17994,6 +18802,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FlawV1ReportData'
+    PaginatedSRPReportList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SRPReport'
+    PaginatedSRPReportMilestoneList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SRPReportMilestone'
     PaginatedSupportedProductsList:
       type: object
       required:
@@ -18120,6 +18974,98 @@ components:
           type: string
           writeOnly: true
           minLength: 1
+    PatchedSRPReportMilestoneRequest:
+      type: object
+      description: |-
+        Serializer for SRP Report Milestones.
+
+        Includes computed fields for deadline tracking and status.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusB26Enum'
+          description: Current status of the milestone
+        request_received_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the request was received
+        request_source:
+          type: string
+          description: Source of the request
+          maxLength: 255
+        request_text:
+          type: string
+          description: Text of the request
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+    PatchedSRPReportRequest:
+      type: object
+      description: |-
+        Serializer for SRP Reports.
+
+        Includes nested milestones. meta_attr is opt-in via include_meta_attr.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          description: Title of the SRP report
+          maxLength: 255
+        manufacturer_or_steward_name:
+          type: string
+          description: Name of the manufacturer or steward
+          maxLength: 255
+        responsibility_scope:
+          allOf:
+          - $ref: '#/components/schemas/ResponsibilityScopeEnum'
+          description: Whether Red Hat acts as manufacturer or steward
+        reportable_event_type:
+          allOf:
+          - $ref: '#/components/schemas/ReportableEventTypeEnum'
+          description: Type of event being reported to ENISA
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusB26Enum'
+          description: Current status of the SRP report
+        timer_started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the SLA clock started for this report
+        srp_reference_id:
+          type: string
+          description: Reference ID returned by the SRP after submission
+          maxLength: 255
+        srp_reference_url:
+          type: string
+          format: uri
+          description: URL of the SRP reference
+          maxLength: 200
+        member_states_available:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2
+          description: List of EU member state codes where product is available
+        designated_csirt_country:
+          type: string
+          description: Country code of the designated CSIRT coordinator
+          maxLength: 2
+        designated_csirt_source:
+          type: string
+          description: Source of the designated CSIRT coordinator
+          maxLength: 255
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
     Profile:
       type: object
       properties:
@@ -18154,6 +19100,12 @@ components:
       - jointly_identified
       - manual_override
       type: string
+    ReportableEventTypeEnum:
+      enum:
+      - actively_exploited_vulnerability
+      - severe_incident
+      - additional_information_request
+      type: string
     ResolutionEnum:
       enum:
       - FIX
@@ -18163,6 +19115,416 @@ components:
       - DELEGATED
       - WONTREPORT
       type: string
+    ResponsibilityScopeEnum:
+      enum:
+      - manufacturer
+      - steward
+      type: string
+    SRPReport:
+      type: object
+      description: |-
+        Serializer for SRP Reports.
+
+        Includes nested milestones. meta_attr is opt-in via include_meta_attr.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        flaw_id:
+          type: string
+          format: uuid
+          description: The flaw for which this SRP report is being created
+          readOnly: true
+        title:
+          type: string
+          description: Title of the SRP report
+          maxLength: 255
+        manufacturer_or_steward_name:
+          type: string
+          description: Name of the manufacturer or steward
+          maxLength: 255
+        responsibility_scope:
+          allOf:
+          - $ref: '#/components/schemas/ResponsibilityScopeEnum'
+          description: Whether Red Hat acts as manufacturer or steward
+        reportable_event_type:
+          allOf:
+          - $ref: '#/components/schemas/ReportableEventTypeEnum'
+          description: Type of event being reported to ENISA
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusB26Enum'
+          description: Current status of the SRP report
+        timer_started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the SLA clock started for this report
+        srp_reference_id:
+          type: string
+          description: Reference ID returned by the SRP after submission
+          maxLength: 255
+        srp_reference_url:
+          type: string
+          format: uri
+          description: URL of the SRP reference
+          maxLength: 200
+        member_states_available:
+          type: array
+          items:
+            type: string
+            maxLength: 2
+          description: List of EU member state codes where product is available
+        designated_csirt_country:
+          type: string
+          description: Country code of the designated CSIRT coordinator
+          maxLength: 2
+        designated_csirt_source:
+          type: string
+          description: Source of the designated CSIRT coordinator
+          maxLength: 255
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        milestones:
+          type: array
+          items:
+            $ref: '#/components/schemas/SRPReportMilestone'
+          readOnly: true
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+      required:
+      - alerts
+      - created_dt
+      - flaw_id
+      - milestones
+      - reportable_event_type
+      - responsibility_scope
+      - title
+      - updated_dt
+      - uuid
+    SRPReportMilestone:
+      type: object
+      description: |-
+        Serializer for SRP Report Milestones.
+
+        Includes computed fields for deadline tracking and status.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        srp_report:
+          type: string
+          format: uuid
+          readOnly: true
+          description: The SRP report this milestone belongs to
+        milestone_type:
+          allOf:
+          - $ref: '#/components/schemas/MilestoneTypeEnum'
+          readOnly: true
+          description: Type of milestone (24h, 72h, final, etc.)
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusB26Enum'
+          description: Current status of the milestone
+        request_received_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the request was received
+        request_source:
+          type: string
+          description: Source of the request
+          maxLength: 255
+        request_text:
+          type: string
+          description: Text of the request
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        due_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          readOnly: true
+        hours_remaining:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
+        days_remaining:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
+        is_overdue:
+          type: boolean
+          readOnly: true
+        embargoed:
+          type: boolean
+          readOnly: true
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+      required:
+      - alerts
+      - created_dt
+      - days_remaining
+      - due_at
+      - embargoed
+      - hours_remaining
+      - is_overdue
+      - milestone_type
+      - srp_report
+      - updated_dt
+      - uuid
+      - visibility
+    SRPReportMilestoneCreate:
+      type: object
+      description: |-
+        Serializer for creating SRP Report Milestones.
+
+        Only additional_information_response milestones can be created via the API;
+        all other milestone types are auto-created by signals.
+        ACLs are inherited from the parent report in the view's perform_create.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        srp_report:
+          type: string
+          format: uuid
+          readOnly: true
+          description: The SRP report this milestone belongs to
+        milestone_type:
+          allOf:
+          - $ref: '#/components/schemas/MilestoneTypeEnum'
+          readOnly: true
+          description: Type of milestone (24h, 72h, final, etc.)
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusB26Enum'
+          description: Current status of the milestone
+        request_received_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the request was received
+        request_source:
+          type: string
+          description: Source of the request
+          maxLength: 255
+        request_text:
+          type: string
+          description: Text of the request
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        due_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          readOnly: true
+        hours_remaining:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
+        days_remaining:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
+        is_overdue:
+          type: boolean
+          readOnly: true
+        embargoed:
+          type: boolean
+          readOnly: true
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+      required:
+      - alerts
+      - created_dt
+      - days_remaining
+      - due_at
+      - embargoed
+      - hours_remaining
+      - is_overdue
+      - milestone_type
+      - srp_report
+      - uuid
+      - visibility
+    SRPReportMilestoneCreateRequest:
+      type: object
+      description: |-
+        Serializer for creating SRP Report Milestones.
+
+        Only additional_information_response milestones can be created via the API;
+        all other milestone types are auto-created by signals.
+        ACLs are inherited from the parent report in the view's perform_create.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusB26Enum'
+          description: Current status of the milestone
+        request_received_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the request was received
+        request_source:
+          type: string
+          description: Source of the request
+          maxLength: 255
+        request_text:
+          type: string
+          description: Text of the request
+    SRPReportMilestoneRequest:
+      type: object
+      description: |-
+        Serializer for SRP Report Milestones.
+
+        Includes computed fields for deadline tracking and status.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusB26Enum'
+          description: Current status of the milestone
+        request_received_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the request was received
+        request_source:
+          type: string
+          description: Source of the request
+          maxLength: 255
+        request_text:
+          type: string
+          description: Text of the request
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - updated_dt
+    SRPReportRequest:
+      type: object
+      description: |-
+        Serializer for SRP Reports.
+
+        Includes nested milestones. meta_attr is opt-in via include_meta_attr.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          description: Title of the SRP report
+          maxLength: 255
+        manufacturer_or_steward_name:
+          type: string
+          description: Name of the manufacturer or steward
+          maxLength: 255
+        responsibility_scope:
+          allOf:
+          - $ref: '#/components/schemas/ResponsibilityScopeEnum'
+          description: Whether Red Hat acts as manufacturer or steward
+        reportable_event_type:
+          allOf:
+          - $ref: '#/components/schemas/ReportableEventTypeEnum'
+          description: Type of event being reported to ENISA
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusB26Enum'
+          description: Current status of the SRP report
+        timer_started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the SLA clock started for this report
+        srp_reference_id:
+          type: string
+          description: Reference ID returned by the SRP after submission
+          maxLength: 255
+        srp_reference_url:
+          type: string
+          format: uri
+          description: URL of the SRP reference
+          maxLength: 200
+        member_states_available:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2
+          description: List of EU member state codes where product is available
+        designated_csirt_country:
+          type: string
+          description: Country code of the designated CSIRT coordinator
+          maxLength: 2
+        designated_csirt_source:
+          type: string
+          description: Source of the designated CSIRT coordinator
+          maxLength: 255
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - reportable_event_type
+      - responsibility_scope
+      - title
+      - updated_dt
     SpecialHandlingEnum:
       enum:
       - Major Incident
@@ -18180,16 +19542,13 @@ components:
       - SKIP
       - DONE
       type: string
-    StatusEnum:
+    StatusB26Enum:
       enum:
       - not_applicable
       - not_required
       - required
-      - contact_needed
       - prepared
-      - reviewed
-      - queued
-      - sent
+      - submitted
       - deferred
       - blocked
       - failed
@@ -18843,7 +20202,7 @@ components:
           - 'null'
           format: uuid
         status:
-          $ref: '#/components/schemas/StatusEnum'
+          $ref: '#/components/schemas/UpstreamNotificationStatusEnum'
         reportability_reason:
           oneOf:
           - $ref: '#/components/schemas/ReportabilityReasonEnum'
@@ -18890,7 +20249,7 @@ components:
           - 'null'
           format: uuid
         status:
-          $ref: '#/components/schemas/StatusEnum'
+          $ref: '#/components/schemas/UpstreamNotificationStatusEnum'
         reportability_reason:
           oneOf:
           - $ref: '#/components/schemas/ReportabilityReasonEnum'
@@ -18907,6 +20266,20 @@ components:
       required:
       - embargoed
       - updated_dt
+    UpstreamNotificationStatusEnum:
+      enum:
+      - not_applicable
+      - not_required
+      - required
+      - contact_needed
+      - prepared
+      - reviewed
+      - queued
+      - sent
+      - deferred
+      - blocked
+      - failed
+      type: string
     User:
       type: object
       properties:

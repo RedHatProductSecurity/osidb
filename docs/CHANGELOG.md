@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add signal to trigger upstream maintainer notification creation on FlawUpstreamMapping save (OSIDB-5078)
 - Add SRP report serializer (OSIDB-5072)
 - Add Upstream Maintainer Notification Subresource Endpoints (OSIDB-5083)
+- Add SRP report endpoints (OSIDB-5073)
 
 ### Changed
 - align existing workflows with workflow framework concepts
