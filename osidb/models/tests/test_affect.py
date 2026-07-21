@@ -533,3 +533,37 @@ class TestAutoResolve:
         affect.auto_resolve()
         assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
         assert affect.resolution == Affect.AffectResolution.DELEGATED
+
+    # ── Hummingbird (HUM) skips mod7 DEFER check ────────────────────────────
+
+    def test_hummingbird_low_impact_skips_defer(
+        self, hummingbird_ps_stream_with_moderate_tracker
+    ):
+        stream = hummingbird_ps_stream_with_moderate_tracker
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.LOW),
+            ps_module=stream.ps_module.name,
+            ps_update_stream=stream.name,
+            impact=Impact.LOW,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DELEGATED
+
+    def test_hummingbird_moderate_low_cvss_skips_defer(
+        self, hummingbird_ps_stream_with_moderate_tracker, flaw_with_cvss
+    ):
+        stream = hummingbird_ps_stream_with_moderate_tracker
+        flaw = flaw_with_cvss(
+            Impact.MODERATE,
+            "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:N/A:N",  # score 3.5
+        )
+        affect = AffectFactory.build(
+            flaw=flaw,
+            ps_module=stream.ps_module.name,
+            ps_update_stream=stream.name,
+            impact=Impact.MODERATE,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DELEGATED

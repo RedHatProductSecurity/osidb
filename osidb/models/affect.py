@@ -907,7 +907,8 @@ class Affect(
             return
 
         # AFFECTED/DEFER — low severity or moderate without high CVSS (non-community)
-        if not is_community:
+        # Hummingbird (HUM) modules skip this check and always get AFFECTED/DELEGATED
+        if not is_community and not self.is_hummingbird():
             if impact == Impact.LOW:
                 self.resolution = self.AffectResolution.DEFER
                 return
