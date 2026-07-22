@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix incorrect OpenAPI schema types for audit endpoint fields (pgh_data, pgh_context, pgh_diff) (OSIDB-3637)
 - Return descriptive 400 error instead of 500 on malformed bulk affects requests (OSIDB-3134)
 - Fix collectors being blocked by duplicated related model entries (OSIDB-5221)
+- Filter windows-only Flaws by leveraging CPEs in addition to keywords / blocklist (OSIDB-5235)
 
 ### Removed
 - deprecate workflow manipulation endpoints
