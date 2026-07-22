@@ -181,11 +181,6 @@ AUTHENTICATION_BACKENDS += [
 ]
 KRB5_HOSTNAME = get_env("KRB5_HOSTNAME")
 
-# --- External services ---
-
-ERRATA_TOOL_SERVER = get_env("ET_URL")
-ERRATA_TOOL_XMLRPC_BASE_URL = f"{ERRATA_TOOL_SERVER}/errata/errata_service"
-
 # --- Collectors ---
 
 # Execute once an hour

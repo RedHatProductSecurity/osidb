@@ -2642,6 +2642,63 @@ paths:
           - WONTFIX
           - WONTREPORT
       - in: query
+        name: affects__tracker__errata__advisory_name
+        schema:
+          type: string
+      - in: query
+        name: affects__tracker__errata__advisory_name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: affects__tracker__errata__et_id
+        schema:
+          type: number
+      - in: query
+        name: affects__tracker__errata__shipped_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__tracker__errata__shipped_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__tracker__errata__shipped_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__tracker__errata__shipped_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: affects__tracker__errata__shipped_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__tracker__errata__shipped_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__tracker__errata__shipped_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: affects__tracker__errata__shipped_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
         name: affects__trackers__created_dt
         schema:
           type: string
@@ -3370,6 +3427,9 @@ paths:
             - -acknowledgments__name
             - -acknowledgments__updated_dt
             - -acknowledgments__uuid
+            - -affects__tracker__errata__advisory_name
+            - -affects__tracker__errata__et_id
+            - -affects__tracker__errata__shipped_dt
             - -bz_id
             - -comment_zero
             - -components
@@ -3412,6 +3472,9 @@ paths:
             - acknowledgments__name
             - acknowledgments__updated_dt
             - acknowledgments__uuid
+            - affects__tracker__errata__advisory_name
+            - affects__tracker__errata__et_id
+            - affects__tracker__errata__shipped_dt
             - bz_id
             - comment_zero
             - components
@@ -10399,7 +10462,7 @@ paths:
       - in: query
         name: affects__tracker__errata__et_id
         schema:
-          type: integer
+          type: number
       - in: query
         name: affects__tracker__errata__shipped_dt
         schema:
@@ -15258,37 +15321,6 @@ components:
       required:
       - cve
       - epss
-    Erratum:
-      type: object
-      description: Erratum serializer
-      properties:
-        et_id:
-          type: integer
-          readOnly: true
-        advisory_name:
-          type: string
-          readOnly: true
-        shipped_dt:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          readOnly: true
-        created_dt:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_dt:
-          type: string
-          format: date-time
-          description: The updated_dt timestamp attribute is mandatory on update as
-            it is used to detect mit-air collisions.
-      required:
-      - advisory_name
-      - created_dt
-      - et_id
-      - shipped_dt
-      - updated_dt
     ExploitOnlyReportData:
       type: object
       properties:
@@ -18050,8 +18082,24 @@ components:
         errata:
           type: array
           items:
-            $ref: '#/components/schemas/Erratum'
+            type: object
+            properties:
+              et_id:
+                type: integer
+              advisory_name:
+                type: string
+              shipped_dt:
+                type: string
+                format: date-time
+                nullable: true
+              created_dt:
+                type: string
+                format: date-time
+              updated_dt:
+                type: string
+                format: date-time
           readOnly: true
+          deprecated: true
         external_system_id:
           type: string
           readOnly: true
@@ -18144,8 +18192,24 @@ components:
         errata:
           type: array
           items:
-            $ref: '#/components/schemas/Erratum'
+            type: object
+            properties:
+              et_id:
+                type: integer
+              advisory_name:
+                type: string
+              shipped_dt:
+                type: string
+                format: date-time
+                nullable: true
+              created_dt:
+                type: string
+                format: date-time
+              updated_dt:
+                type: string
+                format: date-time
           readOnly: true
+          deprecated: true
         ps_update_stream:
           type: string
           maxLength: 100
@@ -18352,8 +18416,24 @@ components:
         errata:
           type: array
           items:
-            $ref: '#/components/schemas/Erratum'
+            type: object
+            properties:
+              et_id:
+                type: integer
+              advisory_name:
+                type: string
+              shipped_dt:
+                type: string
+                format: date-time
+                nullable: true
+              created_dt:
+                type: string
+                format: date-time
+              updated_dt:
+                type: string
+                format: date-time
           readOnly: true
+          deprecated: true
         external_system_id:
           type: string
           readOnly: true
