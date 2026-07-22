@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
+from osidb.models.abstract import Impact
 from osidb.models.flaw import FlawSource
 from osidb.tests.factories import FlawFactory
 from regulatory_reporting.models.upstream import UpstreamNotification
@@ -156,3 +157,35 @@ class TestSendEmailAction:
         )
 
         assert response.status_code == 400
+
+    @patch("regulatory_reporting.views.async_send_email")
+    def test_send_email_uses_new_template_fields(
+        self, mock_task, auth_client, test_api_v2_uri
+    ):
+        """Test that send-email renders the new template fields (OSIDB-5086)."""
+        upstream_project = UpstreamProjectFactory(
+            security_contact="maintainer@example.com"
+        )
+        flaw = FlawFactory(
+            embargoed=False,
+            source=FlawSource.REDHAT,
+            impact=Impact.MODERATE,
+            mitigation="Upgrade to version 1.2.3",
+        )
+        notification = UpstreamNotificationFactory(
+            flaw=flaw,
+            upstream_project=upstream_project,
+            method=UpstreamNotification.NotificationMethod.EMAIL,
+            status=UpstreamNotification.NotificationStatus.REVIEWED,
+        )
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/notifications/upstream/{notification.uuid}/send-email"
+        )
+
+        assert response.status_code == 200
+        notification.refresh_from_db()
+        assert Impact.MODERATE in notification.payload_text
+        assert flaw.mitigation in notification.payload_text
+        assert upstream_project.security_contact in notification.payload_text
+        assert "severity" not in notification.payload_text.lower()
