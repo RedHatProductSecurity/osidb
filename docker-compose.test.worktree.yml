@@ -1,0 +1,14 @@
+version: '3'
+
+# Worktree isolation override for test services
+# Usage: docker-compose -f docker-compose.test.yml -f docker-compose.test.worktree.yml up
+
+services:
+  testldap:
+    container_name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required - run make worktree-generate-env first}-testldap
+
+  testrunner:
+    container_name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required - run make worktree-generate-env first}-testrunner
+
+  locust:
+    container_name: ${COMPOSE_PROJECT_NAME:?COMPOSE_PROJECT_NAME is required - run make worktree-generate-env first}-locust

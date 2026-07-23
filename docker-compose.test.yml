@@ -7,8 +7,8 @@ services:
       image: mirror.gcr.io/osixia/openldap:1.5.0
       command: --copy-service -l debug
       ports:
-        - '1389:1389'
-        - '1636:1636'
+        - '${LDAP_PORT:-1389}:1389'
+        - '${LDAPS_PORT:-1636}:1636'
       environment:
         - LDAP_DOMAIN=redhat.com
         - LDAP_BASE_DN=dc=redhat,dc=com
@@ -50,7 +50,7 @@ services:
       container_name: locust
       image: mirror.gcr.io/locustio/locust:2.20.1
       ports:
-        - '9000:8089'
+        - '${LOCUST_PORT:-9000}:8089'
       volumes:
         - ${PWD}/perf/main.py:/mnt/locust/main.py:z
       command: -f /mnt/locust/main.py -H http://osidb-service:8000 --web-host 0.0.0.0 --modern-ui SFM2User SDEngineUser GriffonUser OSIMUser

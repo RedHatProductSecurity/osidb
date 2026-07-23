@@ -68,7 +68,7 @@ services:
       stdin_open: true
       tty: true
       ports:
-        - "8000:8000"
+        - "${OSIDB_PORT:-8000}:8000"
       environment:
         BBSYNC_SYNC_TO_BZ: ${BBSYNC_SYNC_TO_BZ}
         BBSYNC_SYNC_FLAWS_TO_BZ: ${BBSYNC_SYNC_FLAWS_TO_BZ}
@@ -144,7 +144,7 @@ services:
         - ${PWD}/etc/pg/local-server.crt:/var/lib/postgresql/local-server.crt:z
         - ${PWD}/etc/pg/local-server.key:/var/lib/postgresql/local-server.key:z
       ports:
-        - "5432"
+        - "${POSTGRES_PORT:+${POSTGRES_PORT}:}5432"
       command: >
           -c ssl=on
           -c ssl_cert_file=/var/lib/postgresql/local-server.crt
@@ -269,7 +269,7 @@ services:
       pull_policy: never
       command: ./scripts/run-flower.sh
       ports:
-        - "5555:5555"
+        - "${FLOWER_PORT:-5555}:5555"
       volumes:
         - ${PWD}:/opt/app-root/src:z
       environment:
@@ -287,7 +287,7 @@ services:
       hostname: redis
       image: mirror.gcr.io/library/redis:6
       ports:
-        - "6379"
+        - "${REDIS_PORT:+${REDIS_PORT}:}6379"
 
 volumes:
   pg-data:
