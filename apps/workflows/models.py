@@ -2,7 +2,7 @@
 Workflows model definitions
 """
 
-from osidb.mixins import ACLMixinVisibility
+from osidb.acls import ACL
 
 from .checks import CheckParser
 
@@ -90,7 +90,7 @@ class State:
         self.jira_resolution = state_desc["jira_resolution"]
         self.visibility = state_desc.get("visibility")
         if self.visibility:
-            ACLMixinVisibility(self.visibility)
+            ACL(self.visibility)
         self.requirements = [
             self.parse_requirement(requirement_desc)
             for requirement_desc in state_desc["requirements"]

@@ -18,6 +18,7 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
+from osidb.acls import ACL
 from osidb.mixins import (
     ACLMixin,
     AlertMixin,
@@ -1189,18 +1190,27 @@ class AffectV1(AffectExploitExtensionMixin):
             return None
         return ps_module.ps_product.name
 
-    # Mirrored properties from mixins
+    @property
+    def current_acl(self):
+        if self.acl_read == ACL.PUBLIC.uuid_read:
+            return ACL.PUBLIC
+        if self.acl_read == ACL.INTERNAL.uuid_read:
+            return ACL.INTERNAL
+        if self.acl_read == ACL.EMBARGO.uuid_read:
+            return ACL.EMBARGO
+        return ACL.UNKNOWN
+
     @property
     def is_embargoed(self):
-        return self.acl_read == ACLMixin.get_embargoed_acl()
+        return self.current_acl == ACL.EMBARGO
 
     @property
     def is_internal(self):
-        return set(self.acl_read + self.acl_write) == self.acls_internal
+        return self.current_acl == ACL.INTERNAL
 
     @property
     def is_public(self):
-        return set(self.acl_read + self.acl_write) == self.acls_public
+        return self.current_acl == ACL.PUBLIC
 
 
 class AffectCVSSManager(TrackingMixinManager):

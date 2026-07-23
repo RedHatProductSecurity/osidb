@@ -338,49 +338,27 @@ class ACLMixin(models.Model):
         # caching the ACLs and building the group map
         self.acls_all
 
-    def get_embargoed_acl():
-        return sorted(
-            uuid.UUID(acl) for acl in generate_acls(settings.EMBARGO_READ_GROUPS)
-        )
+    @property
+    def current_acl(self):
+        if self.acl_read == ACL.PUBLIC.uuid_read:
+            return ACL.PUBLIC
+        if self.acl_read == ACL.INTERNAL.uuid_read:
+            return ACL.INTERNAL
+        if self.acl_read == ACL.EMBARGO.uuid_read:
+            return ACL.EMBARGO
+        return ACL.UNKNOWN
 
     @property
     def is_embargoed(self):
-        return self.acl_read == ACLMixin.get_embargoed_acl()
+        return self.current_acl == ACL.EMBARGO
 
     @property
     def is_internal(self):
-        return set(self.acl_read + self.acl_write) == self.acls_internal
+        return self.current_acl == ACL.INTERNAL
 
     @property
     def is_public(self):
-        return set(self.acl_read + self.acl_write) == self.acls_public
-
-    _visibility_dirty = False
-
-    def _current_visibility(self):
-        if not self._state.adding and not self._visibility_dirty:
-            return ACLMixinVisibility(self.visibility)
-        if self.is_embargoed:
-            return ACLMixinVisibility.EMBARGOED
-        if self.is_internal:
-            return ACLMixinVisibility.INTERNAL
-        return ACLMixinVisibility.PUBLIC
-
-    def set_visibility(self, target):
-        target = ACLMixinVisibility(target)
-        if self._current_visibility() >= target:
-            return
-
-        if target == ACLMixinVisibility.EMBARGOED:
-            self.set_embargoed()
-        elif target == ACLMixinVisibility.INTERNAL:
-            self.set_internal()
-        elif target == ACLMixinVisibility.PUBLIC:
-            self.set_public()
-
-        self._visibility_dirty = True
-        self.set_acls_nested()
-        self.set_acls_history()
+        return self.current_acl == ACL.PUBLIC
 
     def acl2group(self, acl):
         """
@@ -417,7 +395,6 @@ class ACLMixin(models.Model):
         """
         acls = sorted(self.group2acl(group) for group in groups)
         self.acl_read = acls
-        self._visibility_dirty = True
         return acls
 
     def set_acl_write(self, *groups):
@@ -439,7 +416,6 @@ class ACLMixin(models.Model):
         """
         acls = sorted(self.group2acl(group) for group in groups)
         self.acl_write = acls
-        self._visibility_dirty = True
         return acls
 
     def set_public(self):
@@ -459,44 +435,18 @@ class ACLMixin(models.Model):
             ... [UUID(...), UUID(...)]
         """
 
+        if self.current_acl >= ACL.PUBLIC:
+            return
         self.set_acl_read(*settings.PUBLIC_READ_GROUPS)
         self.set_acl_write(*settings.PUBLIC_WRITE_GROUPS)
-
-    def set_embargoed(self):
-        """
-        Shortcut method for making an ACL-enabled entity embargoed.
-
-        Calling this method on an entity will **overwrite** its acl_read
-        and acl_write attributes to the default embargoed ones.
-
-        e.g.:
-            >>> my_flaw.acl_read
-            ... [UUID(...), UUID(...), UUID(...), UUID(...)]
-            >>> my_flaw.set_embargoed()
-            >>> # note that the acl_read have been completely replaced by the
-            >>> # embargoed ACLs only, other ones are not kept.
-            >>> my_flaw.acl_read
-            ... [UUID(...), UUID(...)]
-        """
-        self.set_acl_read(*settings.EMBARGO_READ_GROUPS)
-        self.set_acl_write(*settings.EMBARGO_WRITE_GROUPS)
 
     def set_internal(self):
         """
         Shortcut method for making an ACL-enabled entity internal.
-
-        Calling this method on an entity will **overwrite** its acl_read
-        and acl_write attributes to the default internal ones.
-
-        e.g.:
-            >>> my_flaw.acl_read
-            ... [UUID(...), UUID(...), UUID(...), UUID(...)]
-            >>> my_flaw.set_internal()
-            >>> # note that the acl_read have been completely replaced by the
-            >>> # internal ACLs only, other ones are not kept.
-            >>> my_flaw.acl_read
-            ... [UUID(...), UUID(...)]
+        No-op if the entity is already at internal or public visibility.
         """
+        if self.current_acl >= ACL.INTERNAL:
+            return
         self.set_acl_read(*settings.INTERNAL_READ_GROUPS)
         self.set_acl_write(*settings.INTERNAL_WRITE_GROUPS)
 
