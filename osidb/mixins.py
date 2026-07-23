@@ -105,6 +105,9 @@ class TrackingMixinManager(models.Manager):
         """
         filter out auto_timestamps from the defaults
         """
+        # Copy so None is safe (Django allows defaults=None) and callers'
+        # dicts are not mutated.
+        defaults = dict(defaults or {})
         defaults.pop("auto_timestamps", None)
         return super().get_or_create(defaults, **kwargs)
 
@@ -355,6 +358,14 @@ class ACLMixin(models.Model):
         # requesting all the ACLs performs the init
         # caching the ACLs and building the group map
         self.acls_all
+
+    def inherit_parent_flaw_acls(self):
+        """
+        Copy acl_read/acl_write from the parent Flaw when both are unset.
+        """
+        if getattr(self, "flaw_id", None) and not self.acl_read and not self.acl_write:
+            self.acl_read = list(self.flaw.acl_read)
+            self.acl_write = list(self.flaw.acl_write)
 
     def get_embargoed_acl():
         return [uuid.UUID(acl) for acl in generate_acls(settings.EMBARGO_READ_GROUPS)]

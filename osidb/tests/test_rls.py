@@ -4,7 +4,16 @@ from django.db import connections, transaction
 from django.db.utils import ProgrammingError
 
 from osidb.core import set_user_acls
-from osidb.models import CVSS, Flaw, FlawCVSS, Impact
+from osidb.models import (
+    CVSS,
+    AliasLabel,
+    Flaw,
+    FlawCollaborator,
+    FlawCVSS,
+    FlawLabel,
+    FlawLabelV2,
+    Impact,
+)
 from osidb.tests.factories import FlawCVSSFactory, FlawFactory
 
 pytestmark = pytest.mark.enable_rls
@@ -187,3 +196,85 @@ class TestRLS:
 
         set_user_acls([settings.EMBARGO_READ_GROUP])
         assert FlawCVSS.objects.count() == 0
+
+    def test_create_flawlabelv2(self):
+        """
+        Creating a FlawLabelV2 requires write ACLs; public read alone violates RLS.
+        """
+        set_user_acls(settings.ALL_GROUPS)
+        flaw = FlawFactory(embargoed=False)
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
+        with transaction.atomic():
+            with pytest.raises(
+                ProgrammingError, match="violates row-level security policy"
+            ):
+                AliasLabel.objects.create(flaw=flaw, name="rls-alias-denied")
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS + [settings.PUBLIC_WRITE_GROUP])
+        label = AliasLabel.objects.create(flaw=flaw, name="rls-alias-ok")
+        assert label.uuid
+        assert label.acl_read == list(flaw.acl_read)
+        assert label.acl_write == list(flaw.acl_write)
+
+    def test_read_flawlabelv2(self):
+        """
+        Reading FlawLabelV2 rows requires matching read ACLs.
+        """
+        set_user_acls(settings.ALL_GROUPS)
+        flaw = FlawFactory(embargoed=False)
+        label = AliasLabel.objects.create(flaw=flaw, name="rls-alias-read")
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
+        assert FlawLabelV2.objects.count() == 1
+        assert FlawLabelV2.objects.first().uuid == label.uuid
+
+        set_user_acls([settings.EMBARGO_READ_GROUP])
+        assert FlawLabelV2.objects.count() == 0
+
+    def test_create_flawcollaborator(self):
+        """
+        Creating a FlawCollaborator requires write ACLs; public read alone violates RLS.
+        """
+        set_user_acls(settings.ALL_GROUPS)
+        flaw = FlawFactory(embargoed=False)
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
+        with transaction.atomic():
+            with pytest.raises(
+                ProgrammingError, match="violates row-level security policy"
+            ):
+                FlawCollaborator.objects.create(
+                    flaw=flaw,
+                    label="rls-collab-denied",
+                    type=FlawLabel.FlawLabelType.ALIAS,
+                )
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS + [settings.PUBLIC_WRITE_GROUP])
+        collab = FlawCollaborator.objects.create(
+            flaw=flaw,
+            label="rls-collab-ok",
+            type=FlawLabel.FlawLabelType.ALIAS,
+        )
+        assert collab.uuid
+        assert collab.acl_read == list(flaw.acl_read)
+        assert collab.acl_write == list(flaw.acl_write)
+
+    def test_read_flawcollaborator(self):
+        """
+        Reading FlawCollaborator rows requires matching read ACLs.
+        """
+        set_user_acls(settings.ALL_GROUPS)
+        flaw = FlawFactory(embargoed=False)
+        collab = FlawCollaborator.objects.create(
+            flaw=flaw,
+            label="rls-collab-read",
+            type=FlawLabel.FlawLabelType.ALIAS,
+        )
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
+        assert FlawCollaborator.objects.count() == 1
+        assert FlawCollaborator.objects.first().uuid == collab.uuid
+
+        set_user_acls([settings.EMBARGO_READ_GROUP])
+        assert FlawCollaborator.objects.count() == 0
