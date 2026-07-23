@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - migrate alias-typed manual-triage labels to workflow type (OSIDB-5335)
 - bulk add approved workflow label to the flaws resolved before Argus (OSIDB-5334)
 - make V2 labels be just labels (OSIDB-5320)
+- Add basic auth to Jira forwarder (OSIDB-5253)
 
 ### Fixed
 - Gate ACE behind workflow eligibility to prevent spurious affects on manually-triaged,
