@@ -2162,13 +2162,35 @@ class LabelView(
         raise Http404
 
 
+class IsAuthenticatedOrJiraBasicOrReadOnly(IsAuthenticatedOrReadOnly):
+    def has_permission(self, request, view):
+        if super().has_permission(request, view):
+            return True
+
+        authorization = request.headers.get("Authorization", "")
+        return authorization.lower().startswith("basic ")
+
+
 # TODO: this view is temporary/undocumented and only applies to accessing JIRA stage and someday should be removed
 @extend_schema(exclude=True)
 class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
     """authenticated view which performs http forwarding specifically for Jira stage"""
 
     proxies = {"https": HTTPS_PROXY}
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrJiraBasicOrReadOnly]
+
+    def _set_authorization_header(self, request, headers):
+        authorization = request.headers.get("Authorization")
+        if authorization and authorization.lower().startswith("basic "):
+            headers["Authorization"] = authorization
+            return
+
+        jira_api_key = request.headers.get("Jira-Api-Key")
+        if jira_api_key:
+            headers["Authorization"] = f"Bearer {jira_api_key}"
+            return
+
+        raise ValidationError({"Jira-Api-Key": "This HTTP header is required."})
 
     def get(self, request, *args, **kwargs):
         """perform JIRA stage HTTP GET"""
@@ -2181,11 +2203,7 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
             "User-Agent": "OSIM",
         }
         params = request.GET.copy()
-        jira_api_key = request.headers.get("Jira-Api-Key")
-        if jira_api_key:
-            headers["Authorization"] = f"Bearer {jira_api_key}"
-        else:
-            raise ValidationError({"Jira-Api-Key": "This HTTP header is required."})
+        self._set_authorization_header(request, headers)
 
         response = requests.get(
             target_url,
@@ -2208,11 +2226,7 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
             "User-Agent": "OSIM",
         }
         params = request.GET.copy()
-        jira_api_key = request.headers.get("Jira-Api-Key")
-        if jira_api_key:
-            headers["Authorization"] = f"Bearer {jira_api_key}"
-        else:
-            raise ValidationError({"Jira-Api-Key": "This HTTP header is required."})
+        self._set_authorization_header(request, headers)
 
         response = requests.post(
             target_url,
@@ -2235,11 +2249,7 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
             "Accept-Encoding": "gzip, deflate, br, zstd",
             "User-Agent": "OSIM",
         }
-        jira_api_key = request.headers.get("Jira-Api-Key")
-        if jira_api_key:
-            headers["Authorization"] = f"Bearer {jira_api_key}"
-        else:
-            raise ValidationError({"Jira-Api-Key": "This HTTP header is required."})
+        self._set_authorization_header(request, headers)
 
         response = requests.put(
             target_url,
