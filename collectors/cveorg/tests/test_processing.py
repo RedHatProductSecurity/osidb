@@ -1,8 +1,13 @@
+import copy
 from typing import Optional
 
 import pytest
 
-from collectors.cveorg.collectors import CVEorgCollector
+from collectors.cveorg.collectors import (
+    CVEorgCollector,
+    CVEorgCollectorValidationError,
+    _is_windows_only_cve,
+)
 from osidb.models.flaw.cvss import FlawCVSS
 from osidb.models.flaw.flaw import Flaw
 
@@ -138,3 +143,96 @@ class TestCVEorgProcessing:
         updated_flaw = Flaw.objects.get(uuid=flaw.uuid)
         assert updated_flaw.mitre_cve_description == original_description
         assert updated_flaw.mitre_cve_description == content["mitre_cve_description"]
+
+
+class TestWindowsOnlyCPEFilter:
+    """
+    Unit tests for _is_windows_only_cve and its integration into the collector.
+    """
+
+    def test_windows_os_only_cve_is_blocked(self, windows_os_only_cve_content):
+        """CVE-2026-50462 — all CPEs are cpe:2.3:o:microsoft:windows_*."""
+        assert _is_windows_only_cve(windows_os_only_cve_content) is True
+
+    def test_windows_with_application_cpe_passes(self, windows_with_dotnet_cve_content):
+        """CVE-2026-50355 — mixes Windows OS CPEs with cpe:2.3:a:microsoft:.net.
+        Must not be filtered: .NET is a cross-platform Microsoft application."""
+        assert _is_windows_only_cve(windows_with_dotnet_cve_content) is False
+
+    def test_no_cpe_applicability_passes(self, windows_os_only_cve_content):
+        """CVEs without cpeApplicability should not be filtered out."""
+        content = copy.deepcopy(windows_os_only_cve_content)
+        del content["containers"]["cna"]["cpeApplicability"]
+        assert _is_windows_only_cve(content) is False
+
+    def test_empty_cpe_applicability_passes(self, windows_os_only_cve_content):
+        """An empty cpeApplicability list is treated as no CPE data — do not filter."""
+        content = copy.deepcopy(windows_os_only_cve_content)
+        content["containers"]["cna"]["cpeApplicability"] = []
+        assert _is_windows_only_cve(content) is False
+
+    def test_non_microsoft_vendor_passes(self, windows_os_only_cve_content):
+        """A single non-Microsoft CPE is enough to let the CVE through."""
+        content = copy.deepcopy(windows_os_only_cve_content)
+        content["containers"]["cna"]["cpeApplicability"][0]["nodes"][0][
+            "cpeMatch"
+        ].append(
+            {
+                "vulnerable": True,
+                "criteria": "cpe:2.3:o:linux:linux_kernel:*:*:*:*:*:*:*:*",
+            }
+        )
+        assert _is_windows_only_cve(content) is False
+
+    def test_negated_node_passes(self, windows_os_only_cve_content):
+        """A negated node means 'all platforms except these' — semantics we cannot
+        evaluate without full boolean CPE logic, so bail out conservatively."""
+        content = copy.deepcopy(windows_os_only_cve_content)
+        content["containers"]["cna"]["cpeApplicability"][0]["nodes"][0]["negate"] = True
+        assert _is_windows_only_cve(content) is False
+
+    def test_negated_applicability_passes(self, windows_os_only_cve_content):
+        """negate at the cpeApplicability (configuration) level inverts the entire
+        node set — bail out conservatively for the same reason as node-level negate."""
+        content = copy.deepcopy(windows_os_only_cve_content)
+        content["containers"]["cna"]["cpeApplicability"][0]["negate"] = True
+        assert _is_windows_only_cve(content) is False
+
+    def test_microsoft_non_windows_os_cpe_passes(self, windows_os_only_cve_content):
+        """A Microsoft OS CPE that is not a Windows family is not filtered."""
+        content = copy.deepcopy(windows_os_only_cve_content)
+        content["containers"]["cna"]["cpeApplicability"] = [
+            {
+                "nodes": [
+                    {
+                        "operator": "OR",
+                        "negate": False,
+                        "cpeMatch": [
+                            {
+                                "vulnerable": True,
+                                "criteria": "cpe:2.3:o:microsoft:azure_sphere:*:*:*:*:*:*:*:*",
+                            }
+                        ],
+                    }
+                ]
+            }
+        ]
+        assert _is_windows_only_cve(content) is False
+
+    def test_upsert_raises_for_windows_only_cve(
+        self, windows_os_only_cve_content, tmp_path
+    ):
+        """_upsert_from_file_content must raise CVEorgCollectorValidationError for Windows-only CVEs."""
+        import json
+
+        fixture = tmp_path / "CVE-2026-50462.json"
+        fixture.write_text(json.dumps(windows_os_only_cve_content))
+
+        collector = CVEorgCollector()
+        collector.snippet_creation_enabled = True
+        collector.snippet_creation_start_date = None
+
+        with pytest.raises(CVEorgCollectorValidationError, match="Windows OS"):
+            collector._upsert_from_file_content(str(fixture))
+
+        assert Flaw.objects.count() == 0

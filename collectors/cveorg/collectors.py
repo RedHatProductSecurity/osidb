@@ -32,6 +32,96 @@ from osidb.validators import CVE_RE_STR
 
 logger = get_task_logger(__name__)
 
+# CPE URI field indices (cpe:2.3:<type>:<vendor>:<product>:...)
+_CPE_TYPE_IDX = 2
+_CPE_VENDOR_IDX = 3
+_CPE_PRODUCT_IDX = 4
+
+# CPE type component for operating systems
+_CPE_TYPE_OS = "o"
+
+# Vendor name as it appears in CPE URIs for Microsoft
+_CPE_VENDOR_MICROSOFT = "microsoft"
+
+# CPE product name prefixes that unambiguously identify Windows OS families.
+# Matched against the product field (index 4) of a CPE URI after splitting on ':'.
+_WINDOWS_OS_CPE_PRODUCT_PREFIXES = (
+    "windows_10",
+    "windows_11",
+    "windows_server",
+    "windows_rt",
+    "windows_vista",
+    "windows_xp",
+    "windows_7",
+    "windows_8",
+)
+
+
+def _is_windows_only_cve(file_content: dict) -> bool:
+    """
+    Return True if every CPE in the CNA's cpeApplicability is a Windows OS
+    component (cpe:2.3:o:microsoft:windows_*) and none is an application-layer
+    or non-Microsoft CPE.
+
+    Uses the structured cpeApplicability field from the CVE 5.x schema rather
+    than keyword matching on free text. Only fires when cpeApplicability is
+    present and non-empty; returns False (do not filter) when the field is
+    absent so that CVEs without CPE data are still processed normally.
+
+    Application-layer CPEs from Microsoft (cpe:2.3:a:microsoft:*) are NOT
+    treated as Windows-only because Microsoft ships cross-platform applications
+    (e.g. .NET, VS Code, Azure CLI, PowerShell) under the microsoft vendor.
+    A CVE mixing Windows OS CPEs with any application CPE will return False
+    and pass through to the keyword filter.
+    """
+    nodes = []
+    for applicability in (
+        file_content.get("containers", {}).get("cna", {}).get("cpeApplicability", [])
+    ):
+        if applicability.get("negate"):
+            return False
+        for node in applicability.get("nodes", []):
+            nodes.append(node)
+
+    if not nodes:
+        return False
+
+    cpe_matches = []
+    for node in nodes:
+        # A negated node inverts its CPE set (meaning "all platforms except these"),
+        # which we cannot evaluate without full boolean CPE logic. Bail out
+        # conservatively so the CVE passes through to the keyword filter.
+        if node.get("negate"):
+            return False
+        cpe_matches.extend(node.get("cpeMatch", []))
+
+    if not cpe_matches:
+        return False
+
+    for match in cpe_matches:
+        criteria = match.get("criteria", "")
+        parts = criteria.split(":")
+        # CPE 2.3 URI: cpe:2.3:<type>:<vendor>:<product>:...
+        if len(parts) < 5:
+            return False
+        cpe_type = parts[_CPE_TYPE_IDX]
+        vendor = parts[_CPE_VENDOR_IDX]
+        product = parts[_CPE_PRODUCT_IDX]
+
+        if vendor != _CPE_VENDOR_MICROSOFT:
+            return False
+
+        if cpe_type != _CPE_TYPE_OS:
+            # Application, hardware, or other non-OS CPE — do not filter
+            return False
+
+        if not any(
+            product.startswith(prefix) for prefix in _WINDOWS_OS_CPE_PRODUCT_PREFIXES
+        ):
+            return False
+
+    return True
+
 
 class CVEorgCollectorException(Exception):
     pass
@@ -203,6 +293,12 @@ class CVEorgCollector(Collector):
             raise CVEorgCollectorValidationError(
                 f"Cannot create '{cve}' because it was rejected by CVE Program."
             )
+
+        if _is_windows_only_cve(file_content):
+            raise CVEorgCollectorValidationError(
+                f"Skipping '{cve}' because all CPE applicability entries target Windows OS components."
+            )
+
         try:
             content = self.extract_content(file_content)
         except Exception as exc:

@@ -95,3 +95,17 @@ def cisa_cvss_content(repo_path):
 def no_descriptions_content(repo_path):
     with open(f"{repo_path}/CVE-2025-37902.json", "r") as f:
         return json.load(f)
+
+
+@pytest.fixture
+def windows_os_only_cve_content(repo_path):
+    """CVE-2026-50462: all CPEs are cpe:2.3:o:microsoft:windows_* — no application CPEs."""
+    with open(f"{repo_path}/CVE-2026-50462.json", "r") as f:
+        return json.load(f)
+
+
+@pytest.fixture
+def windows_with_dotnet_cve_content(repo_path):
+    """CVE-2026-50355: mixes windows OS CPEs with cpe:2.3:a:microsoft:.net — cross-platform app."""
+    with open(f"{repo_path}/CVE-2026-50355.json", "r") as f:
+        return json.load(f)
