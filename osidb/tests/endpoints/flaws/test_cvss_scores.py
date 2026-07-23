@@ -1,7 +1,9 @@
 import pytest
+from django.conf import settings
 from rest_framework import status
 
 from apps.trackers.save import TrackerJiraSaver
+from osidb.core import set_user_acls
 from osidb.models import Affect, AffectCVSS, FlawCVSS, Impact, PsUpdateStream, Tracker
 from osidb.tests.factories import (
     AffectFactory,
@@ -88,6 +90,7 @@ class TestEndpointsFlawsCVSSScoresV2:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "Only Red Hat CVSS scores can be edited" in response.json()["issuer"]
+        set_user_acls(settings.ALL_GROUPS)
         refreshed_cvss = FlawCVSS.objects.first()
         assert refreshed_cvss and refreshed_cvss.vector == cvss.vector
 
@@ -100,6 +103,7 @@ class TestEndpointsFlawsCVSSScoresV2:
         url = f"{test_api_v2_uri}/flaws/{str(flaw.uuid)}/cvss-scores/{cvss.uuid}"
         response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="foo")
         assert response.status_code == status.HTTP_200_OK
+        set_user_acls(settings.ALL_GROUPS)
         assert FlawCVSS.objects.count() == 0
 
     @pytest.mark.enable_signals
@@ -112,6 +116,7 @@ class TestEndpointsFlawsCVSSScoresV2:
         response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="foo")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "Only Red Hat CVSS scores can be edited" in response.json()["issuer"]
+        set_user_acls(settings.ALL_GROUPS)
         assert FlawCVSS.objects.count() == 1
 
 
@@ -318,6 +323,7 @@ class TestEndpointsFlawsCVSSScores:
         response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
         assert response.status_code == status.HTTP_200_OK
         # Same as above, should be a no-op
+        set_user_acls(settings.ALL_GROUPS)
         assert FlawCVSS.objects.count() == 1
 
     @pytest.mark.enable_signals

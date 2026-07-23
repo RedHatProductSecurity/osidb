@@ -4,7 +4,7 @@ from django.db import connections, transaction
 from django.db.utils import ProgrammingError
 
 from osidb.core import set_user_acls
-from osidb.models import CVSS, Flaw, Impact
+from osidb.models import CVSS, Flaw, FlawCVSS, Impact
 from osidb.tests.factories import FlawCVSSFactory, FlawFactory
 
 pytestmark = pytest.mark.enable_rls
@@ -137,3 +137,53 @@ class TestRLS:
         assert Flaw.objects.count() == 1
         assert Flaw.objects.get(pk=f2.uuid).delete()
         assert Flaw.objects.count() == 0
+
+    def test_create_flawcvss(self):
+        """
+        Test that creating a FlawCVSS only works if the correct ACLs are set.
+
+        Keep public read ACLs so Django can resolve the parent Flaw FK; omit the
+        write group so the child-table INSERT still violates RLS.
+        """
+        set_user_acls(settings.ALL_GROUPS)
+        flaw = FlawFactory(embargoed=False)
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
+        with transaction.atomic():
+            with pytest.raises(
+                ProgrammingError, match="violates row-level security policy"
+            ):
+                FlawCVSSFactory(
+                    flaw=flaw,
+                    version=CVSS.CVSSVersion.VERSION3,
+                    issuer=CVSS.CVSSIssuer.REDHAT,
+                    vector="CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
+                )
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS + [settings.PUBLIC_WRITE_GROUP])
+        assert FlawCVSSFactory(
+            flaw=flaw,
+            version=CVSS.CVSSVersion.VERSION3,
+            issuer=CVSS.CVSSIssuer.REDHAT,
+            vector="CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
+        )
+
+    def test_read_flawcvss(self):
+        """
+        Test that reading a FlawCVSS only works if the correct ACLs are set.
+        """
+        set_user_acls(settings.ALL_GROUPS)
+        flaw = FlawFactory(embargoed=False)
+        cvss = FlawCVSSFactory(
+            flaw=flaw,
+            version=CVSS.CVSSVersion.VERSION3,
+            issuer=CVSS.CVSSIssuer.REDHAT,
+            vector="CVSS:3.1/AV:P/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
+        )
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
+        assert FlawCVSS.objects.count() == 1
+        assert FlawCVSS.objects.first().uuid == cvss.uuid
+
+        set_user_acls([settings.EMBARGO_READ_GROUP])
+        assert FlawCVSS.objects.count() == 0

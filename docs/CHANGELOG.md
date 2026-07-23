@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - mod7 check no longer influences hummingbird affects
 
 ### Fixed
+- Enable RLS on AclMixin child tables (OSIDB-5129)
 - Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
 - Wrap external errors with affect context for bulk PUT endpoint (OSIDB-5038)
 - Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
