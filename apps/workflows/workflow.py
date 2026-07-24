@@ -12,6 +12,7 @@ from os.path import join
 import yaml
 from django.db import models
 
+from osidb.acls import ACL
 from osidb.helpers import deprecate_field
 
 from .constants import WORKFLOW_DIR
@@ -108,16 +109,14 @@ class WorkflowFramework:
         ahead, and that a later state cannot narrow visibility set by
         an earlier one.
         """
-        from osidb.mixins import ACLMixinVisibility
-
         for workflow in self.workflows:
             if workflow.name == workflow_name:
                 effective = None
                 for state in workflow.states:
                     if state.visibility:
-                        visibility = ACLMixinVisibility(state.visibility)
-                        if effective is None or visibility > effective:
-                            effective = visibility
+                        acl = ACL(state.visibility)
+                        if effective is None or acl > effective:
+                            effective = acl
                     if state.name == state_name:
                         return effective
 
@@ -244,8 +243,12 @@ class WorkflowModel(models.Model):
         return WorkflowFramework().jira_status(self)
 
     def adjust_acls(self):
-        visibility = WorkflowFramework().get_effective_visibility(
+        target = WorkflowFramework().get_effective_visibility(
             self.workflow_name, self.workflow_state
         )
-        if visibility:
-            self.visibility = visibility
+        if not target or self.current_acl >= target:
+            return
+        self.acl_read = target.uuid_read
+        self.acl_write = target.uuid_write
+        self.set_acls_nested()
+        self.set_acls_history()

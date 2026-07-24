@@ -3,13 +3,11 @@ serialize flaw model
 """
 
 import logging
-import uuid
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Iterable, List, Tuple, Type
 
 import pghistory
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import BadRequest, ValidationError
@@ -25,7 +23,7 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW
 from apps.taskman.mixins import JiraTaskSyncMixin
 from apps.workflows.serializers import WorkflowModelSerializer
-from osidb.helpers import strtobool
+from osidb.acls import ACL
 from osidb.mixins import ACLMixinVisibility
 from osidb.models import (
     CVSS,
@@ -51,7 +49,6 @@ from osidb.models import (
 from osidb.models.affect import NotAffectedJustification
 from osidb.sync_manager import SyncManager
 
-from .core import generate_acls
 from .exceptions import DataInconsistencyException
 from .helpers import (
     differ,
@@ -332,49 +329,6 @@ class ErratumSerializer(
         ] + TrackingMixinSerializer.Meta.fields
 
 
-class EmbargoedField(serializers.BooleanField):
-    """The embargoed boolean attribute is technically read-only as it just indirectly
-    modifies the ACLs but is mandatory as it controls the access to the resource."""
-
-    def to_representation(self, value):
-        if hasattr(value, "embargoed"):
-            return value.embargoed
-        # Fallback to property for cases where annotation isn't available
-        return value.is_embargoed
-
-    def run_validation(self, data):
-        # Run base Boolean field validation, ACL validation and then
-        # raise SkipField to not include this field in validated data
-        # since we don't have `embargoed` field to write in
-        data = super().run_validation(data)
-        self.validate_acl(data)
-        raise serializers.SkipField()
-
-    def validate_acl(self, embargoed):
-        acl_read = (
-            settings.EMBARGO_READ_GROUPS if embargoed else settings.PUBLIC_READ_GROUPS
-        )
-        acl_write = (
-            settings.EMBARGO_WRITE_GROUPS if embargoed else settings.PUBLIC_WRITE_GROUPS
-        )
-
-        acls = [group.name for group in self.context["request"].user.groups.all()]
-        can_read = any(user_group in acl_read for user_group in acls)
-        can_write = any(user_group in acl_write for user_group in acls)
-
-        # this is a temporary safeguard with a very simple philosophy that one cannot
-        # give access to something (s)he does not have access to but possibly in the future
-        # we will want some more clever handling like ProdSec can grant anything etc.
-        if not can_read:
-            raise serializers.ValidationError(
-                f"Cannot provide access without being a member of at least one of the following LDAP group(s): {','.join(acl_read)}"
-            )
-        if not can_write:
-            raise serializers.ValidationError(
-                f"Cannot provide access without being a member of at least one of the following LDAP group(s): {','.join(acl_write)}"
-            )
-
-
 class BaseSerializer(serializers.ModelSerializer):
     """
     base serializer class which should be inherited by every serializer
@@ -418,29 +372,32 @@ class BaseSerializer(serializers.ModelSerializer):
         abstract = True
 
 
+class ACLMixinListSerializer(serializers.ListSerializer):
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        values = [d.get("embargoed") for d in attrs]
+        if None in values:
+            raise serializers.ValidationError(
+                {
+                    "embargoed": "No value provided. All objects in a bulk request must have the (same) value for embargoed."
+                }
+            )
+        if len(set(values)) > 1:
+            raise serializers.ValidationError(
+                {
+                    "embargoed": "Different values provided in a bulk request. All objects in a bulk request must have the same value for embargoed."
+                }
+            )
+        return attrs
+
+
 class ACLMixinSerializer(BaseSerializer):
     """
     ACLMixin class serializer
     translates embargoed boolean to ACLs
     """
 
-    ACL_GROUPS = {
-        ACLMixinVisibility.PUBLIC: (
-            settings.PUBLIC_READ_GROUPS,
-            settings.PUBLIC_WRITE_GROUPS,
-        ),
-        ACLMixinVisibility.INTERNAL: (
-            settings.INTERNAL_READ_GROUPS,
-            settings.INTERNAL_WRITE_GROUPS,
-        ),
-        ACLMixinVisibility.EMBARGOED: (
-            settings.EMBARGO_READ_GROUPS,
-            settings.EMBARGO_WRITE_GROUPS,
-        ),
-    }
-
-    embargoed = EmbargoedField(
-        source="*",
+    embargoed = serializers.BooleanField(
         help_text=(
             "The embargoed boolean attribute is technically read-only as it just indirectly "
             "modifies the ACLs but is mandatory as it controls the access to the resource."
@@ -456,89 +413,54 @@ class ACLMixinSerializer(BaseSerializer):
         abstract = True
         fields = ["embargoed", "visibility"]
         model = ACLMixin
+        list_serializer_class = ACLMixinListSerializer
 
-    def hash_acl(self, acl):
-        """
-        convert ACL names to hashed UUIDs
-        """
-        return [uuid.UUID(ac) for ac in generate_acls(acl)]
+    def validate_embargoed(self, embargoed: bool):
+        acl = ACL.EMBARGO if embargoed else ACL.PUBLIC
+        user_groups = [
+            group.name for group in self.context["request"].user.groups.all()
+        ]
 
-    def get_acls(self, acl_type=ACLMixinVisibility.PUBLIC):
-        """
-        generate ACLs based on visibility status
-        """
+        can_read = any(group in acl.read for group in user_groups)
+        can_write = any(group in acl.write for group in user_groups)
 
-        acl_read, acl_write = self.ACL_GROUPS[acl_type]
-        return self.hash_acl(acl_read), self.hash_acl(acl_write)
-
-    def embargoed2acls(self, validated_data, internal=False):
-        """
-        process validated data converting embargoed status into the ACLs
-        """
-        # Already validated in EmbargoedField for non-bulk requests
-        try:
-            # For usual dict-typed requests with one object per request.
-            embargoed = self.context["request"].data.get("embargoed")
-        except AttributeError:
-            # For bulk list-typed requests with multiple objects per request.
-            embargoed_values = [
-                d.get("embargoed") for d in self.context["request"].data
-            ]
-            if not embargoed_values:
-                raise serializers.ValidationError(
-                    {
-                        "embargoed": "No value provided. All objects in a bulk request must have the (same) value for embargoed."
-                    }
-                )
-            embargoed_values_dedup = tuple(set(embargoed_values))
-            if len(embargoed_values_dedup) > 1 or len(embargoed_values) != len(
-                self.context["request"].data
-            ):
-                # Even if boolean-equivalent values are provided, still require an identical value.
-                raise serializers.ValidationError(
-                    {
-                        "embargoed": "Different values provided in a bulk request. All objects in a bulk request must have the same value for embargoed."
-                    }
-                )
-            embargoed = embargoed_values_dedup[0]
-
-        if isinstance(embargoed, str):
-            embargoed = strtobool(embargoed)
-
-        acl_type = self.get_acl_type(embargoed=embargoed, internal=internal)
-
-        acl_read, acl_write = self.get_acls(acl_type=acl_type)
-        validated_data["acl_read"] = acl_read
-        validated_data["acl_write"] = acl_write
-
-        return validated_data
-
-    @staticmethod
-    def get_acl_type(embargoed=False, internal=False):
-        return (
-            ACLMixinVisibility.EMBARGOED
-            if embargoed
-            else ACLMixinVisibility.INTERNAL
-            if internal
-            else ACLMixinVisibility.PUBLIC
-        )
+        # this is a temporary safeguard with a very simple philosophy that one cannot
+        # give access to something (s)he does not have access to but possibly in the future
+        # we will want some more clever handling like ProdSec can grant anything etc.
+        if not can_read:
+            raise serializers.ValidationError(
+                f"Cannot provide access without being a member of at least one of the following LDAP group(s): {','.join(acl.read)}"
+            )
+        if not can_write:
+            raise serializers.ValidationError(
+                f"Cannot provide access without being a member of at least one of the following LDAP group(s): {','.join(acl.write)}"
+            )
+        return embargoed
 
     def create(self, validated_data):
         # let inheritants manually override
         if "acl_read" not in validated_data or "acl_write" not in validated_data:
-            validated_data = self.embargoed2acls(validated_data)
+            self._parse_embargo_request_to_acls(
+                validated_data, validated_data["embargoed"]
+            )
         return super().create(validated_data)
 
     def update(self, instance, validated_data, *args, **kwargs):
-        # defaults to keep current ACLs
+        self._unembargo_if_requested(validated_data, instance)
+        return super().update(instance, validated_data, *args, **kwargs)
+
+    def _parse_embargo_request_to_acls(
+        self, validated_data: dict, embargoed: bool
+    ) -> None:
+        acl = ACL.EMBARGO if embargoed else ACL.PUBLIC
+        validated_data["acl_read"] = acl.uuid_read
+        validated_data["acl_write"] = acl.uuid_write
+
+    def _unembargo_if_requested(self, validated_data: dict, instance) -> None:
         validated_data["acl_read"] = instance.acl_read
         validated_data["acl_write"] = instance.acl_write
-
-        if instance.is_public or instance.is_embargoed:
-            # only allow manual ACL changes between embargoed and public
-            validated_data = self.embargoed2acls(validated_data)
-
-        return super().update(instance, validated_data, *args, **kwargs)
+        if validated_data.get("embargoed") is False and instance.is_embargoed:
+            self._parse_embargo_request_to_acls(validated_data, False)
 
 
 class BugzillaAPIKeyMixin:
@@ -853,7 +775,7 @@ class TrackerSerializer(
         ############################
 
         # transform the embargoed status to the ACLs
-        validated_data = ACLMixinSerializer.embargoed2acls(self, validated_data)
+        self._parse_embargo_request_to_acls(validated_data, validated_data["embargoed"])
 
         try:
             # determine the tracker type from the PS update stream
@@ -937,14 +859,7 @@ class TrackerSerializer(
         # 1) prepare prerequisites #
         ############################
 
-        # defaults to keep current ACLs
-        validated_data["acl_read"] = tracker.acl_read
-        validated_data["acl_write"] = tracker.acl_write
-
-        if tracker.is_public or tracker.is_embargoed:
-            # only allow manual ACL changes between embargoed and public
-            # transform the embargoed status to the ACLs
-            validated_data = ACLMixinSerializer.embargoed2acls(self, validated_data)
+        self._unembargo_if_requested(validated_data, tracker)
 
         #########################
         # 2) pre-update actions #
@@ -1721,9 +1636,8 @@ class FlawPackageVersionSerializerMixin:
         #   are preserved and the versions provided in the request are added.
         """
 
-        # NOTE: This method needs to have this line from
-        #       ACLMixinSerializer.create() already executed at this point:
-        #           validated_data = self.embargoed2acls(validated_data)
+        # NOTE: This method needs to have _apply_acls() from
+        #       FlawPackageVersionACLMixinSerializer.create() already executed at this point.
         #       This is ensured by the MRO of
         #       FlawPackageVersionSerializer.create().
 
@@ -1761,9 +1675,8 @@ class FlawPackageVersionSerializerMixin:
         # - Versions are replaced by the versions provided in the request.
         """
 
-        # NOTE: This method needs to have this line from
-        #       ACLMixinSerializer.update() already executed at this point:
-        #           validated_data = self.embargoed2acls(validated_data)
+        # NOTE: This method needs to have _unembargo_if_requested() from
+        #       FlawPackageVersionACLMixinSerializer.update() already executed at this point.
         #       This is ensured by the MRO of
         #       FlawPackageVersionSerializer.update().
 
@@ -1834,8 +1747,7 @@ class FlawPackageVersionACLMixinSerializer(serializers.ModelSerializer):
     translates embargoed boolean to ACLs
     """
 
-    embargoed = EmbargoedField(
-        source="*",
+    embargoed = serializers.BooleanField(
         help_text=(
             "The embargoed boolean attribute is technically read-only as it just indirectly "
             "modifies the ACLs but is mandatory as it controls the access to the resource."
@@ -1852,78 +1764,45 @@ class FlawPackageVersionACLMixinSerializer(serializers.ModelSerializer):
         fields = ["embargoed", "visibility"]
         model = ACLMixin
 
-    def hash_acl(self, acl):
-        """
-        convert ACL names to hashed UUIDs
-        """
-        return [uuid.UUID(ac) for ac in generate_acls(acl)]
+    def validate_embargoed(self, embargoed: bool):
+        acl = ACL.EMBARGO if embargoed else ACL.PUBLIC
+        user_groups = [
+            group.name for group in self.context["request"].user.groups.all()
+        ]
 
-    def get_acls(self, embargoed):
-        """
-        generate ACLs based on embargo status
-        """
-        acl_read = (
-            settings.EMBARGO_READ_GROUPS if embargoed else settings.PUBLIC_READ_GROUPS
-        )
-        acl_write = (
-            settings.EMBARGO_WRITE_GROUPS if embargoed else settings.PUBLIC_WRITE_GROUPS
-        )
-        return self.hash_acl(acl_read), self.hash_acl(acl_write)
+        can_read = any(group in acl.read for group in user_groups)
+        can_write = any(group in acl.write for group in user_groups)
 
-    def embargoed2acls(self, validated_data):
-        """
-        process validated data converting embargoed status into the ACLs
-        """
-        # Already validated in EmbargoedField for non-bulk requests
-        try:
-            # For usual dict-typed requests with one object per request.
-            embargoed = self.context["request"].data.get("embargoed")
-        except AttributeError:
-            # For bulk list-typed requests with multiple objects per request.
-            embargoed_values = [
-                d.get("embargoed") for d in self.context["request"].data
-            ]
-            if not embargoed_values:
-                raise serializers.ValidationError(
-                    {
-                        "embargoed": "No value provided. All objects in a bulk request must have the (same) value for embargoed."
-                    }
-                )
-            embargoed_values_dedup = tuple(set(embargoed_values))
-            if len(embargoed_values_dedup) > 1 or len(embargoed_values) != len(
-                self.context["request"].data
-            ):
-                # Even if boolean-equivalent values are provided, still require an identical value.
-                raise serializers.ValidationError(
-                    {
-                        "embargoed": "Different values provided in a bulk request. All objects in a bulk request must have the same value for embargoed."
-                    }
-                )
-            embargoed = embargoed_values_dedup[0]
-
-        if isinstance(embargoed, str):
-            embargoed = strtobool(embargoed)
-
-        acl_read, acl_write = self.get_acls(embargoed)
-        validated_data["acl_read"] = acl_read
-        validated_data["acl_write"] = acl_write
-
-        return validated_data
+        if not can_read:
+            raise serializers.ValidationError(
+                f"Cannot provide access without being a member of at least one of the following LDAP group(s): {','.join(acl.read)}"
+            )
+        if not can_write:
+            raise serializers.ValidationError(
+                f"Cannot provide access without being a member of at least one of the following LDAP group(s): {','.join(acl.write)}"
+            )
+        return embargoed
 
     def create(self, validated_data):
-        validated_data = self.embargoed2acls(validated_data)
+        self._parse_embargo_request_to_acls(validated_data, validated_data["embargoed"])
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        # defaults to keep current ACLs
+        self._unembargo_if_requested(validated_data, instance)
+        return super().update(instance, validated_data)
+
+    def _parse_embargo_request_to_acls(
+        self, validated_data: dict, embargoed: bool
+    ) -> None:
+        acl = ACL.EMBARGO if embargoed else ACL.PUBLIC
+        validated_data["acl_read"] = acl.uuid_read
+        validated_data["acl_write"] = acl.uuid_write
+
+    def _unembargo_if_requested(self, validated_data: dict, instance) -> None:
         validated_data["acl_read"] = instance.acl_read
         validated_data["acl_write"] = instance.acl_write
-
-        if instance.is_public or instance.is_embargoed:
-            # only allow manual ACL changes between embargoed and public
-            validated_data = self.embargoed2acls(validated_data)
-
-        return super().update(instance, validated_data)
+        if validated_data.get("embargoed") is False and instance.is_embargoed:
+            self._parse_embargo_request_to_acls(validated_data, False)
 
 
 class FlawPackageVersionSerializer(
@@ -2387,6 +2266,13 @@ class FlawSerializer(
 ):
     """serialize flaw model"""
 
+    embargoed = serializers.BooleanField(
+        help_text=(
+            "The embargoed boolean attribute is technically read-only as it just indirectly "
+            "modifies the ACLs but is mandatory as it controls the access to the resource."
+        ),
+    )
+
     history_relations = (
         HistoryRelation(
             field_name="affects",
@@ -2532,23 +2418,50 @@ class FlawSerializer(
             + HistoryMixinSerializer.Meta.fields
         )
 
+    def validate_embargoed(self, embargoed: bool):
+        if embargoed:
+            acl = ACL.EMBARGO
+        elif self.instance is None:
+            acl = ACL.INTERNAL
+        else:
+            acl = ACL.PUBLIC
+
+        user_groups = [
+            group.name for group in self.context["request"].user.groups.all()
+        ]
+
+        can_read = any(group in acl.read for group in user_groups)
+        can_write = any(group in acl.write for group in user_groups)
+
+        if not can_read:
+            raise serializers.ValidationError(
+                f"Cannot provide access without being a member of at least one of the following LDAP group(s): {','.join(acl.read)}"
+            )
+        if not can_write:
+            raise serializers.ValidationError(
+                f"Cannot provide access without being a member of at least one of the following LDAP group(s): {','.join(acl.write)}"
+            )
+        return embargoed
+
     def _is_public(self, flaw, validated_data):
         """
         check whether the flaw is public
         based on the preliminary raw ACLs
         """
-        return all(
-            group in flaw.acls_public
-            # the read groups need to be gathered from validated data
-            for group in self.embargoed2acls(validated_data)["acl_read"]
-        )
+        embargoed = validated_data.get("embargoed", flaw.is_embargoed)
+        acl_read = ACL.EMBARGO.uuid_read if embargoed else ACL.PUBLIC.uuid_read
+        return all(group in flaw.acls_public for group in acl_read)
 
     def create(self, validated_data):
         """
         perform the flaw instance creation
         with any necessary extra actions
         """
-        validated_data = self.embargoed2acls(validated_data, internal=True)
+        acl = ACL.EMBARGO if validated_data["embargoed"] else ACL.INTERNAL
+
+        validated_data["acl_read"] = acl.uuid_read
+        validated_data["acl_write"] = acl.uuid_write
+
         return super().create(validated_data)
 
     def update(self, new_flaw, validated_data, *args, **kwargs):

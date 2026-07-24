@@ -87,6 +87,7 @@ from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.cvss import FlawCVSS
 from osidb.sync_manager import SyncManager
 
+from .acls import ACL
 from .constants import OSIDB_API_VERSION, PYPI_URL
 from .filters import (
     AffectCVSSFilter,
@@ -1720,6 +1721,23 @@ class AffectView(
             ).select_related("ps_module")
         }
 
+        # All items in a bulk request must share the same embargoed value
+        embargoed_values = [
+            d.get("embargoed") for d in request.data if isinstance(d, dict)
+        ]
+        if None in embargoed_values:
+            raise ValidationError(
+                {
+                    "embargoed": "All objects in a bulk request must provide the embargoed field."
+                }
+            )
+        if len(set(embargoed_values)) > 1:
+            raise ValidationError(
+                {
+                    "embargoed": "All objects in a bulk request must have the same value for embargoed."
+                }
+            )
+
         # --- Phase 1 + 2: validate, build and prepare each instance ---
         prepared_instances = []
         errors = []
@@ -1732,7 +1750,9 @@ class AffectView(
 
             validated_data = serializer.validated_data
             if "acl_read" not in validated_data or "acl_write" not in validated_data:
-                validated_data = serializer.embargoed2acls(validated_data)
+                acl = ACL.EMBARGO if validated_data["embargoed"] else ACL.PUBLIC
+                validated_data["acl_read"] = acl.uuid_read
+                validated_data["acl_write"] = acl.uuid_write
 
             try:
                 instance = Affect(**validated_data)

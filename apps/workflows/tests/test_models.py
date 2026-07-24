@@ -3,7 +3,7 @@ import pytest
 from apps.workflows.checks import CheckParser
 from apps.workflows.models import Check, Condition, State, Workflow
 from apps.workflows.workflow import WorkflowFramework
-from osidb.mixins import ACLMixinVisibility
+from osidb.acls import ACL
 from osidb.models import (
     Affect,
     Flaw,
@@ -655,7 +655,7 @@ class TestEffectiveVisibility:
         """
         wf = WorkflowFramework()
         vis = wf.get_effective_visibility("DEFAULT", "PRE_SECONDARY_ASSESSMENT")
-        assert vis == ACLMixinVisibility.PUBLIC
+        assert vis == ACL.PUBLIC
 
     def test_effective_visibility_inherited_from_earlier_state(self):
         """
@@ -665,7 +665,7 @@ class TestEffectiveVisibility:
         """
         wf = WorkflowFramework()
         vis = wf.get_effective_visibility("DEFAULT", "DONE")
-        assert vis == ACLMixinVisibility.PUBLIC
+        assert vis == ACL.PUBLIC
 
     def test_effective_visibility_none_before_gate(self):
         """
@@ -742,9 +742,9 @@ class TestEffectiveVisibility:
             )
         )
 
-        assert wf.get_effective_visibility("TEST", "A") == ACLMixinVisibility.INTERNAL
-        assert wf.get_effective_visibility("TEST", "B") == ACLMixinVisibility.PUBLIC
-        assert wf.get_effective_visibility("TEST", "C") == ACLMixinVisibility.PUBLIC
+        assert wf.get_effective_visibility("TEST", "A") == ACL.INTERNAL
+        assert wf.get_effective_visibility("TEST", "B") == ACL.PUBLIC
+        assert wf.get_effective_visibility("TEST", "C") == ACL.PUBLIC
 
         wf._workflows = []
         wf.load_workflows()

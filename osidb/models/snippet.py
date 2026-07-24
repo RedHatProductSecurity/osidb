@@ -6,6 +6,7 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
 from collectors.bzimport.constants import BZ_API_KEY
+from osidb.acls import ACL
 from osidb.mixins import ACLMixin, AlertMixin, TrackingMixin, validator
 
 from .flaw.cvss import FlawCVSS
@@ -30,8 +31,8 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         OSV = "OSV"
 
     def save(self, *args, **kwargs):
-        # set internal ACLs
-        self.set_internal()
+        self.acl_read = ACL.INTERNAL.uuid_read
+        self.acl_write = ACL.INTERNAL.uuid_write
         super().save(*args, **kwargs)
 
     # internal primary key

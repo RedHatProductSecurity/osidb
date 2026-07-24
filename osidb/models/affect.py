@@ -18,9 +18,9 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
+from osidb.acls import ACL
 from osidb.mixins import (
     ACLMixin,
-    ACLMixinManager,
     AlertMixin,
     NullStrFieldsMixin,
     TrackingMixin,
@@ -60,7 +60,7 @@ class NotAffectedJustification(models.TextChoices):
     VULN_CODE_NOT_PRESENT = "Vulnerable Code not Present"
 
 
-class AffectManager(ACLMixinManager, TrackingMixinManager):
+class AffectManager(TrackingMixinManager):
     """affect manager"""
 
     def get_queryset(self):
@@ -115,7 +115,7 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
         # If search has no results, this will now return an empty queryset
 
 
-class AffectV1Manager(ACLMixinManager, TrackingMixinManager):
+class AffectV1Manager(TrackingMixinManager):
     """affect v1 manager"""
 
     def get_queryset(self):
@@ -1018,6 +1018,7 @@ class AffectV1(AffectExploitExtensionMixin):
     updated_dt = models.DateTimeField()
     acl_read = fields.ArrayField(models.UUIDField(), default=list)
     acl_write = fields.ArrayField(models.UUIDField(), default=list)
+    embargoed = models.BooleanField()
 
     # Map to the array_agg SQL field that have all the related trackers/cvss scores
     # from the v2 affects
@@ -1189,21 +1190,30 @@ class AffectV1(AffectExploitExtensionMixin):
             return None
         return ps_module.ps_product.name
 
-    # Mirrored properties from mixins
+    @property
+    def current_acl(self):
+        if self.acl_read == ACL.PUBLIC.uuid_read:
+            return ACL.PUBLIC
+        if self.acl_read == ACL.INTERNAL.uuid_read:
+            return ACL.INTERNAL
+        if self.acl_read == ACL.EMBARGO.uuid_read:
+            return ACL.EMBARGO
+        return ACL.UNKNOWN
+
     @property
     def is_embargoed(self):
-        return self.acl_read == ACLMixin.get_embargoed_acl()
+        return self.current_acl == ACL.EMBARGO
 
     @property
     def is_internal(self):
-        return set(self.acl_read + self.acl_write) == self.acls_internal
+        return self.current_acl == ACL.INTERNAL
 
     @property
     def is_public(self):
-        return set(self.acl_read + self.acl_write) == self.acls_public
+        return self.current_acl == ACL.PUBLIC
 
 
-class AffectCVSSManager(ACLMixinManager, TrackingMixinManager):
+class AffectCVSSManager(TrackingMixinManager):
     @staticmethod
     def create_cvss(affect, issuer, version, **extra_fields):
         """return a new CVSS or update an existing CVSS without saving"""
