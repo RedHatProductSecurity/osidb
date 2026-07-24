@@ -11,15 +11,11 @@
     <p><strong>Identifier:</strong> {{ flaw_id }}</p>
     <p><strong>Summary:</strong> {{ vulnerability_summary }}</p>
     <p><strong>Affected component:</strong> {{ upstream_component }}</p>
-    <p><strong>Severity:</strong> {{ severity }}</p>
-    {% if exploitation_state %}
-    <p><strong>Known exploitation state:</strong> {{ exploitation_state }}</p>
-    {% endif %}
-    {% if embargo_notice %}
-    <p>{{ embargo_notice }}</p>
-    {% endif %}
-    {% if corrective_measure %}
+    <p><strong>Impact:</strong> {{ impact }}</p>
     <p><strong>Corrective or mitigating measure:</strong> {{ corrective_measure }}</p>
+    <p><strong>Contact information:</strong> {{ contact_info }}</p>
+    {% if confidentiality_notice %}
+    <p>{{ confidentiality_notice }}</p>
     {% endif %}
 
     <p>Sent by Red Hat Product Security under applicable regulatory requirements.</p>
