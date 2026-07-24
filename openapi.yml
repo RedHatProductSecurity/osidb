@@ -12917,6 +12917,42 @@ paths:
                     version:
                       type: string
           description: ''
+  /osidb/api/v2/notifications/upstream/{notification_uuid}/preview:
+    get:
+      operationId: osidb_api_v2_notifications_upstream_preview_retrieve
+      description: Live render the maintainer notification preview without persisting
+        it.
+      parameters:
+      - in: path
+        name: notification_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Upstream Notification.
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/UpstreamNotificationPreview'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /osidb/api/v2/notifications/upstream/{notification_uuid}/send-email:
     post:
       operationId: osidb_api_v2_notifications_upstream_send_email_create
@@ -18868,6 +18904,18 @@ components:
       - updated_dt
       - uuid
       - visibility
+    UpstreamNotificationPreview:
+      type: object
+      properties:
+        text_body:
+          type: string
+          readOnly: true
+        html_body:
+          type: string
+          readOnly: true
+      required:
+      - html_body
+      - text_body
     UpstreamNotificationRequest:
       type: object
       description: |-
