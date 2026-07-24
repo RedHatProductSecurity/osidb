@@ -74,3 +74,8 @@ class UpstreamNotificationSerializer(
                 "last_error",
             ]
         )
+
+
+class UpstreamNotificationPreviewSerializer(serializers.Serializer):
+    text_body = serializers.CharField(read_only=True)
+    html_body = serializers.CharField(read_only=True)
