@@ -6,15 +6,13 @@ Summary: {{ vulnerability_summary }}
 
 Affected component: {{ upstream_component }}
 
-Severity: {{ severity }}
-{% if exploitation_state %}
-Known exploitation state: {{ exploitation_state }}
-{% endif %}
-{% if embargo_notice %}
-{{ embargo_notice }}
-{% endif %}
-{% if corrective_measure %}
+Impact: {{ impact }}
+
 Corrective or mitigating measure: {{ corrective_measure }}
+
+Contact information: {{ contact_info }}
+{% if confidentiality_notice %}
+{{ confidentiality_notice }}
 {% endif %}
 
 Sent by Red Hat Product Security under applicable regulatory requirements.

@@ -68,17 +68,19 @@ class UpstreamNotificationView(
             "flaw_id": flaw_id,
             "vulnerability_summary": flaw.title,
             "upstream_component": upstream_project.component_name,
-            "severity": flaw.impact,
-            "exploitation_state": "",
-            "embargo_notice": "This flaw is currently embargoed."
-            if flaw.is_embargoed
-            else "",
-            "corrective_measure": "",
+            "impact": flaw.impact,
+            "confidentiality_notice": (
+                "This flaw is currently embargoed." if flaw.is_embargoed else ""
+            ),
+            "corrective_measure": flaw.mitigation,
+            "contact_info": upstream_project.security_contact,
         }
 
-        text_body = render_to_string("email/upstream_notification.txt", context=context)
+        text_body = render_to_string(
+            "email/upstream_maintainer_notification.txt", context=context
+        )
         html_body = render_to_string(
-            "email/upstream_notification.html", context=context
+            "email/upstream_maintainer_notification.html", context=context
         )
 
         payload = {
