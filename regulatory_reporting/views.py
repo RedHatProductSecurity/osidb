@@ -5,7 +5,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from osidb.api_views import (
@@ -17,7 +17,14 @@ from osidb.tasks import async_send_email
 
 from .filters import UpstreamNotificationFilter
 from .models.upstream import UpstreamNotification
-from .serializers.upstream import UpstreamNotificationSerializer
+from .serializers.upstream import (
+    UpstreamNotificationPreviewSerializer,
+    UpstreamNotificationSerializer,
+)
+from .services import (
+    build_upstream_notification_context,
+    render_upstream_notification_preview,
+)
 from .tasks import mark_upstream_notification_failed, mark_upstream_notification_sent
 
 
@@ -41,7 +48,7 @@ class UpstreamNotificationView(
     filter_backends = (DjangoFilterBackend,)
     filterset_class = UpstreamNotificationFilter
     lookup_url_kwarg = "notification_uuid"
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     @extend_schema(request=None)
     @action(detail=True, methods=["post"], url_path="send-email")
@@ -64,17 +71,7 @@ class UpstreamNotificationView(
         flaw = notification.flaw
         flaw_id = flaw.cve_id or flaw.uuid
 
-        context = {
-            "flaw_id": flaw_id,
-            "vulnerability_summary": flaw.title,
-            "upstream_component": upstream_project.component_name,
-            "impact": flaw.impact,
-            "confidentiality_notice": (
-                "This flaw is currently embargoed." if flaw.is_embargoed else ""
-            ),
-            "corrective_measure": flaw.mitigation,
-            "contact_info": upstream_project.security_contact,
-        }
+        context = build_upstream_notification_context(notification)
 
         text_body = render_to_string(
             "email/upstream_maintainer_notification.txt", context=context
@@ -123,3 +120,23 @@ class UpstreamNotificationView(
             raise
 
         return Response(self.get_serializer(notification).data, status=200)
+
+    @extend_schema(
+        request=None,
+        responses=UpstreamNotificationPreviewSerializer,
+        description="Live render the maintainer notification preview without persisting it.",
+    )
+    @action(
+        detail=True,
+        methods=["get"],
+        url_path="preview",
+        permission_classes=[IsAuthenticated],
+    )
+    def preview(self, request, notification_uuid=None):
+        notification = self.get_object()
+        if not notification.upstream_project:
+            raise ValidationError(
+                {"upstream_project": "Notification has no linked upstream project."}
+            )
+        preview_data = render_upstream_notification_preview(notification)
+        return Response(preview_data, status=200)
