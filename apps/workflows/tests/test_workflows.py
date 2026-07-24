@@ -95,24 +95,29 @@ class TestDefaultWorkflow:
             impact="",
             components=[],
             reported_dt=None,
+            cwe_id="",
             cve_description="",
         )
         assert flaw.workflow_name == "DEFAULT"
         assert flaw.workflow_state == "NEW"
 
-        # --- NEW → TRIAGE: requires components, impact, reported_dt, source,
-        #     title, and (impact is low OR has cve_description) ---
+        # --- NEW → TRIAGE: requires components, CWE, impact, reported_dt,
+        #     source, title, and (impact is low OR has cve_description) ---
 
         # add requirements one by one, verify flaw stays in NEW until all present
         flaw.source = "INTERNET"
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == "NEW"
 
-        flaw.impact = Impact.MODERATE
+        flaw.components = ["kernel"]
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == "NEW"
 
-        flaw.components = ["kernel"]
+        flaw.cwe_id = "CWE-79"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "NEW"
+
+        flaw.impact = Impact.MODERATE
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == "NEW"
 
@@ -184,6 +189,16 @@ class TestDefaultWorkflow:
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
 
+        # clear CWE — should regress past TRIAGE back to NEW
+        flaw.cwe_id = ""
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "NEW"
+
+        # restore CWE — should advance back to PRE_SECONDARY_ASSESSMENT
+        flaw.cwe_id = "CWE-79"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+
         # clear source — should regress to NEW (source is a TRIAGE requirement)
         flaw.source = ""
         flaw.save(raise_validation_error=False)
@@ -238,6 +253,31 @@ class TestDefaultWorkflow:
         label.delete()
         flaw.refresh_from_db()
         assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
+
+    @pytest.mark.enable_signals
+    def test_cwe_requirement_for_triage(self):
+        """
+        Verify that CWE is required to reach TRIAGE state.
+        A flaw with all other TRIAGE requirements but missing CWE stays in NEW.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-CWE",
+            source="INTERNET",
+            impact=Impact.LOW,
+            components=["kernel"],
+            cwe_id="",
+        )
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "NEW"
+
+        flaw.cwe_id = "CWE-79"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "TRIAGE"
+
+        flaw.cwe_id = ""
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "NEW"
 
     @pytest.mark.enable_signals
     def test_cve_description_or_low_impact(self):
