@@ -102,6 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic creation of upsteam maintainer notification when criteria is met for flaw (OSIDB-5077)
 - Add SRP report milestone creation (OSIDB-5068)
 - Add Upstream Maintainer Notification Subresource Endpoints (OSIDB-5083)
+- Add Upstream Maintainer Email Template (OSIDB-5086)
 - ACE: Add Chromium special CVE workflow (OSIDB-5033)
 - ACE: Add Go stdlib special CVE workflow (OSIDB-5033)
 - Context for signals (OSIDB-5244)
