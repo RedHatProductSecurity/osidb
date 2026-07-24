@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from rest_framework.test import APIClient
 
 from osidb.models.abstract import Impact
 from osidb.models.flaw import FlawSource
@@ -84,6 +85,54 @@ class TestUpstreamNotificationView:
         )
         assert response.status_code == 200
         assert response.json()["count"] == 1
+
+    def test_preview_returns_rendered_bodies(self, auth_client, test_api_v2_uri):
+        """Test preview endpoint returns live rendered email."""
+        flaw = FlawFactory(cve_description="A test vulnerability.")
+        upstream_project = UpstreamProjectFactory(
+            component_name="example-lib",
+            security_contact="security@example.com",
+        )
+        notification = UpstreamNotificationFactory(
+            flaw=flaw,
+            upstream_project=upstream_project,
+        )
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/notifications/upstream/{notification.uuid}/preview"
+        )
+
+        assert response.status_code == 200
+        assert "text_body" in response.json()
+        assert "html_body" in response.json()
+        assert flaw.cve_description in response.json()["text_body"]
+        assert upstream_project.component_name in response.json()["text_body"]
+
+    def test_preview_without_upstream_project_fails(self, auth_client, test_api_v2_uri):
+        """Test preview fails validation if no upstream project is linked."""
+        flaw = FlawFactory(cve_description="A test vulnerability.")
+        notification = UpstreamNotificationFactory(
+            flaw=flaw,
+            upstream_project=None,
+        )
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/notifications/upstream/{notification.uuid}/preview"
+        )
+
+        assert response.status_code == 400
+        assert "upstream_project" in response.json()
+
+    def test_preview_requires_authentication(self, test_api_v2_uri):
+        """Test  anonymous requests to preview are rejected."""
+
+        notification = UpstreamNotificationFactory()
+
+        response = APIClient().get(
+            f"{test_api_v2_uri}/notifications/upstream/{notification.uuid}/preview"
+        )
+
+        assert response.status_code == 401
 
 
 @pytest.mark.no_cra_reporting
@@ -212,4 +261,7 @@ class TestSendEmailAction:
 
         assert response.status_code == 200
         notification.refresh_from_db()
-        assert "This flaw is currently embargoed." in notification.payload_text
+        assert (
+            "This information is confidential until public disclosure."
+            in notification.payload_text
+        )
