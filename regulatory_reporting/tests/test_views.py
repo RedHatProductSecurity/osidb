@@ -8,6 +8,7 @@ from osidb.models.flaw import FlawSource
 from regulatory_reporting.models.upstream import UpstreamNotification
 
 from .factories import (
+    FlawFactory,
     NonReportableFlawFactory,
     UpstreamNotificationFactory,
     UpstreamProjectFactory,
