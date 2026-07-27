@@ -127,6 +127,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add RLS turned on for ACL in regulatory_reporting (OSIDB-5238)
 - Add Observability for Upstream Maintainer Email Actions (OSIDB-5104)
 - Add Upstream Maintainer Notifications Query (OSIDB-5103)
+- Add report payloads in milestones (OSIDB-5070)
 - ACE: Add Chromium special CVE workflow (OSIDB-5033)
 - ACE: Add Go stdlib special CVE workflow (OSIDB-5033)
 - Context for signals (OSIDB-5244)
