@@ -5162,6 +5162,7 @@ paths:
   /osidb/api/v1/flaws/{flaw_id}/labels:
     get:
       operationId: osidb_api_v1_flaws_labels_list
+      description: List labels for a Flaw. Requires parent Flaw read access only.
       parameters:
       - in: path
         name: flaw_id
@@ -5208,6 +5209,7 @@ paths:
           description: ''
     post:
       operationId: osidb_api_v1_flaws_labels_create
+      description: Require parent Flaw write ACLs for create/update/destroy.
       parameters:
       - in: path
         name: flaw_id
@@ -5254,6 +5256,7 @@ paths:
   /osidb/api/v1/flaws/{flaw_id}/labels/{id}:
     get:
       operationId: osidb_api_v1_flaws_labels_retrieve
+      description: Retrieve a label for a Flaw. Requires parent Flaw read access only.
       parameters:
       - in: path
         name: flaw_id
@@ -5293,6 +5296,7 @@ paths:
           description: ''
     put:
       operationId: osidb_api_v1_flaws_labels_update
+      description: Require parent Flaw write ACLs for create/update/destroy.
       parameters:
       - in: path
         name: flaw_id
@@ -5343,6 +5347,7 @@ paths:
           description: ''
     delete:
       operationId: osidb_api_v1_flaws_labels_destroy
+      description: Require parent Flaw write ACLs for create/update/destroy.
       parameters:
       - in: path
         name: flaw_id
@@ -12314,6 +12319,7 @@ paths:
   /osidb/api/v2/flaws/{flaw_id}/labels:
     get:
       operationId: osidb_api_v2_flaws_labels_list
+      description: List labels for a Flaw. Requires parent Flaw read access only.
       parameters:
       - in: path
         name: flaw_id
@@ -12359,6 +12365,7 @@ paths:
           description: ''
     post:
       operationId: osidb_api_v2_flaws_labels_create
+      description: Require parent Flaw write ACLs for create/update/destroy.
       parameters:
       - in: path
         name: flaw_id
@@ -12404,6 +12411,7 @@ paths:
   /osidb/api/v2/flaws/{flaw_id}/labels/{id}:
     get:
       operationId: osidb_api_v2_flaws_labels_retrieve
+      description: Retrieve a label for a Flaw. Requires parent Flaw read access only.
       parameters:
       - in: path
         name: flaw_id
@@ -12442,6 +12450,7 @@ paths:
           description: ''
     put:
       operationId: osidb_api_v2_flaws_labels_update
+      description: Require parent Flaw write ACLs for create/update/destroy.
       parameters:
       - in: path
         name: flaw_id
@@ -12491,6 +12500,7 @@ paths:
           description: ''
     delete:
       operationId: osidb_api_v2_flaws_labels_destroy
+      description: Require parent Flaw write ACLs for create/update/destroy.
       parameters:
       - in: path
         name: flaw_id

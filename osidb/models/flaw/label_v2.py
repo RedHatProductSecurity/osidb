@@ -11,12 +11,25 @@ import uuid
 
 import pghistory
 from django.contrib.postgres import fields
+from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
 
-from osidb.mixins import TrackingMixin, ValidateMixin, validator
+from osidb.mixins import (
+    ACLMixin,
+    ACLMixinManager,
+    TrackingMixin,
+    TrackingMixinManager,
+    ValidateMixin,
+    validator,
+)
+
+
+class FlawLabelV2Manager(ACLMixinManager, PolymorphicManager, TrackingMixinManager):
+    """Manager combining ACL annotations with polymorphic queries."""
 
 
 @pghistory.track(
@@ -25,7 +38,7 @@ from osidb.mixins import TrackingMixin, ValidateMixin, validator
     pghistory.DeleteEvent(),
     model_name="FlawLabelV2Audit",
 )
-class FlawLabelV2(PolymorphicModel, TrackingMixin, ValidateMixin):
+class FlawLabelV2(PolymorphicModel, ACLMixin, TrackingMixin, ValidateMixin):
     """
     Base polymorphic label model.
 
@@ -54,15 +67,18 @@ class FlawLabelV2(PolymorphicModel, TrackingMixin, ValidateMixin):
     # Label name/text
     name = models.CharField(max_length=255)
 
+    objects = FlawLabelV2Manager()
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=["flaw", "name"], name="unique_label_per_flaw_v2"
             )
         ]
-        indexes = [
+        indexes = TrackingMixin.Meta.indexes + [
             models.Index(fields=["flaw"]),
             models.Index(fields=["name"]),
+            GinIndex(fields=["acl_read"]),
         ]
 
     # Subclasses must define their type
@@ -70,6 +86,11 @@ class FlawLabelV2(PolymorphicModel, TrackingMixin, ValidateMixin):
 
     def __str__(self):
         return f"{self.name} ({self.type})"
+
+    def save(self, *args, **kwargs):
+        # Inherit parent Flaw ACLs when unset so ORM creates stay RLS-safe.
+        self.inherit_parent_flaw_acls()
+        super().save(*args, **kwargs)
 
     def validate(self):
         """
@@ -211,6 +232,8 @@ class ProductFamilyLabel(FlawLabelV2):
                 ProductFamilyLabel.objects.create(
                     flaw=affect.flaw,
                     name=definition.name,
+                    acl_read=list(affect.flaw.acl_read),
+                    acl_write=list(affect.flaw.acl_write),
                 )
             else:
                 ProductFamilyLabel.objects.filter(
@@ -251,7 +274,12 @@ class ProductFamilyLabel(FlawLabelV2):
 
         for name in current_names:
             if name not in existing_names:
-                ProductFamilyLabel.objects.create(flaw=flaw, name=name)
+                ProductFamilyLabel.objects.create(
+                    flaw=flaw,
+                    name=name,
+                    acl_read=list(flaw.acl_read),
+                    acl_write=list(flaw.acl_write),
+                )
 
 
 class WorkflowLabel(FlawLabelV2):

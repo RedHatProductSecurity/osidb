@@ -139,6 +139,70 @@ class TestEndpointsFlawsLabels:
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert FlawLabelV2.objects.count() == 0
 
+    def test_create_label_without_write_returns_404(self, auth_client, test_api_uri):
+        """Read-only users get 404 (not 500) when creating a label."""
+        flaw = Flaw.objects.first()
+
+        response = auth_client("pubread").post(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels",
+            {"label": "test_context", "state": "NEW", "contributor": "skynet"},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert FlawLabelV2.objects.count() == 0
+
+    def test_delete_label_without_write_returns_404(self, auth_client, test_api_uri):
+        """Read-only users get 404 (not 500) when deleting a label."""
+        flaw = Flaw.objects.first()
+        label = CollaboratorLabel.objects.create(
+            name="test_context",
+            flaw=flaw,
+            state=CollaboratorLabel.State.NEW,
+        )
+
+        response = auth_client("pubread").delete(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{label.uuid}"
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert FlawLabelV2.objects.filter(uuid=label.uuid).exists()
+
+    def test_update_label_without_write_returns_404(self, auth_client, test_api_uri):
+        """Read-only users get 404 (not 500) when updating a label."""
+        flaw = Flaw.objects.first()
+        label = CollaboratorLabel.objects.create(
+            name="test_context",
+            flaw=flaw,
+            state=CollaboratorLabel.State.NEW,
+        )
+
+        response = auth_client("pubread").put(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{label.uuid}",
+            {"state": "SKIP", "contributor": "skynet", "label": "test_context"},
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        label.refresh_from_db()
+        assert label.state == CollaboratorLabel.State.NEW
+        assert label.contributor == ""
+
+    def test_delete_product_label_without_write_returns_404(
+        self, auth_client, test_api_uri
+    ):
+        """Read-only users get 404 (not 403) for product-family deletes."""
+        flaw = Flaw.objects.first()
+        label = ProductFamilyLabel.objects.create(
+            name="test_product",
+            flaw=flaw,
+        )
+
+        response = auth_client("pubread").delete(
+            f"{test_api_uri}/flaws/{flaw.uuid}/labels/{label.uuid}"
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert FlawLabelV2.objects.filter(uuid=label.uuid).exists()
+
     def test_delete_product_label(self, auth_client, test_api_uri):
         flaw = Flaw.objects.first()
         label = ProductFamilyLabel.objects.create(

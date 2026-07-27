@@ -301,3 +301,36 @@ create policy acl_policy_snippetaudit_delete
 on osidb_snippetaudit
 for delete
 USING (acl_write::uuid[] && string_to_array(current_setting('osidb.acl'),',')::uuid[]);
+--enable row based security for FlawLabelV2Audit
+ALTER TABLE osidb_flawlabelv2audit ENABLE ROW LEVEL SECURITY;
+ALTER TABLE osidb_flawlabelv2audit FORCE ROW LEVEL SECURITY;
+--following policies define fine grained read/write control on osidb_flawlabelv2audit entity
+--policy for entity insert (eg. create)
+DROP policy if exists acl_policy_flawlabelv2audit_create on osidb_flawlabelv2audit;
+create policy acl_policy_flawlabelv2audit_create
+on osidb_flawlabelv2audit
+for INSERT
+WITH CHECK (acl_read::uuid[] && string_to_array(current_setting('osidb.acl'), ',')::uuid[]
+     AND   acl_write::uuid[] && string_to_array(current_setting('osidb.acl'), ',')::uuid[]);
+-- Check that read / write ACLs of record to be inserted match ACL of current user
+--policy for entity select
+DROP policy if exists acl_policy_flawlabelv2audit_select on osidb_flawlabelv2audit;
+create policy acl_policy_flawlabelv2audit_select
+on osidb_flawlabelv2audit
+for select
+USING (acl_read::uuid[] && string_to_array(current_setting('osidb.acl'),',')::uuid[]);
+-- Select only records with ACL that matches ACL of current user
+--policy for entity update
+DROP policy if exists acl_policy_flawlabelv2audit_update on osidb_flawlabelv2audit;
+create policy acl_policy_flawlabelv2audit_update
+on osidb_flawlabelv2audit
+for update
+USING (acl_write::uuid[] && string_to_array(current_setting('osidb.acl'),',')::uuid[])
+WITH CHECK (acl_read::uuid[] && string_to_array(current_setting('osidb.acl'), ',')::uuid[]
+     AND   acl_write::uuid[] && string_to_array(current_setting('osidb.acl'), ',')::uuid[]);
+--policy for entity delete
+DROP policy if exists acl_policy_flawlabelv2audit_delete on osidb_flawlabelv2audit;
+create policy acl_policy_flawlabelv2audit_delete
+on osidb_flawlabelv2audit
+for delete
+USING (acl_write::uuid[] && string_to_array(current_setting('osidb.acl'),',')::uuid[]);

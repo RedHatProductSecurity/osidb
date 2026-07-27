@@ -90,6 +90,29 @@ def get_flaw_or_404(pk, queryset=None):
         raise Http404 from e
 
 
+def require_flaw_write_or_404(flaw):
+    """
+    Raise Http404 unless the current session ``osidb.acl`` intersects the
+    flaw's write ACLs. Used to conceal write-denied mutations as 404s
+    (same style as get_flaw_or_404) instead of surfacing RLS errors.
+    """
+    import uuid
+
+    from django.db import connection
+    from django.http import Http404
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT current_setting('osidb.acl', true)")
+        raw = cursor.fetchone()[0]
+
+    if not raw:
+        raise Http404
+
+    session_acls = {uuid.UUID(part) for part in raw.split(",") if part}
+    if not session_acls.intersection(flaw.acl_write):
+        raise Http404
+
+
 def get_flaw_with_related_objects():
     """
     Returns a Flaw queryset with prefetch_related and select_related

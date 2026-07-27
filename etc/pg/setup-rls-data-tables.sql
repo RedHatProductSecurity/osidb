@@ -383,3 +383,67 @@ create policy acl_policy_upstreamdata_delete
 on osidb_upstreamdata
 for delete
 USING (acl_write::uuid[] && string_to_array(current_setting('osidb.acl'),',')::uuid[]);
+
+--enable row based security for flawcollaborator entity table
+ALTER TABLE osidb_flawcollaborator ENABLE ROW LEVEL SECURITY;
+ALTER TABLE osidb_flawcollaborator FORCE ROW LEVEL SECURITY;
+--following policies define fine grained read/write control on osidb_flawcollaborator entity
+--policy for entity insert (eg. create)
+DROP policy if exists acl_policy_flawcollaborator_create on osidb_flawcollaborator;
+create policy acl_policy_flawcollaborator_create
+on osidb_flawcollaborator
+for INSERT
+WITH CHECK (acl_read::uuid[] && string_to_array(current_setting('osidb.acl'), ',')::uuid[]
+     AND   acl_write::uuid[] && string_to_array(current_setting('osidb.acl'), ',')::uuid[]);
+--policy for entity select
+DROP policy if exists acl_policy_flawcollaborator_select on osidb_flawcollaborator;
+create policy acl_policy_flawcollaborator_select
+on osidb_flawcollaborator
+for select
+USING (acl_read::uuid[] && string_to_array(current_setting('osidb.acl'),',')::uuid[]);
+--policy for entity update
+DROP policy if exists acl_policy_flawcollaborator_update on osidb_flawcollaborator;
+create policy acl_policy_flawcollaborator_update
+on osidb_flawcollaborator
+for update
+USING (acl_write::uuid[] && string_to_array(current_setting('osidb.acl'),',')::uuid[])
+WITH CHECK (acl_read::uuid[] && string_to_array(current_setting('osidb.acl'), ',')::uuid[]
+     AND   acl_write::uuid[] && string_to_array(current_setting('osidb.acl'), ',')::uuid[]);
+--policy for entity delete
+DROP policy if exists acl_policy_flawcollaborator_delete on osidb_flawcollaborator;
+create policy acl_policy_flawcollaborator_delete
+on osidb_flawcollaborator
+for delete
+USING (acl_write::uuid[] && string_to_array(current_setting('osidb.acl'),',')::uuid[]);
+
+--enable row based security for flawlabelv2 entity table
+ALTER TABLE osidb_flawlabelv2 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE osidb_flawlabelv2 FORCE ROW LEVEL SECURITY;
+--following policies define fine grained read/write control on osidb_flawlabelv2 entity
+--policy for entity insert (eg. create)
+DROP policy if exists acl_policy_flawlabelv2_create on osidb_flawlabelv2;
+create policy acl_policy_flawlabelv2_create
+on osidb_flawlabelv2
+for INSERT
+WITH CHECK (acl_read::uuid[] && string_to_array(current_setting('osidb.acl'), ',')::uuid[]
+     AND   acl_write::uuid[] && string_to_array(current_setting('osidb.acl'), ',')::uuid[]);
+--policy for entity select
+DROP policy if exists acl_policy_flawlabelv2_select on osidb_flawlabelv2;
+create policy acl_policy_flawlabelv2_select
+on osidb_flawlabelv2
+for select
+USING (acl_read::uuid[] && string_to_array(current_setting('osidb.acl'),',')::uuid[]);
+--policy for entity update
+DROP policy if exists acl_policy_flawlabelv2_update on osidb_flawlabelv2;
+create policy acl_policy_flawlabelv2_update
+on osidb_flawlabelv2
+for update
+USING (acl_write::uuid[] && string_to_array(current_setting('osidb.acl'),',')::uuid[])
+WITH CHECK (acl_read::uuid[] && string_to_array(current_setting('osidb.acl'), ',')::uuid[]
+     AND   acl_write::uuid[] && string_to_array(current_setting('osidb.acl'), ',')::uuid[]);
+--policy for entity delete
+DROP policy if exists acl_policy_flawlabelv2_delete on osidb_flawlabelv2;
+create policy acl_policy_flawlabelv2_delete
+on osidb_flawlabelv2
+for delete
+USING (acl_write::uuid[] && string_to_array(current_setting('osidb.acl'),',')::uuid[]);
