@@ -1,4 +1,5 @@
 from osidb.helpers import get_execution_env
+from osidb.telemetry import configure_telemetry
 
 bind = "0.0.0.0:8000"
 worker_class = "gthread"
@@ -25,3 +26,18 @@ if get_execution_env() in ["stage", "prod", "ci"]:
 else:
     # Support hot-reloading of Gunicorn / Django when files change in dev/local/shell
     reload = True
+
+
+def post_fork(server, worker):
+    # Runs once per worker right after fork, for both preload_app=True and
+    # False. Configuring telemetry here (rather than at wsgi/asgi import
+    # time) avoids setting up the OTLP exporter's background thread/gRPC
+    # channel in the preloaded master process, where it wouldn't survive
+    # the subsequent fork into workers. (Django's own instrumentation is
+    # registered earlier, in wsgi.py, since it must run before
+    # get_wsgi_application() builds WSGIHandler.)
+    try:
+        configure_telemetry()
+    except Exception:
+        # Don't take a worker down over telemetry; run without it instead.
+        worker.log.exception("Failed to configure telemetry")
