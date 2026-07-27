@@ -108,6 +108,9 @@ services:
         OSIDB_VAULT_ADDR: ${OSIDB_VAULT_ADDR}
         OSIDB_ROLE_ID: ${OSIDB_ROLE_ID}
         OSIDB_SECRET_ID: ${OSIDB_SECRET_ID}
+        OSIDB_OTEL_ENABLED: ${OSIDB_OTEL_ENABLED}
+        OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+        OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME}
       command: ./scripts/setup-osidb-service.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z
@@ -188,6 +191,9 @@ services:
         PRODUCT_DEF_BRANCH: ${PRODUCT_DEF_BRANCH}
         PRODUCT_DEF_URL: ${PRODUCT_DEF_URL}
         PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
+        OSIDB_OTEL_ENABLED: ${OSIDB_OTEL_ENABLED}
+        OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+        OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
       # depends_on:
@@ -252,6 +258,9 @@ services:
         OSV_COLLECTOR_ENABLED: ${OSV_COLLECTOR_ENABLED}
         JIRA_USER_MAPPING_COLLECTOR_ENABLED: ${JIRA_USER_MAPPING_COLLECTOR_ENABLED}
         JIRA_USER_MAPPING_COLLECTOR_URL: ${JIRA_USER_MAPPING_COLLECTOR_URL}
+        OSIDB_OTEL_ENABLED: ${OSIDB_OTEL_ENABLED}
+        OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+        OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME}
       depends_on: ["osidb-data", "osidb-service", "redis"]
       # See "NOTE about healthchecks":
       # depends_on:
@@ -281,6 +290,27 @@ services:
         PS_CONSTANTS_URL: ${PS_CONSTANTS_URL}
         FLAW_LABELS_URL: ${FLAW_LABELS_URL}
       depends_on: ["redis", "osidb-data"]
+
+    # Local tracing backend for development. View traces at http://localhost:16686.
+    # For production, replace this service with the Datadog Agent:
+    #
+    #   datadog-agent:
+    #     image: gcr.io/datadoghq/agent:7
+    #     environment:
+    #       DD_API_KEY: ${DD_API_KEY}
+    #       DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_GRPC_ENDPOINT: "0.0.0.0:4317"
+    #       DD_APM_ENABLED: "true"
+    #     ports:
+    #       - "4317"
+    #
+    # Then set OTEL_EXPORTER_OTLP_ENDPOINT=http://datadog-agent:4317 in .env.
+    jaeger:
+      container_name: jaeger
+      hostname: jaeger
+      image: mirror.gcr.io/jaegertracing/all-in-one:1
+      ports:
+        - "16686:16686"
+        - "4317"
 
     redis:
       container_name: redis

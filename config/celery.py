@@ -3,6 +3,8 @@ from django.conf import settings
 from kombu import Queue
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from osidb.telemetry import configure_telemetry
+
 
 class CelerySettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="OSIDB_CELERY_")
@@ -57,6 +59,17 @@ app.conf.task_queues = [
 ]
 app.conf.task_default_queue = "default"
 app.conf.task_routes = ("config.celery.FIFORouter",)
+
+
+@signals.worker_process_init.connect
+def on_worker_process_init(**kwargs):
+    configure_telemetry()
+    try:
+        from opentelemetry.instrumentation.celery import CeleryInstrumentor
+
+        CeleryInstrumentor().instrument()
+    except Exception:
+        pass
 
 
 @signals.setup_logging.connect

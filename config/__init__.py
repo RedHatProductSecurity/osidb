@@ -11,4 +11,8 @@ import django
 from .celery import app as celery_app  # noqa: F401
 
 django.setup()
+
+from osidb.telemetry import configure_telemetry  # noqa: E402
+
+configure_telemetry()
 __all__ = ["osidb"]
