@@ -4,7 +4,12 @@ import pytest
 from django.utils import timezone
 
 from osidb.models import Flaw
-from osidb.tests.factories import AffectFactory, FlawFactory
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
+)
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 from regulatory_reporting.services import (
     prepare_24h_payload,
@@ -188,13 +193,19 @@ class TestPrepare24hPayloadCommonFields:
 class TestPrepare24hPayloadProductIdentity:
     def test_product_identity_from_affects(self):
         report = _create_vulnerability_report()
-        AffectFactory(flaw=report.flaw, ps_module="ps_module_0", ps_component="kernel")
+        ps_module = PsModuleFactory(name="rhel-9")
+        stream = PsUpdateStreamFactory(ps_module=ps_module)
+        AffectFactory(
+            flaw=report.flaw,
+            ps_update_stream=stream.name,
+            ps_component="kernel",
+        )
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         prepare_24h_payload(milestone)
         payload = json.loads(milestone.meta_attr["payload_snapshot"])
         products = json.loads(payload["product_identity"])
         assert len(products) == 1
-        assert products[0]["ps_module"] == "ps_module_0"
+        assert products[0]["ps_module"] == "rhel-9"
         assert products[0]["ps_component"] == "kernel"
 
     def test_product_identity_multiple_affects(self):
