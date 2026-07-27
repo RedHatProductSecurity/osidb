@@ -60,6 +60,17 @@ def _get_milestone(report, milestone_type):
     return report.milestones.get(milestone_type=milestone_type)
 
 
+def _clear_flaw_fields(report, **fields):
+    """Clear Flaw fields via queryset update to bypass blank=False validation.
+
+    Needed for missing-required-field tests: title/comment_zero cannot be
+    emptied through FlawFactory/save(), but payload builders must still handle
+    empty descriptive inputs.
+    """
+    Flaw.objects.filter(pk=report.flaw_id).update(**fields)
+    report.flaw.refresh_from_db()
+
+
 def _prepare_chain_up_to_72h(report):
     """Prepare 24h snapshot so 72h can carry forward."""
     m24 = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
@@ -505,8 +516,10 @@ class TestPrepare72hPayloadIncident:
 
 class TestPrepare72hPayloadMissingFields:
     def test_missing_general_information_when_no_data(self):
-        report = _create_vulnerability_report(
-            title="report title",
+        report = _create_vulnerability_report()
+        _clear_flaw_fields(
+            report,
+            title="",
             cve_description="",
             mitre_cve_description="",
             statement="",
@@ -622,7 +635,7 @@ class TestPrepareFinalPayloadVulnerability:
         assert "CRITICAL" in payload["vulnerability_severity"]
 
     def test_vulnerability_impact_from_affects(self):
-        report = _create_vulnerability_report(impact="HIGH")
+        report = _create_vulnerability_report(impact="IMPORTANT")
         AffectFactory(
             flaw=report.flaw,
             ps_module="rhel-9",
@@ -632,7 +645,7 @@ class TestPrepareFinalPayloadVulnerability:
         mfinal = _prepare_chain_up_to_final(report)
         prepare_final_payload(mfinal)
         payload = json.loads(mfinal.meta_attr["payload_snapshot"])
-        assert "HIGH" in payload["vulnerability_impact"]
+        assert "IMPORTANT" in payload["vulnerability_impact"]
         assert "openssl" in payload["vulnerability_impact"]
 
     def test_known_malicious_actor_is_empty(self):
@@ -693,8 +706,10 @@ class TestPrepareFinalPayloadIncident:
 
 class TestPrepareFinalPayloadMissingFields:
     def test_missing_full_description_when_empty(self):
-        report = _create_vulnerability_report(
-            title="report title",
+        report = _create_vulnerability_report()
+        _clear_flaw_fields(
+            report,
+            title="",
             cve_description="",
             mitre_cve_description="",
             comment_zero="",
