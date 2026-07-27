@@ -279,6 +279,8 @@ class TestSRPMilestoneUpdate:
         assert milestone.status == SRPReportMilestone.SRPReportStatus.SUBMITTED
         assert milestone.request_source == "ENISA Portal"
         assert milestone.request_text == "Additional information requested"
+        assert milestone.meta_attr.get("payload_snapshot")
+        assert "prepared_at" in milestone.meta_attr
 
 
 @pytest.mark.django_db
