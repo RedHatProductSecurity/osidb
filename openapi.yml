@@ -14513,6 +14513,89 @@ paths:
                     version:
                       type: string
           description: ''
+  /regulatory-reporting/api/v1/milestones:
+    get:
+      operationId: regulatory_reporting_api_v1_milestones_list
+      description: |-
+        ViewSet for top-level SRP Report Milestones (list-only).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/milestones - List all milestones with filtering
+
+        Retrieve/create/update remain under /srp-reports/{report_uuid}/milestones.
+      parameters:
+      - in: query
+        name: created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: milestone_type
+        schema:
+          type: string
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: request_source
+        schema:
+          type: string
+      - in: query
+        name: request_text
+        schema:
+          type: string
+      - in: query
+        name: srp_report
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedSRPReportMilestoneList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /regulatory-reporting/api/v1/srp-reports:
     get:
       operationId: regulatory_reporting_api_v1_srp_reports_list

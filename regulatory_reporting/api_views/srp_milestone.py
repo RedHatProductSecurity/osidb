@@ -1,11 +1,14 @@
 """
-ViewSet for SRP Report Milestone endpoints (nested under reports).
+ViewSet for SRP Report Milestone endpoints.
 
-Provides list, retrieve, update, and create operations for milestones.
+Provides:
+- Top-level list of all milestones (with filters)
+- Nested list/retrieve/update/create under reports
 """
 
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import mixins, viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import ModelViewSet
 
@@ -17,6 +20,24 @@ from regulatory_reporting.serializers import (
     SRPReportMilestoneCreateSerializer,
     SRPReportMilestoneSerializer,
 )
+
+
+class SRPMilestoneListViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """
+    ViewSet for top-level SRP Report Milestones (list-only).
+
+    Supports:
+    - GET /regulatory-reporting/api/v1/milestones - List all milestones with filtering
+
+    Retrieve/create/update remain under /srp-reports/{report_uuid}/milestones.
+    """
+
+    queryset = SRPReportMilestone.objects.all().select_related("srp_report")
+    serializer_class = SRPReportMilestoneSerializer
+    filterset_class = SRPReportMilestoneFilter
+    filter_backends = [DjangoFilterBackend]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    http_method_names = get_valid_http_methods(viewsets.GenericViewSet)
 
 
 class SRPReportMilestoneViewSet(ModelViewSet):

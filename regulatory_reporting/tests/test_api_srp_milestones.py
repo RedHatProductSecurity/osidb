@@ -1,7 +1,7 @@
 """
-Tests for top-level SRP Milestone API endpoints (nested under reports).
+Tests for SRP Milestone API endpoints.
 
-Tests list, retrieve, update operations for milestones.
+Tests top-level list, nested list/retrieve/update/create operations for milestones.
 """
 
 import pytest
@@ -18,6 +18,84 @@ from regulatory_reporting.tests.factories import (
 )
 
 pytestmark = pytest.mark.unit
+
+
+@pytest.mark.django_db
+@pytest.mark.enable_signals
+class TestSRPMilestoneTopLevelList:
+    """Tests for GET /regulatory-reporting/api/v1/milestones (list all)."""
+
+    def test_list_all_milestones(self, api_client, create_flaw_report):
+        """Can list milestones across all reports."""
+        create_flaw_report()
+        create_flaw_report()
+
+        response = api_client.get("/regulatory-reporting/api/v1/milestones")
+        assert response.status_code == status.HTTP_200_OK
+        # Each report auto-creates 3 milestones
+        assert len(response.data["results"]) == 6
+
+    def test_list_all_milestones_empty(self, api_client):
+        """Empty list when no milestones exist."""
+        response = api_client.get("/regulatory-reporting/api/v1/milestones")
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["results"]) == 0
+
+    def test_filter_by_srp_report(self, api_client, create_flaw_report):
+        """Can filter top-level list by srp_report."""
+        report1 = create_flaw_report()
+        create_flaw_report()
+
+        response = api_client.get(
+            f"/regulatory-reporting/api/v1/milestones?srp_report={report1.uuid}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["results"]) == 3
+        assert {m["srp_report"] for m in response.data["results"]} == {report1.uuid}
+
+    def test_filter_by_milestone_type(self, api_client, create_flaw_report):
+        """Can filter top-level list by milestone_type."""
+        create_flaw_report()
+        create_flaw_report()
+
+        response = api_client.get(
+            "/regulatory-reporting/api/v1/milestones?milestone_type=24h"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["results"]) == 2
+        assert all(
+            m["milestone_type"] == SRPReportMilestone.MilestoneType.LEVEL_24H
+            for m in response.data["results"]
+        )
+
+    def test_filter_by_status(self, api_client, create_flaw_report):
+        """Can filter top-level list by status."""
+        report = create_flaw_report()
+        milestone = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+        milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+        milestone.save()
+
+        response = api_client.get(
+            "/regulatory-reporting/api/v1/milestones?status=submitted"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["results"]) == 1
+        assert (
+            response.data["results"][0]["status"]
+            == SRPReportMilestone.SRPReportStatus.SUBMITTED
+        )
+
+    def test_detail_not_available(self, api_client):
+        """Top-level milestones/{uuid} is not registered."""
+        report = SRPReportFactory()
+        milestone = SRPReportMilestoneFactory(srp_report=report)
+
+        response = api_client.get(
+            f"/regulatory-reporting/api/v1/milestones/{milestone.uuid}"
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 @pytest.mark.django_db

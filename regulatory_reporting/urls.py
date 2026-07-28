@@ -9,6 +9,7 @@ from rest_framework.routers import DefaultRouter
 from regulatory_reporting.api_views import (
     FlawSRPReportMilestoneViewSet,
     FlawSRPReportViewSet,
+    SRPMilestoneListViewSet,
     SRPReportMilestoneViewSet,
     SRPReportViewSet,
 )
@@ -19,7 +20,10 @@ router = DefaultRouter(trailing_slash=False)
 # Top-level SRP Reports
 router.register(r"srp-reports", SRPReportViewSet, basename="srpreports")
 
-# Top-level SRP Milestones (nested under reports)
+# Top-level SRP Milestones (list all, with filters)
+router.register(r"milestones", SRPMilestoneListViewSet, basename="srpmilestones")
+
+# SRP Milestones nested under reports
 router.register(
     rf"srp-reports/(?P<report_uuid>{UUID_PATH_REGEX})/milestones",
     SRPReportMilestoneViewSet,
