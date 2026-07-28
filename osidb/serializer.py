@@ -2125,6 +2125,24 @@ class FlawLabelSerializer(serializers.Serializer):
     type = serializers.CharField(read_only=True)
 
 
+def _copy_parent_flaw_acls(validated_data):
+    """
+    Copy acl_read/acl_write from the parent Flaw into validated_data when
+    creating a label. Labels do not expose embargoed in the API.
+    """
+    if "acl_read" in validated_data and "acl_write" in validated_data:
+        return validated_data
+
+    flaw_id = validated_data.get("flaw_id")
+    if flaw_id is None:
+        return validated_data
+
+    flaw = Flaw.objects.get(uuid=flaw_id)
+    validated_data["acl_read"] = list(flaw.acl_read)
+    validated_data["acl_write"] = list(flaw.acl_write)
+    return validated_data
+
+
 class FlawCollaboratorSerializer(TrackingMixinSerializer):
     """FlawCollaborator serializer"""
 
@@ -2204,6 +2222,7 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
             )
 
         self._strip_unsupported_fields(model_class, validated_data)
+        _copy_parent_flaw_acls(validated_data)
 
         try:
             return model_class.objects.create(**validated_data)
@@ -2342,6 +2361,7 @@ class FlawLabelV2Serializer(TrackingMixinSerializer):
             )
 
         self._strip_unsupported_fields(model_class, validated_data)
+        _copy_parent_flaw_acls(validated_data)
 
         try:
             return model_class.objects.create(**validated_data)

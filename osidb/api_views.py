@@ -58,7 +58,12 @@ from rest_framework.viewsets import (
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
-from osidb.helpers import bypass_rls, get_bugzilla_api_key, get_flaw_or_404
+from osidb.helpers import (
+    bypass_rls,
+    get_bugzilla_api_key,
+    get_flaw_or_404,
+    require_flaw_write_or_404,
+)
 from osidb.integrations import IntegrationRepository, IntegrationSettings
 from osidb.models import (
     Affect,
@@ -1113,6 +1118,24 @@ class SubFlawViewGetMixin:
         return super().get_serializer(*args, **kwargs)
 
 
+class SubFlawWriteACLMixin:
+    """
+    Require parent Flaw write ACLs for create/update/destroy.
+    """
+
+    def perform_create(self, serializer):
+        require_flaw_write_or_404(self.get_flaw())
+        super().perform_create(serializer)
+
+    def perform_update(self, serializer):
+        require_flaw_write_or_404(self.get_flaw())
+        super().perform_update(serializer)
+
+    def perform_destroy(self, instance):
+        require_flaw_write_or_404(self.get_flaw())
+        super().perform_destroy(instance)
+
+
 @include_exclude_fields_extend_schema_view
 @extend_schema_view(
     create=extend_schema(
@@ -2053,20 +2076,32 @@ class AlertView(RudimentaryUserPathLoggingMixin, ModelViewSet):
 
 
 @extend_schema_view(
-    list=extend_schema(deprecated=True),
-    retrieve=extend_schema(deprecated=True),
+    list=extend_schema(
+        description="List labels for a Flaw. Requires parent Flaw read access only.",
+        deprecated=True,
+    ),
+    retrieve=extend_schema(
+        description="Retrieve a label for a Flaw. Requires parent Flaw read access only.",
+        deprecated=True,
+    ),
     create=extend_schema(
+        description="Require parent Flaw write ACLs for create/update/destroy.",
         request=FlawCollaboratorPostSerializer,
         deprecated=True,
     ),
     update=extend_schema(
+        description="Require parent Flaw write ACLs for create/update/destroy.",
         request=FlawCollaboratorPostSerializer,
         deprecated=True,
     ),
-    destroy=extend_schema(deprecated=True),
+    destroy=extend_schema(
+        description="Require parent Flaw write ACLs for create/update/destroy.",
+        deprecated=True,
+    ),
 )
 class FlawLabelView(
     RudimentaryUserPathLoggingMixin,
+    SubFlawWriteACLMixin,
     SubFlawViewGetMixin,
     ModelViewSet,
 ):
@@ -2075,6 +2110,7 @@ class FlawLabelView(
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def destroy(self, request, *args, **kwargs):
+        require_flaw_write_or_404(self.get_flaw())
         instance = self.get_object()
         if instance.type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
             raise PermissionDenied(
@@ -2084,15 +2120,27 @@ class FlawLabelView(
 
 
 @extend_schema_view(
+    list=extend_schema(
+        description="List labels for a Flaw. Requires parent Flaw read access only.",
+    ),
+    retrieve=extend_schema(
+        description="Retrieve a label for a Flaw. Requires parent Flaw read access only.",
+    ),
     create=extend_schema(
+        description="Require parent Flaw write ACLs for create/update/destroy.",
         request=FlawLabelV2PostSerializer,
     ),
     update=extend_schema(
+        description="Require parent Flaw write ACLs for create/update/destroy.",
         request=FlawLabelV2PostSerializer,
+    ),
+    destroy=extend_schema(
+        description="Require parent Flaw write ACLs for create/update/destroy.",
     ),
 )
 class FlawLabelV2View(
     RudimentaryUserPathLoggingMixin,
+    SubFlawWriteACLMixin,
     SubFlawViewGetMixin,
     ModelViewSet,
 ):
@@ -2101,6 +2149,7 @@ class FlawLabelV2View(
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def destroy(self, request, *args, **kwargs):
+        require_flaw_write_or_404(self.get_flaw())
         instance = self.get_object()
         if instance.type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
             raise PermissionDenied({"name": "Product family labels cannot be deleted."})

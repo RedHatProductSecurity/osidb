@@ -653,6 +653,28 @@ class TestTrackingMixin:
         assert flaw.created_dt == timezone.now()
         assert flaw.updated_dt == timezone.now()
 
+    def test_tracking_mixin_manager_get_or_create_defaults_none(self):
+        """
+        TrackingMixinManager.get_or_create must accept defaults=None
+        (same as Django) — ACE calls WorkflowLabel.objects.get_or_create
+        with no defaults after labels moved onto FlawLabelV2Manager.
+        """
+        from osidb.models import WorkflowLabel
+
+        flaw = FlawFactory()
+        AffectFactory(flaw=flaw)
+
+        label, created = WorkflowLabel.objects.get_or_create(flaw=flaw, name="hms")
+        assert created
+        assert label.name == "hms"
+        # save() inherits parent Flaw ACLs when unset
+        assert label.acl_read == list(flaw.acl_read)
+        assert label.acl_write == list(flaw.acl_write)
+
+        label2, created = WorkflowLabel.objects.get_or_create(flaw=flaw, name="hms")
+        assert not created
+        assert label2.uuid == label.uuid
+
 
 class TestBugzillaJiraMixinIntegration:
     def get_acl_read(self):

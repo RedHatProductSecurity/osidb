@@ -2,11 +2,19 @@ import uuid
 from typing import List
 
 from django.contrib.postgres import fields
+from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models
 from django.db.models import Q
 
-from osidb.mixins import TrackingMixin, TrackingMixinManager
+from osidb.mixins import (
+    ACLMixin,
+    ACLMixinManager,
+    TrackingMixin,
+    TrackingMixinManager,
+    ValidateMixin,
+    validator,
+)
 from osidb.models import Affect, Flaw
 from osidb.query_sets import CustomQuerySetUpdatedDt
 
@@ -73,7 +81,7 @@ class FlawLabel(models.Model):
         return self.name
 
 
-class FlawCollaboratorManager(TrackingMixinManager):
+class FlawCollaboratorManager(ACLMixinManager, TrackingMixinManager):
     """collaborator manager"""
 
     @staticmethod
@@ -92,6 +100,8 @@ class FlawCollaboratorManager(TrackingMixinManager):
                 label=label.name,
                 state=FlawCollaborator.FlawCollaboratorState.NEW,
                 type=label.type,
+                acl_read=list(affect.flaw.acl_read),
+                acl_write=list(affect.flaw.acl_write),
             )
 
     @staticmethod
@@ -113,7 +123,11 @@ class FlawCollaboratorManager(TrackingMixinManager):
                 flaw=flaw,
                 label=label.name,
                 type=label.type,
-                defaults={"state": FlawCollaborator.FlawCollaboratorState.NEW},
+                defaults={
+                    "state": FlawCollaborator.FlawCollaboratorState.NEW,
+                    "acl_read": list(flaw.acl_read),
+                    "acl_write": list(flaw.acl_write),
+                },
             )
 
         return labels
@@ -134,7 +148,7 @@ class FlawCollaboratorManager(TrackingMixinManager):
                 collaborator.save()
 
 
-class FlawCollaborator(TrackingMixin):
+class FlawCollaborator(ACLMixin, TrackingMixin, ValidateMixin):
     class FlawCollaboratorState(models.TextChoices):
         NEW = "NEW"
         REQ = "REQ"
@@ -177,12 +191,14 @@ class FlawCollaborator(TrackingMixin):
                 fields=["flaw", "label"], name="unique label per flaw"
             ),
         ]
-
-    def create(self, *args, **kwargs):
-        self._validate_label()
-        super().create(*args, **kwargs)
+        indexes = TrackingMixin.Meta.indexes + [
+            GinIndex(fields=["acl_read"]),
+        ]
 
     def save(self, *args, **kwargs):
+        # Inherit parent Flaw ACLs when unset so ORM creates stay RLS-safe.
+        self.inherit_parent_flaw_acls()
+
         # Workflow labels are always "done" and "relevant" - they're binary flags
         if self.type == FlawLabel.FlawLabelType.WORKFLOW:
             self.state = FlawCollaborator.FlawCollaboratorState.DONE
@@ -197,7 +213,17 @@ class FlawCollaborator(TrackingMixin):
                     {"label": f"Label '{self.label}' already exists."}
                 )
 
-    def _validate_label(self):
+    def validate(self):
+        """
+        Run ACLMixin @validator methods before standard Django validations.
+        (AlertMixin is heavier than label needs; same pattern as FlawLabelV2.)
+        """
+        for validator_name in self._validators:
+            getattr(self, validator_name)()
+        super().validate()
+
+    @validator
+    def _validate_label(self, **kwargs):
         """Validate the label"""
         # Alias and workflow labels don't need pre-registration
         if self.type in (
