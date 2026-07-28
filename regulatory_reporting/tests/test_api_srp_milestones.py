@@ -4,6 +4,8 @@ Tests for SRP Milestone API endpoints.
 Tests top-level list, nested list/retrieve/update/create operations for milestones.
 """
 
+from urllib.parse import urlencode
+
 import pytest
 from django.utils import timezone
 from rest_framework import status
@@ -18,6 +20,16 @@ from regulatory_reporting.tests.factories import (
 )
 
 pytestmark = pytest.mark.unit
+
+
+def _due_at_query(**params):
+    """Build query string with properly encoded datetimes."""
+    return urlencode(
+        {
+            key: value.isoformat() if hasattr(value, "isoformat") else value
+            for key, value in params.items()
+        }
+    )
 
 
 @pytest.mark.django_db
@@ -86,6 +98,28 @@ class TestSRPMilestoneTopLevelList:
             response.data["results"][0]["status"]
             == SRPReportMilestone.SRPReportStatus.SUBMITTED
         )
+
+    def test_filter_by_due_at_range(self, api_client, create_flaw_report):
+        """Can filter top-level list by due_at__gte / due_at__lte."""
+        report = create_flaw_report()
+        milestone_24h = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+        milestone_72h = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H
+        )
+
+        query = _due_at_query(
+            due_at__gte=milestone_24h.due_at,
+            due_at__lte=milestone_72h.due_at,
+        )
+        response = api_client.get(f"/regulatory-reporting/api/v1/milestones?{query}")
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["results"]) == 2
+        assert {m["milestone_type"] for m in response.data["results"]} == {
+            SRPReportMilestone.MilestoneType.LEVEL_24H,
+            SRPReportMilestone.MilestoneType.LEVEL_72H,
+        }
 
     def test_detail_not_available(self, api_client):
         """Top-level milestones/{uuid} is not registered."""
@@ -390,6 +424,43 @@ class TestSRPMilestoneFiltering:
 
         response = api_client.get(
             f"/regulatory-reporting/api/v1/srp-reports/{milestones_report.uuid}/milestones?milestone_type=24h"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["results"]) == 1
+        assert (
+            response.data["results"][0]["milestone_type"]
+            == SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+
+    def test_filter_by_due_at_gte(self, api_client, create_flaw_report):
+        """Can filter nested milestones by due_at__gte (computed annotation)."""
+        milestones_report = create_flaw_report()
+        milestone_72h = milestones_report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H
+        )
+
+        query = _due_at_query(due_at__gte=milestone_72h.due_at)
+        response = api_client.get(
+            f"/regulatory-reporting/api/v1/srp-reports/{milestones_report.uuid}/milestones?{query}"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        # 24h is before 72h due; 72h and final remain
+        assert len(response.data["results"]) == 2
+        assert {m["milestone_type"] for m in response.data["results"]} == {
+            SRPReportMilestone.MilestoneType.LEVEL_72H,
+            SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+        }
+
+    def test_filter_by_due_at_lte(self, api_client, create_flaw_report):
+        """Can filter nested milestones by due_at__lte (computed annotation)."""
+        milestones_report = create_flaw_report()
+        milestone_24h = milestones_report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+
+        query = _due_at_query(due_at__lte=milestone_24h.due_at)
+        response = api_client.get(
+            f"/regulatory-reporting/api/v1/srp-reports/{milestones_report.uuid}/milestones?{query}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["results"]) == 1

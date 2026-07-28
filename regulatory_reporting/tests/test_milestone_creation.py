@@ -19,6 +19,7 @@ from osidb.models import Flaw
 from osidb.tests.factories import FlawFactory
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 from regulatory_reporting.models.abstracts import SRPReportBase
+from regulatory_reporting.tests.factories import SRPReportMilestoneFactory
 
 pytestmark = [pytest.mark.unit, pytest.mark.enable_signals, pytest.mark.cra_reporting]
 
@@ -465,6 +466,51 @@ class TestMilestoneDueDateProperty:
             assert milestone.due_at > start_time, (
                 f"{milestone.milestone_type} due_at should be after start time"
             )
+
+    def test_due_at_annotation_matches_property(self):
+        """SQL due_at annotation must stay in sync with the Python property."""
+        start_time = timezone.now()
+        FlawFactory(
+            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+            major_incident_start_dt=start_time,
+        )
+        FlawFactory(
+            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+            major_incident_start_dt=start_time,
+        )
+
+        expected = {
+            m.uuid: m.due_at
+            for m in SRPReportMilestone.objects.select_related("srp_report")
+        }
+        annotated = dict(
+            SRPReportMilestone.objects.with_due_at().values_list(
+                "uuid", "due_at_annotated"
+            )
+        )
+        assert annotated == expected
+
+        # Additional-info milestone with and without request_received_at
+        report = SRPReport.objects.first()
+        without_request = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
+            request_received_at=None,
+        )
+        with_request = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
+            request_received_at=start_time,
+        )
+        annotated_extra = dict(
+            SRPReportMilestone.objects.filter(
+                uuid__in=[without_request.uuid, with_request.uuid]
+            )
+            .with_due_at()
+            .values_list("uuid", "due_at_annotated")
+        )
+        assert annotated_extra[without_request.uuid] is None
+        assert annotated_extra[with_request.uuid] == with_request.due_at
 
     def test_milestone_string_representation(self):
         """

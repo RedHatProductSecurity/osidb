@@ -14534,6 +14534,16 @@ paths:
         schema:
           type: string
           format: date-time
+      - in: query
+        name: due_at__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: due_at__lte
+        schema:
+          type: string
+          format: date-time
       - name: limit
         required: false
         in: query
@@ -14729,6 +14739,16 @@ paths:
           format: date-time
       - in: query
         name: created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: due_at__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: due_at__lte
         schema:
           type: string
           format: date-time

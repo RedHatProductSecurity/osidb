@@ -24,6 +24,56 @@ from .abstracts import SRPReportBase
 from .srp_report import SRPReport
 
 
+class SRPReportMilestoneQuerySet(models.QuerySet):
+    """QuerySet helpers for SRP Report Milestones."""
+
+    def with_due_at(self):
+        """
+        Annotate milestones with a SQL expression mirroring the due_at property.
+
+        Uses due_at_annotated (not due_at) so it does not collide with the
+        read-only due_at @property when materializing model instances.
+        Enables filtering on due_at without persisting it as a column.
+        """
+        return self.annotate(
+            due_at_annotated=models.Case(
+                models.When(
+                    milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
+                    request_received_at__isnull=False,
+                    then=models.F("request_received_at") + timedelta(days=30),
+                ),
+                models.When(
+                    milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
+                    then=models.Value(None, output_field=models.DateTimeField()),
+                ),
+                models.When(
+                    srp_report__timer_started_at__isnull=True,
+                    then=models.Value(None, output_field=models.DateTimeField()),
+                ),
+                models.When(
+                    milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+                    srp_report__reportable_event_type=SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY,
+                    then=models.F("srp_report__timer_started_at") + timedelta(days=14),
+                ),
+                models.When(
+                    milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+                    srp_report__reportable_event_type=SRPReport.ReportableEventType.SEVERE_INCIDENT,
+                    then=models.F("srp_report__timer_started_at") + timedelta(days=30),
+                ),
+                models.When(
+                    milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H,
+                    then=models.F("srp_report__timer_started_at") + timedelta(hours=24),
+                ),
+                models.When(
+                    milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H,
+                    then=models.F("srp_report__timer_started_at") + timedelta(hours=72),
+                ),
+                default=models.Value(None, output_field=models.DateTimeField()),
+                output_field=models.DateTimeField(),
+            )
+        )
+
+
 class SRPReportMilestoneManager(ACLMixinManager, TrackingMixinManager):
     """SRP Report Milestone manager"""
 
@@ -125,7 +175,7 @@ class SRPReportMilestone(SRPReportBase):
             )
         ]
 
-    objects = SRPReportMilestoneManager()
+    objects = SRPReportMilestoneManager.from_queryset(SRPReportMilestoneQuerySet)()
 
     @property
     def due_at(self):

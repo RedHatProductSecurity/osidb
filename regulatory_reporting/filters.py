@@ -93,7 +93,7 @@ class SRPReportMilestoneFilter(FilterSet):
     """
     Filter for SRP Report Milestones.
 
-    Supports filtering by status, milestone_type, and parent report.
+    Supports filtering by status, milestone_type, parent report, and computed due_at.
     """
 
     uuid = UUIDFilter(field_name="uuid", lookup_expr="exact")
@@ -102,6 +102,8 @@ class SRPReportMilestoneFilter(FilterSet):
     status = CharFilter(field_name="status", lookup_expr="exact")
     created_dt__gte = DateTimeFilter(field_name="created_dt", lookup_expr="gte")
     created_dt__lte = DateTimeFilter(field_name="created_dt", lookup_expr="lte")
+    due_at__gte = DateTimeFilter(field_name="due_at_annotated", lookup_expr="gte")
+    due_at__lte = DateTimeFilter(field_name="due_at_annotated", lookup_expr="lte")
     request_source = CharFilter(field_name="request_source", lookup_expr="icontains")
     request_text = CharFilter(field_name="request_text", lookup_expr="icontains")
 
@@ -114,6 +116,15 @@ class SRPReportMilestoneFilter(FilterSet):
             "status",
             "created_dt__gte",
             "created_dt__lte",
+            "due_at__gte",
+            "due_at__lte",
             "request_source",
             "request_text",
         ]
+
+    def filter_queryset(self, queryset):
+        # due_at is a computed property; annotate only when those filters are used.
+        if self.data.get("due_at__gte") or self.data.get("due_at__lte"):
+            if "due_at_annotated" not in queryset.query.annotations:
+                queryset = queryset.with_due_at()
+        return super().filter_queryset(queryset)
