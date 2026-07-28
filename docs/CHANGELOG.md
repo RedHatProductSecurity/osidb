@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Upstream Maintainer Notification Subresource Endpoints (OSIDB-5083)
 - Add Upstream Maintainer Email Template (OSIDB-5086)
 - Add Upstream Maintainer Notification Payload Preparation Service (OSIDB-5087)
+- Add SRP report endpoints (OSIDB-5073)
 
 ### Changed
 - align existing workflows with workflow framework concepts
