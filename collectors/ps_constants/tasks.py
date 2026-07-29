@@ -7,7 +7,7 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 from collectors.framework.models import collector
-from osidb.models import SpecialConsiderationPackage
+from osidb.models import SpecialConsiderationPackage, UbiPackage
 
 from .constants import PS_CONSTANTS_REPO_BRANCH, PS_CONSTANTS_REPO_URL
 from .core import (
@@ -17,6 +17,7 @@ from .core import (
     sync_sla_policies,
     sync_slo_policies,
     sync_special_consideration_packages,
+    sync_ubi_packages,
 )
 
 logger = get_task_logger(__name__)
@@ -36,6 +37,10 @@ PS_CONSTANTS_BASE_URL = "/".join(
 
 def collect_step_1_fetch():
     # Fetch raw yml data from GitLab
+    url = "/".join((PS_CONSTANTS_BASE_URL, "ubi_packages.yml"))
+    logger.info(f"Fetching PS Constants (UBI Packages) from '{url}'")
+    ubi_packages = fetch_ps_constants(url)
+
     url = "/".join((PS_CONSTANTS_BASE_URL, "special_consideration_packages.yml"))
     logger.info(f"Fetching PS Constants (Special Consideration Packages) from '{url}'")
     sc_packages = fetch_ps_constants(url)
@@ -57,6 +62,7 @@ def collect_step_1_fetch():
     cveorg_keywords = fetch_ps_constants(url)
 
     return (
+        ubi_packages,
         cveorg_keywords,
         sc_packages,
         sla_policies,
@@ -66,12 +72,14 @@ def collect_step_1_fetch():
 
 
 def collect_step_2_sync(
+    ubi_packages,
     cveorg_keywords,
     sc_packages,
     sla_policies,
     slo_policies,
     jira_bug_issuetype,
 ):
+    sync_ubi_packages(ubi_packages)
     sync_cveorg_keywords(cveorg_keywords)
     sync_special_consideration_packages(sc_packages)
     sync_sla_policies(sla_policies)
@@ -93,12 +101,14 @@ def collect_step_2_sync(
     crontab=crontab(minute="49", hour="*/5"),
     data_models=[
         SpecialConsiderationPackage,
+        UbiPackage,
     ],
 )
 def ps_constants_collector(collector_obj) -> str:
     """ps constants collector"""
 
     (
+        ubi_packages,
         cveorg_keywords,
         sc_packages,
         sla_policies,
@@ -107,10 +117,12 @@ def ps_constants_collector(collector_obj) -> str:
     ) = collect_step_1_fetch()
 
     logger.info(
-        (f"and {len(sc_packages)} special consideration packages data.Going to sync.")
+        f"Fetched {sum(len(v) for v in ubi_packages.values())} ubi packages "
+        f"and {len(sc_packages)} special consideration packages. Going to sync."
     )
 
     collect_step_2_sync(
+        ubi_packages,
         cveorg_keywords,
         sc_packages,
         sla_policies,

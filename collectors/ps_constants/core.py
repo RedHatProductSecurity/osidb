@@ -9,7 +9,7 @@ from requests_gssapi import HTTPSPNEGOAuth
 from apps.sla.models import SLAPolicy, SLOPolicy, TemporalPolicy
 from apps.trackers.models import JiraBugIssuetype
 from collectors.cveorg.models import Keyword
-from osidb.models import SpecialConsiderationPackage
+from osidb.models import SpecialConsiderationPackage, UbiPackage
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,17 @@ def fetch_ps_constants(url, multi=False):
         return yaml.safe_load_all(response.text)
     except yaml.YAMLError as e:
         print("Error parsing YAML:", e)
+
+
+@transaction.atomic
+def sync_ubi_packages(ubi_packages):
+    """
+    Sync a dict of ps_modules with their ubi components
+    """
+    UbiPackage.objects.all().delete()
+    for ps_module, packages in ubi_packages.items():
+        for package_name in packages:
+            UbiPackage(name=package_name, ps_module=ps_module).save()
 
 
 @transaction.atomic

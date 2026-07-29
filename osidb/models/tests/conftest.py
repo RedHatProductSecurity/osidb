@@ -1,6 +1,7 @@
 import pytest
 
 from osidb.models.flaw.cvss import FlawCVSS
+from osidb.models.ps_constants import UbiPackage
 from osidb.tests.factories import (
     FlawCVSSFactory,
     FlawFactory,
@@ -137,6 +138,25 @@ def hummingbird_ps_stream_with_moderate_tracker():
         moderate_to_ps_module=ps_module,
         unacked_to_ps_module=None,
     )
+
+
+@pytest.fixture
+def ubi_ps_stream_with_moderate_tracker():
+    """
+    Non-community RHEL stream that passes OOSS and WONTFIX checks, with a UBI package
+    record linking the component to the module. Used to verify the mod7 DEFER check
+    is skipped for UBI packages.
+    """
+    ps_product = PsProductFactory(business_unit="RHEL")
+    ps_module = PsModuleFactory(ps_product=ps_product, name="rhel-8")
+    stream = PsUpdateStreamFactory(
+        ps_module=ps_module,
+        active_to_ps_module=ps_module,
+        moderate_to_ps_module=ps_module,
+        unacked_to_ps_module=None,
+    )
+    UbiPackage.objects.create(name="ubi-test-component", ps_module="rhel-8")
+    return stream
 
 
 @pytest.fixture

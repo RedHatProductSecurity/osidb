@@ -12,6 +12,7 @@ class Command(BaseCommand):
         now = timezone.now()
 
         (
+            ubi_packages,
             cveorg_keywords,
             sc_packages,
             sla_policies,
@@ -20,6 +21,7 @@ class Command(BaseCommand):
         ) = collect_step_1_fetch()
 
         collect_step_2_sync(
+            ubi_packages,
             cveorg_keywords,
             sc_packages,
             sla_policies,

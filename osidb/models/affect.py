@@ -32,7 +32,7 @@ from osidb.query_sets import CustomQuerySetUpdatedDt
 
 from .abstract import CVSS, Impact
 from .flaw.flaw import Flaw
-from .ps_constants import SpecialConsiderationPackage
+from .ps_constants import SpecialConsiderationPackage, UbiPackage
 from .ps_module import PsModule
 from .ps_update_stream import PsUpdateStream
 
@@ -907,8 +907,8 @@ class Affect(
             return
 
         # AFFECTED/DEFER — low severity or moderate without high CVSS (non-community)
-        # Hummingbird (HUM) modules skip this check and always get AFFECTED/DELEGATED
-        if not is_community and not self.is_hummingbird():
+        # Hummingbird (HUM) modules and UBI packages skip this check and always get AFFECTED/DELEGATED
+        if not is_community and not self.is_hummingbird() and not self.is_ubi():
             if impact == Impact.LOW:
                 self.resolution = self.AffectResolution.DEFER
                 return
@@ -929,6 +929,15 @@ class Affect(
         check and return whether the given affect is targeting HUM project
         """
         return PsModule.objects.filter(name=self.ps_module, bts_key="HUM").exists()
+
+    def is_ubi(self) -> bool:
+        """
+        check and return whether the given affect's component is a UBI package
+        for the matching ps_module (e.g. rhel-8, rhel-9, rhel-10)
+        """
+        return UbiPackage.objects.filter(
+            name=self.ps_component, ps_module=self.ps_module
+        ).exists()
 
     @property
     def is_notaffected(self) -> bool:

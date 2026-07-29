@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from osidb.constants import SERVICES_PRODUCTS
 from osidb.models import Affect, Impact, Tracker
+from osidb.models.ps_constants import UbiPackage
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,
@@ -567,3 +568,73 @@ class TestAutoResolve:
         affect.auto_resolve()
         assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
         assert affect.resolution == Affect.AffectResolution.DELEGATED
+
+    # ── UBI packages skip mod7 DEFER check ──────────────────────────────────
+
+    def test_ubi_low_impact_skips_defer(self, ubi_ps_stream_with_moderate_tracker):
+        stream = ubi_ps_stream_with_moderate_tracker
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.LOW),
+            ps_module=stream.ps_module.name,
+            ps_update_stream=stream.name,
+            ps_component="ubi-test-component",
+            impact=Impact.LOW,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DELEGATED
+
+    def test_ubi_moderate_low_cvss_skips_defer(
+        self, ubi_ps_stream_with_moderate_tracker, flaw_with_cvss
+    ):
+        stream = ubi_ps_stream_with_moderate_tracker
+        flaw = flaw_with_cvss(
+            Impact.MODERATE,
+            "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:N/A:N",  # score 3.5
+        )
+        affect = AffectFactory.build(
+            flaw=flaw,
+            ps_module=stream.ps_module.name,
+            ps_update_stream=stream.name,
+            ps_component="ubi-test-component",
+            impact=Impact.MODERATE,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DELEGATED
+
+    def test_non_ubi_component_still_defers(self, ubi_ps_stream_with_moderate_tracker):
+        """A component not in the UBI list should still be subject to mod7 DEFER."""
+        stream = ubi_ps_stream_with_moderate_tracker
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.LOW),
+            ps_module=stream.ps_module.name,
+            ps_update_stream=stream.name,
+            ps_component="not-a-ubi-package",
+            impact=Impact.LOW,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DEFER
+
+    def test_ubi_wrong_ps_module_still_defers(self):
+        """A UBI component for rhel-8 should NOT bypass DEFER on rhel-9."""
+        UbiPackage.objects.create(name="brotli", ps_module="rhel-8")
+        ps_product = PsProductFactory(business_unit="RHEL")
+        ps_module = PsModuleFactory(ps_product=ps_product, name="rhel-9")
+        stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            moderate_to_ps_module=ps_module,
+            unacked_to_ps_module=None,
+        )
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.LOW),
+            ps_module="rhel-9",
+            ps_update_stream=stream.name,
+            ps_component="brotli",
+            impact=Impact.LOW,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DEFER
