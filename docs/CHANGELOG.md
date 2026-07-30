@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Upstream Maintainer Notification Payload Preparation Service (OSIDB-5087)
 - Add SRP report endpoints (OSIDB-5073)
 - Add Upstream Project Contact Endpoints (OSIDB-5084)
+- Add Flaw-to-Upstream Mapping Endpoints (OSIDB-5085)
 
 ### Changed
 - align existing workflows with workflow framework concepts
