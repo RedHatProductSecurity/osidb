@@ -7,8 +7,9 @@ from collectors.ps_constants.core import (
     sync_cveorg_keywords,
     sync_jira_bug_issuetype,
     sync_special_consideration_packages,
+    sync_ubi_packages,
 )
-from osidb.models import SpecialConsiderationPackage
+from osidb.models import SpecialConsiderationPackage, UbiPackage
 
 pytestmark = pytest.mark.unit
 
@@ -43,6 +44,21 @@ class TestPsConstantsCollection:
         ]
 
         # TODO: Record cassette for jira_bug_issuetype, tracked in OSIDB-2980
+
+    def test_sync_ubi_packages(self):
+        """Check collector can correctly sync ubi data in database"""
+        UbiPackage.objects.create(name="stale-package", ps_module="rhel-7")
+
+        sampled_data = {
+            "rhel-8": ["test-package", "another-package"],
+            "rhel-9": ["test-package", "another-package"],
+        }
+        sync_ubi_packages(sampled_data)
+
+        assert UbiPackage.objects.all().count() == 4
+        assert UbiPackage.objects.filter(ps_module="rhel-8").count() == 2
+        assert UbiPackage.objects.filter(name="test-package").count() == 2
+        assert not UbiPackage.objects.filter(name="stale-package").exists()
 
     def test_sync_special_consideration_packages(self):
         """

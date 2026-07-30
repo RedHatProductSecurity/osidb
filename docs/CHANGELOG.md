@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - align workflow definition YAMLs with the Argus requirements (OSIDB-5050)
 - introduce true labels and deprecate collaborator-centric pseudo-labels (OSIDB-5191)
 - mod7 check no longer influences hummingbird affects
+- mod7 check no longer influences ubi affects (OSIDB-5047)
 
 ### Fixed
 - Enable RLS on FlawCollaborator and FlawLabelV2 (OSIDB-5128)

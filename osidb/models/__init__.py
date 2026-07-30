@@ -2,7 +2,7 @@ from .abstract import CVSS, ComparableTextChoices, Impact
 from .fields import CVEIDField
 from .flaw import FlawSource
 from .profile import Profile
-from .ps_constants import SpecialConsiderationPackage
+from .ps_constants import SpecialConsiderationPackage, UbiPackage
 from .ps_contact import PsContact
 from .ps_module import PsModule
 from .ps_product import PsProduct
@@ -46,6 +46,7 @@ __all__ = (
     "Snippet",
     "SpecialConsiderationPackage",
     "Tracker",
+    "UbiPackage",
     "WorkflowLabel",
 )
 
