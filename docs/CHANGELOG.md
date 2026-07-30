@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - extend workflow framework API to provide audit and next steps
 
 ### Changed
+- Use a stored search vector for full-text search on Flaws, replacing per-query computation with a DB trigger and GIN index (OSIDB-5283)
 - align existing workflows with workflow framework concepts
 - auto-adjust workflow:state on Flaw.save
 - unrestrict workflow state names (OSIDB-5049)

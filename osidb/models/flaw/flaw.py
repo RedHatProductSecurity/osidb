@@ -35,6 +35,7 @@ from osidb.mixins import (
     Alert,
     AlertMixin,
     NullStrFieldsMixin,
+    SearchVectorMixin,
     TrackingMixin,
     TrackingMixinManager,
     validator,
@@ -86,15 +87,6 @@ class FlawManager(ACLMixinManager, TrackingMixinManager, WorkflowModelManager):
             return Flaw(**extra_fields)
 
     @staticmethod
-    def fts_search(q):
-        """full text search using postgres FTS via django.contrib.postgres"""
-        from osidb.filters import search_helper
-
-        return search_helper(Flaw.objects.get_queryset(), (), q)
-        # Search default Flaw fields (title, comment_zero, cve_description, statement) with default weights
-        # If search has no results, this will now return an empty queryset
-
-    @staticmethod
     def get_by_identifier(id, queryset=None):
         """
         Get a flaw by its identifier: CVE ID or UUID.
@@ -122,7 +114,7 @@ class FlawManager(ACLMixinManager, TrackingMixinManager, WorkflowModelManager):
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),
     pghistory.DeleteEvent(),
-    exclude="last_validated_dt,local_updated_dt,meta_attr,classification_meta",
+    exclude="last_validated_dt,local_updated_dt,meta_attr,classification_meta,search_vector",
     model_name="FlawAudit",
 )
 class Flaw(
@@ -134,6 +126,7 @@ class Flaw(
     JiraTaskSyncMixin,
     TrackingMixin,
     NullStrFieldsMixin,
+    SearchVectorMixin,
     WorkflowModel,
 ):
     """Model flaw"""
@@ -298,6 +291,17 @@ class Flaw(
 
     local_updated_dt = models.DateTimeField(default=timezone.now)
 
+    # search_vector column and its DB trigger come from SearchVectorMixin, driven by
+    # search_vector_fields below. Update search_vector_fields if the weighted search
+    # fields change; the column must never be set directly in application code.
+    search_vector_fields = (
+        ("title", "A"),
+        ("cve_id", "A"),
+        ("comment_zero", "B"),
+        ("cve_description", "C"),
+        ("statement", "D"),
+    )
+
     class Meta:
         """define meta"""
 
@@ -311,6 +315,7 @@ class Flaw(
         indexes = (
             TrackingMixin.Meta.indexes
             + WorkflowModel.Meta.indexes
+            + SearchVectorMixin.Meta.indexes
             + [
                 models.Index(fields=["-cve_id"]),
                 GinIndex(fields=["acl_read"]),

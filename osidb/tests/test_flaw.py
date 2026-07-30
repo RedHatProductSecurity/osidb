@@ -439,30 +439,6 @@ class TestFlaw:
         flaw.save()
         assert Flaw.objects.get_queryset().count() == 1
 
-    def test_fts_search(self, datetime_with_tz, good_cve_id):
-        """check fts search is working"""
-        flaw = Flaw(
-            cve_id=good_cve_id,
-            cwe_id="CWE-1",
-            created_dt=datetime_with_tz,
-            reported_dt=datetime_with_tz,
-            unembargo_dt=datetime_with_tz,
-            title="title",
-            comment_zero="comment_zero",
-            impact=Impact.CRITICAL,
-            components=["curl"],
-            source=FlawSource.INTERNET,
-            statement="statement",
-            acl_read=self.acl_read,
-            acl_write=self.acl_write,
-        )
-
-        assert not Flaw.objects.fts_search("title")
-
-        flaw.save()
-
-        assert Flaw.objects.fts_search("title")
-
     @pytest.mark.enable_signals
     def test_local_updated_dt(self):
         ps_module = PsModuleFactory(bts_name="bugzilla")
