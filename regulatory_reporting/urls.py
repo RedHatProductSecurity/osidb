@@ -9,6 +9,8 @@ from rest_framework.routers import DefaultRouter
 from regulatory_reporting.api_views import (
     FlawSRPReportMilestoneViewSet,
     FlawSRPReportViewSet,
+    FlawUpstreamMappingDetailView,
+    FlawUpstreamMappingListCreateView,
     SRPReportMilestoneViewSet,
     SRPReportViewSet,
     UpstreamNotificationView,
@@ -56,4 +58,17 @@ router.register(
     basename="upstreamprojects",
 )
 
+# Flaw-to-upstream mappings (list/create)
+router.register(
+    rf"flaws/(?P<flaw_uuid>{UUID_PATH_REGEX})/upstream-mappings",
+    FlawUpstreamMappingListCreateView,
+    basename="flawupstreammappings",
+)
+
+# Flaw-to-upstream mappings (update/delete)
+router.register(
+    r"flaw-upstream-mappings",
+    FlawUpstreamMappingDetailView,
+    basename="flawupstreammappingdetail",
+)
 urlpatterns = router.urls
