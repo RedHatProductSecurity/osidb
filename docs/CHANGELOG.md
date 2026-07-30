@@ -106,6 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Upstream Maintainer Notification Payload Preparation Service (OSIDB-5087)
 - Add SRP report endpoints (OSIDB-5073)
 - Add Upstream Project Contact Endpoints (OSIDB-5084)
+- Add Flaw-to-Upstream Mapping Endpoints (OSIDB-5085)
 - ACE: Add Chromium special CVE workflow (OSIDB-5033)
 - ACE: Add Go stdlib special CVE workflow (OSIDB-5033)
 - Context for signals (OSIDB-5244)
