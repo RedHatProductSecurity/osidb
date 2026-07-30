@@ -64,6 +64,45 @@ class TestMergeOsvUpstreamLists:
         )
         assert len(merged) == 2
 
+    def test_merge_purls_includes_purl_less_entries(self):
+        """Purl-less entries with name+ecosystem are merged, not dropped."""
+        existing = [
+            {
+                "purl": "",
+                "name": "linux",
+                "ecosystem": "Linux",
+                "ranges": [],
+                "versions": [],
+            }
+        ]
+        additions = [
+            dict(existing[0]),
+            {
+                "purl": "",
+                "name": "linux",
+                "ecosystem": "Linux",
+                "ranges": [{"type": "ECOSYSTEM"}],
+                "versions": [],
+            },
+            {
+                "purl": "pkg:npm/foo",
+                "name": "foo",
+                "ecosystem": "npm",
+                "ranges": [],
+                "versions": [],
+            },
+        ]
+        merged = _merge_osv_upstream_lists(
+            existing, additions, _osv_upstream_purl_dedupe_key
+        )
+        # exact duplicate removed, distinct-range purl-less + npm kept
+        assert len(merged) == 3
+        assert merged[0]["name"] == "linux"
+        assert merged[0]["ranges"] == []
+        assert merged[1]["name"] == "linux"
+        assert merged[1]["ranges"] == [{"type": "ECOSYSTEM"}]
+        assert merged[2]["purl"] == "pkg:npm/foo"
+
 
 class TestOSVCollectorExtractUpstreamFields:
     def test_extract_content_upstream_purls(self):
@@ -127,6 +166,53 @@ class TestOSVCollectorExtractUpstreamFields:
                 "versions": [],
             }
         ]
+
+    def test_extract_content_upstream_purls_accepts_purl_less_entries(self):
+        """Test entries with name+ecosystem but no purl are accepted."""
+        osv_vuln = {
+            "id": "CVE-2026-64189",
+            "aliases": [],
+            "summary": "Linux kernel vulnerability",
+            "details": "",
+            "published": None,
+            "affected": [
+                {
+                    "package": {
+                        "name": "Kernel",
+                        "ecosystem": "Linux",
+                    },
+                    "ranges": [{"type": "ECOSYSTEM", "events": [{"introduced": "0"}]}],
+                    "versions": [],
+                },
+                {
+                    "package": {
+                        "purl": "pkg:npm/foo",
+                        "name": "foo",
+                        "ecosystem": "npm",
+                    },
+                    "ranges": [],
+                    "versions": [],
+                },
+                {
+                    "package": {},
+                    "ranges": [],
+                    "versions": [],
+                },
+            ],
+            "references": [],
+        }
+        _osv_id, _cve_ids, content = OSVCollector().extract_content(osv_vuln)
+        # Should include purl-less entry with name+ecosystem, and entry with purl
+        # Should skip entry with no purl and no name+ecosystem
+        assert len(content["upstream_purls"]) == 2
+        assert content["upstream_purls"][0] == {
+            "purl": "",
+            "name": "Kernel",
+            "ecosystem": "Linux",
+            "ranges": [{"type": "ECOSYSTEM", "events": [{"introduced": "0"}]}],
+            "versions": [],
+        }
+        assert content["upstream_purls"][1]["purl"] == "pkg:npm/foo"
 
 
 @pytest.mark.django_db
@@ -225,3 +311,25 @@ class TestOsvUpstreamContentWrittenToFlaw:
         upstream = flaw.upstream_data.first()
         assert upstream.upstream_purls == content["upstream_purls"]
         assert Flaw.objects.filter(uuid=flaw.uuid).count() == 1
+
+    def test_append_osv_upstream_to_flaw_preserves_purl_less_entries(self):
+        """Test that purl-less entries with name survive the append/merge process."""
+        flaw = FlawFactory(embargoed=False)
+        content = {
+            "upstream_purls": [
+                {
+                    "purl": "",
+                    "name": "linux",
+                    "ecosystem": "Linux",
+                    "ranges": [{"type": "ECOSYSTEM", "events": [{"introduced": "0"}]}],
+                    "versions": [],
+                }
+            ],
+        }
+        OSVCollector()._append_osv_upstream_to_flaw(flaw, content)
+        flaw.refresh_from_db()
+        upstream = flaw.upstream_data.first()
+        assert len(upstream.upstream_purls) == 1
+        assert upstream.upstream_purls[0]["name"] == "linux"
+        assert upstream.upstream_purls[0]["ecosystem"] == "Linux"
+        assert upstream.upstream_purls[0]["purl"] == ""

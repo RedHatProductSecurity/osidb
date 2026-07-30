@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -150,3 +152,14 @@ def chromium_streams(db):
     """Create PsUpdateStream records needed by the Chromium workflow."""
     PsUpdateStreamFactory(name="fedora-all")
     PsUpdateStreamFactory(name="epel-all")
+
+
+@pytest.fixture
+def cve_2026_64189_osv_payload():
+    """
+    Complete OSV payload for CVE-2026-64189 (Linux kernel purl-less entry).
+    Fetched from https://api.osv.dev/v1/vulns/CVE-2026-64189
+    """
+    fixture_path = Path(__file__).parent / "fixtures" / "cve-2026-64189-osv.json"
+    with open(fixture_path) as f:
+        return json.load(f)

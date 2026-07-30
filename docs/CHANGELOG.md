@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - introduce true labels and deprecate collaborator-centric pseudo-labels (OSIDB-5191)
 - mod7 check no longer influences hummingbird affects
 - mod7 check no longer influences ubi affects (OSIDB-5047)
+- Auto-affect creation no longer overrides Affect.impact
+- replace env-specific settings files with one configurable (OSIDB-5186)
 
 ### Fixed
 - Enable RLS on FlawCollaborator and FlawLabelV2 (OSIDB-5128)
@@ -37,17 +39,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Return descriptive 400 error instead of 500 on malformed bulk affects requests (OSIDB-3134)
 - Fix collectors being blocked by duplicated related model entries (OSIDB-5221)
 - Filter windows-only Flaws by leveraging CPEs in addition to keywords / blocklist (OSIDB-5235)
+- Linux kernel flaws get correct affects added (OSIDB-5248)
 
 ### Removed
 - deprecate workflow manipulation endpoints
 - disconnect OSIDB workflow:state from the Jira
 - stop classifying legacy flaws
-
-### Changed
-- Auto-affect creation no longer overrides Affect.impact
-
-### Changed
-- replace env-specific settings files with one configurable (OSIDB-5186)
 
 ## [5.12.0] - 2026-06-25
 ### Added

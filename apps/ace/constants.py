@@ -14,6 +14,7 @@ OSV_ECOSYSTEM_MAP: dict[str, str] = {
     "bioconductor": "generic",
     "cran": "generic",
     "github actions": "generic",
+    "linux": "generic",
 }
 
 # From https://pkg.go.dev/std

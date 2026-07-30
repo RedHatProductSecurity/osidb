@@ -108,3 +108,21 @@ class TestComponentEcosystems:
         result = upstream.component_ecosystems
 
         assert result == {"redis": ["npm", "pypi"]}
+
+    def test_component_ecosystems_purl_less_entry(self):
+        """Purl-less entry with name+ecosystem maps via OSV_ECOSYSTEM_MAP."""
+        flaw = FlawFactory()
+        upstream = UpstreamData(
+            flaw=flaw,
+            source=UpstreamData.Source.OSV,
+            upstream_purls=[
+                {"purl": "", "name": "Kernel", "ecosystem": "Linux"},
+            ],
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
+        )
+
+        result = upstream.component_ecosystems
+
+        # "Linux" ecosystem maps to "generic" via OSV_ECOSYSTEM_MAP
+        assert result == {"kernel": ["generic"]}

@@ -139,7 +139,12 @@ def match_component_to_upstream(
                 continue
 
         if ecosystem:
-            purl_type = parsed_purl.type if parsed_purl else ""
+            if parsed_purl:
+                purl_type = parsed_purl.type
+            else:
+                # For purl-less entries, derive ecosystem from OSV ecosystem field
+                raw_eco = (entry.get("ecosystem") or "").lower()
+                purl_type = OSV_ECOSYSTEM_MAP.get(raw_eco, raw_eco)
             if purl_type != ecosystem:
                 continue
 
