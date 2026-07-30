@@ -1,5 +1,8 @@
 import logging
+from contextlib import contextmanager
+from typing import Any, Iterator
 
+import pghistory
 from bugzilla import Bugzilla
 from django.contrib.auth.models import User
 from django.db.models.signals import post_delete, post_save, pre_save
@@ -34,6 +37,30 @@ from osidb.models.flaw.reference import FlawReference
 from osidb.tasks import async_send_email
 
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def signal_pghistory_context(
+    signal_name: str, sender: Any = None, instance: Any = None
+) -> Iterator[None]:
+    """
+    Attribute Flaw re-saves triggered by post_save/post_delete signals.
+
+    Uses `signal` / `signal_sender` keys so nested celery `action` metadata is
+    preserved. When no parent context exists, also sets action/user so the UI
+    does not show a bare "system"/None context.
+    """
+    metadata = {
+        "source": "signal",
+        "signal": signal_name,
+        "signal_sender": getattr(sender, "__name__", str(sender)),
+        "instance": getattr(instance, "uuid", instance),
+    }
+    if getattr(pghistory.runtime._tracker, "value", None) is None:
+        metadata["action"] = signal_name
+        metadata["user"] = "system"
+    with pghistory.context(**metadata):
+        yield
 
 
 def get_bz_user_id(email: str) -> str:
@@ -136,7 +163,10 @@ def update_flaw_fields(sender, instance, **kwargs):
 )  # cascade deletion of multi-table inheritance fires from the parent
 @receiver(post_save, sender=FlawCVSS)
 def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
-    instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
+    with signal_pghistory_context(
+        "flaw_dependant_update_local_updated_dt", sender=sender, instance=instance
+    ):
+        instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
 
 
 @receiver(post_save, sender=Tracker)
@@ -151,17 +181,23 @@ def update_local_updated_dt_tracker(sender, instance, **kwargs):
             flaws.add(affect.flaw)
     for flaw in list(flaws):
         flaw.refresh_from_db()
-        flaw.save(
-            auto_timestamps=False,
-            no_alerts=True,  # recreating alerts from nested entities can cause deadlocks
-            raise_validation_error=False,
-        )
+        with signal_pghistory_context(
+            "update_local_updated_dt_tracker", sender=sender, instance=instance
+        ):
+            flaw.save(
+                auto_timestamps=False,
+                no_alerts=True,  # recreating alerts from nested entities can cause deadlocks
+                raise_validation_error=False,
+            )
 
 
 @receiver(post_save, sender=AffectCVSS)
 def updated_local_updated_dt_affectcvss(sender, instance, **kwargs):
     instance.affect.flaw.refresh_from_db()
-    instance.affect.flaw.save(auto_timestamps=False, raise_validation_error=False)
+    with signal_pghistory_context(
+        "updated_local_updated_dt_affectcvss", sender=sender, instance=instance
+    ):
+        instance.affect.flaw.save(auto_timestamps=False, raise_validation_error=False)
 
 
 @receiver(post_save, sender=Affect)

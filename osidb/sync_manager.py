@@ -729,8 +729,12 @@ class BZSyncManager(SyncManager):
         set_user_acls(settings.ALL_GROUPS)
 
         try:
-            flaw = Flaw.objects.get(uuid=flaw_id)
-            flaw._perform_bzsync()
+            with pghistory_context(
+                action="bzsync",
+                celery_task_id=getattr(getattr(task, "request", None), "id", None),
+            ):
+                flaw = Flaw.objects.get(uuid=flaw_id)
+                flaw._perform_bzsync()
         except Exception as e:
             BZSyncManager.failed(flaw_id, e)
         else:

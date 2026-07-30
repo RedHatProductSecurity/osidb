@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - introduce workflow labels
 - ACE: Add Chromium special CVE workflow (OSIDB-5033)
 - ACE: Add Go stdlib special CVE workflow (OSIDB-5033)
+- Context for signals (OSIDB-5244)
 
 ### Changed
 - align existing workflows with workflow framework concepts
