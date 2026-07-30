@@ -13,6 +13,8 @@ from .factories import (
     UpstreamProjectFactory,
 )
 
+UPSTREAM_NOTIFICATIONS_URI = "/regulatory-reporting/api/v1/notifications/upstream"
+
 
 class TestUpstreamNotificationView:
     def test_list_upstream_notifications(self, auth_client):
@@ -20,7 +22,7 @@ class TestUpstreamNotificationView:
         UpstreamNotificationFactory()
         UpstreamNotificationFactory()
 
-        response = auth_client().get("/osidb/api/v2/notifications/upstream")
+        response = auth_client().get(UPSTREAM_NOTIFICATIONS_URI)
         assert response.status_code == 200
         assert response.json()["count"] == 2
 
@@ -29,7 +31,7 @@ class TestUpstreamNotificationView:
         notification = UpstreamNotificationFactory()
 
         response = auth_client().get(
-            f"/osidb/api/v2/notifications/upstream/{notification.uuid}"
+            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}"
         )
         assert response.status_code == 200
         assert response.json()["uuid"] == str(notification.uuid)
@@ -43,7 +45,7 @@ class TestUpstreamNotificationView:
             status=UpstreamNotification.NotificationStatus.REQUIRED,
         )
 
-        response = auth_client().get("/osidb/api/v2/notifications/upstream?status=sent")
+        response = auth_client().get(f"{UPSTREAM_NOTIFICATIONS_URI}?status=sent")
         assert response.status_code == 200
         assert response.json()["count"] == 1
 
@@ -56,9 +58,7 @@ class TestUpstreamNotificationView:
             method=UpstreamNotification.NotificationMethod.GITHUB_ISSUE,
         )
 
-        response = auth_client().get(
-            "/osidb/api/v2/notifications/upstream?method=email"
-        )
+        response = auth_client().get(f"{UPSTREAM_NOTIFICATIONS_URI}?method=email")
         assert response.status_code == 200
         assert response.json()["count"] == 1
 
@@ -69,7 +69,7 @@ class TestUpstreamNotificationView:
         UpstreamNotificationFactory()
 
         response = auth_client().get(
-            f"/osidb/api/v2/notifications/upstream?upstream_project={upstream_project.uuid}"
+            f"{UPSTREAM_NOTIFICATIONS_URI}?upstream_project={upstream_project.uuid}"
         )
         assert response.status_code == 200
         assert response.json()["count"] == 1
@@ -80,13 +80,11 @@ class TestUpstreamNotificationView:
         UpstreamNotificationFactory(flaw=flaw)
         UpstreamNotificationFactory()
 
-        response = auth_client().get(
-            f"/osidb/api/v2/notifications/upstream?flaw={flaw.uuid}"
-        )
+        response = auth_client().get(f"{UPSTREAM_NOTIFICATIONS_URI}?flaw={flaw.uuid}")
         assert response.status_code == 200
         assert response.json()["count"] == 1
 
-    def test_preview_returns_rendered_bodies(self, auth_client, test_api_v2_uri):
+    def test_preview_returns_rendered_bodies(self, auth_client):
         """Test preview endpoint returns live rendered email."""
         flaw = NonReportableFlawFactory(cve_description="A test vulnerability.")
         upstream_project = UpstreamProjectFactory(
@@ -99,7 +97,7 @@ class TestUpstreamNotificationView:
         )
 
         response = auth_client().get(
-            f"{test_api_v2_uri}/notifications/upstream/{notification.uuid}/preview"
+            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/preview"
         )
 
         assert response.status_code == 200
@@ -108,7 +106,7 @@ class TestUpstreamNotificationView:
         assert flaw.cve_description in response.json()["text_body"]
         assert upstream_project.component_name in response.json()["text_body"]
 
-    def test_preview_without_upstream_project_fails(self, auth_client, test_api_v2_uri):
+    def test_preview_without_upstream_project_fails(self, auth_client):
         """Test preview fails validation if no upstream project is linked."""
         flaw = NonReportableFlawFactory(cve_description="A test vulnerability.")
         notification = UpstreamNotificationFactory(
@@ -117,19 +115,19 @@ class TestUpstreamNotificationView:
         )
 
         response = auth_client().get(
-            f"{test_api_v2_uri}/notifications/upstream/{notification.uuid}/preview"
+            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/preview"
         )
 
         assert response.status_code == 400
         assert "upstream_project" in response.json()
 
-    def test_preview_requires_authentication(self, test_api_v2_uri):
-        """Test  anonymous requests to preview are rejected."""
+    def test_preview_requires_authentication(self):
+        """Test anonymous requests to preview are rejected."""
 
         notification = UpstreamNotificationFactory()
 
         response = APIClient().get(
-            f"{test_api_v2_uri}/notifications/upstream/{notification.uuid}/preview"
+            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/preview"
         )
 
         assert response.status_code == 401
@@ -138,8 +136,8 @@ class TestUpstreamNotificationView:
 @pytest.mark.no_cra_notifications
 class TestUpstreamNotificationAPIDisabled:
     def test_list_returns_404_when_notifications_disabled(self, auth_client):
-        """/osidb/api/v2/notifications/ 404s when CRA_NOTIFICATIONS_ENABLED is False."""
-        response = auth_client().get("/osidb/api/v2/notifications/upstream")
+        """notifications/upstream 404s when CRA_NOTIFICATIONS_ENABLED is False."""
+        response = auth_client().get(UPSTREAM_NOTIFICATIONS_URI)
         assert response.status_code == 404
 
 
@@ -159,7 +157,7 @@ class TestSendEmailAction:
         )
 
         response = auth_client().post(
-            f"/osidb/api/v2/notifications/upstream/{notification.uuid}/send-email"
+            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/send-email"
         )
 
         assert response.status_code == 200
@@ -181,7 +179,7 @@ class TestSendEmailAction:
         )
 
         response = auth_client().post(
-            f"/osidb/api/v2/notifications/upstream/{notification.uuid}/send-email"
+            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/send-email"
         )
 
         assert response.status_code == 400
@@ -196,7 +194,7 @@ class TestSendEmailAction:
         )
 
         response = auth_client().post(
-            f"/osidb/api/v2/notifications/upstream/{notification.uuid}/send-email"
+            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/send-email"
         )
 
         assert response.status_code == 400
@@ -209,15 +207,13 @@ class TestSendEmailAction:
         )
 
         response = auth_client().post(
-            f"/osidb/api/v2/notifications/upstream/{notification.uuid}/send-email"
+            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/send-email"
         )
 
         assert response.status_code == 400
 
     @patch("regulatory_reporting.api_views.upstream_notifications.async_send_email")
-    def test_send_email_uses_new_template_fields(
-        self, mock_task, auth_client, test_api_v2_uri
-    ):
+    def test_send_email_uses_new_template_fields(self, mock_task, auth_client):
         """Test that send-email renders the new template fields."""
         upstream_project = UpstreamProjectFactory(
             security_contact="maintainer@example.com"
@@ -235,7 +231,7 @@ class TestSendEmailAction:
         )
 
         response = auth_client().post(
-            f"{test_api_v2_uri}/notifications/upstream/{notification.uuid}/send-email"
+            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/send-email"
         )
 
         assert response.status_code == 200
@@ -247,7 +243,7 @@ class TestSendEmailAction:
 
     @patch("regulatory_reporting.api_views.upstream_notifications.async_send_email")
     def test_send_email_includes_confidentiality_notice_when_embargoed(
-        self, mock_task, auth_client, test_api_v2_uri
+        self, mock_task, auth_client
     ):
         """Test that send-email includes the confidentiality notice for embargoed flaws."""
         upstream_project = UpstreamProjectFactory(
@@ -262,7 +258,7 @@ class TestSendEmailAction:
         )
 
         response = auth_client().post(
-            f"{test_api_v2_uri}/notifications/upstream/{notification.uuid}/send-email"
+            f"{UPSTREAM_NOTIFICATIONS_URI}/{notification.uuid}/send-email"
         )
 
         assert response.status_code == 200
