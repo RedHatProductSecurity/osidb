@@ -137,7 +137,7 @@ class SRPPayloadBuilder:
 
     def _collect_product_identity(self):
         products = []
-        for affect in self.flaw.affects.select_related("tracker").all():
+        for affect in self.flaw.affects.all():
             products.append(
                 {
                     "ps_product": affect.ps_product or "",
@@ -165,7 +165,7 @@ class SRPPayloadBuilder:
         if self.flaw.statement:
             parts.append(self.flaw.statement)
 
-        for affect in self.flaw.affects.select_related("tracker").all():
+        for affect in self.flaw.affects.all():
             if affect.resolution and affect.resolution != "":
                 parts.append(
                     f"{affect.ps_module}/{affect.ps_component}: {affect.resolution}"
