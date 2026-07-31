@@ -37,7 +37,6 @@ class TestIsFlawUpstreamNotifiable:
         assert is_flaw_upstream_notifiable(flaw) is False
 
 
-@pytest.mark.enable_signals
 class TestUpstreamNotificationSignal:
     def test_redhat_flaw_creates_notification(self):
         flaw = FlawFactory(
