@@ -107,6 +107,7 @@ services:
         OSIDB_VAULT_ADDR: ${OSIDB_VAULT_ADDR}
         OSIDB_ROLE_ID: ${OSIDB_ROLE_ID}
         OSIDB_SECRET_ID: ${OSIDB_SECRET_ID}
+        OSIDB_ENABLE_SILK: ${OSIDB_ENABLE_SILK}
       command: ./scripts/setup-osidb-service.sh
       volumes:
         - ${PWD}:/opt/app-root/src:z
