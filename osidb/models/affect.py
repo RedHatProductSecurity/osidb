@@ -312,7 +312,10 @@ class Affect(
         matching = ProductFamilyLabelDefinition.get_matching(
             [self.ps_module], [self.ps_component]
         )
-        self.labels = [d.name for d in matching]
+        labels = [d.name for d in matching]
+        if self.is_ubi():
+            labels.append("ubi")
+        self.labels = labels
 
     def context_string(self, msg):
         affect_id = self.uuid
