@@ -3,7 +3,7 @@ import json
 from django.template.loader import render_to_string
 from django.utils import timezone
 
-from osidb.models import Flaw
+from osidb.models import Flaw, FlawCVSS
 from osidb.models.flaw import FlawSource
 
 from .models.srp_report import SRPReport
@@ -393,7 +393,11 @@ class SRPPayloadBuilderFinal(SRPPayloadBuilder):
         if self.flaw.impact:
             parts.append(f"Impact: {self.flaw.impact}")
 
-        rh_cvss = self.flaw.cvss_scores.filter(issuer="RH").order_by("-version").first()
+        rh_cvss = (
+            self.flaw.cvss_scores.filter(issuer=FlawCVSS.CVSSIssuer.REDHAT)
+            .order_by("-version")
+            .first()
+        )
         if rh_cvss:
             parts.append(f"CVSS {rh_cvss.version}: {rh_cvss.score}")
 
