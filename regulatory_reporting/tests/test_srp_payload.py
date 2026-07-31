@@ -3,9 +3,10 @@ import json
 import pytest
 from django.utils import timezone
 
-from osidb.models import Flaw
+from osidb.models import Flaw, FlawCVSS
 from osidb.tests.factories import (
     AffectFactory,
+    FlawCVSSFactory,
     FlawFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
@@ -659,6 +660,26 @@ class TestPrepareFinalPayloadVulnerability:
         prepare_final_payload(mfinal)
         payload = json.loads(mfinal.meta_attr["payload_snapshot"])
         assert "CRITICAL" in payload["vulnerability_severity"]
+
+    def test_vulnerability_severity_prefers_highest_rh_cvss_version(self):
+        report = _create_vulnerability_report(impact="IMPORTANT")
+        FlawCVSSFactory(
+            flaw=report.flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+        )
+        FlawCVSSFactory(
+            flaw=report.flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION4,
+            vector=("CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N"),
+        )
+        mfinal = _prepare_chain_up_to_final(report)
+        prepare_final_payload(mfinal)
+        payload = json.loads(mfinal.meta_attr["payload_snapshot"])
+        assert "CVSS V4:" in payload["vulnerability_severity"]
+        assert "CVSS V3:" not in payload["vulnerability_severity"]
 
     def test_vulnerability_impact_from_affects(self):
         report = _create_vulnerability_report(impact="IMPORTANT")
