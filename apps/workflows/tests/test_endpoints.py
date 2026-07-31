@@ -128,6 +128,56 @@ class TestEndpoints(object):
         body = response.json()
         assert "next" not in body
 
+    @pytest.mark.enable_signals
+    def test_workflows_history_parameter(self, auth_client, test_api_uri):
+        """test that history parameter returns classification change history"""
+        flaw = FlawFactory(embargoed=False, task_key="TEST-HIST-1", cwe_id="")
+        # Trigger a classification change
+        flaw.cwe_id = "CWE-79"
+        flaw.save(raise_validation_error=False)
+
+        response = auth_client().get(
+            f"{test_api_uri}/workflows/{flaw.uuid}?history=true"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert "history" in body
+        assert isinstance(body["history"], list)
+        assert body["history"]
+        change = body["history"][0]
+        assert "timestamp" in change
+        assert "state" in change
+        assert "workflow" in change
+        assert "change_type" in change
+        assert "reason" in change
+
+    @pytest.mark.enable_signals
+    def test_workflows_history_field_order(self, auth_client, test_api_uri):
+        """test that history fields are returned in consistent order"""
+        flaw = FlawFactory(embargoed=False, task_key="TEST-HIST-ORDER", cwe_id="CWE-79")
+
+        response = auth_client().get(
+            f"{test_api_uri}/workflows/{flaw.uuid}?history=true"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert "history" in body
+        assert len(body["history"]) > 0
+
+        # Verify field order: timestamp, change_type, workflow, state, reason
+        change = body["history"][0]
+        keys = list(change.keys())
+        expected_order = ["timestamp", "change_type", "workflow", "state", "reason"]
+        assert keys == expected_order, f"Expected {expected_order}, got {keys}"
+
+    def test_workflows_history_not_included_by_default(self, auth_client, test_api_uri):
+        """test that history is not included when parameter is not set"""
+        flaw = FlawFactory(embargoed=False)
+        response = auth_client().get(f"{test_api_uri}/workflows/{flaw.uuid}")
+        assert response.status_code == 200
+        body = response.json()
+        assert "history" not in body
+
     def test_workflows_uuid_verbose(self, auth_client, test_api_uri):
         """test authenticated workflow classification API endpoint with verbose parameter"""
         flaw = FlawFactory(task_key="TASK-123")

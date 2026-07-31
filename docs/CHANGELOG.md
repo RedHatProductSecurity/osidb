@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ACE: Add Chromium special CVE workflow (OSIDB-5033)
 - ACE: Add Go stdlib special CVE workflow (OSIDB-5033)
 - Context for signals (OSIDB-5244)
+- extend workflow framework API to provide audit and next steps
 
 ### Changed
 - align existing workflows with workflow framework concepts
@@ -25,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - introduce true labels and deprecate collaborator-centric pseudo-labels (OSIDB-5191)
 - mod7 check no longer influences hummingbird affects
 - mod7 check no longer influences ubi affects (OSIDB-5047)
+- Auto-affect creation no longer overrides Affect.impact
+- replace env-specific settings files with one configurable (OSIDB-5186)
 
 ### Fixed
 - Enable RLS on FlawCollaborator and FlawLabelV2 (OSIDB-5128)
@@ -42,12 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - deprecate workflow manipulation endpoints
 - disconnect OSIDB workflow:state from the Jira
 - stop classifying legacy flaws
-
-### Changed
-- Auto-affect creation no longer overrides Affect.impact
-
-### Changed
-- replace env-specific settings files with one configurable (OSIDB-5186)
 
 ## [5.12.0] - 2026-06-25
 ### Added

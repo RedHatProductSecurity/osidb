@@ -214,12 +214,25 @@ class ClassificationResultSerializer(serializers.Serializer):
     state = serializers.CharField()
 
 
+class ClassificationChangeRecordSerializer(serializers.Serializer):
+    """Serializer for a single classification change history record"""
+
+    timestamp = serializers.CharField()
+    change_type = serializers.CharField()
+    workflow = serializers.CharField()
+    state = serializers.CharField()
+    reason = serializers.DictField(required=False)
+
+
 class ClassificationResponseSerializer(serializers.Serializer):
     """Response serializer for the classification endpoint"""
 
     flaw = serializers.UUIDField()
     classification = ClassificationResultSerializer()
     workflows = ClassificationWorkflowSerializer(many=True, required=False)
+    history = ClassificationChangeRecordSerializer(
+        many=True, required=False, help_text="Classification change history"
+    )
 
 
 @extend_schema_serializer(deprecate_fields=["group_key", "team_id"])

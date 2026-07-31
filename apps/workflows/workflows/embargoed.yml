@@ -33,6 +33,7 @@ states:
     requirements:
       - has affects
       - has components
+      - has CWE
       - has impact
       - has reported_dt
       - has source

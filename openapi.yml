@@ -14196,7 +14196,15 @@ paths:
 
             verbose - return also workflows with flaw classification
                       which represents the reasoning of the result
+
+            history - return classification change history with reasoning
       parameters:
+      - in: query
+        name: history
+        schema:
+          type: boolean
+        description: Include classification change history with human-readable reasoning
+          for why the classification changed over time.
       - in: path
         name: id
         schema:
@@ -15090,6 +15098,26 @@ components:
     BlankEnum:
       enum:
       - ''
+    ClassificationChangeRecord:
+      type: object
+      description: Serializer for a single classification change history record
+      properties:
+        timestamp:
+          type: string
+        change_type:
+          type: string
+        workflow:
+          type: string
+        state:
+          type: string
+        reason:
+          type: object
+          additionalProperties: {}
+      required:
+      - change_type
+      - state
+      - timestamp
+      - workflow
     ClassificationCheck:
       type: object
       description: Check serializer with classification
@@ -15118,6 +15146,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ClassificationWorkflow'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassificationChangeRecord'
+          description: Classification change history
       required:
       - classification
       - flaw
