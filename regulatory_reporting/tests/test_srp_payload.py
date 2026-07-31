@@ -399,12 +399,17 @@ class TestPrepare72hPayloadValidation:
 class TestPrepare72hPayloadCarryForward:
     def test_carries_forward_common_fields_from_24h(self):
         report = _create_vulnerability_report()
-        m72 = _prepare_chain_up_to_72h(report)
+        m24 = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
+        prepare_24h_payload(m24)
+        snapshot = json.loads(m24.meta_attr["payload_snapshot"])
+        snapshot["only_in_24h"] = "kept"
+        m24.meta_attr["payload_snapshot"] = json.dumps(snapshot)
+        m24.save()
+
+        m72 = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_72H)
         prepare_72h_payload(m72)
         payload = json.loads(m72.meta_attr["payload_snapshot"])
-        assert "notification_type" in payload
-        assert "report_title" in payload
-        assert "notification_level" in payload
+        assert payload["only_in_24h"] == "kept"
 
     def test_72h_overrides_notification_level(self):
         report = _create_vulnerability_report()
@@ -603,11 +608,20 @@ class TestPrepareFinalPayloadValidation:
 class TestPrepareFinalPayloadCarryForward:
     def test_carries_forward_from_72h(self):
         report = _create_vulnerability_report()
-        mfinal = _prepare_chain_up_to_final(report)
+        m24 = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
+        prepare_24h_payload(m24)
+        m24.save()
+        m72 = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_72H)
+        prepare_72h_payload(m72)
+        snapshot = json.loads(m72.meta_attr["payload_snapshot"])
+        snapshot["only_in_72h"] = "kept"
+        m72.meta_attr["payload_snapshot"] = json.dumps(snapshot)
+        m72.save()
+
+        mfinal = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_FINAL)
         prepare_final_payload(mfinal)
         payload = json.loads(mfinal.meta_attr["payload_snapshot"])
-        assert "notification_type" in payload
-        assert "report_title" in payload
+        assert payload["only_in_72h"] == "kept"
 
     def test_final_overrides_notification_level(self):
         report = _create_vulnerability_report()
