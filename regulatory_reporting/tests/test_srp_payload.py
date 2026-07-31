@@ -12,6 +12,7 @@ from osidb.tests.factories import (
 )
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 from regulatory_reporting.services import (
+    SRPPayloadBuilder,
     prepare_24h_payload,
     prepare_72h_payload,
     prepare_final_payload,
@@ -758,6 +759,28 @@ class TestPrepareFinalPayloadMissingFields:
         prepare_final_payload(mfinal)
         missing = json.loads(mfinal.missing_required_fields)
         assert "likely_threat_or_root_cause" in missing
+
+    def test_additional_information_request_uses_common_fields_only(self):
+        """ADDITIONAL_INFORMATION_REQUEST falls through to common fields only."""
+        report = _create_vulnerability_report(
+            report_attrs={
+                "reportable_event_type": (
+                    SRPReport.ReportableEventType.ADDITIONAL_INFORMATION_REQUEST
+                ),
+            },
+        )
+        mfinal = _prepare_chain_up_to_final(report)
+        prepare_final_payload(mfinal)
+        payload = json.loads(mfinal.meta_attr["payload_snapshot"])
+        missing = json.loads(mfinal.missing_required_fields)
+
+        assert payload["notification_type"] == "additional_information_request"
+        assert "cve_id" not in payload
+        assert "full_vulnerability_description" not in payload
+        assert "suspected_unlawful_or_malicious_acts" not in payload
+        assert "full_vulnerability_description" not in missing
+        assert "likely_threat_or_root_cause" not in missing
+        assert set(missing).issubset(set(SRPPayloadBuilder.REQUIRED_COMMON_FIELDS))
 
 
 class TestPrepareFinalPayloadMetaAttr:
