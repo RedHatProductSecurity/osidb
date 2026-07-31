@@ -114,6 +114,15 @@ apply-uv-sync: check-reg check-venv sync-deps
 
 
 #***********************************
+### Sync dev dependencies into osidb-service (e.g. for django-silk profiling)
+#***********************************
+.PHONY : apply-uv-dev-sync
+apply-uv-dev-sync: check-reg check-venv sync-deps
+	@echo ">syncing dev dependencies into osidb-service"
+	$(podman) exec -it osidb-service uv sync --frozen
+
+
+#***********************************
 ### Install necessary development packages
 #***********************************
 DEVRPMS = make podman podman-compose libpq-devel python3.12-devel gcc openldap-devel krb5-devel openldap-clients python3.12 black openssl libffi-devel libxslt-devel
