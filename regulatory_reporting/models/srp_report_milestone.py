@@ -171,6 +171,46 @@ class SRPReportMilestone(SRPReportBase):
     def __str__(self):
         return f"{self.milestone_type} - {self.srp_report.flaw.cve_id or self.srp_report.flaw.uuid}"
 
+    def save(self, *args, **kwargs):
+        """
+        Persist the milestone, and prepare the SRP payload snapshot when
+        status transitions to SUBMITTED for builder-backed milestone types.
+        """
+        if getattr(self, "_preparing_payload", False):
+            return super().save(*args, **kwargs)
+
+        previous_status = None
+        if self.pk:
+            previous_status = (
+                type(self)
+                .objects.filter(pk=self.pk)
+                .values_list("status", flat=True)
+                .first()
+            )
+
+        super().save(*args, **kwargs)
+
+        should_prepare = (
+            self.status == self.SRPReportStatus.SUBMITTED
+            and previous_status != self.SRPReportStatus.SUBMITTED
+            and self.milestone_type
+            in {
+                self.MilestoneType.LEVEL_24H,
+                self.MilestoneType.LEVEL_72H,
+                self.MilestoneType.LEVEL_FINAL,
+            }
+        )
+        if should_prepare:
+            # Lazy import avoids circular dependency with services.py
+            from regulatory_reporting.services import prepare_payload
+
+            prepare_payload(self)
+            self._preparing_payload = True
+            try:
+                super().save()
+            finally:
+                self._preparing_payload = False
+
     @validator
     def _validate_due_at_required(self, **kwargs):
         """

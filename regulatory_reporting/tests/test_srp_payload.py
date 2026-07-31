@@ -851,3 +851,49 @@ class TestPreparePayloadDispatch:
         )
         with pytest.raises(ValueError, match="No builder"):
             prepare_payload(milestone)
+
+
+class TestPreparePayloadOnSubmitted:
+    def test_prepares_payload_when_status_becomes_submitted(self):
+        report = _create_vulnerability_report()
+        milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
+        assert milestone.meta_attr.get("payload_snapshot") is None
+
+        milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+        milestone.save()
+
+        milestone.refresh_from_db()
+        payload = json.loads(milestone.meta_attr["payload_snapshot"])
+        assert payload["notification_level"] == "24h"
+        assert "prepared_at" in milestone.meta_attr
+
+    def test_does_not_reprepare_when_already_submitted(self):
+        report = _create_vulnerability_report()
+        milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
+        milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+        milestone.save()
+        first_prepared_at = milestone.meta_attr["prepared_at"]
+
+        milestone.request_source = "manual update"
+        milestone.save()
+        milestone.refresh_from_db()
+        assert milestone.meta_attr["prepared_at"] == first_prepared_at
+
+    def test_does_not_prepare_for_prepared_status(self):
+        report = _create_vulnerability_report()
+        milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
+        milestone.status = SRPReportMilestone.SRPReportStatus.PREPARED
+        milestone.save()
+        milestone.refresh_from_db()
+        assert milestone.meta_attr.get("payload_snapshot") is None
+
+    def test_skips_additional_information_response(self):
+        milestone = SRPReportMilestoneFactory(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
+            srp_report__flaw__major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            status=SRPReportMilestone.SRPReportStatus.REQUIRED,
+        )
+        milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+        milestone.save()
+        milestone.refresh_from_db()
+        assert milestone.meta_attr.get("payload_snapshot") is None
