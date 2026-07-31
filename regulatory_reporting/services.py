@@ -83,7 +83,8 @@ class SRPPayloadBuilder:
     in milestone.meta_attr as simple key-value pairs.
 
     Subclass per milestone type to add stage-specific fields and required
-    field definitions. 72h/final subclasses add carry-forward logic.
+    field definitions. Set previous_milestone_type to carry forward fields
+    from an earlier milestone snapshot.
 
     Generated with Claude Opus 4.6 (claude-opus-4-6).
     """
@@ -103,6 +104,7 @@ class SRPPayloadBuilder:
     REQUIRED_INCIDENT_FIELDS = []
 
     expected_milestone_type = None
+    previous_milestone_type = None
 
     def __init__(self, milestone):
         if (
@@ -209,6 +211,16 @@ class SRPPayloadBuilder:
                 missing.append(key)
         return missing
 
+    def _get_previous_snapshot(self):
+        if not self.previous_milestone_type:
+            return {}
+        previous = self.srp_report.milestones.filter(
+            milestone_type=self.previous_milestone_type,
+        ).first()
+        if previous and previous.meta_attr.get("payload_snapshot"):
+            return json.loads(previous.meta_attr["payload_snapshot"])
+        return {}
+
     def prepare(self):
         """
         Build the payload and store it in milestone.meta_attr.
@@ -227,6 +239,10 @@ class SRPPayloadBuilder:
             == SRPReport.ReportableEventType.SEVERE_INCIDENT
         ):
             payload.update(self._build_incident_fields())
+
+        for key, value in self._get_previous_snapshot().items():
+            if key not in payload:
+                payload[key] = value
 
         missing = self._get_missing_required_fields(payload)
 
@@ -260,6 +276,7 @@ class SRPPayloadBuilder72h(SRPPayloadBuilder):
     """
 
     expected_milestone_type = SRPReportMilestone.MilestoneType.LEVEL_72H
+    previous_milestone_type = SRPReportMilestone.MilestoneType.LEVEL_24H
 
     REQUIRED_VULNERABILITY_FIELDS = [
         "cve_id",
@@ -279,14 +296,6 @@ class SRPPayloadBuilder72h(SRPPayloadBuilder):
         "corrective_or_mitigating_measures_taken",
         "corrective_or_mitigating_measures_users_can_take",
     ]
-
-    def _get_previous_snapshot(self):
-        previous = self.srp_report.milestones.filter(
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H,
-        ).first()
-        if previous and previous.meta_attr.get("payload_snapshot"):
-            return json.loads(previous.meta_attr["payload_snapshot"])
-        return {}
 
     def _build_vulnerability_fields(self):
         fields = {}
@@ -327,18 +336,6 @@ class SRPPayloadBuilder72h(SRPPayloadBuilder):
         fields["information_sensitivity"] = ""
         return fields
 
-    def prepare(self):
-        previous_snapshot = self._get_previous_snapshot()
-        result = super().prepare()
-        current = json.loads(self.milestone.meta_attr["payload_snapshot"])
-        for key, value in previous_snapshot.items():
-            if key not in current:
-                current[key] = value
-        self.milestone.meta_attr["payload_snapshot"] = json.dumps(current)
-        missing = self._get_missing_required_fields(current)
-        self.milestone.missing_required_fields = json.dumps(missing)
-        return result
-
 
 class SRPPayloadBuilderFinal(SRPPayloadBuilder):
     """Payload builder for final report milestone.
@@ -348,6 +345,7 @@ class SRPPayloadBuilderFinal(SRPPayloadBuilder):
     """
 
     expected_milestone_type = SRPReportMilestone.MilestoneType.LEVEL_FINAL
+    previous_milestone_type = SRPReportMilestone.MilestoneType.LEVEL_72H
 
     REQUIRED_VULNERABILITY_FIELDS = [
         "cve_id",
@@ -376,14 +374,6 @@ class SRPPayloadBuilderFinal(SRPPayloadBuilder):
         "likely_threat_or_root_cause",
         "applied_and_ongoing_mitigation_measures",
     ]
-
-    def _get_previous_snapshot(self):
-        previous = self.srp_report.milestones.filter(
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H,
-        ).first()
-        if previous and previous.meta_attr.get("payload_snapshot"):
-            return json.loads(previous.meta_attr["payload_snapshot"])
-        return {}
 
     def _build_full_description(self):
         parts = []
@@ -473,18 +463,6 @@ class SRPPayloadBuilderFinal(SRPPayloadBuilder):
             self._build_corrective_measures_taken()
         )
         return fields
-
-    def prepare(self):
-        previous_snapshot = self._get_previous_snapshot()
-        result = super().prepare()
-        current = json.loads(self.milestone.meta_attr["payload_snapshot"])
-        for key, value in previous_snapshot.items():
-            if key not in current:
-                current[key] = value
-        self.milestone.meta_attr["payload_snapshot"] = json.dumps(current)
-        missing = self._get_missing_required_fields(current)
-        self.milestone.missing_required_fields = json.dumps(missing)
-        return result
 
 
 BUILDER_BY_MILESTONE_TYPE = {
