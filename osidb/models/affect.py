@@ -47,6 +47,7 @@ class AffectSettings(BaseSettings):
     auto_create_ps_modules: list[str] = Field(
         default_factory=lambda: ["hummingbird-1"],
     )
+    auto_create_backend: str = Field(default="in_process")
 
 
 class NotAffectedJustification(models.TextChoices):

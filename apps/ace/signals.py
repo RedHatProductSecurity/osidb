@@ -41,11 +41,20 @@ def schedule_sync_flaw_affects_on_components_change(sender, instance, **kwargs) 
         return
 
     flaw_id = str(instance.uuid)
+    backend = AffectSettings().auto_create_backend
 
-    def enqueue_sync() -> None:
-        from apps.ace.tasks import sync_flaw_affects_from_newcli
+    if backend == "microservice":
 
-        # Celery adds .delay at import time; static checkers do not see it
-        sync_flaw_affects_from_newcli.delay(flaw_id)  # type: ignore[attr-defined]
+        def enqueue_sync() -> None:
+            from apps.ace.sync_manager import AffectAutomationSyncManager
+
+            AffectAutomationSyncManager.schedule(flaw_id)
+
+    else:
+
+        def enqueue_sync() -> None:
+            from apps.ace.tasks import sync_flaw_affects_from_newcli
+
+            sync_flaw_affects_from_newcli.delay(flaw_id)  # type: ignore[attr-defined]
 
     transaction.on_commit(enqueue_sync)

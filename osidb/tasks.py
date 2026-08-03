@@ -35,6 +35,13 @@ def check_for_non_periodic_reschedules():
     JiraTaskSyncManager.check_for_reschedules()
     JiraTaskTransitionManager.check_for_reschedules()
 
+    from osidb.models.affect import AffectSettings
+
+    if AffectSettings().auto_create_backend == "microservice":
+        from apps.ace.sync_manager import AffectAutomationSyncManager
+
+        AffectAutomationSyncManager.check_for_reschedules()
+
 
 @app.task
 def stale_alert_cleanup():
