@@ -1,6 +1,8 @@
 from typing import Callable, Optional
 
 import pytest
+from django.conf import settings
+from django.contrib.auth.models import Group
 from django.utils import timezone
 from rest_framework.test import APIClient
 
@@ -82,8 +84,10 @@ def api_client():
 
 @pytest.fixture
 def authenticated_client(api_client, django_user_model):
-    """Authenticated API client."""
+    """Authenticated API client with public write ACL group."""
     user = django_user_model.objects.create_user(username="testuser")
+    write_group, _ = Group.objects.get_or_create(name=settings.PUBLIC_WRITE_GROUP)
+    user.groups.add(write_group)
     api_client.force_authenticate(user=user)
     return api_client
 

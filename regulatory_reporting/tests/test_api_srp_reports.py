@@ -133,6 +133,21 @@ class TestSRPReportCreate:
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+    def test_create_report_without_flaw_write_acl_fails(
+        self, api_client, django_user_model
+    ):
+        """Authenticated users without flaw write ACL cannot create reports."""
+        user = django_user_model.objects.create_user(username="readonly-user")
+        api_client.force_authenticate(user=user)
+        flaw = NonReportableFlawFactory()
+        response = api_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "flaw_id" in response.data
+
     def test_create_report_without_critter_criteria(self, authenticated_client):
         """Can manually create a report when Critter criteria are not met."""
         flaw = NonReportableFlawFactory(title="Manual ENISA report flaw")

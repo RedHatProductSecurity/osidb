@@ -4,11 +4,14 @@ Serializers for SRP (Single Reporting Platform) models.
 Provides REST API serialization for CRA compliance reporting.
 """
 
+import uuid
+
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
+from osidb.core import generate_acls
 from osidb.models import Flaw
 from osidb.serializer import (
     ACLMixinSerializer,
@@ -258,10 +261,22 @@ class SRPReportCreateSerializer(SRPReportSerializer):
             raise serializers.ValidationError("This field may not be blank.")
         return value.strip()
 
-    def validate(self, attrs):
-        attrs = super().validate(attrs)
-        flaw = attrs.get("flaw")
-        reportable_event_type = attrs.get("reportable_event_type")
+    def _validate_acl_write(self, flaw):
+        if not flaw:
+            return
+        request = self.context.get("request")
+        user = getattr(request, "user", None) if request else None
+        if user is not None and user.is_authenticated:
+            user_acls = {
+                uuid.UUID(acl)
+                for acl in generate_acls([group.name for group in user.groups.all()])
+            }
+            if not user_acls.intersection(flaw.acl_write):
+                raise serializers.ValidationError(
+                    {"flaw_id": "You do not have write access to this flaw."}
+                )
+
+    def _validate_unique_reportable_event_type(self, flaw, reportable_event_type):
         if (
             flaw
             and reportable_event_type
@@ -278,6 +293,13 @@ class SRPReportCreateSerializer(SRPReportSerializer):
                     )
                 }
             )
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        flaw = attrs.get("flaw")
+        reportable_event_type = attrs.get("reportable_event_type")
+        self._validate_acl_write(flaw)
+        self._validate_unique_reportable_event_type(flaw, reportable_event_type)
         return attrs
 
     def create(self, validated_data):
