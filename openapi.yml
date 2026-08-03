@@ -19355,7 +19355,8 @@ components:
 
         Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
         view's perform_create. evidence, srp_reference_id, and srp_reference_url
-        are required for manual create.
+        are required for manual create. timer_started_at is read-only and remains
+        null until the report transitions to REQUIRED.
       properties:
         uuid:
           type: string
@@ -19388,7 +19389,7 @@ components:
           - string
           - 'null'
           format: date-time
-          description: When the SLA clock started for this report
+          readOnly: true
         srp_reference_id:
           type: string
           maxLength: 255
@@ -19438,6 +19439,7 @@ components:
       - srp_reference_id
       - srp_reference_url
       - status
+      - timer_started_at
       - updated_dt
       - uuid
     SRPReportCreateRequest:
@@ -19447,7 +19449,8 @@ components:
 
         Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
         view's perform_create. evidence, srp_reference_id, and srp_reference_url
-        are required for manual create.
+        are required for manual create. timer_started_at is read-only and remains
+        null until the report transitions to REQUIRED.
       properties:
         flaw_id:
           type: string
@@ -19469,12 +19472,6 @@ components:
         evidence:
           type: string
           minLength: 1
-        timer_started_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: When the SLA clock started for this report
         srp_reference_id:
           type: string
           minLength: 1

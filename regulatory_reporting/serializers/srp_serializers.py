@@ -211,7 +211,8 @@ class SRPReportCreateSerializer(SRPReportSerializer):
 
     Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
     view's perform_create. evidence, srp_reference_id, and srp_reference_url
-    are required for manual create.
+    are required for manual create. timer_started_at is read-only and remains
+    null until the report transitions to REQUIRED.
     """
 
     flaw_id = serializers.PrimaryKeyRelatedField(
@@ -235,6 +236,7 @@ class SRPReportCreateSerializer(SRPReportSerializer):
         choices=SRPReport.SRPReportStatus.choices,
         read_only=True,
     )
+    timer_started_at = serializers.DateTimeField(read_only=True, allow_null=True)
     updated_dt = serializers.DateTimeField(read_only=True)
 
     class Meta(SRPReportSerializer.Meta):
@@ -249,6 +251,7 @@ class SRPReportCreateSerializer(SRPReportSerializer):
             "meta_attr",
             "alerts",
             "status",
+            "timer_started_at",
         ]
 
     @staticmethod

@@ -203,6 +203,20 @@ class TestSRPReportCreate:
         assert response.status_code == status.HTTP_201_CREATED, response.data
         assert response.data["title"] == long_title
 
+    def test_create_report_ignores_timer_started_at(self, authenticated_client):
+        """timer_started_at is read-only on create and stays null for PRE_REQUIRED."""
+        flaw = NonReportableFlawFactory()
+        backdated = timezone.now() - timezone.timedelta(days=3)
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw, timer_started_at=backdated.isoformat()),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        assert response.data["timer_started_at"] is None
+        report = SRPReport.objects.get(uuid=response.data["uuid"])
+        assert report.timer_started_at is None
+
     def test_create_report_missing_evidence_fails(self, authenticated_client):
         """evidence is required for manual create."""
         flaw = NonReportableFlawFactory()
