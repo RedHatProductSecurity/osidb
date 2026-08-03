@@ -121,8 +121,9 @@ class FlawQLSchema(DjangoQLSchema):
         fields = super(FlawQLSchema, self).get_fields(model)
         exclude = ["acl_read", "acl_write"]
         if model == Flaw:
-            exclude += ["snippets", "local_updated_dt"]
+            exclude += ["snippets", "local_updated_dt", "labels_v2"]
             fields.remove("components")
+            fields.remove("labels")
             fields += [
                 FlawComponentField(),
                 FlawEmbargoedField(),
@@ -238,7 +239,7 @@ class FlawNonCommunityAffectsNoTrackersField(BoolField):
 
 class FlawLabelsField(StrField):
     model = Flaw
-    name = "flaw_labels"
+    name = "labels"
     suggest_options = True
 
     def get_options(self, search):
@@ -250,10 +251,10 @@ class FlawLabelsField(StrField):
         The "in" operator is used as an AND operation rather than the usual OR operation.
 
         Examples:
-            flaw_labels = "label_a" - flaws with label_a
-            flaw_labels in ("label_a", "label_b") - flaws with both label_a AND label_b
-            flaw_labels != "label_a" - flaws without label_a
-            flaw_labels not in ("label_a", "label_b") - flaws without label_a OR without label_b
+            labels = "label_a" - flaws with label_a
+            labels in ("label_a", "label_b") - flaws with both label_a AND label_b
+            labels != "label_a" - flaws without label_a
+            labels not in ("label_a", "label_b") - flaws without label_a OR without label_b
         """
 
         if operator == "=":

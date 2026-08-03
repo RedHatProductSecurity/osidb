@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - add workflow related indexes
 
+### Fixed
+- fix DjangoQL label migration
+
 ## [5.13.0] - 2026-08-03
 ### Added
 - Base auto-affect determination on upstream affected versions (OSIDB-5031)

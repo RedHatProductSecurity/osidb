@@ -428,7 +428,7 @@ class TestSearch:
         )
 
         response = auth_client().get(
-            f'{test_api_uri}/flaws?query=flaw_labels in ("label_a")'
+            f'{test_api_uri}/flaws?query=labels in ("label_a")'
         )
         assert response.status_code == 200
         body = response.json()
@@ -440,7 +440,7 @@ class TestSearch:
         }
 
         response = auth_client().get(
-            f'{test_api_uri}/flaws?query=flaw_labels in ("label_a","label_b")'
+            f'{test_api_uri}/flaws?query=labels in ("label_a","label_b")'
         )
         assert response.status_code == 200
         body = response.json()
@@ -451,7 +451,7 @@ class TestSearch:
         }
 
         response = auth_client().get(
-            f'{test_api_uri}/flaws?query=flaw_labels in ("label_a","label_b","label_c")'
+            f'{test_api_uri}/flaws?query=labels in ("label_a","label_b","label_c")'
         )
         assert response.status_code == 200
         body = response.json()
@@ -459,16 +459,23 @@ class TestSearch:
         assert body["results"][0]["cve_id"] == flaw3.cve_id
 
         response = auth_client().get(
-            f'{test_api_uri}/flaws?query=flaw_labels in ("label_a","label_c")'
+            f'{test_api_uri}/flaws?query=labels in ("label_a","label_c")'
         )
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 1
         assert body["results"][0]["cve_id"] == flaw3.cve_id
 
-        response = auth_client().get(
-            f'{test_api_uri}/flaws?query=flaw_labels != "label_a"'
-        )
+        response = auth_client().get(f'{test_api_uri}/flaws?query=labels != "label_a"')
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
+
+    def test_search_labels_v2_not_exposed(self, auth_client, test_api_uri):
+        """Test that 'labels_v2' is not exposed as a DjangoQL field name"""
+        from djangoql.exceptions import DjangoQLSchemaError
+
+        FlawFactory(embargoed=False)
+
+        with pytest.raises(DjangoQLSchemaError, match="Unknown field: labels_v2"):
+            auth_client().get(f'{test_api_uri}/flaws?query=labels_v2.name = "test"')
