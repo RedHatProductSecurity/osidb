@@ -90,6 +90,7 @@ class TestSRPReport:
         [
             SRPReport.SRPReportStatus.NOT_REQUIRED,
             SRPReport.SRPReportStatus.NOT_APPLICABLE,
+            SRPReport.SRPReportStatus.PRE_REQUIRED,
             SRPReport.SRPReportStatus.DEFERRED,
             SRPReport.SRPReportStatus.BLOCKED,
         ],

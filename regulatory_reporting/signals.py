@@ -19,7 +19,10 @@ REPORTABLE_EVENT_TYPE_MAP = {
 }
 
 
-def create_srp_report_milestones(srp_report: SRPReport):
+def create_srp_report_milestones(
+    srp_report: SRPReport,
+    status: str = SRPReport.SRPReportStatus.REQUIRED,
+):
     """
     Create the required SRP milestones (24h, 72h, final) for a new SRP Report.
 
@@ -28,6 +31,7 @@ def create_srp_report_milestones(srp_report: SRPReport):
 
     Args:
         srp_report: The SRP Report to create milestones for
+        status: Initial status for created milestones (default REQUIRED)
     """
     milestone_types = [
         SRPReportMilestone.MilestoneType.LEVEL_24H,
@@ -39,7 +43,7 @@ def create_srp_report_milestones(srp_report: SRPReport):
         milestone = SRPReportMilestone.objects.create(
             srp_report=srp_report,
             milestone_type=milestone_type,
-            status=SRPReport.SRPReportStatus.REQUIRED,
+            status=status,
             acl_read=srp_report.acl_read,
             acl_write=srp_report.acl_write,
         )

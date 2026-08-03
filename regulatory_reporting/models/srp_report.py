@@ -99,6 +99,14 @@ class SRPReport(SRPReportBase):
         help_text="Current status of the SRP report",
     )
 
+    evidence = models.TextField(
+        blank=True,
+        help_text=(
+            "Justification for manually creating this SRP report when automatic "
+            "criteria were not met"
+        ),
+    )
+
     # SLA tracking
     timer_started_at = models.DateTimeField(
         null=True,

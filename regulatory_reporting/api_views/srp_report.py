@@ -1,7 +1,7 @@
 """
 ViewSet for top-level SRP Report endpoints.
 
-Provides list, retrieve, and update operations for SRP reports.
+Provides list, retrieve, create, and update operations for SRP reports.
 """
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,7 +12,11 @@ from osidb.api_views import get_valid_http_methods
 from regulatory_reporting.constants import UUID_PATH_REGEX
 from regulatory_reporting.filters import SRPReportFilter
 from regulatory_reporting.models import SRPReport
-from regulatory_reporting.serializers import SRPReportSerializer
+from regulatory_reporting.serializers import (
+    SRPReportCreateSerializer,
+    SRPReportSerializer,
+)
+from regulatory_reporting.signals import create_srp_report_milestones
 
 
 class SRPReportViewSet(ModelViewSet):
@@ -22,10 +26,12 @@ class SRPReportViewSet(ModelViewSet):
     Supports:
     - GET /regulatory-reporting/api/v1/srp-reports - List all reports with filtering
     - GET /regulatory-reporting/api/v1/srp-reports/{uuid} - Retrieve single report
+    - POST /regulatory-reporting/api/v1/srp-reports - Manually create a report
     - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
-    No POST/DELETE - reports are auto-created by signals.
-    PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
+    Reports are also auto-created by signals when Critter criteria are met.
+    Manual POST creates the report in PRE_REQUIRED status with milestones.
+    DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
     """
 
     queryset = SRPReport.objects.all().prefetch_related("milestones")
@@ -33,8 +39,23 @@ class SRPReportViewSet(ModelViewSet):
     filterset_class = SRPReportFilter
     filter_backends = [DjangoFilterBackend]
     permission_classes = [IsAuthenticatedOrReadOnly]
-    http_method_names = get_valid_http_methods(
-        ModelViewSet, excluded=["post", "delete"]
-    )
+    http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
     lookup_field = "uuid"
     lookup_value_regex = UUID_PATH_REGEX
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return SRPReportCreateSerializer
+        return SRPReportSerializer
+
+    def perform_create(self, serializer):
+        flaw = serializer.validated_data["flaw"]
+        srp_report = serializer.save(
+            status=SRPReport.SRPReportStatus.PRE_REQUIRED,
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
+        )
+        create_srp_report_milestones(
+            srp_report,
+            status=SRPReport.SRPReportStatus.PRE_REQUIRED,
+        )

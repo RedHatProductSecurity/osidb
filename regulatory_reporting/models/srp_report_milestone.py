@@ -176,8 +176,11 @@ class SRPReportMilestone(SRPReportBase):
         """
         Due date must be set for all milestones.
 
-        Exception: LEVEL_ADDITIONAL_INFORMATION_RESPONSE milestones can have
-        None due_at if request_received_at is not yet set.
+        Exceptions:
+        - LEVEL_ADDITIONAL_INFORMATION_RESPONSE can have None due_at if
+          request_received_at is not yet set.
+        - PRE_REQUIRED milestones can have None due_at until the parent
+          report's SLA timer starts.
         """
         if (
             self.milestone_type == self.MilestoneType.LEVEL_FINAL
@@ -186,6 +189,7 @@ class SRPReportMilestone(SRPReportBase):
                 SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY,
                 SRPReport.ReportableEventType.SEVERE_INCIDENT,
             }
+            and self.status != SRPReportBase.SRPReportStatus.PRE_REQUIRED
         ):
             raise ValidationError("Invalid reportable event type")
 
@@ -197,4 +201,7 @@ class SRPReportMilestone(SRPReportBase):
                 and not self.request_received_at
             ):
                 return  # Valid state - waiting for request
+            # Allow None while manually created reports wait for timer start
+            if self.status == SRPReportBase.SRPReportStatus.PRE_REQUIRED:
+                return
             raise ValidationError("due_at must be set for all milestones")

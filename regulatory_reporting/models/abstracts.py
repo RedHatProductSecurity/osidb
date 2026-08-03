@@ -27,6 +27,7 @@ class SRPReportBase(
 
         NOT_APPLICABLE = "not_applicable", "Not Applicable"
         NOT_REQUIRED = "not_required", "Not Required"
+        PRE_REQUIRED = "pre_required", "Pre Required"
         REQUIRED = "required", "Required"
         PREPARED = "prepared", "Prepared"
         SUBMITTED = "submitted", "Submitted"
