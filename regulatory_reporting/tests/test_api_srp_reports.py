@@ -115,7 +115,7 @@ class TestSRPReportCreate:
     def _create_payload(flaw, **overrides):
         data = {
             "flaw_id": str(flaw.uuid),
-            "reportable_event_type": SRPReport.ReportableEventType.SEVERE_INCIDENT,
+            "reportable_event_type": SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
             "evidence": "Operator decided to report despite no MI approval.",
             "srp_reference_id": "SRP-2026-001",
             "srp_reference_url": "https://enisa.europa.eu/reports/SRP-2026-001",
@@ -141,7 +141,7 @@ class TestSRPReportCreate:
             self._create_payload(flaw),
             format="json",
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        assert response.status_code == status.HTTP_201_CREATED, response.data
         assert response.data["status"] == SRPReport.SRPReportStatus.PRE_REQUIRED
         assert response.data["flaw_id"] == flaw.uuid
         assert (
@@ -181,9 +181,7 @@ class TestSRPReportCreate:
         flaw = NonReportableFlawFactory()
         payload = self._create_payload(
             flaw,
-            reportable_event_type=(
-                SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
-            ),
+            reportable_event_type=(SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED),
         )
         del payload["evidence"]
         response = authenticated_client.post(
@@ -238,7 +236,7 @@ class TestSRPReportCreate:
         flaw = NonReportableFlawFactory()
         SRPReportFactory(
             flaw=flaw,
-            reportable_event_type=SRPReport.ReportableEventType.SEVERE_INCIDENT,
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
         )
         response = authenticated_client.post(
             "/regulatory-reporting/api/v1/srp-reports",
@@ -253,14 +251,14 @@ class TestSRPReportCreate:
         flaw = NonReportableFlawFactory()
         SRPReportFactory(
             flaw=flaw,
-            reportable_event_type=SRPReport.ReportableEventType.SEVERE_INCIDENT,
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
         )
         response = authenticated_client.post(
             "/regulatory-reporting/api/v1/srp-reports",
             self._create_payload(
                 flaw,
                 reportable_event_type=(
-                    SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+                    SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
                 ),
                 evidence="Also reporting as KEV.",
                 srp_reference_id="SRP-2026-002",
@@ -271,7 +269,7 @@ class TestSRPReportCreate:
         assert response.status_code == status.HTTP_201_CREATED
         assert (
             response.data["reportable_event_type"]
-            == SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
         )
 
 
@@ -394,20 +392,20 @@ class TestSRPReportFiltering:
     def test_filter_by_reportable_event_type(self, api_client):
         """Can filter by reportable_event_type."""
         SRPReportFactory(
-            reportable_event_type=SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+            reportable_event_type=SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
         )
         SRPReportFactory(
-            reportable_event_type=SRPReport.ReportableEventType.SEVERE_INCIDENT
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
         )
 
         response = api_client.get(
-            f"/regulatory-reporting/api/v1/srp-reports?reportable_event_type={SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY}"
+            f"/regulatory-reporting/api/v1/srp-reports?reportable_event_type={SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["results"]) == 1
         assert (
             response.data["results"][0]["reportable_event_type"]
-            == SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
         )
 
     def test_filter_by_flaw_id(self, api_client):

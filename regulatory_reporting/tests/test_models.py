@@ -30,9 +30,7 @@ def _report_kwargs(**overrides):
         "flaw": flaw,
         "title": "Test report",
         "responsibility_scope": SRPReport.ResponsibilityScope.MANUFACTURER,
-        "reportable_event_type": (
-            SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
-        ),
+        "reportable_event_type": (SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED),
         "timer_started_at": timezone.now(),
         "status": SRPReport.SRPReportStatus.REQUIRED,
         "acl_read": flaw.acl_read,

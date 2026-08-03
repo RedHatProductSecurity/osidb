@@ -52,15 +52,24 @@ class SRPReport(SRPReportBase):
         STEWARD = "steward", "Steward"
 
     class ReportableEventType(models.TextChoices):
-        """Type of reportable event according to CRA"""
+        """
+        Type of reportable event according to CRA.
 
-        ACTIVELY_EXPLOITED_VULNERABILITY = (
-            "actively_exploited_vulnerability",
+        Auto-created values match Flaw.FlawMajorIncident so signals can use
+        major_incident_state directly without a mapping table.
+        ADDITIONAL_INFORMATION_REQUEST is CRA-only (no Flaw counterpart).
+        """
+
+        EXPLOITS_KEV_APPROVED = (
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
             "Actively Exploited Vulnerability",
         )
-        SEVERE_INCIDENT = "severe_incident", "Severe Incident"
+        MAJOR_INCIDENT_APPROVED = (
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+            "Severe Incident",
+        )
         ADDITIONAL_INFORMATION_REQUEST = (
-            "additional_information_request",
+            "ADDITIONAL_INFORMATION_REQUEST",
             "Additional Information Request",
         )
 
@@ -160,6 +169,12 @@ class SRPReport(SRPReportBase):
             models.Index(fields=["reportable_event_type"]),
             models.Index(fields=["responsibility_scope"]),
             GinIndex(fields=["acl_read"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["flaw", "reportable_event_type"],
+                name="unique_srp_report_flaw_event_type",
+            ),
         ]
 
     objects = SRPReportManager()

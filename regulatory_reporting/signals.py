@@ -13,11 +13,6 @@ INCIDENT_STATES_THAT_REQUIRE_SRP_REPORT = [
     Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
 ]
 
-REPORTABLE_EVENT_TYPE_MAP = {
-    Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED: SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY,
-    Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED: SRPReport.ReportableEventType.SEVERE_INCIDENT,
-}
-
 
 def create_srp_report_milestones(
     srp_report: SRPReport,
@@ -77,9 +72,10 @@ def create_srp_report(sender, instance: Flaw, created: bool, **kwargs):
     Auto-create SRP Report and milestones when Flaw is marked as KEV or Major Incident approved.
 
     Triggers on:
-    - EXPLOITS_KEV_APPROVED → Creates ACTIVELY_EXPLOITED_VULNERABILITY report
-    - MAJOR_INCIDENT_APPROVED → Creates SEVERE_INCIDENT report
+    - EXPLOITS_KEV_APPROVED → Creates report with that reportable_event_type
+    - MAJOR_INCIDENT_APPROVED → Creates report with that reportable_event_type
 
+    reportable_event_type matches Flaw.major_incident_state directly.
     Uses Flaw.major_incident_start_dt as the SLA timer start.
     """
     # Skip during fixture loading or migrations
@@ -89,7 +85,7 @@ def create_srp_report(sender, instance: Flaw, created: bool, **kwargs):
     if instance.major_incident_state not in INCIDENT_STATES_THAT_REQUIRE_SRP_REPORT:
         return
 
-    event_type = REPORTABLE_EVENT_TYPE_MAP[instance.major_incident_state]
+    event_type = instance.major_incident_state
 
     srp_report, report_created = SRPReport.objects.get_or_create(
         flaw=instance,

@@ -4,6 +4,7 @@ Serializers for SRP (Single Reporting Platform) models.
 Provides REST API serialization for CRA compliance reporting.
 """
 
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
@@ -234,6 +235,9 @@ class SRPReportCreateSerializer(SRPReportSerializer):
     updated_dt = serializers.DateTimeField(read_only=True)
 
     class Meta(SRPReportSerializer.Meta):
+        # Disable auto UniqueTogetherValidator so validate()/IntegrityError
+        # can return a field-scoped error on reportable_event_type.
+        validators = []
         read_only_fields = [
             "uuid",
             "created_dt",
@@ -286,4 +290,17 @@ class SRPReportCreateSerializer(SRPReportSerializer):
             "responsibility_scope",
             SRPReport.ResponsibilityScope.MANUFACTURER,
         )
-        return super().create(validated_data)
+        try:
+            with transaction.atomic():
+                return super().create(validated_data)
+        except IntegrityError as exc:
+            if "unique_srp_report_flaw_event_type" not in str(exc):
+                raise
+            raise serializers.ValidationError(
+                {
+                    "reportable_event_type": (
+                        "An SRP report with this reportable_event_type already "
+                        "exists for this flaw."
+                    )
+                }
+            ) from exc
