@@ -191,6 +191,18 @@ class TestSRPReportCreate:
         )
         assert len(response.data["milestones"]) == 3
 
+    def test_create_report_defaults_long_flaw_title(self, authenticated_client):
+        """Default title accepts Flaw.title longer than former CharField(255)."""
+        long_title = "A" * 300
+        flaw = NonReportableFlawFactory(title=long_title)
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        assert response.data["title"] == long_title
+
     def test_create_report_missing_evidence_fails(self, authenticated_client):
         """evidence is required for manual create."""
         flaw = NonReportableFlawFactory()

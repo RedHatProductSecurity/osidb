@@ -80,7 +80,8 @@ class SRPReport(SRPReportBase):
         help_text="The flaw for which this SRP report is being created",
     )
 
-    title = models.CharField(max_length=255, help_text="Title of the SRP report")
+    # TextField to match Flaw.title (unbounded); report title is copied from the flaw
+    title = models.TextField(help_text="Title of the SRP report")
 
     manufacturer_or_steward_name = models.CharField(
         max_length=255,

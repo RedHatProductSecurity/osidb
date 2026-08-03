@@ -219,7 +219,7 @@ class SRPReportCreateSerializer(SRPReportSerializer):
         source="flaw",
         help_text="UUID of the flaw to create an SRP report for",
     )
-    title = serializers.CharField(required=False, max_length=255)
+    title = serializers.CharField(required=False)
     responsibility_scope = serializers.ChoiceField(
         choices=SRPReport.ResponsibilityScope.choices,
         required=False,

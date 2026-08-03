@@ -19270,7 +19270,6 @@ components:
         title:
           type: string
           description: Title of the SRP report
-          maxLength: 255
         manufacturer_or_steward_name:
           type: string
           description: Name of the manufacturer or steward
@@ -19368,7 +19367,6 @@ components:
           description: UUID of the flaw to create an SRP report for
         title:
           type: string
-          maxLength: 255
         manufacturer_or_steward_name:
           type: string
           description: Name of the manufacturer or steward
@@ -19458,7 +19456,6 @@ components:
         title:
           type: string
           minLength: 1
-          maxLength: 255
         manufacturer_or_steward_name:
           type: string
           description: Name of the manufacturer or steward
@@ -19767,7 +19764,6 @@ components:
           type: string
           minLength: 1
           description: Title of the SRP report
-          maxLength: 255
         manufacturer_or_steward_name:
           type: string
           description: Name of the manufacturer or steward
