@@ -4,6 +4,7 @@ ViewSet for top-level SRP Report endpoints.
 Provides list, retrieve, create, and update operations for SRP reports.
 """
 
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import ModelViewSet
@@ -50,12 +51,13 @@ class SRPReportViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         flaw = serializer.validated_data["flaw"]
-        srp_report = serializer.save(
-            status=SRPReport.SRPReportStatus.PRE_REQUIRED,
-            acl_read=flaw.acl_read,
-            acl_write=flaw.acl_write,
-        )
-        create_srp_report_milestones(
-            srp_report,
-            status=SRPReport.SRPReportStatus.PRE_REQUIRED,
-        )
+        with transaction.atomic():
+            srp_report = serializer.save(
+                status=SRPReport.SRPReportStatus.PRE_REQUIRED,
+                acl_read=flaw.acl_read,
+                acl_write=flaw.acl_write,
+            )
+            create_srp_report_milestones(
+                srp_report,
+                status=SRPReport.SRPReportStatus.PRE_REQUIRED,
+            )
