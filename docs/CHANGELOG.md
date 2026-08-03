@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [5.13.0] - 2026-08-03
 ### Added
 - Base auto-affect determination on upstream affected versions (OSIDB-5031)
 - Add support for relative datetime queries in API filters (OSIDB-5168)
