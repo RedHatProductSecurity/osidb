@@ -166,6 +166,11 @@ class WorkflowModel(models.Model):
 
     class Meta:
         abstract = True
+        indexes = [
+            models.Index(fields=["workflow_name"]),
+            models.Index(fields=["workflow_state"]),
+            models.Index(fields=["owner"]),
+        ]
 
     def classify(self):
         """computed workflow classification"""

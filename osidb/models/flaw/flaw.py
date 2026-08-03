@@ -308,17 +308,21 @@ class Flaw(
             "created_dt",
             "uuid",
         )
-        indexes = TrackingMixin.Meta.indexes + [
-            models.Index(fields=["-cve_id"]),
-            GinIndex(fields=["acl_read"]),
-            models.Index(fields=["-local_updated_dt"]),
-            models.Index(fields=["uuid", "local_updated_dt"]),
-            models.Index(
-                fields=["cve_id", "local_updated_dt"],
-                condition=models.Q(cve_id__isnull=False),
-                name="osidb_flaw_cve_index",
-            ),
-        ]
+        indexes = (
+            TrackingMixin.Meta.indexes
+            + WorkflowModel.Meta.indexes
+            + [
+                models.Index(fields=["-cve_id"]),
+                GinIndex(fields=["acl_read"]),
+                models.Index(fields=["-local_updated_dt"]),
+                models.Index(fields=["uuid", "local_updated_dt"]),
+                models.Index(
+                    fields=["cve_id", "local_updated_dt"],
+                    condition=models.Q(cve_id__isnull=False),
+                    name="osidb_flaw_cve_index",
+                ),
+            ]
+        )
 
     def __str__(self):
         """convert to string"""
