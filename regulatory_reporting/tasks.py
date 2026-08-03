@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils import timezone
 
 from config.celery import app
 from osidb.core import set_user_acls
@@ -12,9 +13,13 @@ def mark_upstream_notification_sent(result, notification_uuid):
     Success callback once async_send_email completes successfully.
     """
     set_user_acls(settings.ALL_GROUPS)
-    UpstreamNotification.objects.filter(uuid=notification_uuid).update(
+    UpstreamNotification.objects.filter(
+        uuid=notification_uuid,
+        status=UpstreamNotification.NotificationStatus.QUEUED,
+    ).update(
         status=UpstreamNotification.NotificationStatus.SENT,
         last_error="",
+        sent_at=timezone.now(),
     )
 
 
@@ -24,7 +29,10 @@ def mark_upstream_notification_failed(request, exc, traceback, notification_uuid
     Failure callback that records the error if async_send_email raises.
     """
     set_user_acls(settings.ALL_GROUPS)
-    UpstreamNotification.objects.filter(uuid=notification_uuid).update(
+    UpstreamNotification.objects.filter(
+        uuid=notification_uuid,
+        status=UpstreamNotification.NotificationStatus.QUEUED,
+    ).update(
         status=UpstreamNotification.NotificationStatus.FAILED,
         last_error=str(exc),
     )
