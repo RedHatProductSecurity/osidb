@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Return descriptive 400 error instead of 500 on malformed bulk affects requests (OSIDB-3134)
 - Fix collectors being blocked by duplicated related model entries (OSIDB-5221)
 - Filter windows-only Flaws by leveraging CPEs in addition to keywords / blocklist (OSIDB-5235)
+- Linux kernel flaws get correct affects added (OSIDB-5248)
 
 ### Removed
 - deprecate workflow manipulation endpoints

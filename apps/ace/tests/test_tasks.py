@@ -1156,3 +1156,91 @@ def test_handle_go_stdlib_phase4_creates_builder_affects(
         assert str(a.purl) == GO_STDLIB_BUILDER_PURL
         assert a.affectedness == Affect.AffectAffectedness.AFFECTED
         assert a.resolution == Affect.AffectResolution.DELEGATED
+
+
+# ── Purl-less OSV entries (Linux kernel CVE-2026-64189) ──────────────────────
+
+
+@pytest.mark.django_db
+def test_sync_passes_ecosystem_for_purl_less_entry(
+    monkeypatch, ace_enabled, mock_querier, cve_2026_64189_osv_payload, result
+):
+    """
+    End-to-end test for purl-less OSV entries (Linux kernel case).
+
+    CVE-2026-64189 has an OSV entry with name="Kernel", ecosystem="Linux" but no PURL.
+    This tests that:
+    1. OSV collector extracts the purl-less entry into upstream_purls
+    2. component_ecosystems derives ecosystem="generic" from ecosystem="Linux"
+    3. NewtopiaQuerier.search() receives ecosystem="generic" parameter
+    4. Affects are created correctly for kernel packages returned by lib-newtopia
+    """
+    from collectors.osv.collectors import OSVCollector
+
+    # Create flaw with kernel component
+    flaw = FlawFactory(components=["kernel"], embargoed=False, cve_id="CVE-2026-64189")
+
+    # Extract upstream_purls from the real OSV payload
+    _osv_id, _cve_ids, content = OSVCollector().extract_content(
+        cve_2026_64189_osv_payload
+    )
+
+    # Verify purl-less entry was extracted
+    assert len(content["upstream_purls"]) == 1
+    kernel_entry = content["upstream_purls"][0]
+    assert kernel_entry["purl"] == ""
+    assert kernel_entry["name"] == "Kernel"
+    assert kernel_entry["ecosystem"] == "Linux"
+    assert len(kernel_entry["ranges"]) == 7  # All 7 version ranges from OSV
+
+    # Store upstream data on the flaw
+    from osidb.models import UpstreamData
+
+    UpstreamData.objects.create(
+        flaw=flaw,
+        source=UpstreamData.Source.OSV,
+        upstream_purls=content["upstream_purls"],
+        acl_read=flaw.acl_read,
+        acl_write=flaw.acl_write,
+    )
+
+    # Verify component_ecosystems maps Linux -> generic
+    upstream = flaw.upstream_data.first()
+    assert upstream.component_ecosystems == {"kernel": ["generic"]}
+
+    # Mock lib-newtopia to return a kernel package
+    kernel_results = [
+        result("rhel-9.8.z", "pkg:rpm/redhat/kernel@6.5.0-1.el9?arch=src"),
+    ]
+
+    # Track what ecosystem parameter was passed to newtopia
+    search_kwargs = []
+
+    def _search(terms, **kwargs):
+        search_kwargs.append(kwargs)
+        component = terms[0]
+        qs = MagicMock()
+        qs.filter.return_value.all.return_value = (
+            kernel_results if component == "kernel" else []
+        )
+        return qs
+
+    mock_nq = MagicMock()
+    mock_nq.return_value.search.side_effect = _search
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_nq)
+
+    # Run the sync
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    # Verify ecosystem="generic" was passed to newtopia
+    assert len(search_kwargs) == 1
+    assert search_kwargs[0]["ecosystem"] == "generic"
+    assert search_kwargs[0]["strict"] is True
+
+    # Verify affect was created
+    assert stats["created"] == 1
+    assert flaw.affects.count() == 1
+    affect = flaw.affects.first()
+    assert affect.ps_component == "kernel"
+    assert affect.ps_update_stream == "rhel-9.8.z"
+    assert str(affect.purl) == "pkg:rpm/redhat/kernel@6.5.0-1.el9?arch=src"

@@ -30,12 +30,12 @@ logger = get_task_logger(__name__)
 
 def _osv_upstream_purl_dedupe_key(item: Any) -> str | None:
     """Stable id for get_upstream_purls entries: {\"purl\", \"name\", \"ecosystem\", \"ranges\", \"versions\"}."""
-    if isinstance(item, dict) and item.get("purl"):
+    if isinstance(item, dict) and (item.get("purl") or item.get("name")):
         return json.dumps(
             {
-                "purl": item.get("purl"),
-                "name": item.get("name"),
-                "ecosystem": item.get("ecosystem"),
+                "purl": item.get("purl") or "",
+                "name": item.get("name") or "",
+                "ecosystem": item.get("ecosystem") or "",
                 "ranges": item.get("ranges") or [],
                 "versions": item.get("versions") or [],
             },
@@ -410,14 +410,13 @@ class OSVCollector(Collector):
             for affect in affected:
                 # https://ossf.github.io/osv-schema/#affectedpackage-field
                 package = affect.get("package") or {}
-                upstream_purl = package.get("purl", None)
-
-                # Skip filling in the field if there is no purl
-                if not upstream_purl:
-                    continue
-
+                upstream_purl = package.get("purl") or ""
                 name = package.get("name", None)
                 ecosystem = package.get("ecosystem", None)
+
+                # Skip if there is no purl AND no (name + ecosystem)
+                if not upstream_purl and not (name and ecosystem):
+                    continue
 
                 # https://ossf.github.io/osv-schema/#affectedranges-field
                 ranges = copy.deepcopy(affect.get("ranges", []))

@@ -253,3 +253,85 @@ def test_match_unknown_ecosystem_returns_none():
     purls = _make_multi_ecosystem_purls()
     result = match_component_to_upstream("redis", purls, ecosystem="maven")
     assert result is None
+
+
+# ── match_component_to_upstream purl-less entries ────────────────────────────
+
+
+def test_match_purl_less_entry_by_name():
+    """Purl-less entry with name+ecosystem matches by name without ecosystem filter."""
+    purls = [
+        {
+            "purl": "",
+            "name": "Kernel",
+            "ecosystem": "Linux",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "6.0.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    result = match_component_to_upstream("kernel", purls)
+    assert result is not None
+    assert result.name == "Kernel"
+    assert result.ecosystem == "generic"
+    assert result.fixed == "6.0.0"
+
+
+def test_match_purl_less_entry_with_ecosystem_filter():
+    """Purl-less entry with ecosystem matches when OSV ecosystem maps to filter."""
+    purls = [
+        {
+            "purl": "",
+            "name": "Kernel",
+            "ecosystem": "Linux",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "6.0.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    # OSV ecosystem "Linux" maps to "generic" in OSV_ECOSYSTEM_MAP
+    result = match_component_to_upstream("kernel", purls, ecosystem="generic")
+    assert result is not None
+    assert result.ecosystem == "generic"
+
+
+def test_match_purl_less_entry_wrong_ecosystem():
+    """Purl-less entry is skipped when mapped ecosystem doesn't match filter."""
+    purls = [
+        {
+            "purl": "",
+            "name": "Kernel",
+            "ecosystem": "Linux",
+            "ranges": [],
+            "versions": [],
+        }
+    ]
+    result = match_component_to_upstream("kernel", purls, ecosystem="npm")
+    assert result is None
+
+
+def test_entry_to_package_info_purl_less():
+    """Purl-less entry correctly extracts name, ecosystem, and ranges."""
+    entry = {
+        "purl": "",
+        "name": "Kernel",
+        "ecosystem": "Linux",
+        "ranges": [
+            {"type": "ECOSYSTEM", "events": [{"introduced": "0"}, {"fixed": "6.0.0"}]}
+        ],
+        "versions": [],
+    }
+    info = osv_entry_to_package_info(entry)
+    assert info.name == "Kernel"
+    assert info.ecosystem == "generic"
+    assert info.purl == ""
+    assert info.introduced == "0"
+    assert info.fixed == "6.0.0"
