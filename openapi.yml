@@ -19285,7 +19285,7 @@ components:
           description: Type of event being reported to ENISA
         status:
           allOf:
-          - $ref: '#/components/schemas/Status140Enum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the SRP report
         evidence:
           type: string
@@ -19380,7 +19380,8 @@ components:
           - $ref: '#/components/schemas/ReportableEventTypeEnum'
           description: Type of event being reported to ENISA
         status:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           readOnly: true
         evidence:
           type: string
@@ -19528,7 +19529,7 @@ components:
           description: Type of milestone (24h, 72h, final, etc.)
         status:
           allOf:
-          - $ref: '#/components/schemas/Status140Enum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the milestone
         request_received_at:
           type:
@@ -19625,7 +19626,7 @@ components:
           description: Type of milestone (24h, 72h, final, etc.)
         status:
           allOf:
-          - $ref: '#/components/schemas/Status140Enum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the milestone
         request_received_at:
           type:
@@ -19707,7 +19708,7 @@ components:
       properties:
         status:
           allOf:
-          - $ref: '#/components/schemas/Status140Enum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the milestone
         request_received_at:
           type:
@@ -19731,7 +19732,7 @@ components:
       properties:
         status:
           allOf:
-          - $ref: '#/components/schemas/Status140Enum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the milestone
         request_received_at:
           type:
@@ -19779,7 +19780,7 @@ components:
           description: Type of event being reported to ENISA
         status:
           allOf:
-          - $ref: '#/components/schemas/Status140Enum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the SRP report
         evidence:
           type: string
@@ -19825,6 +19826,18 @@ components:
       - responsibility_scope
       - title
       - updated_dt
+    SRPReportStatusEnum:
+      enum:
+      - not_applicable
+      - not_required
+      - pre_required
+      - required
+      - prepared
+      - submitted
+      - deferred
+      - blocked
+      - failed
+      type: string
     SpecialHandlingEnum:
       enum:
       - Major Incident
@@ -19841,18 +19854,6 @@ components:
       - REQ
       - SKIP
       - DONE
-      type: string
-    Status140Enum:
-      enum:
-      - not_applicable
-      - not_required
-      - pre_required
-      - required
-      - prepared
-      - submitted
-      - deferred
-      - blocked
-      - failed
       type: string
     StreamComponent:
       type: object

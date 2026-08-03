@@ -227,7 +227,10 @@ class SRPReportCreateSerializer(SRPReportSerializer):
         max_length=255,
     )
     srp_reference_url = serializers.URLField(allow_blank=False)
-    status = serializers.CharField(read_only=True)
+    status = serializers.ChoiceField(
+        choices=SRPReport.SRPReportStatus.choices,
+        read_only=True,
+    )
     updated_dt = serializers.DateTimeField(read_only=True)
 
     class Meta(SRPReportSerializer.Meta):
