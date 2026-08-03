@@ -131,6 +131,7 @@ class SRPReport(SRPReportBase):
     )
 
     srp_reference_url = models.URLField(
+        max_length=200,
         blank=True,
         help_text="URL of the SRP reference",
     )

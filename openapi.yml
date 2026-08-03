@@ -19397,6 +19397,7 @@ components:
         srp_reference_url:
           type: string
           format: uri
+          maxLength: 200
         member_states_available:
           type: array
           items:
@@ -19485,6 +19486,7 @@ components:
           type: string
           format: uri
           minLength: 1
+          maxLength: 200
         member_states_available:
           type: array
           items:

@@ -227,7 +227,7 @@ class SRPReportCreateSerializer(SRPReportSerializer):
         trim_whitespace=True,
         max_length=255,
     )
-    srp_reference_url = serializers.URLField(allow_blank=False)
+    srp_reference_url = serializers.URLField(allow_blank=False, max_length=200)
     status = serializers.ChoiceField(
         choices=SRPReport.SRPReportStatus.choices,
         read_only=True,
