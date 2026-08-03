@@ -200,6 +200,14 @@ class SRPReport(SRPReportBase):
             )
 
     @validator
+    def _validate_evidence_required(self, **kwargs):
+        """Evidence is required for manually created (PRE_REQUIRED) reports"""
+        if self.status == SRPReportBase.SRPReportStatus.PRE_REQUIRED and (
+            not self.evidence or not self.evidence.strip()
+        ):
+            raise ValidationError("evidence must be set when status is PRE_REQUIRED")
+
+    @validator
     def _validate_srp_reference_required(self, **kwargs):
         """SRP reference ID must be set when status is SUBMITTED"""
         if (

@@ -31,6 +31,15 @@ class SRPReportFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence", nb_words=4)
     responsibility_scope = SRPReport.ResponsibilityScope.MANUFACTURER
     reportable_event_type = SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
+    status = SRPReport.SRPReportStatus.REQUIRED
+    # PRE_REQUIRED reports require non-blank evidence at the model layer
+    evidence = factory.LazyAttribute(
+        lambda o: (
+            "Manual create justification."
+            if o.status == SRPReport.SRPReportStatus.PRE_REQUIRED
+            else ""
+        )
+    )
 
     timer_started_at = factory.LazyFunction(timezone.now)
     acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)

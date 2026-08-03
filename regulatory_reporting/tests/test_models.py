@@ -122,6 +122,44 @@ class TestSRPReport:
 
         assert report.srp_reference_id == ""
 
+    def test_evidence_required_when_pre_required(self):
+        report = SRPReport(
+            **_report_kwargs(
+                status=SRPReport.SRPReportStatus.PRE_REQUIRED,
+                timer_started_at=None,
+                evidence="",
+            )
+        )
+
+        with pytest.raises(
+            ValidationError,
+            match="evidence must be set when status is PRE_REQUIRED",
+        ):
+            report.save()
+
+    def test_evidence_blank_rejected_when_pre_required(self):
+        report = SRPReport(
+            **_report_kwargs(
+                status=SRPReport.SRPReportStatus.PRE_REQUIRED,
+                timer_started_at=None,
+                evidence="   ",
+            )
+        )
+
+        with pytest.raises(
+            ValidationError,
+            match="evidence must be set when status is PRE_REQUIRED",
+        ):
+            report.save()
+
+    def test_evidence_not_required_when_required(self):
+        report = SRPReportFactory(
+            status=SRPReport.SRPReportStatus.REQUIRED,
+            evidence="",
+        )
+
+        assert report.evidence == ""
+
     def test_flaw_protect_on_delete(self):
         flaw = FlawFactory()
         SRPReportFactory(flaw=flaw)
