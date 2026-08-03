@@ -777,7 +777,9 @@ class ACLMixin(models.Model):
                     related.related_name
                     for related in self._meta.related_objects
                     # only the models with ACLs are subject of this
+                    # related_name is None for polymorphic back-pointers (no usable accessor)
                     if issubclass(related.related_model, ACLMixin)
+                    and related.related_name is not None
                 ]
             ):
                 # continue deeper into the related context
@@ -871,6 +873,7 @@ class ACLMixin(models.Model):
                 for related in self._meta.related_objects
                 if (
                     issubclass(related.related_model, ACLMixin)
+                    and related.related_name is not None
                     and related.related_name != "snippets"
                 )
             ]

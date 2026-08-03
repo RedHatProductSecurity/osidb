@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from osidb.models import Affect, Tracker
+from osidb.models import Affect, AliasLabel, Tracker
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -160,3 +160,89 @@ class TestAtomicRollbackOnFailure:
         assert affect.is_public
 
         workflow_framework._workflows = []
+
+
+class TestCollectObjectsForAclUpdate:
+    """Verify _collect_objects_for_acl_update handles all relation types correctly."""
+
+    @pytest.mark.django_db
+    def test_no_typeerror_when_related_name_is_none(
+        self,
+        internal_read_groups,
+        internal_write_groups,
+        public_read_groups,
+        public_write_groups,
+    ):
+        """
+        Regression test for: TypeError: attribute name must be string, not 'NoneType'
+
+        Polymorphic model subclasses (AliasLabel, BULabel, etc.) inherit from FlawLabelV2
+        which is an ACLMixin. Django-polymorphic creates implicit OneToOneField back-pointers
+        from each concrete subclass to the parent table. These reverse relations appear in
+        FlawLabelV2._meta.related_objects with related_name=None. Since the subclasses ARE
+        ACLMixin, they pass the issubclass check, and getattr(self, None).all() crashes.
+
+        The fix filters out related objects where related_name is None.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            acl_read=internal_read_groups,
+            acl_write=internal_write_groups,
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            acl_read=internal_read_groups,
+            acl_write=internal_write_groups,
+        )
+        AliasLabel.objects.create(
+            flaw=flaw,
+            name="CVE-2024-12345",
+            acl_read=internal_read_groups,
+            acl_write=internal_write_groups,
+        )
+
+        # set_acls_nested traverses into FlawLabelV2 instances, which have polymorphic
+        # subclass back-pointers with related_name=None — this must not raise TypeError
+        flaw.set_acls_nested(public_read_groups, public_write_groups)
+
+        affect.refresh_from_db()
+        assert affect.acl_read == public_read_groups
+        assert affect.acl_write == public_write_groups
+
+    @pytest.mark.django_db
+    def test_unembargo_no_typeerror_when_related_name_is_none(
+        self,
+        embargoed_read_groups,
+        embargoed_write_groups,
+        public_read_groups,
+        public_write_groups,
+    ):
+        """
+        Regression test for: TypeError: attribute name must be string, not 'NoneType'
+        in the unembargo() path (same root cause as set_acls_nested).
+
+        unembargo() iterates _meta.related_objects to recursively unembargo related
+        ACLMixin instances, but polymorphic back-pointers have related_name=None,
+        causing getattr(self, None).all() to crash.
+        """
+        from datetime import datetime
+        from datetime import timezone as dt_timezone
+
+        flaw = FlawFactory(
+            embargoed=True,
+            acl_read=embargoed_read_groups,
+            acl_write=embargoed_write_groups,
+        )
+        AliasLabel.objects.create(
+            flaw=flaw,
+            name="CVE-2024-12345",
+            acl_read=embargoed_read_groups,
+            acl_write=embargoed_write_groups,
+        )
+
+        flaw.unembargo_dt = datetime(2000, 1, 1, tzinfo=dt_timezone.utc)
+        # unembargo traverses into FlawLabelV2 instances — must not raise TypeError
+        flaw.unembargo()
+
+        flaw.refresh_from_db()
+        assert flaw.is_public
