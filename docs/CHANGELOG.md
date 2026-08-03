@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add SRP report endpoints (OSIDB-5073)
 - Add Upstream Project Contact Endpoints (OSIDB-5084)
 - Add Flaw-to-Upstream Mapping Endpoints (OSIDB-5085)
+- Add Upstream Maintainer Send Email Action (OSIDB-5088)
 
 ### Changed
 - align existing workflows with workflow framework concepts
