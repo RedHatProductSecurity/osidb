@@ -251,15 +251,17 @@ class SRPReportCreateSerializer(SRPReportSerializer):
             "status",
         ]
 
-    def validate_evidence(self, value):
+    @staticmethod
+    def _require_nonblank(value):
         if not value or not value.strip():
             raise serializers.ValidationError("This field may not be blank.")
         return value.strip()
 
+    def validate_evidence(self, value):
+        return self._require_nonblank(value)
+
     def validate_srp_reference_id(self, value):
-        if not value or not value.strip():
-            raise serializers.ValidationError("This field may not be blank.")
-        return value.strip()
+        return self._require_nonblank(value)
 
     def _validate_acl_write(self, flaw):
         if not flaw:
