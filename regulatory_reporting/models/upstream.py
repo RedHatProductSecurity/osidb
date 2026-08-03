@@ -1,6 +1,7 @@
 import uuid
 
 import pghistory
+from django.conf import settings
 from django.db import models
 
 from osidb.mixins import ACLMixin, TrackingMixin
@@ -112,6 +113,15 @@ class UpstreamNotification(ACLMixin, TrackingMixin):
     timer_started_at = models.DateTimeField(null=True, blank=True)
     last_error = models.TextField(blank=True)
     payload_text = models.TextField(blank=True)
+
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sent_upstream_notifications",
+    )
+    sent_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Upstream Notification"
