@@ -1,12 +1,17 @@
 from unittest.mock import patch
 
 import pytest
+from django.conf import settings
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from osidb.models.abstract import Impact
 from osidb.models.flaw import FlawSource
 from regulatory_reporting.models.upstream import UpstreamNotification, UpstreamProject
+from regulatory_reporting.tasks import (
+    mark_upstream_notification_failed,
+    mark_upstream_notification_sent,
+)
 
 from .factories import (
     NonReportableFlawFactory,
@@ -276,6 +281,112 @@ class TestSendEmailAction:
             "This information is confidential until public disclosure."
             in notification.payload_text
         )
+
+    @patch("regulatory_reporting.api_views.upstream_notifications.async_send_email")
+    def test_send_email_sets_actor(
+        self, mock_task, auth_client, test_api_v2_uri, ldap_test_username
+    ):
+        """Test for send-email records the requesting user as actor."""
+        upstream_project = UpstreamProjectFactory(
+            security_contact="maintainer@example.com"
+        )
+        flaw = NonReportableFlawFactory(embargoed=False, source=FlawSource.REDHAT)
+        notification = UpstreamNotificationFactory(
+            flaw=flaw,
+            upstream_project=upstream_project,
+            method=UpstreamNotification.NotificationMethod.EMAIL,
+            status=UpstreamNotification.NotificationStatus.REVIEWED,
+        )
+
+        response = auth_client().post(
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}/send-email"
+        )
+
+        assert response.status_code == 200
+        notification.refresh_from_db()
+        assert notification.actor is not None
+        assert notification.actor.username == ldap_test_username
+
+    @patch("regulatory_reporting.api_views.upstream_notifications.async_send_email")
+    def test_send_email_sender_address(self, mock_task, auth_client, test_api_v2_uri):
+        """Test for send-email sets the correct sender address."""
+        upstream_project = UpstreamProjectFactory(
+            security_contact="maintainer@example.com"
+        )
+        flaw = NonReportableFlawFactory(embargoed=False, source=FlawSource.REDHAT)
+        notification = UpstreamNotificationFactory(
+            flaw=flaw,
+            upstream_project=upstream_project,
+            method=UpstreamNotification.NotificationMethod.EMAIL,
+            status=UpstreamNotification.NotificationStatus.REVIEWED,
+        )
+
+        auth_client().post(
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}/send-email"
+        )
+
+        call_args = mock_task.apply_async.call_args
+        assert (
+            call_args.kwargs["kwargs"]["from"] == settings.UPSTREAM_NOTIFICATIONS_SENDER
+        )
+
+
+class TestUpstreamNotificationTasks:
+    def test_mark_upstream_notification_sent_sets_sent_at(self):
+        """Test for the success callback records sent_at."""
+        notification = UpstreamNotificationFactory(
+            status=UpstreamNotification.NotificationStatus.QUEUED,
+        )
+        mark_upstream_notification_sent(
+            result=1, notification_uuid=str(notification.uuid)
+        )
+        notification.refresh_from_db()
+        assert notification.status == UpstreamNotification.NotificationStatus.SENT
+        assert notification.sent_at is not None
+
+    def test_mark_upstream_notification_failed_does_not_set_sent_at(self):
+        """Test for the failure callback leaves sent_at unset."""
+        notification = UpstreamNotificationFactory(
+            status=UpstreamNotification.NotificationStatus.QUEUED,
+        )
+        mark_upstream_notification_failed(
+            request=None,
+            exc=Exception("SMTP error"),
+            traceback=None,
+            notification_uuid=str(notification.uuid),
+        )
+        notification.refresh_from_db()
+        assert notification.status == UpstreamNotification.NotificationStatus.FAILED
+        assert notification.sent_at is None
+
+    def test_mark_upstream_notification_sent_does_not_overwrite_failed(self):
+        """Test that a delayed success callback doesn't overwrite an already-failed record."""
+        notification = UpstreamNotificationFactory(
+            status=UpstreamNotification.NotificationStatus.FAILED,
+            last_error="original error",
+        )
+        mark_upstream_notification_sent(
+            result=1, notification_uuid=str(notification.uuid)
+        )
+        notification.refresh_from_db()
+        assert notification.status == UpstreamNotification.NotificationStatus.FAILED
+        assert notification.last_error == "original error"
+        assert notification.sent_at is None
+
+    def test_mark_upstream_notification_failed_does_not_overwrite_sent(self):
+        """Test that a delayed failure callback doesn't overwrite an already-sent record."""
+        notification = UpstreamNotificationFactory(
+            status=UpstreamNotification.NotificationStatus.SENT,
+        )
+        mark_upstream_notification_failed(
+            request=None,
+            exc=Exception("late SMTP error"),
+            traceback=None,
+            notification_uuid=str(notification.uuid),
+        )
+        notification.refresh_from_db()
+        assert notification.status == UpstreamNotification.NotificationStatus.SENT
+        assert notification.last_error == ""
 
 
 class TestUpstreamProjectView:

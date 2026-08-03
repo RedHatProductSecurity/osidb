@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 
+from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -92,6 +93,7 @@ class UpstreamNotificationView(
         payload = {
             "subject": f"Security notification for {flaw_id}",
             "to": [upstream_project.security_contact],
+            "from": settings.UPSTREAM_NOTIFICATIONS_SENDER,
             "body": text_body,
         }
 
@@ -103,6 +105,7 @@ class UpstreamNotificationView(
             status=UpstreamNotification.NotificationStatus.QUEUED,
             last_error="",
             updated_dt=timezone.now(),
+            actor=request.user,
         )
 
         if updated_count == 0:
