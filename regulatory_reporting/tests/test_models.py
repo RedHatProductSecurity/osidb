@@ -122,27 +122,13 @@ class TestSRPReport:
 
         assert report.srp_reference_id == ""
 
-    def test_evidence_required_when_pre_required(self):
+    @pytest.mark.parametrize("evidence", ["", "   "])
+    def test_evidence_required_when_pre_required(self, evidence):
         report = SRPReport(
             **_report_kwargs(
                 status=SRPReport.SRPReportStatus.PRE_REQUIRED,
                 timer_started_at=None,
-                evidence="",
-            )
-        )
-
-        with pytest.raises(
-            ValidationError,
-            match="evidence must be set when status is PRE_REQUIRED",
-        ):
-            report.save()
-
-    def test_evidence_blank_rejected_when_pre_required(self):
-        report = SRPReport(
-            **_report_kwargs(
-                status=SRPReport.SRPReportStatus.PRE_REQUIRED,
-                timer_started_at=None,
-                evidence="   ",
+                evidence=evidence,
             )
         )
 
