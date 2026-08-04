@@ -1,5 +1,7 @@
 import logging
 
+from django.db import transaction
+
 from osidb.models import Flaw
 from regulatory_reporting.models import SRPReport
 
@@ -39,32 +41,36 @@ def create_srp_report(sender, instance: Flaw, created: bool, **kwargs):
 
     event_type = instance.major_incident_state
 
-    srp_report, report_created = SRPReport.objects.get_or_create(
-        flaw=instance,
-        reportable_event_type=event_type,
-        defaults={
-            "title": instance.title or f"SRP Report for {instance.uuid}",
-            "status": SRPReport.SRPReportStatus.REQUIRED,
-            "responsibility_scope": SRPReport.ResponsibilityScope.MANUFACTURER,
-            "timer_started_at": instance.major_incident_start_dt,
-            "acl_read": instance.acl_read,
-            "acl_write": instance.acl_write,
-        },
-    )
-
-    if not report_created:
-        srp_report.title = instance.title or f"SRP Report for {instance.uuid}"
-        srp_report.acl_read = instance.acl_read
-        srp_report.acl_write = instance.acl_write
-        srp_report.timer_started_at = instance.major_incident_start_dt
-        srp_report.save()
-        update_srp_report_milestones(srp_report)
-        logger.info(f"Updated SRP Report {srp_report.uuid} for Flaw {instance.uuid} ")
-    else:
-        create_srp_report_milestones(srp_report)
-        logger.info(
-            f"Created SRP Report {srp_report.uuid} for Flaw {instance.uuid}, event type {event_type}"
+    with transaction.atomic():
+        srp_report, report_created = SRPReport.objects.get_or_create(
+            flaw=instance,
+            reportable_event_type=event_type,
+            defaults={
+                "title": instance.title or f"SRP Report for {instance.uuid}",
+                "status": SRPReport.SRPReportStatus.REQUIRED,
+                "responsibility_scope": SRPReport.ResponsibilityScope.MANUFACTURER,
+                "timer_started_at": instance.major_incident_start_dt,
+                "acl_read": instance.acl_read,
+                "acl_write": instance.acl_write,
+            },
         )
+
+        if not report_created:
+            srp_report.title = instance.title or f"SRP Report for {instance.uuid}"
+            srp_report.acl_read = instance.acl_read
+            srp_report.acl_write = instance.acl_write
+            srp_report.timer_started_at = instance.major_incident_start_dt
+            srp_report.save()
+            update_srp_report_milestones(srp_report)
+            logger.info(
+                f"Updated SRP Report {srp_report.uuid} for Flaw {instance.uuid} "
+            )
+        else:
+            create_srp_report_milestones(srp_report)
+            logger.info(
+                f"Created SRP Report {srp_report.uuid} for Flaw {instance.uuid}, "
+                f"event type {event_type}"
+            )
 
 
 def check_upstream_notifiable(sender, instance, **kwargs):
