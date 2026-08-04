@@ -44,5 +44,8 @@ pyrightconfig.json
 \#*\#
 .\#*
 
+# Worktree-specific environment
+.env.worktree
+
 # Codegraph knowledge graph directory
 .codegraph/
