@@ -216,6 +216,8 @@ class TestUpstreamNotification(TestCase):
         notification = UpstreamNotification.objects.create(
             flaw=flaw,
             upstream_project=project,
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
         )
         assert notification.uuid is not None
         assert notification.status == UpstreamNotification.NotificationStatus.REQUIRED
