@@ -5,7 +5,10 @@ description: >
   Applies to flaws that require human triage.
 priority: 1
 conditions:
-  - has label manual-triage
+  - condition: OR
+    requirements:
+      - has label manual-triage
+      - has label potential-rejection
 states:
   - name: NEW
     description: >

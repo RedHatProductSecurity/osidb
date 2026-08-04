@@ -320,6 +320,90 @@ class TestDefaultWorkflow:
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
 
+
+class TestManualWorkflow:
+    """
+    Test the MANUAL workflow conditions — flaws with manual-triage or
+    potential-rejection labels should be classified under MANUAL.
+    """
+
+    @pytest.mark.enable_signals
+    def test_manual_triage_label_triggers_manual_workflow(self):
+        """
+        A flaw with a manual-triage label should be classified under the
+        MANUAL workflow instead of DEFAULT.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-MANUAL-1",
+        )
+        assert flaw.workflow_name == "DEFAULT"
+
+        WorkflowLabel.objects.create(flaw=flaw, name="manual-triage")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "MANUAL"
+        assert flaw.workflow_state == "NEW"
+
+    @pytest.mark.enable_signals
+    def test_potential_rejection_label_triggers_manual_workflow(self):
+        """
+        A flaw with a potential-rejection label (set by ACE) should be
+        classified under the MANUAL workflow for human review.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-MANUAL-2",
+        )
+        assert flaw.workflow_name == "DEFAULT"
+
+        WorkflowLabel.objects.create(flaw=flaw, name="potential-rejection")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "MANUAL"
+        assert flaw.workflow_state == "NEW"
+
+    @pytest.mark.enable_signals
+    def test_removing_label_reverts_to_default_workflow(self):
+        """
+        Removing the potential-rejection label should reclassify the flaw
+        back to the DEFAULT workflow.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-MANUAL-3",
+        )
+        label = WorkflowLabel.objects.create(flaw=flaw, name="potential-rejection")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "MANUAL"
+
+        label.delete()
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "DEFAULT"
+
+    @pytest.mark.enable_signals
+    def test_either_label_satisfies_manual_condition(self):
+        """
+        The MANUAL workflow condition is an OR — either manual-triage or
+        potential-rejection is sufficient. Having both should also work.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-MANUAL-4",
+        )
+        label1 = WorkflowLabel.objects.create(flaw=flaw, name="manual-triage")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "MANUAL"
+
+        WorkflowLabel.objects.create(flaw=flaw, name="potential-rejection")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "MANUAL"
+
+        # removing one label should keep it MANUAL (the other still satisfies)
+        label1.delete()
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "MANUAL"
+
+
+class TestNoClassification:
     @pytest.mark.enable_signals
     def test_no_classification_without_task_key(self):
         """
