@@ -380,7 +380,10 @@ class OSVCollector(Collector):
                 try:
                     score = self.CVSS_TO_CVSSLIB[cvss["type"]](vector).base_score
                 except Exception as exc:
-                    logger.error(f"Failed to proces CVSS for {cvss}. Error: {exc}.")
+                    logger.error(
+                        f"Failed to process CVSS ({cvss}) for OSV vulnerability "
+                        f"with id {osv_id}. Error: {exc}."
+                    )
                     # TODO: Recheck invalid CVSS once SyncManager gets implemented
                     continue
                 cvss_data.append(

@@ -181,3 +181,24 @@ class TestOSVCollectorException:
 
         assert Snippet.objects.all().count() == 0
         assert Flaw.objects.all().count() == 0
+
+    def test_malformed_cvss_logs_error_with_osv_id(self, caplog):
+        """
+        Test that a malformed CVSS vector is gracefully skipped and the
+        original parsing error (not a KeyError) is logged with the OSV ID.
+        """
+        osv_vuln = {
+            "id": "GHSA-xxxx-xxxx-xxxx",
+            "aliases": [],
+            "severity": [
+                {"type": "CVSS_V3", "score": "not-a-valid-cvss-vector"},
+            ],
+        }
+
+        osvc = OSVCollector()
+        osv_id, cve_ids, content = osvc.extract_content(osv_vuln)
+
+        assert content["cvss_scores"] == []
+        assert "GHSA-xxxx-xxxx-xxxx" in caplog.text
+        assert "not-a-valid-cvss-vector" in caplog.text
+        assert "KeyError" not in caplog.text
