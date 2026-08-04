@@ -271,15 +271,18 @@ class SRPReportCreateSerializer(SRPReportSerializer):
             return
         request = self.context.get("request")
         user = getattr(request, "user", None) if request else None
-        if user is not None and user.is_authenticated:
-            user_acls = {
-                uuid.UUID(acl)
-                for acl in generate_acls([group.name for group in user.groups.all()])
-            }
-            if not user_acls.intersection(flaw.acl_write):
-                raise serializers.ValidationError(
-                    {"flaw_id": "You do not have write access to this flaw."}
-                )
+        if user is None or not user.is_authenticated:
+            raise serializers.ValidationError(
+                {"flaw_id": "You do not have write access to this flaw."}
+            )
+        user_acls = {
+            uuid.UUID(acl)
+            for acl in generate_acls([group.name for group in user.groups.all()])
+        }
+        if not user_acls.intersection(flaw.acl_write):
+            raise serializers.ValidationError(
+                {"flaw_id": "You do not have write access to this flaw."}
+            )
 
     def _validate_unique_reportable_event_type(self, flaw, reportable_event_type):
         if (
