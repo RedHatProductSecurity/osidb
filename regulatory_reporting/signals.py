@@ -1,10 +1,14 @@
 import logging
 
 from osidb.models import Flaw
-from regulatory_reporting.models import SRPReport, SRPReportMilestone
+from regulatory_reporting.models import SRPReport
 
 from .models.upstream import UpstreamNotification
-from .services import is_flaw_upstream_notifiable
+from .services import (
+    create_srp_report_milestones,
+    is_flaw_upstream_notifiable,
+    update_srp_report_milestones,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -12,58 +16,6 @@ INCIDENT_STATES_THAT_REQUIRE_SRP_REPORT = [
     Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
     Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
 ]
-
-
-def create_srp_report_milestones(
-    srp_report: SRPReport,
-    status: str = SRPReport.SRPReportStatus.REQUIRED,
-):
-    """
-    Create the required SRP milestones (24h, 72h, final) for a new SRP Report.
-
-    Does NOT create additional_information_response milestones - those are
-    created on-demand when requests are received.
-
-    Args:
-        srp_report: The SRP Report to create milestones for
-        status: Initial status for created milestones (default REQUIRED)
-    """
-    milestone_types = [
-        SRPReportMilestone.MilestoneType.LEVEL_24H,
-        SRPReportMilestone.MilestoneType.LEVEL_72H,
-        SRPReportMilestone.MilestoneType.LEVEL_FINAL,
-    ]
-
-    for milestone_type in milestone_types:
-        milestone = SRPReportMilestone.objects.create(
-            srp_report=srp_report,
-            milestone_type=milestone_type,
-            status=status,
-            acl_read=srp_report.acl_read,
-            acl_write=srp_report.acl_write,
-        )
-        logger.info(
-            f"Created {milestone_type} milestone for SRP Report {srp_report.uuid} "
-            f"for Flaw {srp_report.flaw.uuid}, created at {milestone.created_dt}, due at {milestone.due_at}"
-        )
-
-
-def update_srp_report_milestones(srp_report: SRPReport):
-    """
-    Update the milestones for an existing SRP Report.
-
-    Args:
-        srp_report: The SRP Report to update milestones for
-    """
-    all_milestones = SRPReportMilestone.objects.filter(srp_report=srp_report)
-    for milestone in all_milestones:
-        milestone.acl_read = srp_report.acl_read
-        milestone.acl_write = srp_report.acl_write
-        milestone.save()
-        logger.info(
-            f"Updated {milestone.milestone_type} milestone for SRP Report {srp_report.uuid} "
-            f"for Flaw {srp_report.flaw.uuid}, created at {milestone.created_dt}, due at {milestone.due_at}"
-        )
 
 
 def create_srp_report(sender, instance: Flaw, created: bool, **kwargs):

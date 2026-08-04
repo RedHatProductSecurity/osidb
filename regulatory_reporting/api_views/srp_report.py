@@ -17,7 +17,7 @@ from regulatory_reporting.serializers import (
     SRPReportCreateSerializer,
     SRPReportSerializer,
 )
-from regulatory_reporting.signals import create_srp_report_milestones
+from regulatory_reporting.services import create_srp_report_milestones
 
 
 class SRPReportViewSet(ModelViewSet):
