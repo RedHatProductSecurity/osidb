@@ -272,6 +272,17 @@ class TestSRPReportCreate:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "srp_reference_id" in response.data
 
+    def test_create_report_blank_srp_reference_url_fails(self, authenticated_client):
+        """Blank srp_reference_url is rejected."""
+        flaw = NonReportableFlawFactory()
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw, srp_reference_url="   "),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "srp_reference_url" in response.data
+
     def test_create_report_srp_reference_url_too_long_fails(self, authenticated_client):
         """srp_reference_url longer than 200 characters is rejected."""
         flaw = NonReportableFlawFactory()
