@@ -7,7 +7,7 @@ from osidb.models import (
     BULabelDefinition,
     CollaboratorLabel,
     CollaboratorLabelDefinition,
-    FlawLabelV2,
+    FlawLabel,
     ProductFamilyLabel,
     ProductFamilyLabelDefinition,
     WorkflowLabel,
@@ -17,7 +17,7 @@ from osidb.tests.factories import AffectFactory, FlawFactory
 pytestmark = pytest.mark.unit
 
 
-class TestFlawLabelsV2CRUD:
+class TestFlawLabelsCRUD:
     """Basic CRUD operations on /api/v2/flaws/{id}/labels"""
 
     @pytest.fixture(autouse=True)
@@ -142,7 +142,7 @@ class TestFlawLabelsV2CRUD:
         )
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not FlawLabelV2.objects.filter(uuid=label.uuid).exists()
+        assert not FlawLabel.objects.filter(uuid=label.uuid).exists()
 
     def test_create_label_without_write_returns_404(self, auth_client, test_api_v2_uri):
         """Read-only users get 404 (not 500) when creating a label."""
@@ -156,7 +156,7 @@ class TestFlawLabelsV2CRUD:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert FlawLabelV2.objects.filter(flaw=self.flaw).count() == 0
+        assert FlawLabel.objects.filter(flaw=self.flaw).count() == 0
 
     def test_delete_label_without_write_returns_404(self, auth_client, test_api_v2_uri):
         """Read-only users get 404 (not 500) when deleting a label."""
@@ -169,7 +169,7 @@ class TestFlawLabelsV2CRUD:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert FlawLabelV2.objects.filter(uuid=label.uuid).exists()
+        assert FlawLabel.objects.filter(uuid=label.uuid).exists()
 
     def test_update_label_without_write_returns_404(self, auth_client, test_api_v2_uri):
         """Read-only users get 404 (not 500) when updating a label."""
@@ -198,7 +198,7 @@ class TestFlawLabelsV2CRUD:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert FlawLabelV2.objects.filter(uuid=label.uuid).exists()
+        assert FlawLabel.objects.filter(uuid=label.uuid).exists()
 
     def test_delete_alias_label(self, auth_client, test_api_v2_uri):
         label = AliasLabel.objects.create(flaw=self.flaw, name="my-alias")
@@ -229,7 +229,7 @@ class TestFlawLabelsV2CRUD:
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json()["name"] == "Product family labels cannot be deleted."
-        assert FlawLabelV2.objects.filter(uuid=label.uuid).exists()
+        assert FlawLabel.objects.filter(uuid=label.uuid).exists()
 
 
 class TestFlawLabelsV2ResponseShape:

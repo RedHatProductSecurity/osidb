@@ -1,5 +1,5 @@
 """
-Tests for the new polymorphic label models (FlawLabelV2 hierarchy).
+Tests for the new polymorphic label models (FlawLabel hierarchy).
 
 These tests verify the polymorphic model behavior, type routing,
 and subclass-specific functionality.
@@ -12,13 +12,13 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from freezegun import freeze_time
 
-from osidb.models.flaw.label_v2 import (
+from osidb.models.flaw.label import (
     AliasLabel,
     BULabel,
     BULabelDefinition,
     CollaboratorLabel,
     CollaboratorLabelDefinition,
-    FlawLabelV2,
+    FlawLabel,
     ProductFamilyLabel,
     ProductFamilyLabelDefinition,
     WorkflowLabel,
@@ -98,12 +98,12 @@ class TestPolymorphicBasics:
         workflow = WorkflowLabel.objects.create(flaw=flaw, name="workflow-label")
         bu = BULabel.objects.create(flaw=flaw, name="bu-label", state=BULabel.State.NEW)
 
-        # Verify they're all FlawLabelV2 instances
-        assert isinstance(collab, FlawLabelV2)
-        assert isinstance(product, FlawLabelV2)
-        assert isinstance(alias, FlawLabelV2)
-        assert isinstance(workflow, FlawLabelV2)
-        assert isinstance(bu, FlawLabelV2)
+        # Verify they're all FlawLabel instances
+        assert isinstance(collab, FlawLabel)
+        assert isinstance(product, FlawLabel)
+        assert isinstance(alias, FlawLabel)
+        assert isinstance(workflow, FlawLabel)
+        assert isinstance(bu, FlawLabel)
 
         # Verify they're also their specific types
         assert isinstance(collab, CollaboratorLabel)
@@ -113,7 +113,7 @@ class TestPolymorphicBasics:
         assert isinstance(bu, BULabel)
 
     def test_polymorphic_query_returns_correct_subclass(self):
-        """Test that querying FlawLabelV2 returns the correct subclass instances"""
+        """Test that querying FlawLabel returns the correct subclass instances"""
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
 
@@ -122,7 +122,7 @@ class TestPolymorphicBasics:
         WorkflowLabel.objects.create(flaw=flaw, name="workflow1")
 
         # Query the base class
-        labels = FlawLabelV2.objects.filter(flaw=flaw).order_by("name")
+        labels = FlawLabel.objects.filter(flaw=flaw).order_by("name")
 
         # Should get back the specific subclasses, not base class
         assert isinstance(labels[0], AliasLabel)
@@ -528,7 +528,7 @@ class TestMixedLabelTypes:
         BULabel.objects.create(flaw=flaw, name="bu")
 
         # All should exist
-        labels = FlawLabelV2.objects.filter(flaw=flaw)
+        labels = FlawLabel.objects.filter(flaw=flaw)
         assert labels.count() == 5
 
         # Verify we get the right subclasses

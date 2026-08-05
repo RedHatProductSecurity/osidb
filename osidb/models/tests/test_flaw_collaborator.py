@@ -17,7 +17,7 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.unit
 
 
-class TestFlawLabelsV2:
+class TestFlawLabels:
     def test_unique_constraint(self):
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
@@ -55,21 +55,21 @@ class TestFlawLabelsV2:
         CollaboratorLabelDefinition.objects.create(name="test_context_label")
 
         flaw = FlawFactory(embargoed=False)
-        assert flaw.labels_v2.count() == 0
+        assert flaw.labels.count() == 0
 
         AffectFactory(
             flaw=flaw,
             ps_component="test_component",
             ps_update_stream=ps_update_stream1.name,
         )
-        assert flaw.labels_v2.count() == 2
+        assert flaw.labels.count() == 2
 
         AffectFactory(
             flaw=flaw,
             ps_component="test_component",
             ps_update_stream=ps_update_stream2.name,
         )
-        assert flaw.labels_v2.count() == 2
+        assert flaw.labels.count() == 2
 
     @pytest.mark.enable_signals
     def test_update_label_on_affect_update(self):
@@ -91,12 +91,12 @@ class TestFlawLabelsV2:
             ps_component="test_component",
             ps_update_stream=ps_update_stream1.name,
         )
-        assert flaw.labels_v2.count() == 2
+        assert flaw.labels.count() == 2
 
         affect.ps_update_stream = ps_update_stream2.name
         affect.save()
 
-        assert flaw.labels_v2.count() == 2
+        assert flaw.labels.count() == 2
         assert ProductFamilyLabel.objects.filter(flaw=flaw, relevant=False).count() == 1
 
     @pytest.mark.enable_signals
@@ -111,7 +111,7 @@ class TestFlawLabelsV2:
 
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
-        assert flaw.labels_v2.count() == 1
+        assert flaw.labels.count() == 1
 
         definition.delete()
         label = ProductFamilyLabel.objects.first()

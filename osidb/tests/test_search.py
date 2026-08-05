@@ -471,8 +471,8 @@ class TestSearch:
         body = response.json()
         assert body["count"] == 0
 
-    def test_search_labels_v2_not_exposed(self, auth_client, test_api_uri):
-        """Test that 'labels_v2' is not exposed as a DjangoQL field name"""
+    def test_search_labels_raw_relation_not_exposed(self, auth_client, test_api_uri):
+        """Test that the raw 'labels' relation is not navigable via DjangoQL dot notation"""
         from djangoql.exceptions import DjangoQLSchemaError
 
         FlawFactory(embargoed=False)

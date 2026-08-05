@@ -41,7 +41,7 @@ from config.celery import app
 from osidb.helpers import bypass_rls
 from osidb.models import Flaw, FlawCVSS, PsModule
 from osidb.models.affect import Affect, AffectSettings, NotAffectedJustification
-from osidb.models.flaw.label_v2 import WorkflowLabel
+from osidb.models.flaw.label import WorkflowLabel
 from osidb.models.flaw.upstream import UpstreamData
 
 logger = get_task_logger(__name__)
