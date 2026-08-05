@@ -26,7 +26,7 @@ from .api_views import (
     FlawCVSSV2View,
     FlawCVSSView,
     FlawIntrospectionView,
-    FlawLabelV2View,
+    FlawLabelV1View,
     FlawLabelView,
     FlawPackageVersionView,
     FlawReferenceView,
@@ -35,7 +35,6 @@ from .api_views import (
     FlawView,
     IncidentRequestView,
     JiraStageForwarderView,
-    LabelView,
     ManifestView,
     StatusView,
     SyncManagerViewSet,
@@ -73,10 +72,9 @@ router.register(
 )
 router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/labels",
-    FlawLabelView,
+    FlawLabelV1View,
     basename="flawlabels",
 )
-router.register("labels", LabelView, basename="labels")
 router.register(r"affects", AffectV1View)
 router.register(
     r"affects/(?P<affect_id>[^/.]+)/cvss_scores", AffectCVSSView, basename="affectcvss"
@@ -97,8 +95,8 @@ vnext_router.register(
 )
 vnext_router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/labels",
-    FlawLabelV2View,
-    basename="flawlabelsv2",
+    FlawLabelView,
+    basename="flawlabels",
 )
 vnext_router.register(r"flaws", FlawView)
 vnext_router.register(r"affects", AffectView, basename="affectsv2")
