@@ -14,6 +14,7 @@ from osidb.models import (
     FlawComment,
     FlawCVSS,
     FlawReference,
+    Impact,
     Tracker,
     WorkflowLabel,
 )
@@ -192,7 +193,9 @@ class TestEndpoints(object):
 
     def test_workflows_uuid_verbose_accepts(self, auth_client, test_api_uri):
         """test that verbose classification includes accepts on workflows, states, and requirements"""
-        flaw = FlawFactory(embargoed=False, task_key="TASK-VERBOSE")
+        flaw = FlawFactory(
+            embargoed=False, task_key="TASK-VERBOSE", impact=Impact.MODERATE
+        )
         response = auth_client().get(
             f"{test_api_uri}/workflows/{flaw.uuid}?verbose=true"
         )

@@ -5,6 +5,7 @@ Tests for classification change tracking functionality
 import pytest
 
 from apps.workflows.tracking import ClassificationChangeType
+from osidb.models import Impact
 from osidb.tests.factories import FlawFactory
 
 pytestmark = pytest.mark.unit
@@ -53,6 +54,7 @@ class TestClassificationTracking:
         flaw = FlawFactory(
             embargoed=False,
             task_key="TEST-1",
+            impact=Impact.MODERATE,
             cwe_id="",  # Missing CWE
         )
         initial_state = flaw.workflow_state
@@ -87,6 +89,7 @@ class TestClassificationTracking:
         flaw = FlawFactory(
             embargoed=False,
             task_key="TEST-2",
+            impact=Impact.MODERATE,
             cwe_id="CWE-79",  # Ensure CWE is set
             components=["kernel"],
         )
@@ -131,6 +134,7 @@ class TestClassificationTracking:
         flaw = FlawFactory(
             embargoed=False,
             task_key="TEST-3",
+            impact=Impact.MODERATE,
         )
         assert flaw.workflow_name == "DEFAULT"
 
@@ -158,6 +162,7 @@ class TestClassificationTracking:
         flaw = FlawFactory(
             embargoed=True,
             task_key="TEST-4",
+            impact=Impact.MODERATE,
         )
         assert flaw.workflow_name == "EMBARGOED"
 
@@ -200,6 +205,7 @@ class TestClassificationTracking:
         flaw = FlawFactory(
             embargoed=False,
             task_key="TEST-6",
+            impact=Impact.MODERATE,
             cwe_id="",
             components=[],
         )
@@ -237,6 +243,7 @@ class TestClassificationTracking:
         flaw = FlawFactory(
             embargoed=False,
             task_key="TEST-7",
+            impact=Impact.MODERATE,
             cwe_id="",
         )
 

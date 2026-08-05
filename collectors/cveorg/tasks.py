@@ -10,7 +10,7 @@ logger = get_task_logger(__name__)
 
 @collector(
     base=CVEorgCollector,
-    crontab=crontab(minute=0, hour="*/1"),  # Run every hour
+    crontab=crontab(minute="*/10"),  # Run every 10 minutes
     enabled=CVEORG_COLLECTOR_ENABLED,
 )
 def cveorg_collector(collector_obj) -> str:

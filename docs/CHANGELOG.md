@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - set potential-rejection label as additional MANUAL workflow condition
+- lower CVE.org and OSV collection periods from 1h to 10m (OSIDB-5327)
+- set critical impact as one of the MANUAL workflow conditions (OSIDB-5328)
+- check workflow labels only in worklow label check (OSIDB-5275)
 
 ### Fixed
 - fix the resolved affects check (OSIDB-5315)
