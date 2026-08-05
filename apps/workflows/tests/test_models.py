@@ -6,6 +6,7 @@ from apps.workflows.workflow import WorkflowFramework
 from osidb.mixins import ACLMixinVisibility
 from osidb.models import (
     Affect,
+    AliasLabel,
     Flaw,
     FlawCVSS,
     FlawReference,
@@ -1261,3 +1262,19 @@ class TestFlaw:
         WorkflowLabel.objects.create(flaw=flaw, name="approved")
         assert flaw.has_label("rejected")
         assert flaw.has_label("approved")
+
+    def test_has_label_ignores_non_workflow_labels(self):
+        """test that has_label only considers workflow labels, not other types"""
+        flaw = FlawFactory()
+
+        AliasLabel.objects.create(
+            flaw=flaw,
+            name="rejected",
+            acl_read=list(flaw.acl_read),
+            acl_write=list(flaw.acl_write),
+        )
+        assert not flaw.has_label("rejected")
+
+        WorkflowLabel.objects.create(flaw=flaw, name="approved")
+        assert flaw.has_label("approved")
+        assert not flaw.has_label("rejected")

@@ -863,9 +863,11 @@ class Flaw(
 
     def has_label(self, label):
         """
-        check if the flaw has a label with the given name
+        check if the flaw has a workflow label with the given name
         """
-        return self.labels_v2.filter(name=label).exists()
+        from osidb.models.flaw.label_v2 import WorkflowLabel
+
+        return WorkflowLabel.objects.filter(flaw=self, name=label).exists()
 
     @property
     def is_placeholder(self):
