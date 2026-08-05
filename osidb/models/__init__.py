@@ -25,10 +25,8 @@ __all__ = (
     "Flaw",
     "FlawAcknowledgment",
     "FlawComment",
-    "FlawCollaborator",
     "FlawCVSS",
     "FlawLabel",
-    "FlawLabelV2",
     "FlawReference",
     "UpstreamData",
     "FlawSource",
@@ -56,14 +54,13 @@ from .flaw.acknowledgment import FlawAcknowledgment
 from .flaw.comment import FlawComment
 from .flaw.cvss import FlawCVSS
 from .flaw.flaw import Flaw
-from .flaw.label import FlawCollaborator, FlawLabel
-from .flaw.label_v2 import (
+from .flaw.label import (
     AliasLabel,
     BULabel,
     BULabelDefinition,
     CollaboratorLabel,
     CollaboratorLabelDefinition,
-    FlawLabelV2,
+    FlawLabel,
     ProductFamilyLabel,
     ProductFamilyLabelDefinition,
     WorkflowLabel,

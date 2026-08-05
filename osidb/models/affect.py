@@ -303,7 +303,7 @@ class Affect(
 
     def update_denormalized_labels(self):
         """Update the denormalized labels field based on current ps_module and ps_component."""
-        from osidb.models.flaw.label_v2 import ProductFamilyLabelDefinition
+        from osidb.models.flaw.label import ProductFamilyLabelDefinition
 
         if not self.ps_module or not self.ps_component:
             self.labels = []
