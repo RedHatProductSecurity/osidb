@@ -11,7 +11,7 @@ logger = get_task_logger(__name__)
 
 @collector(
     base=OSVCollector,
-    crontab=crontab(minute=0, hour="*/1"),  # Run every hour
+    crontab=crontab(minute="*/10"),  # Run every 10 minutes
     enabled=OSV_COLLECTOR_ENABLED,
 )
 def osv_collector(collector_obj) -> str:
