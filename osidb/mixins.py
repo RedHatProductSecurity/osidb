@@ -12,8 +12,14 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.contrib.postgres.search import SearchVectorField
+from django.core.exceptions import (
+    ImproperlyConfigured,
+    ObjectDoesNotExist,
+    ValidationError,
+)
 from django.db import IntegrityError, models, transaction
+from django.dispatch import receiver
 from django.utils import timezone
 
 from osidb.exceptions import DataInconsistencyException
@@ -127,6 +133,86 @@ class TrackingMixinManager(models.Manager):
         )
         obj.save(force_insert=True, using=self.db, **new_kwargs)
         return obj
+
+
+_SEARCH_VECTOR_WEIGHTS = {"A", "B", "C", "D"}
+
+
+def _search_vector_trigger(
+    *fields: tuple[str, str],
+    name: str = "update_search_vector",
+    config: str = "english",
+) -> pgtrigger.Trigger:
+    """
+    Build a BEFORE INSERT/UPDATE trigger that keeps a `search_vector` column updated from
+    weighted document fields, e.g. _search_vector_trigger(("title", "A"), ("comment_zero", "B")).
+
+    Unlike pgtrigger.UpdateSearchVector (backed by Postgres' tsvector_update_trigger), this
+    supports per-field weights, which OSIDB search ranking relies on.
+    """
+    for column, weight in fields:
+        if weight not in _SEARCH_VECTOR_WEIGHTS:
+            raise ValueError(
+                f"Invalid tsvector weight {weight!r} for column {column!r}"
+            )
+    setweights = " || ".join(
+        f"setweight(to_tsvector('{config}', COALESCE(NEW.{column}, '')), '{weight}')"
+        for column, weight in fields
+    )
+    columns = [column for column, _ in fields]
+    return pgtrigger.Trigger(
+        name=name,
+        when=pgtrigger.Before,
+        operation=pgtrigger.Insert | pgtrigger.UpdateOf(*columns),
+        func=f"NEW.search_vector := {setweights}; RETURN NEW;",
+    )
+
+
+class SearchVectorMixin(models.Model):
+    """
+    Mixin adding a stored `search_vector` column for Postgres full-text search.
+
+    Subclasses declare the weighted fields to index, e.g.:
+
+        class Flaw(SearchVectorMixin, ...):
+            search_vector_fields = (("title", "A"), ("comment_zero", "B"))
+
+    A BEFORE INSERT/UPDATE trigger keeping the column in sync is registered automatically
+    once the model class is prepared; search_vector must never be set in application code.
+    """
+
+    search_vector = SearchVectorField(null=True, editable=False)
+    search_vector_fields: tuple = ()
+    search_vector_config: str = "english"
+
+    class Meta:
+        abstract = True
+        # unnamed so Django auto-generates a per-table name, avoiding collisions
+        # across the multiple concrete models that inherit this mixin
+        indexes = [GinIndex(fields=["search_vector"])]
+
+
+@receiver(models.signals.class_prepared)
+def _register_search_vector_trigger(sender, **kwargs):
+    """
+    Build and register the trigger for any concrete SearchVectorMixin subclass that
+    declares search_vector_fields. Runs on class_prepared (after _meta exists) rather
+    than from the mixin's own class body, since Meta.triggers set here would only take
+    effect for subclasses that don't define their own Meta class.
+
+    class_prepared is only sent for concrete models, so an abstract intermediate
+    subclass (one that doesn't set search_vector_fields itself but expects a further
+    subclass to) never reaches here.
+    """
+    if issubclass(sender, SearchVectorMixin):
+        if not sender.search_vector_fields:
+            raise ImproperlyConfigured(
+                f"{sender.__name__} inherits from SearchVectorMixin but does not "
+                "define search_vector_fields."
+            )
+        _search_vector_trigger(
+            *sender.search_vector_fields, config=sender.search_vector_config
+        ).register(sender)
 
 
 class NullStrFieldsMixin(models.Model):

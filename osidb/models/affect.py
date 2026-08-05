@@ -98,22 +98,6 @@ class AffectManager(ACLMixinManager, TrackingMixinManager):
                 **extra_fields,
             )
 
-    @staticmethod
-    def fts_search(q):
-        """full text search using postgres FTS via django.contrib.postgres"""
-        from osidb.filters import search_helper
-
-        fields_to_search = (
-            "ps_component",
-            "ps_update_stream",
-            "resolution",
-            "affectedness",
-            "type",
-        )
-        return search_helper(Affect.objects.get_queryset(), fields_to_search, q)
-        # Search Affect fields specified with equal weights
-        # If search has no results, this will now return an empty queryset
-
 
 class AffectV1Manager(ACLMixinManager, TrackingMixinManager):
     """affect v1 manager"""
@@ -130,22 +114,6 @@ class AffectV1Manager(ACLMixinManager, TrackingMixinManager):
                 )
             )
         )
-
-    @staticmethod
-    def fts_search(q):
-        """full text search using postgres FTS via django.contrib.postgres"""
-        from osidb.filters import search_helper
-
-        fields_to_search = (
-            "ps_component",
-            "ps_module",
-            "resolution",
-            "affectedness",
-            "type",
-        )
-        return search_helper(AffectV1.objects.get_queryset(), fields_to_search, q)
-        # Search Affect fields specified with equal weights
-        # If search has no results, this will now return an empty queryset
 
 
 @pghistory.track(

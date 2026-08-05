@@ -479,3 +479,61 @@ class TestSearch:
 
         with pytest.raises(DjangoQLSchemaError, match="Unknown field: labels_v2"):
             auth_client().get(f'{test_api_uri}/flaws?query=labels_v2.name = "test"')
+
+    def test_search_websearch_exclusion(self, auth_client, test_api_uri):
+        """websearch_to_tsquery supports -exclusion, verify it works after query refactor."""
+        flaw = FlawFactory(
+            title="kernel buffer overflow",
+            embargoed=False,
+        )
+        flaw.refresh_from_db()
+        assert flaw.search_vector is not None, "DB trigger must populate search_vector"
+        FlawFactory(
+            title="userspace buffer overflow",
+            embargoed=False,
+        )
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?search=buffer overflow -kernel"
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert "userspace" in body["results"][0]["title"]
+
+    def test_search_fts_no_match_returns_empty(self, auth_client, test_api_uri):
+        """Verify no false positives from either FTS or trigram path."""
+        FlawFactory(title="something else entirely", embargoed=False)
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?search=nonexistent xyzzy zzzzz"
+        )
+        assert response.status_code == 200
+        assert response.json()["count"] == 0
+
+    def test_search_trigram_partial_cve(self, auth_client, test_api_uri):
+        """A partial CVE-ID matches via trigram similarity but not unrelated CVEs."""
+        FlawFactory(
+            title="Apache Traffic Server vulnerability",
+            cve_id="CVE-2024-99999",
+            embargoed=False,
+        )
+        FlawFactory(
+            title="unrelated flaw",
+            cve_id="CVE-2024-12345",
+            embargoed=False,
+        )
+
+        response = auth_client().get(f"{test_api_uri}/flaws?search=CVE-2024-1234")
+        assert response.status_code == 200
+        cve_ids = [r["cve_id"] for r in response.json()["results"]]
+        assert "CVE-2024-12345" in cve_ids
+        assert "CVE-2024-99999" not in cve_ids
+
+    def test_search_helper_rejects_model_without_search_vector(self):
+        """search_helper raises ValueError when called with falsy field_names on a non-Flaw model."""
+        from osidb.filters import search_helper
+        from osidb.models import Affect
+
+        with pytest.raises(ValueError, match="has no search_vector column"):
+            search_helper(Affect.objects.get_queryset(), (), "kernel")

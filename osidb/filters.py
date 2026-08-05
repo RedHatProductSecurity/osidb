@@ -16,7 +16,7 @@ from django.contrib.postgres.search import (
 from django.core.exceptions import ValidationError
 from django.core.validators import EMPTY_VALUES
 from django.db import models
-from django.db.models import Max, Min, Q
+from django.db.models import F, Max, Min, Q
 from django.utils import timezone
 from django_filters.rest_framework import (
     BaseInFilter,
@@ -33,6 +33,7 @@ from django_filters.rest_framework import (
 from djangoql.queryset import apply_search
 from packageurl import PackageURL
 
+from osidb.mixins import SearchVectorMixin
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -529,8 +530,11 @@ def search_helper(
     By default, Django uses the plainto_tsquery() Postgres function, which doesn't support search operators
     We override this with websearch_to_tsquery() which supports "quoted phrases" and -exclusions
     We also extend logic here to support weighting and ranking search results, based on which column is matched
+
+    When field_names is falsy or "search" (the django-filters default), uses Flaw's stored
+    search_vector column and trigram similarity on cve_id. Other models must pass explicit field_names.
     """
-    query = SearchQuery(field_value, search_type="websearch")
+    query = SearchQuery(field_value, search_type="websearch", config="english")
 
     if field_names and field_names != "search":
         # Search only field(s) user provided, weighted equally
@@ -539,38 +543,29 @@ def search_helper(
             field_names = (field_names,)
 
         vector = SearchVector(*field_names)
+        rank = SearchRank(vector, query, cover_density=True)
 
-    else:  # Empty tuple or 'search' (default from django-filters when field name not specified)
-        # Search all Flaw text columns, weighted so title is most relevant
-        # TODO: Add logic to make this more generic (for any model) instead of assuming we are searching Flaws
-        # We could just search all fields, or get only text fields from a model dynamically
-        # Logic to set weights makes this more complicated
-        vector = (
-            SearchVector("title", weight="A")
-            + SearchVector("cve_id", weight="A")
-            + SearchVector("comment_zero", weight="B")
-            + SearchVector("cve_description", weight="C")
-            + SearchVector("statement", weight="D")
+        return queryset.annotate(rank=rank).filter(rank__gt=0).order_by("-rank")
+
+    # Empty tuple or 'search' (default from django-filters when field name not specified)
+    # Search all Flaw text columns, weighted so title is most relevant
+    if not issubclass(queryset.model, SearchVectorMixin):
+        raise ValueError(
+            f"{queryset.model.__name__} has no search_vector column. "
+            "Add SearchVectorMixin from osidb.mixins, or pass explicit field_names to "
+            "search_helper."
         )
-
     # Allow searching CVEs by similarity instead of tokens like full-text search does.
-    # Using tokens, the word 'securit' will not match with 'security', and 'CVE-2001-04'
-    # will not match with 'CVE-2001-0414'. This behavior may be intended for text based fields, but
-    # when searching for CVEs it's probably because the user forgot part of, or the order of, the numbers.
+    # Using tokens, 'CVE-2001-04' will not match 'CVE-2001-0414'. Trigram similarity
+    # handles partial or misordered CVE numbers the user may not fully remember.
     similarity = TrigramSimilarity("cve_id", field_value)
-
-    rank = SearchRank(vector, query, cover_density=True)
-    # Consider proximity of matching terms when ranking
+    rank = SearchRank(F("search_vector"), query, cover_density=True)
 
     return (
         queryset.annotate(rank=rank, similarity=similarity)
-        # The similarity threshold of 0.7 has been found by trial and error to work best with CVEs
-        .filter(Q(rank__gt=0) | Q(similarity__gt=0.7))
+        .filter(Q(search_vector=query) | Q(similarity__gt=0.7))
         .order_by("-rank")
     )
-    # Add "rank" column to queryset based on search result relevance
-    # Exclude results that don't match (rank 0)
-    # Order remaining results from highest rank to lowest
 
 
 class FlawFilter(

@@ -3,7 +3,10 @@ import uuid
 import pytest
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
+from django.contrib.postgres.search import SearchVectorField
+from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.db import models
+from django.test.utils import isolate_apps
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -14,7 +17,7 @@ from apps.workflows.models import Workflow
 from apps.workflows.workflow import WorkflowFramework
 from osidb.core import generate_acls
 from osidb.exceptions import DataInconsistencyException
-from osidb.mixins import ACLMixinVisibility, Alert, AlertMixin
+from osidb.mixins import ACLMixinVisibility, Alert, AlertMixin, SearchVectorMixin
 from osidb.models import (
     Affect,
     Flaw,
@@ -923,6 +926,28 @@ class TestAlertMixin:
             assert alerts.count() == 1
             # The alert should not be updated as is resolved
             assert alerts[0].created_dt == tzdatetime(2024, 12, 10, 12, 0, 0)
+
+
+class TestSearchVectorMixin:
+    @isolate_apps("osidb")
+    def test_missing_search_vector_fields_raises(self):
+        """Tests that a concrete SearchVectorMixin subclass without search_vector_fields
+        raises at class definition time instead of silently skipping the DB trigger."""
+        with pytest.raises(ImproperlyConfigured, match="search_vector_fields"):
+
+            class Unindexed(SearchVectorMixin):
+                pass
+
+    @isolate_apps("osidb")
+    def test_search_vector_fields_registers_trigger(self):
+        """Tests that declaring search_vector_fields is enough to prepare the model
+        without raising."""
+
+        class Indexed(SearchVectorMixin):
+            title = models.CharField(max_length=255)
+            search_vector_fields = (("title", "A"),)
+
+        assert isinstance(Indexed._meta.get_field("search_vector"), SearchVectorField)
 
 
 class TestMultiMixinIntegration:
