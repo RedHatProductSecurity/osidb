@@ -7,6 +7,7 @@ from rest_framework import status
 
 from osidb.core import set_user_acls
 from osidb.models import Affect, AffectCVSS, Tracker
+from osidb.models.ps_constants import UbiPackage
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,
@@ -507,6 +508,42 @@ class TestEndpointsAffects:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["count"] == 1
         assert response.data["results"][0]["cve_id"] == flaw.cve_id
+
+
+class TestAffectUbiLabel:
+    """tests for the ubi label on affect denormalized labels"""
+
+    @pytest.mark.enable_signals
+    def test_ubi_label_present(self):
+        UbiPackage.objects.create(name="ubi-component", ps_module="rhel-8")
+        ps_module = PsModuleFactory(name="rhel-8")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            ps_update_stream=ps_update_stream.name,
+            ps_component="ubi-component",
+        )
+        assert "ubi" in affect.labels
+
+    @pytest.mark.enable_signals
+    def test_ubi_label_absent(self):
+        ps_module = PsModuleFactory(name="rhel-8")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            ps_update_stream=ps_update_stream.name,
+            ps_component="not-ubi",
+        )
+        assert "ubi" not in affect.labels
+
+    @pytest.mark.enable_signals
+    def test_ubi_label_wrong_ps_module(self):
+        UbiPackage.objects.create(name="ubi-component", ps_module="rhel-8")
+        ps_module = PsModuleFactory(name="rhel-9")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            ps_update_stream=ps_update_stream.name,
+            ps_component="ubi-component",
+        )
+        assert "ubi" not in affect.labels
 
 
 class TestEndpointsAffectsBulk:
