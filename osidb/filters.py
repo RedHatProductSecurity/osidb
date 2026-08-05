@@ -575,7 +575,7 @@ def search_helper(
     return (
         queryset.annotate(rank=rank, similarity=similarity)
         .filter(Q(search_vector=query) | Q(similarity__gt=0.7))
-        .order_by("-rank")
+        .order_by("-rank", "-similarity")
     )
 
 
