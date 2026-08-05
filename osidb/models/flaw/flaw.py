@@ -926,11 +926,12 @@ class Flaw(
 
     @property
     def has_affects_resolved(self):
-        """check that all affects have resolution"""
+        """check that all affects have been analysed"""
         from osidb.models import Affect
 
         return not self.affects.filter(
-            resolution=Affect.AffectResolution.NOVALUE
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
         ).exists()
 
     @property
