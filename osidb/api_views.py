@@ -915,7 +915,6 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         "affects",
         "affects__cvss_scores",
         "affects__tracker",
-        "affects__tracker__errata",
         "affects__tracker__affects",
         "affects__alerts",
         "affects__tracker__alerts",
@@ -1572,7 +1571,6 @@ class AffectView(
         "cvss_scores",
         "cvss_scores__alerts",
         "tracker",
-        "tracker__errata",
         "tracker__affects",
         "tracker__alerts",
     ).all()
@@ -1993,7 +1991,7 @@ class AffectCVSSV2View(RudimentaryUserPathLoggingMixin, ModelViewSet):
     ),
 )
 class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
-    queryset = Tracker.objects.prefetch_related("alerts", "errata", "affects").all()
+    queryset = Tracker.objects.prefetch_related("alerts", "affects").all()
     serializer_class = TrackerSerializer
     filterset_class = TrackerFilter
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
@@ -2010,7 +2008,7 @@ class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
 class TrackerV1View(TrackerView):
     """View for the tracker model adapted to affects v1"""
 
-    queryset = Tracker.objects.prefetch_related("alerts", "errata").all()
+    queryset = Tracker.objects.prefetch_related("alerts").all()
     serializer_class = TrackerV1Serializer
     http_method_names = get_valid_http_methods(
         ModelViewSet, excluded=["delete", "post", "put"]
