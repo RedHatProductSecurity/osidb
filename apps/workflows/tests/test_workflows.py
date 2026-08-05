@@ -233,6 +233,7 @@ class TestDefaultWorkflow:
             embargoed=False,
             task_key="TASK-100",
             owner="analyst@redhat.com",
+            impact=Impact.MODERATE,
             cwe_id="CWE-79",
         )
         affect = AffectFactory(
@@ -363,6 +364,7 @@ class TestManualWorkflow:
         flaw = FlawFactory(
             embargoed=False,
             task_key="TASK-MANUAL-1",
+            impact=Impact.MODERATE,
         )
         assert flaw.workflow_name == "DEFAULT"
 
@@ -380,6 +382,7 @@ class TestManualWorkflow:
         flaw = FlawFactory(
             embargoed=False,
             task_key="TASK-MANUAL-2",
+            impact=Impact.MODERATE,
         )
         assert flaw.workflow_name == "DEFAULT"
 
@@ -397,6 +400,7 @@ class TestManualWorkflow:
         flaw = FlawFactory(
             embargoed=False,
             task_key="TASK-MANUAL-3",
+            impact=Impact.MODERATE,
         )
         label = WorkflowLabel.objects.create(flaw=flaw, name="potential-rejection")
         flaw.refresh_from_db()
@@ -415,6 +419,7 @@ class TestManualWorkflow:
         flaw = FlawFactory(
             embargoed=False,
             task_key="TASK-MANUAL-4",
+            impact=Impact.MODERATE,
         )
         label1 = WorkflowLabel.objects.create(flaw=flaw, name="manual-triage")
         flaw.refresh_from_db()
@@ -428,6 +433,51 @@ class TestManualWorkflow:
         label1.delete()
         flaw.refresh_from_db()
         assert flaw.workflow_name == "MANUAL"
+
+    @pytest.mark.enable_signals
+    def test_critical_impact_triggers_manual_workflow(self):
+        """
+        A flaw with CRITICAL impact should be classified under the MANUAL
+        workflow even without any manual-triage or potential-rejection label.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-MANUAL-5",
+            impact=Impact.CRITICAL,
+        )
+        assert flaw.workflow_name == "MANUAL"
+        assert flaw.workflow_state == "NEW"
+
+    @pytest.mark.enable_signals
+    def test_non_critical_impact_stays_default(self):
+        """
+        A flaw with non-CRITICAL impact and no manual labels should remain
+        in the DEFAULT workflow.
+        """
+        for impact in [Impact.LOW, Impact.MODERATE, Impact.IMPORTANT]:
+            flaw = FlawFactory(
+                embargoed=False,
+                task_key=f"TASK-MANUAL-6-{impact}",
+                impact=impact,
+            )
+            assert flaw.workflow_name == "DEFAULT"
+
+    @pytest.mark.enable_signals
+    def test_lowering_impact_from_critical_reverts_to_default(self):
+        """
+        Changing a flaw's impact from CRITICAL to a lower value should
+        reclassify it back to the DEFAULT workflow (if no manual labels).
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-MANUAL-7",
+            impact=Impact.CRITICAL,
+        )
+        assert flaw.workflow_name == "MANUAL"
+
+        flaw.impact = Impact.MODERATE
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_name == "DEFAULT"
 
 
 class TestNoClassification:

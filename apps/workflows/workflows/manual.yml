@@ -9,6 +9,7 @@ conditions:
     requirements:
       - has label manual-triage
       - has label potential-rejection
+      - impact is critical
 states:
   - name: NEW
     description: >
