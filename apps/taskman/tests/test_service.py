@@ -49,8 +49,8 @@ class TestTaskmanService(object):
         status, _ = flaw.jira_status()
         assert response2 is None
 
-        # Flaw classifies to ANALYSIS (has affects but resolution is NOVALUE)
-        assert flaw.workflow_state == "ANALYSIS"
+        # NOTAFFECTED:NOVALUE is resolved, so flaw advances past ANALYSIS
+        assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
         flaw.save(raise_validation_error=False)
         response3 = taskman.create_or_update_task(flaw=flaw)
         assert response3 is None

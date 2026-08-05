@@ -221,6 +221,33 @@ class TestDefaultWorkflow:
         assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
 
     @pytest.mark.enable_signals
+    def test_notaffected_advances_past_analysis(self):
+        """
+        Verify that a NOTAFFECTED affect (which has no resolution)
+        is treated as resolved and advances the flaw past ANALYSIS.
+
+        NOTAFFECTED also doesn't require trackers so the flaw advances
+        all the way to SECONDARY_ASSESSMENT (blocked only by has label approved).
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-100",
+            owner="analyst@redhat.com",
+            cwe_id="CWE-79",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "ANALYSIS"
+
+        affect.affectedness = Affect.AffectAffectedness.NOTAFFECTED
+        affect.save(raise_validation_error=False)
+        assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
+
+    @pytest.mark.enable_signals
     def test_label_removal_triggers_regression(self):
         """
         Verify that deleting an "approved" label triggers reclassification

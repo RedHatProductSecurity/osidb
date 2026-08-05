@@ -2735,3 +2735,78 @@ class TestHasHighCvssScore:
             vector="CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:N/A:N",  # score 3.5
         )
         assert flaw.has_high_cvss_score is True
+
+
+class TestHasAffectsResolved:
+    def test_new_novalue_is_unresolved(self):
+        flaw = FlawFactory()
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        assert flaw.has_affects_resolved is False
+
+    def test_new_with_resolution_is_resolved(self):
+        flaw = FlawFactory()
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.WONTFIX,
+        )
+        assert flaw.has_affects_resolved is True
+
+    def test_notaffected_novalue_is_resolved(self):
+        flaw = FlawFactory()
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NOTAFFECTED,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        assert flaw.has_affects_resolved is True
+
+    def test_affected_delegated_is_resolved(self):
+        flaw = FlawFactory()
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        assert flaw.has_affects_resolved is True
+
+    def test_affected_with_resolution_is_resolved(self):
+        flaw = FlawFactory()
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.WONTFIX,
+        )
+        assert flaw.has_affects_resolved is True
+
+    def test_mixed_resolved_and_unresolved(self):
+        flaw = FlawFactory()
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NOTAFFECTED,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        assert flaw.has_affects_resolved is False
+
+    def test_all_resolved_mixed_types(self):
+        flaw = FlawFactory()
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NOTAFFECTED,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        assert flaw.has_affects_resolved is True
