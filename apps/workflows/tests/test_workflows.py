@@ -178,6 +178,7 @@ class TestDefaultWorkflow:
         """
         flaw = FlawFactory(
             embargoed=False,
+            impact=Impact.MODERATE,
             task_key="TASK-2",
             owner="analyst@redhat.com",
             cwe_id="CWE-79",
