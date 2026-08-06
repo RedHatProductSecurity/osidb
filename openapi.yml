@@ -20730,6 +20730,7 @@ components:
       properties:
         embargoed:
           type: boolean
+          readOnly: true
           description: The embargoed boolean attribute is technically read-only as
             it just indirectly modifies the ACLs but is mandatory as it controls the
             access to the resource.
@@ -20804,11 +20805,6 @@ components:
         ACLMixin class serializer
         translates embargoed boolean to ACLs
       properties:
-        embargoed:
-          type: boolean
-          description: The embargoed boolean attribute is technically read-only as
-            it just indirectly modifies the ACLs but is mandatory as it controls the
-            access to the resource.
         updated_dt:
           type: string
           format: date-time
@@ -20835,7 +20831,6 @@ components:
           - 'null'
           format: date-time
       required:
-      - embargoed
       - updated_dt
     UpstreamNotificationStatusEnum:
       enum:

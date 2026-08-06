@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from osidb.serializer import (
     ACLMixinSerializer,
+    EmbargoedField,
     IncludeExcludeFieldsMixin,
     TrackingMixinSerializer,
 )
@@ -65,6 +66,20 @@ class UpstreamNotificationSerializer(
     uuid = serializers.UUIDField(read_only=True)
     flaw_uuid = serializers.UUIDField(read_only=True, source="flaw.uuid")
     last_error = serializers.CharField(read_only=True)
+    # ACLs are inherited from the parent flaw (see signals.py); not mutable via
+    # this API. Must be declared read_only: Meta.read_only_fields does not
+    # apply to fields declared on ACLMixinSerializer. update() also skips
+    # ACLMixinSerializer.update() so an omitted/spoofed embargoed value cannot
+    # desynchronize this notification's ACLs from its parent flaw's.
+    embargoed = EmbargoedField(
+        source="*",
+        read_only=True,
+        help_text=(
+            "The embargoed boolean attribute is technically read-only as it just "
+            "indirectly modifies the ACLs but is mandatory as it controls the access "
+            "to the resource."
+        ),
+    )
 
     class Meta(ACLMixinSerializer.Meta, TrackingMixinSerializer.Meta):
         model = UpstreamNotification
@@ -81,6 +96,21 @@ class UpstreamNotificationSerializer(
                 "timer_started_at",
                 "last_error",
             ]
+        )
+
+    def update(self, instance, validated_data, *args, **kwargs):
+        """
+        Preserve ACLs on update.
+
+        ACLMixinSerializer.update() reads request.data.get("embargoed") and
+        rewrites ACLs; omitting embargoed resolves as public. Notification
+        ACLs are inherited from the parent flaw and are not mutable via this
+        API.
+        """
+        validated_data["acl_read"] = instance.acl_read
+        validated_data["acl_write"] = instance.acl_write
+        return super(ACLMixinSerializer, self).update(
+            instance, validated_data, *args, **kwargs
         )
 
 

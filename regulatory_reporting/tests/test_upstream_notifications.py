@@ -96,6 +96,68 @@ class TestUpstreamNotificationView:
         assert response.status_code == 200
         assert response.json()["count"] == 1
 
+    def test_update_does_not_change_acls_when_embargoed(self, auth_client):
+        """
+        Regression test for parent-authorization: updating a notification
+        must not let the request desynchronize its ACLs from the parent
+        flaw's, even when the request includes an `embargoed` value that
+        contradicts the flaw's actual classification.
+        """
+        flaw = NonReportableFlawFactory(embargoed=True)
+        notification = UpstreamNotificationFactory(
+            flaw=flaw, status=UpstreamNotification.NotificationStatus.REQUIRED
+        )
+        assert notification.acl_read == flaw.acl_read
+        assert notification.acl_write == flaw.acl_write
+
+        response = auth_client().put(
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}",
+            {
+                "status": UpstreamNotification.NotificationStatus.PREPARED,
+                "embargoed": False,
+                "updated_dt": notification.updated_dt.isoformat(),
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        notification.refresh_from_db()
+        assert notification.status == UpstreamNotification.NotificationStatus.PREPARED
+        assert notification.acl_read == flaw.acl_read
+        assert notification.acl_write == flaw.acl_write
+        assert notification.is_embargoed
+
+    def test_update_does_not_change_acls_when_public(self, auth_client):
+        """
+        Parity check: updating a public notification must not let the
+        request move its ACLs away from the parent flaw's, even when the
+        request includes an `embargoed` value that contradicts the flaw's
+        actual classification.
+        """
+        flaw = NonReportableFlawFactory(embargoed=False)
+        notification = UpstreamNotificationFactory(
+            flaw=flaw, status=UpstreamNotification.NotificationStatus.REQUIRED
+        )
+        assert notification.acl_read == flaw.acl_read
+        assert notification.acl_write == flaw.acl_write
+
+        response = auth_client().put(
+            f"/regulatory-reporting/api/v1/notifications/upstream/{notification.uuid}",
+            {
+                "status": UpstreamNotification.NotificationStatus.PREPARED,
+                "embargoed": True,
+                "updated_dt": notification.updated_dt.isoformat(),
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        notification.refresh_from_db()
+        assert notification.status == UpstreamNotification.NotificationStatus.PREPARED
+        assert notification.acl_read == flaw.acl_read
+        assert notification.acl_write == flaw.acl_write
+        assert not notification.is_embargoed
+
     def test_preview_returns_rendered_bodies(self, auth_client):
         """Test preview endpoint returns live rendered email."""
         flaw = NonReportableFlawFactory(cve_description="A test vulnerability.")
