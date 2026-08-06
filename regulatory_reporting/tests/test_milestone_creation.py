@@ -12,7 +12,6 @@ from datetime import timedelta
 
 import pytest
 from django.core.exceptions import ValidationError
-from django.test import override_settings
 from django.utils import timezone
 
 from osidb.models import Flaw
@@ -41,7 +40,7 @@ class TestSRPMilestoneAutoCreation:
         srp_report = SRPReport.objects.get(flaw=flaw)
         assert (
             srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
         )
 
         # Exactly 3 milestones created
@@ -78,7 +77,7 @@ class TestSRPMilestoneAutoCreation:
         srp_report = SRPReport.objects.get(flaw=flaw)
         assert (
             srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.SEVERE_INCIDENT
+            == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
         )
 
         # Assert - Exactly 3 milestones created
@@ -299,7 +298,7 @@ class TestSRPMilestoneAutoCreation:
         # Verify first report and milestones created
         severe_report = SRPReport.objects.get(
             flaw=flaw,
-            reportable_event_type=SRPReport.ReportableEventType.SEVERE_INCIDENT,
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
         )
         severe_milestones = SRPReportMilestone.objects.filter(srp_report=severe_report)
         assert severe_milestones.count() == 3
@@ -311,7 +310,7 @@ class TestSRPMilestoneAutoCreation:
         # KEV report created with its own milestones
         kev_report = SRPReport.objects.get(
             flaw=flaw,
-            reportable_event_type=SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY,
+            reportable_event_type=SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
         )
         kev_milestones = SRPReportMilestone.objects.filter(srp_report=kev_report)
         assert kev_milestones.count() == 3, (
@@ -573,7 +572,7 @@ class TestMilestoneDueDateProperty:
         srp_report = SRPReport.objects.get(flaw=flaw)
         assert (
             srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.SEVERE_INCIDENT
+            == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
         )
 
         # Act - create additional info milestone

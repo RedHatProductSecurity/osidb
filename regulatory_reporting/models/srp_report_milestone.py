@@ -133,9 +133,9 @@ class SRPReportMilestone(SRPReportBase):
         Calculate milestone due date.
 
         For LEVEL_FINAL: duration depends on event type:
-        - KEV (actively_exploited_vulnerability): 14 days
-        - Severe Incident (severe_incident): 30 days
-        - Additional Information Request (additional_information_request): 30 days from the request received
+        - KEV (EXPLOITS_KEV_APPROVED): 14 days
+        - Severe Incident (MAJOR_INCIDENT_APPROVED): 30 days
+        - Additional Information Request: 30 days from the request received
         """
         if (
             self.milestone_type
@@ -152,12 +152,12 @@ class SRPReportMilestone(SRPReportBase):
             # Check parent report's event type
             if (
                 self.srp_report.reportable_event_type
-                == SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+                == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
             ):
                 duration = timedelta(days=14)
             elif (
                 self.srp_report.reportable_event_type
-                == SRPReport.ReportableEventType.SEVERE_INCIDENT
+                == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
             ):
                 duration = timedelta(days=30)
             else:
@@ -176,16 +176,20 @@ class SRPReportMilestone(SRPReportBase):
         """
         Due date must be set for all milestones.
 
-        Exception: LEVEL_ADDITIONAL_INFORMATION_RESPONSE milestones can have
-        None due_at if request_received_at is not yet set.
+        Exceptions:
+        - LEVEL_ADDITIONAL_INFORMATION_RESPONSE can have None due_at if
+          request_received_at is not yet set.
+        - PRE_REQUIRED milestones can have None due_at until the parent
+          report's SLA timer starts.
         """
         if (
             self.milestone_type == self.MilestoneType.LEVEL_FINAL
             and self.srp_report.reportable_event_type
             not in {
-                SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY,
-                SRPReport.ReportableEventType.SEVERE_INCIDENT,
+                SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
+                SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
             }
+            and self.status != SRPReportBase.SRPReportStatus.PRE_REQUIRED
         ):
             raise ValidationError("Invalid reportable event type")
 
@@ -197,4 +201,7 @@ class SRPReportMilestone(SRPReportBase):
                 and not self.request_received_at
             ):
                 return  # Valid state - waiting for request
+            # Allow None while manually created reports wait for timer start
+            if self.status == SRPReportBase.SRPReportStatus.PRE_REQUIRED:
+                return
             raise ValidationError("due_at must be set for all milestones")

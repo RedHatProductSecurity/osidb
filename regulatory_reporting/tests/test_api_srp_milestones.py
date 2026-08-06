@@ -10,9 +10,8 @@ from rest_framework import status
 
 from osidb.models import Flaw
 from osidb.tests.factories import FlawFactory
-from regulatory_reporting.models import SRPReport, SRPReportMilestone
+from regulatory_reporting.models import SRPReportMilestone
 from regulatory_reporting.tests.factories import (
-    NonReportableFlawFactory,
     SRPReportFactory,
     SRPReportMilestoneFactory,
 )
@@ -38,7 +37,7 @@ class TestSRPMilestoneList:
         """Milestones are filtered to the specified report only."""
         report1 = create_flaw_report()
 
-        flaw2 = FlawFactory(
+        FlawFactory(
             embargoed=False,
             major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
             major_incident_start_dt=timezone.now(),
@@ -73,7 +72,7 @@ class TestSRPMilestoneList:
     def test_list_milestones_includes_computed_fields(self, api_client):
         """Response includes computed fields."""
         report = SRPReportFactory()
-        milestone = SRPReportMilestoneFactory(srp_report=report)
+        SRPReportMilestoneFactory(srp_report=report)
 
         response = api_client.get(
             f"/regulatory-reporting/api/v1/srp-reports/{report.uuid}/milestones"
