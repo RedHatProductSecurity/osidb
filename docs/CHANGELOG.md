@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- migrate alias-typed manual-triage labels to workflow type (OSIDB-5335)
+
 ### Fixed
 - Gate ACE behind workflow eligibility to prevent spurious affects on manually-triaged,
   untriaged, and legacy flaws (OSIDB-4972, OSIDB-5307, OSIDB-5312)
