@@ -1,4 +1,5 @@
 import pytest
+from django.apps import apps
 from django.conf import settings
 from django.db import connections, transaction
 from django.db.utils import ProgrammingError
@@ -171,6 +172,30 @@ class TestSRPReportMilestoneRLS:
         assert SRPReportMilestone.objects.count() == 1
         assert SRPReportMilestone.objects.first().pk == embargo_pk
 
+    def test_update(self):
+        set_user_acls(settings.ALL_GROUPS)
+        m1 = SRPReportMilestoneFactory(srp_report__flaw__embargoed=False)
+        m2 = SRPReportMilestoneFactory(srp_report__flaw__embargoed=True)
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS + [settings.PUBLIC_WRITE_GROUP])
+        m1.request_source = "updated"
+        m1.save(raise_validation_error=False)
+        assert m1.request_source == "updated"
+
+        assert (
+            SRPReportMilestone.objects.filter(pk=m2.pk).update(
+                request_source="should fail"
+            )
+            == 0
+        )
+
+        set_user_acls([settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP])
+        m2 = SRPReportMilestone.objects.get(pk=m2.pk)
+        assert m2.request_source != "should fail"
+        m2.request_source = "updated"
+        m2.save(raise_validation_error=False)
+        assert m2.request_source == "updated"
+
     def test_delete(self):
         set_user_acls(settings.ALL_GROUPS)
         m1 = SRPReportMilestoneFactory(srp_report__flaw__embargoed=False)
@@ -239,6 +264,30 @@ class TestUpstreamNotificationRLS:
         assert UpstreamNotification.objects.count() == 1
         assert UpstreamNotification.objects.first().pk == embargo_pk
 
+    def test_update(self):
+        set_user_acls(settings.ALL_GROUPS)
+        n1 = UpstreamNotificationFactory(flaw__embargoed=False)
+        n2 = UpstreamNotificationFactory(flaw__embargoed=True)
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS + [settings.PUBLIC_WRITE_GROUP])
+        n1.last_error = "updated"
+        n1.save()
+        assert n1.last_error == "updated"
+
+        assert (
+            UpstreamNotification.objects.filter(pk=n2.pk).update(
+                last_error="should fail"
+            )
+            == 0
+        )
+
+        set_user_acls([settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP])
+        n2 = UpstreamNotification.objects.get(pk=n2.pk)
+        assert n2.last_error != "should fail"
+        n2.last_error = "updated"
+        n2.save()
+        assert n2.last_error == "updated"
+
     def test_delete(self):
         set_user_acls(settings.ALL_GROUPS)
         n1 = UpstreamNotificationFactory(flaw__embargoed=False)
@@ -257,3 +306,59 @@ class TestUpstreamNotificationRLS:
         assert UpstreamNotification.objects.count() == 1
         assert UpstreamNotification.objects.get(pk=n2.pk).delete()
         assert UpstreamNotification.objects.count() == 0
+
+
+class TestAuditTablesRLS:
+    """
+    The pghistory-generated audit tables (regulatory_reporting_srpreportaudit,
+    regulatory_reporting_srpreportmilestoneaudit) only have SELECT and INSERT
+    RLS policies (see migration 0007). With no UPDATE/DELETE policy defined,
+    Postgres RLS denies those operations unconditionally - even for a session
+    holding every ACL group - which is what makes these tables append-only.
+
+    The `pgh_obj` foreign key is also configured with `on_delete=DO_NOTHING`
+    and `db_constraint=False` (see settings.PGHISTORY_OBJ_FIELD), so deleting
+    the tracked parent row must succeed and leave the audit trail behind.
+    """
+
+    def test_srp_report_audit_is_append_only(self):
+        SRPReportAudit = apps.get_model("regulatory_reporting", "SRPReportAudit")
+
+        set_user_acls(settings.ALL_GROUPS)
+        report = SRPReportFactory(flaw__embargoed=False)
+        report_pk = report.pk
+        events = SRPReportAudit.objects.filter(pgh_obj=report_pk)
+        assert events.filter(pgh_label="insert").count() == 1
+
+        assert events.update(title="tampered") == 0
+        assert events.delete() == (0, {})
+        assert not events.filter(title="tampered").exists()
+
+        assert report.delete()
+        assert (
+            SRPReportAudit.objects.filter(pgh_obj=report_pk, pgh_label="delete").count()
+            == 1
+        )
+
+    def test_srp_report_milestone_audit_is_append_only(self):
+        SRPReportMilestoneAudit = apps.get_model(
+            "regulatory_reporting", "SRPReportMilestoneAudit"
+        )
+
+        set_user_acls(settings.ALL_GROUPS)
+        milestone = SRPReportMilestoneFactory(srp_report__flaw__embargoed=False)
+        milestone_pk = milestone.pk
+        events = SRPReportMilestoneAudit.objects.filter(pgh_obj=milestone_pk)
+        assert events.filter(pgh_label="insert").count() == 1
+
+        assert events.update(request_source="tampered") == 0
+        assert events.delete() == (0, {})
+        assert not events.filter(request_source="tampered").exists()
+
+        assert milestone.delete()
+        assert (
+            SRPReportMilestoneAudit.objects.filter(
+                pgh_obj=milestone_pk, pgh_label="delete"
+            ).count()
+            == 1
+        )
