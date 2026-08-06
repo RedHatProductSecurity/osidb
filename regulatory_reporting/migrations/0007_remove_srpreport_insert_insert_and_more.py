@@ -8,7 +8,10 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("regulatory_reporting", "0005_upstreamproject_purl"),
+        (
+            "regulatory_reporting",
+            "0006_remove_upstreamnotification_insert_insert_and_more",
+        ),
     ]
 
     operations = [

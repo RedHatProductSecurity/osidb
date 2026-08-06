@@ -39,7 +39,7 @@ def backwards_remap_event_types(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("regulatory_reporting", "0006_remove_srpreport_insert_insert_and_more"),
+        ("regulatory_reporting", "0007_remove_srpreport_insert_insert_and_more"),
     ]
 
     operations = [
