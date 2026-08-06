@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - migrate alias-typed manual-triage labels to workflow type (OSIDB-5335)
+- bulk add approved workflow label to the flaws resolved before Argus (OSIDB-5334)
 
 ### Fixed
 - Gate ACE behind workflow eligibility to prevent spurious affects on manually-triaged,
