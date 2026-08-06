@@ -72,7 +72,7 @@ from osidb.models import (
     BULabelDefinition,
     CollaboratorLabelDefinition,
     Flaw,
-    FlawLabelV2,
+    FlawLabel,
     ProductFamilyLabel,
     ProductFamilyLabelDefinition,
     PsUpdateStream,
@@ -138,9 +138,9 @@ from .serializer import (
     FlawCVSSV2PostSerializer,
     FlawCVSSV2PutSerializer,
     FlawCVSSV2Serializer,
+    FlawLabelPostSerializer,
+    FlawLabelPutSerializer,
     FlawLabelSerializer,
-    FlawLabelV2PostSerializer,
-    FlawLabelV2Serializer,
     FlawPackageVersionPostSerializer,
     FlawPackageVersionPutSerializer,
     FlawPackageVersionSerializer,
@@ -155,6 +155,7 @@ from .serializer import (
     IncidentRequestSerializer,
     IntegrationTokenGetSerializer,
     IntegrationTokenPatchSerializer,
+    LabelDefinitionSerializer,
     SyncManagerSerializer,
     TrackerPostSerializer,
     TrackerSerializer,
@@ -907,7 +908,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         "cvss_scores",
         "package_versions",
         "references",
-        "labels_v2",
+        "labels",
         "alerts",
         "upstream_data",
     )
@@ -930,7 +931,7 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         "cvss_scores": ("cvss_scores",),
         "package_versions": ("package_versions",),
         "references": ("references",),
-        "labels": ("labels_v2",),
+        "labels": ("labels",),
         "alerts": ("alerts",),
         "upstream_data": ("upstream_data",),
         # "affects" and "trackers" handled explicitly below because they are more nuanced.
@@ -2097,7 +2098,7 @@ class AlertView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         deprecated=True,
     ),
 )
-class FlawLabelView(
+class FlawLabelV1View(
     RudimentaryUserPathLoggingMixin,
     SubFlawWriteACLMixin,
     SubFlawViewGetMixin,
@@ -2110,7 +2111,7 @@ class FlawLabelView(
     def destroy(self, request, *args, **kwargs):
         require_flaw_write_or_404(self.get_flaw())
         instance = self.get_object()
-        if instance.type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
+        if instance.type == FlawLabel.LabelType.PRODUCT_FAMILY:
             raise PermissionDenied(
                 {"label": "Product family labels cannot be deleted."}
             )
@@ -2126,30 +2127,30 @@ class FlawLabelView(
     ),
     create=extend_schema(
         description="Require parent Flaw write ACLs for create/update/destroy.",
-        request=FlawLabelV2PostSerializer,
+        request=FlawLabelPostSerializer,
     ),
     update=extend_schema(
         description="Require parent Flaw write ACLs for create/update/destroy.",
-        request=FlawLabelV2PostSerializer,
+        request=FlawLabelPutSerializer,
     ),
     destroy=extend_schema(
         description="Require parent Flaw write ACLs for create/update/destroy.",
     ),
 )
-class FlawLabelV2View(
+class FlawLabelView(
     RudimentaryUserPathLoggingMixin,
     SubFlawWriteACLMixin,
     SubFlawViewGetMixin,
     ModelViewSet,
 ):
-    serializer_class = FlawLabelV2Serializer
+    serializer_class = FlawLabelSerializer
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def destroy(self, request, *args, **kwargs):
         require_flaw_write_or_404(self.get_flaw())
         instance = self.get_object()
-        if instance.type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
+        if instance.type == FlawLabel.LabelType.PRODUCT_FAMILY:
             raise PermissionDenied({"name": "Product family labels cannot be deleted."})
         return super().destroy(request, *args, **kwargs)
 
@@ -2163,7 +2164,7 @@ class LabelView(
     ListModelMixin,
     GenericViewSet,
 ):
-    serializer_class = FlawLabelSerializer
+    serializer_class = LabelDefinitionSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     lookup_field = "uuid"
 
@@ -2173,9 +2174,9 @@ class LabelView(
     def _get_definition_models(cls):
         if cls._DEFINITION_MODELS is None:
             cls._DEFINITION_MODELS = [
-                (CollaboratorLabelDefinition, FlawLabelV2.LabelType.CONTEXT_BASED),
-                (ProductFamilyLabelDefinition, FlawLabelV2.LabelType.PRODUCT_FAMILY),
-                (BULabelDefinition, FlawLabelV2.LabelType.BU),
+                (CollaboratorLabelDefinition, FlawLabel.LabelType.CONTEXT_BASED),
+                (ProductFamilyLabelDefinition, FlawLabel.LabelType.PRODUCT_FAMILY),
+                (BULabelDefinition, FlawLabel.LabelType.BU),
             ]
         return cls._DEFINITION_MODELS
 

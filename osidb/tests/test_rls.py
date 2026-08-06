@@ -8,10 +8,8 @@ from osidb.models import (
     CVSS,
     AliasLabel,
     Flaw,
-    FlawCollaborator,
     FlawCVSS,
     FlawLabel,
-    FlawLabelV2,
     Impact,
 )
 from osidb.tests.factories import FlawCVSSFactory, FlawFactory
@@ -197,9 +195,9 @@ class TestRLS:
         set_user_acls([settings.EMBARGO_READ_GROUP])
         assert FlawCVSS.objects.count() == 0
 
-    def test_create_flawlabelv2(self):
+    def test_create_label_inherits_flaw_acls(self):
         """
-        Creating a FlawLabelV2 requires write ACLs; public read alone violates RLS.
+        Creating a label that inherits parent flaw ACLs requires write ACLs.
         """
         set_user_acls(settings.ALL_GROUPS)
         flaw = FlawFactory(embargoed=False)
@@ -217,24 +215,24 @@ class TestRLS:
         assert label.acl_read == list(flaw.acl_read)
         assert label.acl_write == list(flaw.acl_write)
 
-    def test_read_flawlabelv2(self):
+    def test_read_label_through_base_manager(self):
         """
-        Reading FlawLabelV2 rows requires matching read ACLs.
+        Reading labels through the polymorphic base manager requires matching read ACLs.
         """
         set_user_acls(settings.ALL_GROUPS)
         flaw = FlawFactory(embargoed=False)
         label = AliasLabel.objects.create(flaw=flaw, name="rls-alias-read")
 
         set_user_acls(settings.PUBLIC_READ_GROUPS)
-        assert FlawLabelV2.objects.count() == 1
-        assert FlawLabelV2.objects.first().uuid == label.uuid
+        assert FlawLabel.objects.count() == 1
+        assert FlawLabel.objects.first().uuid == label.uuid
 
         set_user_acls([settings.EMBARGO_READ_GROUP])
-        assert FlawLabelV2.objects.count() == 0
+        assert FlawLabel.objects.count() == 0
 
-    def test_create_flawcollaborator(self):
+    def test_create_label_with_explicit_acls(self):
         """
-        Creating a FlawCollaborator requires write ACLs; public read alone violates RLS.
+        Creating a label with explicit ACLs requires write ACLs.
         """
         set_user_acls(settings.ALL_GROUPS)
         flaw = FlawFactory(embargoed=False)
@@ -244,37 +242,40 @@ class TestRLS:
             with pytest.raises(
                 ProgrammingError, match="violates row-level security policy"
             ):
-                FlawCollaborator.objects.create(
+                AliasLabel.objects.create(
                     flaw=flaw,
-                    label="rls-collab-denied",
-                    type=FlawLabel.FlawLabelType.ALIAS,
+                    name="rls-label-denied",
+                    acl_read=list(flaw.acl_read),
+                    acl_write=list(flaw.acl_write),
                 )
 
         set_user_acls(settings.PUBLIC_READ_GROUPS + [settings.PUBLIC_WRITE_GROUP])
-        collab = FlawCollaborator.objects.create(
+        label = AliasLabel.objects.create(
             flaw=flaw,
-            label="rls-collab-ok",
-            type=FlawLabel.FlawLabelType.ALIAS,
+            name="rls-label-ok",
+            acl_read=list(flaw.acl_read),
+            acl_write=list(flaw.acl_write),
         )
-        assert collab.uuid
-        assert collab.acl_read == list(flaw.acl_read)
-        assert collab.acl_write == list(flaw.acl_write)
+        assert label.uuid
+        assert label.acl_read == list(flaw.acl_read)
+        assert label.acl_write == list(flaw.acl_write)
 
-    def test_read_flawcollaborator(self):
+    def test_read_label_through_subclass_manager(self):
         """
-        Reading FlawCollaborator rows requires matching read ACLs.
+        Reading labels through the subclass manager requires matching read ACLs.
         """
         set_user_acls(settings.ALL_GROUPS)
         flaw = FlawFactory(embargoed=False)
-        collab = FlawCollaborator.objects.create(
+        label = AliasLabel.objects.create(
             flaw=flaw,
-            label="rls-collab-read",
-            type=FlawLabel.FlawLabelType.ALIAS,
+            name="rls-label-read",
+            acl_read=list(flaw.acl_read),
+            acl_write=list(flaw.acl_write),
         )
 
         set_user_acls(settings.PUBLIC_READ_GROUPS)
-        assert FlawCollaborator.objects.count() == 1
-        assert FlawCollaborator.objects.first().uuid == collab.uuid
+        assert AliasLabel.objects.count() == 1
+        assert AliasLabel.objects.first().uuid == label.uuid
 
         set_user_acls([settings.EMBARGO_READ_GROUP])
-        assert FlawCollaborator.objects.count() == 0
+        assert AliasLabel.objects.count() == 0

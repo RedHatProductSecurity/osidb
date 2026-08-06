@@ -865,7 +865,7 @@ class Flaw(
         """
         check if the flaw has a workflow label with the given name
         """
-        from osidb.models.flaw.label_v2 import WorkflowLabel
+        from osidb.models.flaw.label import WorkflowLabel
 
         return WorkflowLabel.objects.filter(flaw=self, name=label).exists()
 

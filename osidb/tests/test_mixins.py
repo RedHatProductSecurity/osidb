@@ -660,7 +660,7 @@ class TestTrackingMixin:
         """
         TrackingMixinManager.get_or_create must accept defaults=None
         (same as Django) — ACE calls WorkflowLabel.objects.get_or_create
-        with no defaults after labels moved onto FlawLabelV2Manager.
+        with no defaults after labels moved onto FlawLabelManager.
         """
         from osidb.models import WorkflowLabel
 

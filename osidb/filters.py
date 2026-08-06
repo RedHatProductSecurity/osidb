@@ -759,7 +759,7 @@ class FlawFilter(
         """
 
         for label in value:
-            queryset = queryset.filter(labels_v2__name=label)
+            queryset = queryset.filter(labels__name=label)
 
         return queryset
 

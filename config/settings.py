@@ -298,7 +298,7 @@ SPECTACULAR_SETTINGS = {
         "FlawSource": "osidb.models.flaw.source.FlawSource",
         "FlawReferenceType": "osidb.models.flaw.reference.FlawReference.FlawReferenceType",
         "TrackerType": "osidb.models.Tracker.TrackerType",
-        "FlawLabelType": "osidb.models.flaw.label.FlawLabel.FlawLabelType",
+        "FlawLabelType": "osidb.models.flaw.label.FlawLabel.LabelType",
         "FlawCollaboratorPostTypeEnum": [
             ("alias", "Alias"),
             ("bu", "BU"),

@@ -6667,7 +6667,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/PaginatedFlawLabelList'
+                - $ref: '#/components/schemas/PaginatedLabelDefinitionList'
                 - type: object
                   properties:
                     dt:
@@ -6703,7 +6703,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/FlawLabel'
+                - $ref: '#/components/schemas/LabelDefinition'
                 - type: object
                   properties:
                     dt:
@@ -12413,7 +12413,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/PaginatedFlawLabelV2List'
+                - $ref: '#/components/schemas/PaginatedFlawLabelList'
                 - type: object
                   properties:
                     dt:
@@ -12442,13 +12442,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+              $ref: '#/components/schemas/FlawLabelPostRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+              $ref: '#/components/schemas/FlawLabelPostRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+              $ref: '#/components/schemas/FlawLabelPostRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -12458,7 +12458,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/FlawLabelV2'
+                - $ref: '#/components/schemas/FlawLabel'
                 - type: object
                   properties:
                     dt:
@@ -12498,7 +12498,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/FlawLabelV2'
+                - $ref: '#/components/schemas/FlawLabel'
                 - type: object
                   properties:
                     dt:
@@ -12532,13 +12532,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+              $ref: '#/components/schemas/FlawLabelPutRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+              $ref: '#/components/schemas/FlawLabelPutRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FlawLabelV2PostRequest'
+              $ref: '#/components/schemas/FlawLabelPutRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -12548,7 +12548,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/FlawLabelV2'
+                - $ref: '#/components/schemas/FlawLabel'
                 - type: object
                   properties:
                     dt:
@@ -15511,7 +15511,7 @@ components:
         labels:
           type: array
           items:
-            $ref: '#/components/schemas/FlawCollaborator'
+            $ref: '#/components/schemas/FlawLabel'
           readOnly: true
         embargoed:
           type: boolean
@@ -16144,28 +16144,7 @@ components:
       - text
     FlawLabel:
       type: object
-      description: FlawLabel serializer
-      properties:
-        name:
-          type: string
-          maxLength: 255
-        type:
-          type: string
-          readOnly: true
-      required:
-      - name
-      - type
-    FlawLabelType:
-      enum:
-      - alias
-      - bu
-      - context_based
-      - product_family
-      - workflow
-      type: string
-    FlawLabelV2:
-      type: object
-      description: Flaw label V2 serializer with type-specific fields
+      description: Flaw label serializer with type-specific fields
       properties:
         uuid:
           type: string
@@ -16186,9 +16165,9 @@ components:
       required:
       - name
       - uuid
-    FlawLabelV2PostRequest:
+    FlawLabelPostRequest:
       type: object
-      description: Flaw label V2 serializer with type-specific fields
+      description: Flaw label serializer with type-specific fields
       properties:
         name:
           type: string
@@ -16204,6 +16183,57 @@ components:
       required:
       - name
       - type
+    FlawLabelPutRequest:
+      type: object
+      description: Flaw label serializer with type-specific fields
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        type:
+          $ref: '#/components/schemas/Type96fEnum'
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        contributor:
+          type: string
+          maxLength: 255
+        relevant:
+          type: boolean
+      required:
+      - name
+    FlawLabelRequest:
+      type: object
+      description: Flaw label serializer with type-specific fields
+      properties:
+        flaw:
+          type: string
+          format: uuid
+          writeOnly: true
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        type:
+          $ref: '#/components/schemas/FlawLabelType'
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        contributor:
+          type: string
+          maxLength: 255
+        relevant:
+          type: boolean
+      required:
+      - flaw
+      - name
+    FlawLabelType:
+      enum:
+      - alias
+      - bu
+      - context_based
+      - product_family
+      - workflow
+      type: string
     FlawPackageVersion:
       type: object
       description: Package model serializer
@@ -16484,7 +16514,7 @@ components:
         labels:
           type: array
           items:
-            $ref: '#/components/schemas/FlawCollaborator'
+            $ref: '#/components/schemas/FlawLabel'
           readOnly: true
         embargoed:
           type: boolean
@@ -17228,6 +17258,19 @@ components:
       - EXPLOITS_KEV_REQUESTED
       - MINOR_INCIDENT_REQUESTED
       type: string
+    LabelDefinition:
+      type: object
+      description: Serializer for label definition registry entries.
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        type:
+          type: string
+          readOnly: true
+      required:
+      - name
+      - type
     MajorIncidentStateEnum:
       enum:
       - MAJOR_INCIDENT_REQUESTED
@@ -17664,29 +17707,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FlawLabel'
-    PaginatedFlawLabelV2List:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/FlawLabelV2'
     PaginatedFlawList:
       type: object
       required:
@@ -17825,6 +17845,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FlawV1ReportData'
+    PaginatedLabelDefinitionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LabelDefinition'
     PaginatedSupportedProductsList:
       type: object
       required:

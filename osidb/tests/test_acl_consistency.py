@@ -176,10 +176,10 @@ class TestCollectObjectsForAclUpdate:
         """
         Regression test for: TypeError: attribute name must be string, not 'NoneType'
 
-        Polymorphic model subclasses (AliasLabel, BULabel, etc.) inherit from FlawLabelV2
+        Polymorphic model subclasses (AliasLabel, BULabel, etc.) inherit from FlawLabel
         which is an ACLMixin. Django-polymorphic creates implicit OneToOneField back-pointers
         from each concrete subclass to the parent table. These reverse relations appear in
-        FlawLabelV2._meta.related_objects with related_name=None. Since the subclasses ARE
+        FlawLabel._meta.related_objects with related_name=None. Since the subclasses ARE
         ACLMixin, they pass the issubclass check, and getattr(self, None).all() crashes.
 
         The fix filters out related objects where related_name is None.
@@ -201,7 +201,7 @@ class TestCollectObjectsForAclUpdate:
             acl_write=internal_write_groups,
         )
 
-        # set_acls_nested traverses into FlawLabelV2 instances, which have polymorphic
+        # set_acls_nested traverses into FlawLabel instances, which have polymorphic
         # subclass back-pointers with related_name=None — this must not raise TypeError
         flaw.set_acls_nested(public_read_groups, public_write_groups)
 
@@ -241,7 +241,7 @@ class TestCollectObjectsForAclUpdate:
         )
 
         flaw.unembargo_dt = datetime(2000, 1, 1, tzinfo=dt_timezone.utc)
-        # unembargo traverses into FlawLabelV2 instances — must not raise TypeError
+        # unembargo traverses into FlawLabel instances — must not raise TypeError
         flaw.unembargo()
 
         flaw.refresh_from_db()

@@ -26,7 +26,7 @@ from .api_views import (
     FlawCVSSV2View,
     FlawCVSSView,
     FlawIntrospectionView,
-    FlawLabelV2View,
+    FlawLabelV1View,
     FlawLabelView,
     FlawPackageVersionView,
     FlawReferenceView,
@@ -73,7 +73,7 @@ router.register(
 )
 router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/labels",
-    FlawLabelView,
+    FlawLabelV1View,
     basename="flawlabels",
 )
 router.register("labels", LabelView, basename="labels")
@@ -97,7 +97,7 @@ vnext_router.register(
 )
 vnext_router.register(
     r"flaws/(?P<flaw_id>[^/.]+)/labels",
-    FlawLabelV2View,
+    FlawLabelView,
     basename="flawlabelsv2",
 )
 vnext_router.register(r"flaws", FlawView)
