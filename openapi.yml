@@ -14026,6 +14026,87 @@ paths:
                     version:
                       type: string
           description: ''
+  /regulatory-reporting/api/v1/flaw-upstream-mappings/{mapping_uuid}:
+    put:
+      operationId: regulatory_reporting_api_v1_flaw_upstream_mappings_update
+      description: API endpoint for updating and deleting a single flaw-to-upstream
+        mapping.
+      parameters:
+      - in: path
+        name: mapping_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Flaw Upstream Mapping.
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawUpstreamMappingRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawUpstreamMappingRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawUpstreamMappingRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawUpstreamMapping'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    delete:
+      operationId: regulatory_reporting_api_v1_flaw_upstream_mappings_destroy
+      description: API endpoint for updating and deleting a single flaw-to-upstream
+        mapping.
+      parameters:
+      - in: path
+        name: mapping_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Flaw Upstream Mapping.
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports:
     get:
       operationId: regulatory_reporting_api_v1_flaws_srp_reports_list
@@ -14230,6 +14311,98 @@ paths:
               schema:
                 allOf:
                 - $ref: '#/components/schemas/SRPReport'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/flaws/{flaw_uuid}/upstream-mappings:
+    get:
+      operationId: regulatory_reporting_api_v1_flaws_upstream_mappings_list
+      description: API endpoint for listing and creating flaw-to-upstream mappings
+      parameters:
+      - in: path
+        name: flaw_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedFlawUpstreamMappingList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: regulatory_reporting_api_v1_flaws_upstream_mappings_create
+      description: API endpoint for listing and creating flaw-to-upstream mappings
+      parameters:
+      - in: path
+        name: flaw_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawUpstreamMappingRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawUpstreamMappingRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawUpstreamMappingRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawUpstreamMapping'
                 - type: object
                   properties:
                     dt:
@@ -18048,6 +18221,55 @@ components:
             format: uuid
       required:
       - flaw_uuids
+    FlawUpstreamMapping:
+      type: object
+      description: TrackingMixin class serializer
+      properties:
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        flaw_uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        upstream_project:
+          type: string
+          format: uuid
+        notes:
+          type: string
+      required:
+      - created_dt
+      - flaw_uuid
+      - updated_dt
+      - upstream_project
+      - uuid
+    FlawUpstreamMappingRequest:
+      type: object
+      description: TrackingMixin class serializer
+      properties:
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        upstream_project:
+          type: string
+          format: uuid
+        notes:
+          type: string
+      required:
+      - updated_dt
+      - upstream_project
     FlawV1:
       type: object
       description: Serializer for the flaw model adapted to affects v1
@@ -18956,6 +19178,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FlawReportData'
+    PaginatedFlawUpstreamMappingList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawUpstreamMapping'
     PaginatedFlawV1List:
       type: object
       required:

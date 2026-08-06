@@ -354,7 +354,7 @@ PGHISTORY_APPEND_ONLY = True
 PGHISTORY_BASE_MODEL = "osidb.models.audit_history.CustomHistoryBase"
 PGHISTORY_OBJ_FIELD = ObjForeignKey(related_name="events")
 
-
+UPSTREAM_NOTIFICATIONS_SENDER = "secalert@redhat.com"
 # Email configuration
 
 
