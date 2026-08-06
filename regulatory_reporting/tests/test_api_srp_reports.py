@@ -5,7 +5,6 @@ Tests list, retrieve, create, update operations and filtering.
 """
 
 import pytest
-from django.conf import settings
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
@@ -476,8 +475,8 @@ class TestSRPReportFiltering:
         """Can filter by flaw_id."""
         flaw1 = NonReportableFlawFactory()
         flaw2 = NonReportableFlawFactory()
-        report1 = SRPReportFactory(flaw=flaw1)
-        report2 = SRPReportFactory(flaw=flaw2)
+        SRPReportFactory(flaw=flaw1)
+        SRPReportFactory(flaw=flaw2)
 
         response = api_client.get(
             f"/regulatory-reporting/api/v1/srp-reports?flaw_id={flaw1.uuid}"

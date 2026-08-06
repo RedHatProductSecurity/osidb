@@ -5,7 +5,6 @@ Tests read-only access to reports and milestones via flaw context.
 """
 
 import pytest
-from django.conf import settings
 from rest_framework import status
 
 from osidb.models import Flaw

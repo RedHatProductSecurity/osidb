@@ -8,7 +8,6 @@ import uuid
 
 from django.db import IntegrityError, transaction
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 from osidb.core import generate_acls

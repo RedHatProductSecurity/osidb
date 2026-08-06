@@ -12,7 +12,6 @@ from datetime import timedelta
 
 import pytest
 from django.core.exceptions import ValidationError
-from django.test import override_settings
 from django.utils import timezone
 
 from osidb.models import Flaw
