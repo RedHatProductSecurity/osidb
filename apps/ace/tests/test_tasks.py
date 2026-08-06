@@ -40,7 +40,9 @@ pytestmark = pytest.mark.unit
 def test_sync_creates_one_affect_per_result(
     monkeypatch, ace_enabled, urllib3_results, mock_querier
 ):
-    flaw = FlawFactory(components=["urllib3"])
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
     expected_purls = {
         PackageURL.from_string(r.purls[0]).to_string() for r in urllib3_results
     }
@@ -73,7 +75,11 @@ def test_sync_runs_query_per_flaw_component(
     merged. The openssl results share one PURL with urllib3 results, so that
     entry is skipped as already existing.
     """
-    flaw = FlawFactory(components=["urllib3", "openssl"])
+    flaw = FlawFactory(
+        components=["urllib3", "openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+    )
     querier_calls = []
 
     def _search(terms, **kwargs):
@@ -105,7 +111,9 @@ def test_sync_runs_query_per_flaw_component(
 def test_sync_skips_existing_on_second_run(
     monkeypatch, ace_enabled, urllib3_results, mock_querier
 ):
-    flaw = FlawFactory(components=["urllib3"])
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
     n = len(urllib3_results)
 
     monkeypatch.setattr(
@@ -132,7 +140,7 @@ def test_sync_skips_existing_on_second_run(
 
 
 def test_sync_no_components_raises(monkeypatch, ace_enabled):
-    flaw = FlawFactory(components=[])
+    flaw = FlawFactory(components=[], workflow_name="DEFAULT", workflow_state="TRIAGE")
 
     with pytest.raises(ValueError, match="no non-empty components"):
         sync_flaw_affects_from_newcli(str(flaw.uuid))
@@ -142,7 +150,9 @@ def test_sync_includes_builds_as_affects(
     monkeypatch, ace_enabled, ostree_results, mock_querier
 ):
     """Both build and dep entries from ostree result in affects."""
-    flaw = FlawFactory(components=["ostree"])
+    flaw = FlawFactory(
+        components=["ostree"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
 
     monkeypatch.setattr(
         "apps.ace.tasks.NewtopiaQuerier", mock_querier({"ostree": ostree_results})
@@ -181,7 +191,9 @@ def test_sync_multi_stream_with_duplicate(
     - hummingbird-1 / bootc         → created
     - hummingbird-1 / chunkah       → created
     """
-    flaw = FlawFactory(components=["openssl"])
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
 
     monkeypatch.setattr(
         "apps.ace.tasks.NewtopiaQuerier",
@@ -222,7 +234,9 @@ def test_sync_multi_stream_with_duplicate(
 
 
 def test_sync_no_op_when_lib_newtopia_missing(monkeypatch):
-    flaw = FlawFactory(components=["openssl"])
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
 
     monkeypatch.setattr("apps.ace.tasks.HAS_LIB_NEWTOPIA", False)
     result = sync_flaw_affects_from_newcli(str(flaw.uuid))
@@ -235,7 +249,9 @@ def test_sync_sets_created_by_and_updated_by(
     monkeypatch, ace_enabled, urllib3_results, mock_querier
 ):
     """ACE-created affects must have created_by and updated_by set to AffectCreationEngine."""
-    flaw = FlawFactory(components=["urllib3"])
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
     monkeypatch.setattr(
         "apps.ace.tasks.NewtopiaQuerier", mock_querier({"urllib3": urllib3_results})
     )
@@ -249,7 +265,9 @@ def test_sync_sets_created_by_and_updated_by(
 
 def test_sync_sets_assist_meta(monkeypatch, ace_enabled, urllib3_results, mock_querier):
     """ACE-created affects must have assist_meta populated with expected keys."""
-    flaw = FlawFactory(components=["urllib3"])
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
     monkeypatch.setattr(
         "apps.ace.tasks.NewtopiaQuerier", mock_querier({"urllib3": urllib3_results})
     )
@@ -272,7 +290,9 @@ def test_sync_respects_ps_modules_setting(monkeypatch, ace_enabled, urllib3_resu
         "OSIDB_AFFECTS_AUTO_CREATE_PS_MODULES",
         '["hummingbird-1","rhel-9"]',
     )
-    flaw = FlawFactory(components=["urllib3"])
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
 
     seen_filter_products = []
 
@@ -307,7 +327,9 @@ def test_sync_marks_notaffected_when_version_outside_range(
     lib_newtopia returns openssl@3.5.1 but the OSV range says fixed at 3.0.9.
     The created affect must be NOTAFFECTED.
     """
-    flaw = FlawFactory(components=["openssl"])
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
     UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
 
     results = [
@@ -333,7 +355,9 @@ def test_sync_creates_affected_when_version_in_range(
     The created affect must be AFFECTED (auto_resolve applies).
     """
     PsUpdateStreamFactory(name="rhel-9.8.z")
-    flaw = FlawFactory(components=["openssl"])
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
     UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
 
     results = [
@@ -359,7 +383,9 @@ def test_sync_creates_affected_when_no_upstream_match(
     Falls back to AFFECTED (current behaviour preserved).
     """
     PsUpdateStreamFactory(name="rhel-9.8.z")
-    flaw = FlawFactory(components=["curl"])
+    flaw = FlawFactory(
+        components=["curl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
     UpstreamDataFactory(
         flaw=flaw,
         upstream_purls=[
@@ -400,7 +426,9 @@ def test_sync_creates_affected_when_no_range(
     upstream_purls entry matches the component but has empty ranges.
     Falls back to AFFECTED (no range to compare against).
     """
-    flaw = FlawFactory(components=["openssl"])
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
     UpstreamDataFactory(
         flaw=flaw,
         upstream_purls=[
@@ -433,7 +461,9 @@ def test_sync_assist_meta_includes_osv_fields(
     """
     Every created affect (AFFECTED or NOTAFFECTED) must have osv_* keys in assist_meta.
     """
-    flaw = FlawFactory(components=["openssl"])
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
     UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
 
     results = [
@@ -456,7 +486,9 @@ def test_sync_returns_marked_notaffected_count(
     monkeypatch, ace_enabled, mock_querier, result, upstream_purls_openssl_rpm
 ):
     """sync_flaw_affects_from_newcli return dict includes marked_notaffected."""
-    flaw = FlawFactory(components=["openssl"])
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
     UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
 
     results = [
@@ -484,7 +516,9 @@ def test_sync_returns_marked_notaffected_count(
 def test_sync_passes_ecosystem_to_newtopia(monkeypatch, ace_enabled):
     """When UpstreamData exists for a flaw, the ecosystem derived from its PURLs
     is forwarded to NewtopiaQuerier.search()."""
-    flaw = FlawFactory(components=["redis"])
+    flaw = FlawFactory(
+        components=["redis"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
     UpstreamDataFactory(
         flaw=flaw,
         upstream_purls=[
@@ -518,7 +552,9 @@ def test_sync_passes_ecosystem_to_newtopia(monkeypatch, ace_enabled):
 
 def test_sync_no_ecosystem_when_no_upstream_data(monkeypatch, ace_enabled):
     """Without UpstreamData the ecosystem falls back to an empty string."""
-    flaw = FlawFactory(components=["curl"])
+    flaw = FlawFactory(
+        components=["curl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
 
     search_kwargs = []
 
@@ -541,7 +577,9 @@ def test_sync_no_ecosystem_when_no_upstream_data(monkeypatch, ace_enabled):
 def test_sync_queries_each_ecosystem_for_component(monkeypatch, ace_enabled):
     """When a component maps to multiple ecosystems, lib-newtopia is queried
     once per ecosystem and all results are accumulated."""
-    flaw = FlawFactory(components=["redis"])
+    flaw = FlawFactory(
+        components=["redis"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
     UpstreamDataFactory(
         flaw=flaw,
         upstream_purls=[
@@ -653,7 +691,12 @@ def test_sync_skips_blocked_component(monkeypatch, ace_enabled, mock_querier):
     from collectors.component_mapping.models import BlocklistEntry
 
     BlocklistEntry.objects.create(name="gitlab", reason="Not shipped")
-    flaw = FlawFactory(components=["GitLab"], embargoed=False)
+    flaw = FlawFactory(
+        components=["GitLab"],
+        embargoed=False,
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+    )
 
     monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_querier({"gitlab": []}))
 
@@ -671,7 +714,12 @@ def test_sync_blocked_component_skips_entire_flaw(
     from collectors.component_mapping.models import BlocklistEntry
 
     BlocklistEntry.objects.create(name="gitlab", reason="Not shipped")
-    flaw = FlawFactory(components=["GitLab", "openssl"], embargoed=False)
+    flaw = FlawFactory(
+        components=["GitLab", "openssl"],
+        embargoed=False,
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+    )
 
     search_calls = []
 
@@ -707,7 +755,12 @@ def test_sync_resolves_component_before_search(
     ComponentMapEntry.objects.create(name="Django", upstream_packages="python-django")
     VerifiedMapping.objects.create(name="Django", upstream_package="python-django")
     StrictPackage.objects.create(name="python-django", repos=[])
-    flaw = FlawFactory(components=["Django"], embargoed=False)
+    flaw = FlawFactory(
+        components=["Django"],
+        embargoed=False,
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+    )
 
     search_terms = []
 
@@ -914,7 +967,9 @@ def test_sync_does_not_set_impact_on_created_affects(
     humans. Automation should leave it blank so that aggregated_impact falls back
     to the parent flaw's impact instead.
     """
-    flaw = FlawFactory(components=["urllib3"])
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
     monkeypatch.setattr(
         "apps.ace.tasks.NewtopiaQuerier", mock_querier({"urllib3": urllib3_results})
     )
@@ -1178,7 +1233,13 @@ def test_sync_passes_ecosystem_for_purl_less_entry(
     from collectors.osv.collectors import OSVCollector
 
     # Create flaw with kernel component
-    flaw = FlawFactory(components=["kernel"], embargoed=False, cve_id="CVE-2026-64189")
+    flaw = FlawFactory(
+        components=["kernel"],
+        embargoed=False,
+        cve_id="CVE-2026-64189",
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+    )
 
     # Extract upstream_purls from the real OSV payload
     _osv_id, _cve_ids, content = OSVCollector().extract_content(
@@ -1244,3 +1305,285 @@ def test_sync_passes_ecosystem_for_purl_less_entry(
     assert affect.ps_component == "kernel"
     assert affect.ps_update_stream == "rhel-9.8.z"
     assert str(affect.purl) == "pkg:rpm/redhat/kernel@6.5.0-1.el9?arch=src"
+
+
+# ── Workflow gate tests ───────────────────────────────────────────────────────
+
+
+def test_sync_skips_flaw_not_in_default_workflow(monkeypatch, ace_enabled):
+    """Flaws in the MANUAL workflow must not get auto-affects."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="MANUAL", workflow_state="TRIAGE"
+    )
+
+    result = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert result == {"skipped_reason": "workflow gate: not eligible"}
+    assert flaw.affects.count() == 0
+
+
+def test_sync_skips_flaw_with_empty_workflow(monkeypatch, ace_enabled):
+    """Legacy flaws with no workflow classification must be skipped."""
+    flaw = FlawFactory(components=["openssl"], workflow_name="", workflow_state="")
+
+    result = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert result == {"skipped_reason": "workflow gate: not eligible"}
+    assert flaw.affects.count() == 0
+
+
+def test_sync_skips_flaw_in_new_state(monkeypatch, ace_enabled):
+    """Flaws in DEFAULT/NEW (not yet triaged) must be skipped."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="NEW"
+    )
+
+    result = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert result == {"skipped_reason": "workflow gate: not eligible"}
+    assert flaw.affects.count() == 0
+
+
+def test_sync_skips_flaw_in_done_state(monkeypatch, ace_enabled):
+    """Flaws in DEFAULT/DONE must be skipped."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="DONE"
+    )
+
+    result = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert result == {"skipped_reason": "workflow gate: not eligible"}
+    assert flaw.affects.count() == 0
+
+
+def test_sync_runs_for_eligible_default_workflow_states(
+    monkeypatch, ace_enabled, mock_querier
+):
+    """ACE must run for all intermediate DEFAULT states (TRIAGE through SECONDARY_ASSESSMENT)."""
+    eligible_states = (
+        "TRIAGE",
+        "ANALYSIS",
+        "PRE_SECONDARY_ASSESSMENT",
+        "SECONDARY_ASSESSMENT",
+    )
+    for state in eligible_states:
+        querier = mock_querier({"openssl": []})
+        monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", querier)
+        flaw = FlawFactory(
+            components=["openssl"], workflow_name="DEFAULT", workflow_state=state
+        )
+
+        result = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+        assert "skipped_reason" not in result, (
+            f"Expected ACE to run for workflow_state={state!r}, got {result}"
+        )
+        assert querier.return_value.search.called, (
+            f"Expected NewtopiaQuerier.search to be called for workflow_state={state!r}"
+        )
+
+
+# ── Signal handler tests ──────────────────────────────────────────────────────
+
+
+class _FakeSettings:
+    auto_create = True
+
+
+@pytest.fixture
+def signal_ace_enabled(monkeypatch):
+    """Patch AffectSettings so the signal handler's auto_create gate is open."""
+    monkeypatch.setattr("apps.ace.signals.AffectSettings", _FakeSettings)
+
+
+def _count_enqueues(monkeypatch):
+    """Replace transaction.on_commit with a counter; return the counter list."""
+    calls = []
+    monkeypatch.setattr("django.db.transaction.on_commit", lambda fn: calls.append(fn))
+    return calls
+
+
+@pytest.mark.enable_signals
+def test_signal_enqueues_on_components_change_in_eligible_state(
+    monkeypatch, signal_ace_enabled
+):
+    """Changing components while in an eligible state must enqueue ACE."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    flaw.components = ["openssl", "gnutls"]
+    flaw.save()
+
+    assert len(calls) == 1
+
+
+@pytest.mark.enable_signals
+def test_signal_enqueues_on_triage_promotion_with_existing_components(
+    monkeypatch, signal_ace_enabled
+):
+    """Promoting a flaw from NEW to TRIAGE must enqueue ACE even if components didn't change."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="NEW"
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    flaw.workflow_state = "TRIAGE"
+    flaw.save()
+
+    assert len(calls) == 1
+
+
+@pytest.mark.enable_signals
+def test_signal_does_not_enqueue_on_triage_promotion_without_components(
+    monkeypatch, signal_ace_enabled
+):
+    """Promoting to TRIAGE with no components must not enqueue ACE."""
+    flaw = FlawFactory(components=[], workflow_name="DEFAULT", workflow_state="NEW")
+    calls = _count_enqueues(monkeypatch)
+
+    flaw.workflow_state = "TRIAGE"
+    flaw.save()
+
+    assert len(calls) == 0
+
+
+@pytest.mark.enable_signals
+def test_signal_does_not_enqueue_for_non_default_workflow(
+    monkeypatch, signal_ace_enabled
+):
+    """Changing components in the MANUAL workflow must not enqueue ACE."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="MANUAL", workflow_state="TRIAGE"
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    flaw.components = ["openssl", "gnutls"]
+    flaw.save()
+
+    assert len(calls) == 0
+
+
+@pytest.mark.enable_signals
+def test_signal_does_not_enqueue_for_new_state(monkeypatch, signal_ace_enabled):
+    """Changing components while still in NEW state must not enqueue ACE."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="NEW"
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    flaw.components = ["openssl", "gnutls"]
+    flaw.save()
+
+    assert len(calls) == 0
+
+
+@pytest.mark.enable_signals
+def test_signal_does_not_enqueue_for_done_state(monkeypatch, signal_ace_enabled):
+    """Changing components while in DONE state must not enqueue ACE."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="DONE"
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    flaw.components = ["openssl", "gnutls"]
+    flaw.save()
+
+    assert len(calls) == 0
+
+
+@pytest.mark.enable_signals
+def test_signal_enqueues_on_empty_to_triage_promotion(monkeypatch, signal_ace_enabled):
+    """Legacy flaw (empty workflow) promoted straight to TRIAGE must enqueue ACE."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state=""
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    flaw.workflow_state = "TRIAGE"
+    flaw.save()
+
+    assert len(calls) == 1
+
+
+@pytest.mark.enable_signals
+def test_signal_does_not_enqueue_on_empty_to_new_transition(
+    monkeypatch, signal_ace_enabled
+):
+    """Transitioning from empty to NEW must not enqueue ACE — NEW is still a blocked state."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state=""
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    flaw.workflow_state = "NEW"
+    flaw.save()
+
+    assert len(calls) == 0
+
+
+@pytest.mark.enable_signals
+def test_signal_does_not_enqueue_on_new_to_done_transition(
+    monkeypatch, signal_ace_enabled
+):
+    """Transitioning from NEW to DONE (skipping triage) must not enqueue ACE."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="NEW"
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    flaw.workflow_state = "DONE"
+    flaw.save()
+
+    assert len(calls) == 0
+
+
+@pytest.mark.enable_signals
+def test_signal_does_not_enqueue_on_within_eligible_state_change(
+    monkeypatch, signal_ace_enabled
+):
+    """Moving between eligible states (TRIAGE→ANALYSIS) without component changes must not re-enqueue ACE."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    flaw.workflow_state = "ANALYSIS"
+    flaw.save()
+
+    assert len(calls) == 0
+
+
+@pytest.mark.enable_signals
+def test_signal_enqueues_on_workflow_transition_to_default(
+    monkeypatch, signal_ace_enabled
+):
+    """Transitioning from REJECTED/DONE to DEFAULT/TRIAGE must enqueue ACE."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="REJECTED", workflow_state="DONE"
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    flaw.workflow_name = "DEFAULT"
+    flaw.workflow_state = "TRIAGE"
+    flaw.save()
+
+    assert len(calls) == 1
+
+
+@pytest.mark.enable_signals
+def test_signal_enqueues_on_workflow_transition_partial_save(
+    monkeypatch, signal_ace_enabled
+):
+    """Partial save updating only workflow_name and workflow_state must still enqueue ACE."""
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="REJECTED", workflow_state="DONE"
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    flaw.workflow_name = "DEFAULT"
+    flaw.workflow_state = "TRIAGE"
+    flaw.save(update_fields=["workflow_name", "workflow_state"])
+
+    assert len(calls) == 1

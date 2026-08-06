@@ -22,19 +22,36 @@ def schedule_sync_flaw_affects_on_components_change(sender, instance, **kwargs) 
     if kwargs.get("raw"):
         return
 
-    update_fields = kwargs.get("update_fields")
-    if update_fields is not None and "components" not in update_fields:
-        return
-
     new_list = list(instance.components or [])
 
     if instance._state.adding:
-        components_changed = True
-    else:
-        old_list = list(Flaw.objects.get(pk=instance.pk).components or [])
-        components_changed = old_list != new_list
+        return
 
-    if not components_changed:
+    update_fields = kwargs.get("update_fields")
+    if (
+        update_fields is not None
+        and "components" not in update_fields
+        and "workflow_state" not in update_fields
+        and "workflow_name" not in update_fields
+    ):
+        return
+
+    db_flaw = Flaw.objects.get(pk=instance.pk)
+
+    if instance.workflow_name != "DEFAULT" or instance.workflow_state in (
+        "",
+        "NEW",
+        "DONE",
+    ):
+        return
+
+    old_list = list(db_flaw.components or [])
+    components_changed = old_list != new_list
+    workflow_state_became_eligible = (
+        db_flaw.workflow_name != "DEFAULT" or db_flaw.workflow_state in ("", "NEW")
+    ) and instance.workflow_state not in ("", "NEW", "DONE")
+
+    if not (components_changed or workflow_state_became_eligible):
         return
 
     if not any(c and str(c).strip() for c in new_list):

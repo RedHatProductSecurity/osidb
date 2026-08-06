@@ -733,6 +733,17 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
         return {"skipped_reason": "lib_newtopia not installed"}
 
     flaw = Flaw.objects.get(uuid=flaw_id)
+
+    if flaw.workflow_name != "DEFAULT" or flaw.workflow_state in ("", "NEW", "DONE"):
+        logger.info(
+            "Skipping auto-affect creation for flaw %s: "
+            "workflow_name=%r, workflow_state=%r (requires DEFAULT workflow, not NEW or DONE)",
+            flaw_id,
+            flaw.workflow_name,
+            flaw.workflow_state,
+        )
+        return {"skipped_reason": "workflow gate: not eligible"}
+
     components = _flaw_components(flaw)
     ps_modules = AffectSettings().auto_create_ps_modules
     totals: dict[str, int] = {
