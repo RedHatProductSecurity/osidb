@@ -12,7 +12,43 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
-            reverse_sql=migrations.RunSQL.noop,
+            reverse_sql="""
+    --drop policies and disable row based security for srpreport entity table
+    DROP policy if exists acl_policy_srpreport_create on regulatory_reporting_srpreport;
+    DROP policy if exists acl_policy_srpreport_select on regulatory_reporting_srpreport;
+    DROP policy if exists acl_policy_srpreport_update on regulatory_reporting_srpreport;
+    DROP policy if exists acl_policy_srpreport_delete on regulatory_reporting_srpreport;
+    ALTER TABLE regulatory_reporting_srpreport NO FORCE ROW LEVEL SECURITY;
+    ALTER TABLE regulatory_reporting_srpreport DISABLE ROW LEVEL SECURITY;
+
+    --drop policies and disable row based security for srpreportmilestone entity table
+    DROP policy if exists acl_policy_srpreportmilestone_create on regulatory_reporting_srpreportmilestone;
+    DROP policy if exists acl_policy_srpreportmilestone_select on regulatory_reporting_srpreportmilestone;
+    DROP policy if exists acl_policy_srpreportmilestone_update on regulatory_reporting_srpreportmilestone;
+    DROP policy if exists acl_policy_srpreportmilestone_delete on regulatory_reporting_srpreportmilestone;
+    ALTER TABLE regulatory_reporting_srpreportmilestone NO FORCE ROW LEVEL SECURITY;
+    ALTER TABLE regulatory_reporting_srpreportmilestone DISABLE ROW LEVEL SECURITY;
+
+    --drop policies and disable row based security for upstreamnotification entity table
+    DROP policy if exists acl_policy_upstreamnotification_create on regulatory_reporting_upstreamnotification;
+    DROP policy if exists acl_policy_upstreamnotification_select on regulatory_reporting_upstreamnotification;
+    DROP policy if exists acl_policy_upstreamnotification_update on regulatory_reporting_upstreamnotification;
+    DROP policy if exists acl_policy_upstreamnotification_delete on regulatory_reporting_upstreamnotification;
+    ALTER TABLE regulatory_reporting_upstreamnotification NO FORCE ROW LEVEL SECURITY;
+    ALTER TABLE regulatory_reporting_upstreamnotification DISABLE ROW LEVEL SECURITY;
+
+    --drop policies and disable row based security for srpreportaudit entity table (append-only)
+    DROP policy if exists acl_policy_srpreportaudit_create on regulatory_reporting_srpreportaudit;
+    DROP policy if exists acl_policy_srpreportaudit_select on regulatory_reporting_srpreportaudit;
+    ALTER TABLE regulatory_reporting_srpreportaudit NO FORCE ROW LEVEL SECURITY;
+    ALTER TABLE regulatory_reporting_srpreportaudit DISABLE ROW LEVEL SECURITY;
+
+    --drop policies and disable row based security for srpreportmilestoneaudit entity table (append-only)
+    DROP policy if exists acl_policy_srpreportmilestoneaudit_create on regulatory_reporting_srpreportmilestoneaudit;
+    DROP policy if exists acl_policy_srpreportmilestoneaudit_select on regulatory_reporting_srpreportmilestoneaudit;
+    ALTER TABLE regulatory_reporting_srpreportmilestoneaudit NO FORCE ROW LEVEL SECURITY;
+    ALTER TABLE regulatory_reporting_srpreportmilestoneaudit DISABLE ROW LEVEL SECURITY;
+            """,
             sql="""
     --enable row based security for srpreport entity table
     ALTER TABLE regulatory_reporting_srpreport ENABLE ROW LEVEL SECURITY;
