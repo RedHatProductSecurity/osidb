@@ -1,6 +1,5 @@
 import pytest
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.db import connections, transaction
 from django.db.utils import ProgrammingError
 
@@ -84,14 +83,12 @@ class TestSRPReportRLS:
         r1.title = "updated"
         r1.save(raise_validation_error=False)
         assert r1.title == "updated"
-        r2.title = "should fail"
 
-        with transaction.atomic():
-            with pytest.raises((SRPReport.DoesNotExist, ValidationError)):
-                r2.save(raise_validation_error=False)
+        assert SRPReport.objects.filter(pk=r2.pk).update(title="should fail") == 0
 
         set_user_acls([settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP])
-        r2 = SRPReport.objects.first()
+        r2 = SRPReport.objects.get(pk=r2.pk)
+        assert r2.title != "should fail"
         r2.title = "updated"
         r2.save(raise_validation_error=False)
         assert r2.title == "updated"
