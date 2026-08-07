@@ -110,6 +110,15 @@ class AliasLabel(FlawLabel):
     No additional fields needed.
     """
 
+    flawlabel_ptr = models.OneToOneField(
+        FlawLabel,
+        on_delete=models.CASCADE,
+        parent_link=True,
+        primary_key=True,
+        serialize=False,
+        db_column="flawlabelv2_ptr_id",
+    )
+
     type = FlawLabel.LabelType.ALIAS
 
     class Meta:
@@ -124,6 +133,15 @@ class BULabel(FlawLabel):
     Similar to CollaboratorLabel but for business unit-specific workflows.
     Requires pre-registration in BULabelDefinition.
     """
+
+    flawlabel_ptr = models.OneToOneField(
+        FlawLabel,
+        on_delete=models.CASCADE,
+        parent_link=True,
+        primary_key=True,
+        serialize=False,
+        db_column="flawlabelv2_ptr_id",
+    )
 
     type = FlawLabel.LabelType.BU
 
@@ -162,6 +180,15 @@ class CollaboratorLabel(FlawLabel):
     in CollaboratorLabelDefinition and support full workflow state tracking.
     """
 
+    flawlabel_ptr = models.OneToOneField(
+        FlawLabel,
+        on_delete=models.CASCADE,
+        parent_link=True,
+        primary_key=True,
+        serialize=False,
+        db_column="flawlabelv2_ptr_id",
+    )
+
     type = FlawLabel.LabelType.CONTEXT_BASED
 
     class State(models.TextChoices):
@@ -199,6 +226,15 @@ class ProductFamilyLabel(FlawLabel):
     ps_module/ps_component matching rules defined in ProductFamilyLabelDefinition.
     They cannot be manually deleted via API.
     """
+
+    flawlabel_ptr = models.OneToOneField(
+        FlawLabel,
+        on_delete=models.CASCADE,
+        parent_link=True,
+        primary_key=True,
+        serialize=False,
+        db_column="flawlabelv2_ptr_id",
+    )
 
     type = FlawLabel.LabelType.PRODUCT_FAMILY
 
@@ -284,6 +320,15 @@ class WorkflowLabel(FlawLabel):
 
     No additional fields needed.
     """
+
+    flawlabel_ptr = models.OneToOneField(
+        FlawLabel,
+        on_delete=models.CASCADE,
+        parent_link=True,
+        primary_key=True,
+        serialize=False,
+        db_column="flawlabelv2_ptr_id",
+    )
 
     type = FlawLabel.LabelType.WORKFLOW
 
