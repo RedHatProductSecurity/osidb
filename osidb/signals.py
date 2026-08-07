@@ -22,7 +22,7 @@ from osidb.models import (
     CollaboratorLabel,
     Flaw,
     FlawCVSS,
-    FlawLabelV2,
+    FlawLabel,
     Impact,
     ProductFamilyLabel,
     Profile,
@@ -159,7 +159,7 @@ def update_flaw_fields(sender, instance, **kwargs):
 @receiver(post_save, sender=ProductFamilyLabel)
 @receiver(post_save, sender=WorkflowLabel)
 @receiver(
-    post_delete, sender=FlawLabelV2
+    post_delete, sender=FlawLabel
 )  # cascade deletion of multi-table inheritance fires from the parent
 @receiver(post_save, sender=FlawCVSS)
 def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):

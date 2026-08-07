@@ -471,14 +471,14 @@ class TestSearch:
         body = response.json()
         assert body["count"] == 0
 
-    def test_search_labels_v2_not_exposed(self, auth_client, test_api_uri):
-        """Test that 'labels_v2' is not exposed as a DjangoQL field name"""
+    def test_search_labels_not_exposed(self, auth_client, test_api_uri):
+        """Test that dotted label access (labels.name) is not exposed as a DjangoQL field"""
         from djangoql.exceptions import DjangoQLSchemaError
 
         FlawFactory(embargoed=False)
 
-        with pytest.raises(DjangoQLSchemaError, match="Unknown field: labels_v2"):
-            auth_client().get(f'{test_api_uri}/flaws?query=labels_v2.name = "test"')
+        with pytest.raises(DjangoQLSchemaError, match="Unknown field: name"):
+            auth_client().get(f'{test_api_uri}/flaws?query=labels.name = "test"')
 
     def test_search_websearch_exclusion(self, auth_client, test_api_uri):
         """websearch_to_tsquery supports -exclusion, verify it works after query refactor."""

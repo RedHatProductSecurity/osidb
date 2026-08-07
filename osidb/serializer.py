@@ -37,7 +37,7 @@ from osidb.models import (
     FlawAcknowledgment,
     FlawComment,
     FlawCVSS,
-    FlawLabelV2,
+    FlawLabel,
     FlawReference,
     Impact,
     Package,
@@ -2103,8 +2103,8 @@ class FlawCVSSV2PostSerializer(FlawCVSSV2Serializer): ...
 class FlawCVSSV2PutSerializer(FlawCVSSV2Serializer): ...
 
 
-class FlawLabelSerializer(serializers.Serializer):
-    """FlawLabel serializer"""
+class LabelDefinitionSerializer(serializers.Serializer):
+    """Serializer for label definition registry entries."""
 
     name = serializers.CharField(max_length=255)
     type = serializers.CharField(read_only=True)
@@ -2134,9 +2134,9 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
     flaw = serializers.UUIDField(write_only=True, source="flaw_id")
     label = serializers.CharField(source="name", max_length=255)
     type = serializers.ChoiceField(
-        choices=FlawLabelV2.LabelType.choices,
+        choices=FlawLabel.LabelType.choices,
         required=False,
-        default=FlawLabelV2.LabelType.CONTEXT_BASED,
+        default=FlawLabel.LabelType.CONTEXT_BASED,
     )
     state = serializers.ChoiceField(
         choices=CollaboratorLabel.State.choices,
@@ -2148,7 +2148,7 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
     relevant = serializers.BooleanField(required=False)
 
     class Meta:
-        model = FlawLabelV2
+        model = FlawLabel
         fields = ["uuid", "flaw", "label", "state", "contributor", "relevant", "type"]
         validators = []
 
@@ -2178,18 +2178,18 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
             name = attrs.get("name")
 
             if flaw_id and name:
-                # Check against base FlawLabelV2 model to catch duplicates across all label types
+                # Check against base FlawLabel model to catch duplicates across all label types
                 # The unique constraint is on (flaw, name) regardless of type
-                if FlawLabelV2.objects.filter(flaw_id=flaw_id, name=name).exists():
+                if FlawLabel.objects.filter(flaw_id=flaw_id, name=name).exists():
                     raise serializers.ValidationError(
                         {"label": [f"Label '{name}' already exists."]}
                     )
         return attrs
 
     def create(self, validated_data):
-        label_type = validated_data.pop("type", FlawLabelV2.LabelType.CONTEXT_BASED)
+        label_type = validated_data.pop("type", FlawLabel.LabelType.CONTEXT_BASED)
 
-        if label_type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
+        if label_type == FlawLabel.LabelType.PRODUCT_FAMILY:
             raise serializers.ValidationError(
                 {
                     "label": (
@@ -2200,7 +2200,7 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
                 }
             )
 
-        model_class = FlawLabelV2.TYPE_TO_MODEL.get(label_type)
+        model_class = FlawLabel.TYPE_TO_MODEL.get(label_type)
         if model_class is None:
             raise serializers.ValidationError(
                 {"type": f"Unknown label type '{label_type}'."}
@@ -2235,22 +2235,18 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
 class FlawCollaboratorPostSerializer(FlawCollaboratorSerializer):
     type = serializers.ChoiceField(
         choices=[
-            (FlawLabelV2.LabelType.ALIAS, FlawLabelV2.LabelType.ALIAS.label),
-            (FlawLabelV2.LabelType.BU, FlawLabelV2.LabelType.BU.label),
-            (
-                FlawLabelV2.LabelType.CONTEXT_BASED,
-                FlawLabelV2.LabelType.CONTEXT_BASED.label,
-            ),
-            (FlawLabelV2.LabelType.WORKFLOW, FlawLabelV2.LabelType.WORKFLOW.label),
+            c
+            for c in FlawLabel.LabelType.choices
+            if c[0] != FlawLabel.LabelType.PRODUCT_FAMILY
         ],
         required=False,
-        default=FlawLabelV2.LabelType.CONTEXT_BASED,
+        default=FlawLabel.LabelType.CONTEXT_BASED,
     )
 
 
-class FlawLabelV2Serializer(TrackingMixinSerializer):
+class FlawLabelSerializer(TrackingMixinSerializer):
     """
-    Flaw label V2 serializer with type-specific fields
+    Flaw label serializer with type-specific fields
     """
 
     _OPTIONAL_FIELDS = ("state", "contributor", "relevant")
@@ -2258,7 +2254,7 @@ class FlawLabelV2Serializer(TrackingMixinSerializer):
     flaw = serializers.UUIDField(write_only=True, source="flaw_id")
     name = serializers.CharField(max_length=255)
     type = serializers.ChoiceField(
-        choices=FlawLabelV2.LabelType.choices,
+        choices=FlawLabel.LabelType.choices,
         required=False,
     )
     state = serializers.ChoiceField(
@@ -2271,7 +2267,7 @@ class FlawLabelV2Serializer(TrackingMixinSerializer):
     relevant = serializers.BooleanField(required=False)
 
     class Meta:
-        model = FlawLabelV2
+        model = FlawLabel
         fields = [
             "uuid",
             "flaw",
@@ -2312,9 +2308,9 @@ class FlawLabelV2Serializer(TrackingMixinSerializer):
             name = attrs.get("name")
 
             if flaw_id and name:
-                # Check against base FlawLabelV2 model to catch duplicates across all label types
+                # Check against base FlawLabel model to catch duplicates across all label types
                 # The unique constraint is on (flaw, name) regardless of type
-                if FlawLabelV2.objects.filter(flaw_id=flaw_id, name=name).exists():
+                if FlawLabel.objects.filter(flaw_id=flaw_id, name=name).exists():
                     raise serializers.ValidationError(
                         {"name": [f"Label '{name}' already exists."]}
                     )
@@ -2328,7 +2324,7 @@ class FlawLabelV2Serializer(TrackingMixinSerializer):
                 {"type": "This field is required for creating labels."}
             )
 
-        if label_type == FlawLabelV2.LabelType.PRODUCT_FAMILY:
+        if label_type == FlawLabel.LabelType.PRODUCT_FAMILY:
             raise serializers.ValidationError(
                 {
                     "name": (
@@ -2339,7 +2335,7 @@ class FlawLabelV2Serializer(TrackingMixinSerializer):
                 }
             )
 
-        model_class = FlawLabelV2.TYPE_TO_MODEL.get(label_type)
+        model_class = FlawLabel.TYPE_TO_MODEL.get(label_type)
         if model_class is None:
             raise serializers.ValidationError(
                 {"type": f"Unknown label type '{label_type}'."}
@@ -2366,13 +2362,25 @@ class FlawLabelV2Serializer(TrackingMixinSerializer):
 
 
 @extend_schema_serializer(exclude_fields=["flaw", "relevant"])
-class FlawLabelV2PostSerializer(FlawLabelV2Serializer):
+class FlawLabelPostSerializer(FlawLabelSerializer):
     type = serializers.ChoiceField(
         choices=[
             c
-            for c in FlawLabelV2.LabelType.choices
-            if c[0] != FlawLabelV2.LabelType.PRODUCT_FAMILY
+            for c in FlawLabel.LabelType.choices
+            if c[0] != FlawLabel.LabelType.PRODUCT_FAMILY
         ],
+    )
+
+
+@extend_schema_serializer(exclude_fields=["flaw"])
+class FlawLabelPutSerializer(FlawLabelSerializer):
+    type = serializers.ChoiceField(
+        choices=[
+            c
+            for c in FlawLabel.LabelType.choices
+            if c[0] != FlawLabel.LabelType.PRODUCT_FAMILY
+        ],
+        required=False,
     )
 
 
@@ -2444,9 +2452,7 @@ class FlawSerializer(
     requires_cve_description = serializers.SerializerMethodField()
     selected_cve_description = serializers.ReadOnlyField()
 
-    labels = FlawCollaboratorSerializer(
-        source="labels_v2", many=True, required=False, read_only=True
-    )
+    labels = FlawLabelSerializer(many=True, required=False, read_only=True)
 
     meta_attr = serializers.SerializerMethodField()
 
@@ -2723,6 +2729,8 @@ class FlawPutSerializer(FlawSerializer):
 
 class FlawV1Serializer(FlawSerializer):
     """Serializer for the flaw model adapted to affects v1"""
+
+    labels = FlawCollaboratorSerializer(many=True, required=False, read_only=True)
 
     history_relations = (
         HistoryRelation(
