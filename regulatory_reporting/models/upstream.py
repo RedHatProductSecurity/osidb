@@ -4,7 +4,7 @@ import pghistory
 from django.conf import settings
 from django.db import models
 
-from osidb.mixins import ACLMixin, TrackingMixin
+from osidb.mixins import ACLMixin, ACLMixinManager, TrackingMixin, TrackingMixinManager
 from osidb.models.fields import PURLField
 
 
@@ -48,6 +48,36 @@ class UpstreamProject(TrackingMixin):
         return self.component_name
 
 
+class UpstreamNotificationQuerySet(models.QuerySet):
+    OPEN_STATUSES = [
+        "required",
+        "contact_needed",
+        "prepared",
+        "reviewed",
+        "queued",
+        "deferred",
+        "blocked",
+        "failed",
+    ]
+
+    def open(self):
+        """Notifications not yet terminally resolved."""
+        return self.filter(status__in=self.OPEN_STATUSES)
+
+    def stale(self, since):
+        """Notifications not updated since the given datetime."""
+        return self.filter(updated_dt__lt=since)
+
+
+class UpstreamNotificationManager(ACLMixinManager, TrackingMixinManager):
+    pass
+
+
+UpstreamNotificationManager = UpstreamNotificationManager.from_queryset(
+    UpstreamNotificationQuerySet
+)
+
+
 @pghistory.track(
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),
@@ -83,6 +113,7 @@ class UpstreamNotification(ACLMixin, TrackingMixin):
         OTHER_MANUAL = "other_manual"
 
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    objects = UpstreamNotificationManager()
     flaw = models.ForeignKey(
         "osidb.Flaw",
         on_delete=models.CASCADE,

@@ -226,6 +226,11 @@ LOGGING = {
             "handlers": ["console"],
         },
         "celery": {"handlers": ["celery"], "level": "INFO", "propagate": True},
+        "regulatory_reporting": {
+            "handlers": ["celery"],
+            "level": "INFO",
+            "propagate": False,
+        },
         "osidb": {"level": "WARNING", "handlers": ["console"], "propagate": False},
         "api_req": {"level": "INFO", "handlers": ["console"], "propagate": False},
         "django_auth_ldap": {"level": "WARNING", "handlers": ["console"]},
