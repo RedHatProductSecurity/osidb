@@ -8,6 +8,7 @@ from django.utils.timezone import datetime, make_aware
 from freezegun import freeze_time
 from rest_framework import status
 
+from osidb.acls import ACL
 from osidb.core import set_user_acls
 from osidb.filters import FlawFilter
 from osidb.models import (
@@ -2211,8 +2212,11 @@ class TestEndpointsFlaws:
         """
 
         if internal:
-            flaw = FlawFactory(embargoed=False)
-            flaw.set_internal()
+            flaw = FlawFactory(
+                embargoed=False,
+                acl_read=ACL.INTERNAL.uuid_read,
+                acl_write=ACL.INTERNAL.uuid_write,
+            )
         else:
             # not embargoed is defaulted to public
             flaw = FlawFactory(embargoed=embargoed)

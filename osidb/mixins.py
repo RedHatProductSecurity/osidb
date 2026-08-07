@@ -22,6 +22,7 @@ from django.db import IntegrityError, models, transaction
 from django.dispatch import receiver
 from django.utils import timezone
 
+from osidb.acls import ACL
 from osidb.exceptions import DataInconsistencyException
 
 from .core import generate_acls
@@ -370,64 +371,45 @@ class ACLMixinVisibility(ComparableTextChoices):
     PUBLIC = "PUBLIC", "Public"
 
 
-class ACLMixinManager(models.Manager):
-    def get_queryset(self):
-        """define base queryset for retrieving models that uses ACLs"""
-        return (
-            super()
-            .get_queryset()
-            .annotate(
-                # annotate queryset with embargoed pseudo-attribute as it is fully based on the ACLs
-                embargoed=models.Case(
-                    models.When(
-                        acl_read=[
-                            uuid.UUID(acl)
-                            for acl in generate_acls(settings.EMBARGO_READ_GROUPS)
-                        ],
-                        then=True,
-                    ),
-                    default=False,
-                    output_field=models.BooleanField(),
-                ),
-                # annotate queryset with visibility pseudo-attribute based on ACL read groups
-                visibility=models.Case(
-                    models.When(
-                        acl_read=[
-                            uuid.UUID(acl)
-                            for acl in generate_acls(settings.EMBARGO_READ_GROUPS)
-                        ],
-                        then=models.Value(ACLMixinVisibility.EMBARGOED),
-                    ),
-                    models.When(
-                        acl_read=[
-                            uuid.UUID(acl)
-                            for acl in generate_acls(settings.INTERNAL_READ_GROUPS)
-                        ],
-                        then=models.Value(ACLMixinVisibility.INTERNAL),
-                    ),
-                    models.When(
-                        acl_read=[
-                            uuid.UUID(acl)
-                            for acl in generate_acls(settings.PUBLIC_READ_GROUPS)
-                        ],
-                        then=models.Value(ACLMixinVisibility.PUBLIC),
-                    ),
-                    default=models.Value(ACLMixinVisibility.PUBLIC),
-                    output_field=models.CharField(),
-                ),
-            )
-        )
-
-
 class ACLMixin(models.Model):
     """
     mixin for models requiring access controls
     defining necessary attributes and validations
     """
 
-    objects = ACLMixinManager()
     acl_read = fields.ArrayField(models.UUIDField(), default=list)
     acl_write = fields.ArrayField(models.UUIDField(), default=list)
+
+    embargoed = models.GeneratedField(
+        expression=models.Case(
+            models.When(acl_read=ACL.EMBARGO.uuid_read, then=True),
+            default=False,
+            output_field=models.BooleanField(),
+        ),
+        output_field=models.BooleanField(),
+        db_persist=True,
+    )
+
+    visibility = models.GeneratedField(
+        expression=models.Case(
+            models.When(
+                acl_read=ACL.EMBARGO.uuid_read,
+                then=models.Value(ACLMixinVisibility.EMBARGOED),
+            ),
+            models.When(
+                acl_read=ACL.INTERNAL.uuid_read,
+                then=models.Value(ACLMixinVisibility.INTERNAL),
+            ),
+            models.When(
+                acl_read=ACL.PUBLIC.uuid_read,
+                then=models.Value(ACLMixinVisibility.PUBLIC),
+            ),
+            default=models.Value(ACLMixinVisibility.PUBLIC),
+            output_field=models.CharField(),
+        ),
+        output_field=models.CharField(max_length=10),
+        db_persist=True,
+    )
 
     # to be able to meaningfully print the ACL related alerts
     # we have to keep the mapping from the hashes to names
@@ -453,49 +435,21 @@ class ACLMixin(models.Model):
             self.acl_read = list(self.flaw.acl_read)
             self.acl_write = list(self.flaw.acl_write)
 
-    def get_embargoed_acl():
-        return [uuid.UUID(acl) for acl in generate_acls(settings.EMBARGO_READ_GROUPS)]
+    @property
+    def current_acl(self):
+        return ACL.from_acl_read(self.acl_read)
 
     @property
     def is_embargoed(self):
-        return self.acl_read == ACLMixin.get_embargoed_acl()
+        return self.current_acl == ACL.EMBARGO
 
     @property
     def is_internal(self):
-        return set(self.acl_read + self.acl_write) == self.acls_internal
+        return self.current_acl == ACL.INTERNAL
 
     @property
     def is_public(self):
-        return set(self.acl_read + self.acl_write) == self.acls_public
-
-    @property
-    def visibility(self):
-        if self.is_embargoed:
-            return ACLMixinVisibility.EMBARGOED
-        if self.is_internal:
-            return ACLMixinVisibility.INTERNAL
-        return ACLMixinVisibility.PUBLIC
-
-    @visibility.setter
-    def visibility(self, target):
-        """
-        Monotonically widen visibility to the given target level.
-
-        ACLMixinVisibility can only be widened (EMBARGOED -> INTERNAL -> PUBLIC),
-        never narrowed. If the current level is already at or wider than
-        the target, this is a no-op.
-        """
-        target = ACLMixinVisibility(target)
-        if self.visibility >= target:
-            return
-
-        if target == ACLMixinVisibility.PUBLIC:
-            self.set_public()
-        elif target == ACLMixinVisibility.INTERNAL:
-            self.set_internal()
-
-        self.set_acls_nested()
-        self.set_acls_history()
+        return self.current_acl == ACL.PUBLIC
 
     def acl2group(self, acl):
         """
@@ -530,7 +484,7 @@ class ACLMixin(models.Model):
             >>> acls == my_flaw.acl_read
             ... True
         """
-        acls = [self.group2acl(group) for group in groups]
+        acls = sorted(self.group2acl(group) for group in groups)
         self.acl_read = acls
         return acls
 
@@ -551,73 +505,42 @@ class ACLMixin(models.Model):
             >>> acls == my_flaw.acl_write
             ... True
         """
-        acls = [self.group2acl(group) for group in groups]
+        acls = sorted(self.group2acl(group) for group in groups)
         self.acl_write = acls
         return acls
 
+    def set_acls(self, acl: ACL):
+        """
+        Set entity ACLs to those defined by the given ACL member.
+
+        Ungated primitive: overwrites acl_read/acl_write unconditionally,
+        including narrowing. For call sites that must never narrow
+        visibility, use widen_acls (or set_public/set_internal) instead.
+        """
+        self.acl_read = acl.uuid_read
+        self.acl_write = acl.uuid_write
+
+    def widen_acls(self, acl: ACL):
+        """
+        Set entity ACLs to those defined by the given ACL member, unless the
+        entity is already at or beyond that visibility, in which case this
+        is a no-op. Never narrows.
+        """
+        if self.current_acl >= acl:
+            return
+        self.set_acls(acl)
+
     def set_public(self):
         """
-        Shortcut method for making an ACL-enabled entity public.
-
-        Calling this method on an entity will **overwrite** its acl_read
-        and acl_write attributes to the default public ones.
-
-        e.g.:
-            >>> my_flaw.acl_read
-            ... [UUID(...), UUID(...), UUID(...), UUID(...)]
-            >>> my_flaw.set_public()
-            >>> # note that the acl_read have been completely replaced by the
-            >>> # public ACLs only, other ones are not kept.
-            >>> my_flaw.acl_read
-            ... [UUID(...), UUID(...)]
+        Shortcut for widen_acls(ACL.PUBLIC).
         """
-
-        self.set_acl_read(*settings.PUBLIC_READ_GROUPS)
-        self.set_acl_write(*settings.PUBLIC_WRITE_GROUPS)
-        # Update the embargoed annotation to reflect the new ACL state
-        self.embargoed = False
-
-    def set_embargoed(self):
-        """
-        Shortcut method for making an ACL-enabled entity embargoed.
-
-        Calling this method on an entity will **overwrite** its acl_read
-        and acl_write attributes to the default embargoed ones.
-
-        e.g.:
-            >>> my_flaw.acl_read
-            ... [UUID(...), UUID(...), UUID(...), UUID(...)]
-            >>> my_flaw.set_embargoed()
-            >>> # note that the acl_read have been completely replaced by the
-            >>> # embargoed ACLs only, other ones are not kept.
-            >>> my_flaw.acl_read
-            ... [UUID(...), UUID(...)]
-        """
-        self.set_acl_read(*settings.EMBARGO_READ_GROUPS)
-        self.set_acl_write(*settings.EMBARGO_WRITE_GROUPS)
-        # Update the embargoed annotation to reflect the new ACL state
-        self.embargoed = True
+        self.widen_acls(ACL.PUBLIC)
 
     def set_internal(self):
         """
-        Shortcut method for making an ACL-enabled entity internal.
-
-        Calling this method on an entity will **overwrite** its acl_read
-        and acl_write attributes to the default internal ones.
-
-        e.g.:
-            >>> my_flaw.acl_read
-            ... [UUID(...), UUID(...), UUID(...), UUID(...)]
-            >>> my_flaw.set_internal()
-            >>> # note that the acl_read have been completely replaced by the
-            >>> # internal ACLs only, other ones are not kept.
-            >>> my_flaw.acl_read
-            ... [UUID(...), UUID(...)]
+        Shortcut for widen_acls(ACL.INTERNAL).
         """
-        self.set_acl_read(*settings.INTERNAL_READ_GROUPS)
-        self.set_acl_write(*settings.INTERNAL_WRITE_GROUPS)
-        # Update the embargoed annotation to reflect the new ACL state
-        self.embargoed = False
+        self.widen_acls(ACL.INTERNAL)
 
     @cached_property
     def acls_public_read(self):
@@ -840,7 +763,7 @@ class ACLMixin(models.Model):
 
         with transaction.atomic():
             # unembargo
-            self.set_public()
+            self.set_acls(ACL.PUBLIC)
             self.set_acls_history()
 
             kwargs = {}
@@ -976,7 +899,7 @@ class ACLMixin(models.Model):
                     )
 
 
-class AlertManager(ACLMixinManager):
+class AlertManager(models.Manager):
     """Alert manager"""
 
     def get_queryset(self):
@@ -1201,7 +1124,7 @@ class AlertMixin(ValidateMixin):
             exclude = set()
 
         for f in self._meta.fields:
-            if f.name in exclude:
+            if f.name in exclude or f.generated:
                 continue
 
             # ValidationError may be raised here

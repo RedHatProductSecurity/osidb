@@ -124,7 +124,7 @@ def refresh_v1_view():
     def refresh_func():
         transaction.commit()
         with connection.cursor() as cursor:
-            cursor.execute("REFRESH MATERIALIZED VIEW affect_v1;")
+            cursor.execute("REFRESH MATERIALIZED VIEW affect_v1_mv;")
 
     return refresh_func
 

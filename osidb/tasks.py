@@ -96,7 +96,7 @@ def refresh_affect_v1_view():
     set_user_acls(settings.ALL_GROUPS)
 
     start_time = time()
-    sql = "REFRESH MATERIALIZED VIEW CONCURRENTLY affect_v1;"
+    sql = "REFRESH MATERIALIZED VIEW CONCURRENTLY affect_v1_mv;"
     try:
         with connection.cursor() as cursor:
             cursor.execute(sql)

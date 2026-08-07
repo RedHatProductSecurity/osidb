@@ -25,7 +25,7 @@ def test_affect_v1_expected_indexes_exist():
             SELECT indexname
             FROM pg_indexes
             WHERE schemaname = current_schema()
-              AND tablename = 'affect_v1'
+              AND tablename = 'affect_v1_mv'
             """
         )
         present = {row[0] for row in c.fetchall()}

@@ -8,7 +8,6 @@ from django.db import models
 from apps.bbsync.mixins import BugzillaSyncMixin
 from osidb.mixins import (
     ACLMixin,
-    ACLMixinManager,
     AlertMixin,
     TrackingMixin,
     TrackingMixinManager,
@@ -20,7 +19,7 @@ from .flaw import Flaw
 from .source import FlawSource
 
 
-class FlawAcknowledgmentManager(ACLMixinManager, TrackingMixinManager):
+class FlawAcknowledgmentManager(TrackingMixinManager):
     """flaw acknowledgment manager"""
 
     @staticmethod

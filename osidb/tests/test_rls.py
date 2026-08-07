@@ -1,6 +1,7 @@
 import pytest
+from django.apps import apps
 from django.conf import settings
-from django.db import connections, transaction
+from django.db import connection, connections, transaction
 from django.db.utils import ProgrammingError
 
 from osidb.core import set_user_acls
@@ -279,3 +280,51 @@ class TestRLS:
 
         set_user_acls([settings.EMBARGO_READ_GROUP])
         assert AliasLabel.objects.count() == 0
+
+
+def _has_rls(table, cursor):
+    cursor.execute(
+        "SELECT relrowsecurity AND relforcerowsecurity "
+        "FROM pg_class WHERE relname = %s",
+        [table],
+    )
+    row = cursor.fetchone()
+    return bool(row and row[0])
+
+
+def _mti_child_tables():
+    """
+    (child_table, parent_table) for every concrete multi-table-inheritance
+    model, i.e. models with their own physical table linked to a parent's
+    via a OneToOne parent link (as opposed to abstract-base inheritance,
+    which shares one table and needs no such pairing).
+    """
+    for model in apps.get_models():
+        opts = model._meta
+        if not opts.managed or opts.proxy:
+            continue
+        for parent_model in opts.parents:
+            if opts.db_table == parent_model._meta.db_table:
+                continue  # shares the parent's table, not a real child table
+            yield opts.db_table, parent_model._meta.db_table
+
+
+def test_mti_child_tables_have_rls():
+    """
+    A multi-table-inheritance child table stores none of its own ACL
+    columns - those live on the parent table, reached through a JOIN.
+    But Django can compile queries (e.g. .count()) that touch only the
+    child table with no JOIN at all, silently bypassing the parent's RLS
+    policies unless the child table enforces RLS on its own (see
+    OSIDB-5236). Any child table of an RLS-protected parent must have
+    RLS enabled and forced too.
+    """
+    with connection.cursor() as cursor:
+        missing = sorted(
+            {
+                child
+                for child, parent in _mti_child_tables()
+                if _has_rls(parent, cursor) and not _has_rls(child, cursor)
+            }
+        )
+    assert not missing, f"MTI child tables missing RLS policies: {missing}"

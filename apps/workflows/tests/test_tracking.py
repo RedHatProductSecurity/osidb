@@ -5,6 +5,7 @@ Tests for classification change tracking functionality
 import pytest
 
 from apps.workflows.tracking import ClassificationChangeType
+from osidb.acls import ACL
 from osidb.models import Impact
 from osidb.tests.factories import FlawFactory
 
@@ -139,7 +140,7 @@ class TestClassificationTracking:
         assert flaw.workflow_name == "DEFAULT"
 
         # Embargo the flaw to trigger workflow change
-        flaw.set_embargoed()
+        flaw.set_acls(ACL.EMBARGO)
         flaw.save(raise_validation_error=False)
 
         # Verify workflow changed
