@@ -1,7 +1,10 @@
+import logging
+from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
 from django.conf import settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -387,6 +390,78 @@ class TestUpstreamNotificationTasks:
         notification.refresh_from_db()
         assert notification.status == UpstreamNotification.NotificationStatus.SENT
         assert notification.last_error == ""
+
+    def test_mark_upstream_notification_sent_logs_success(self, caplog):
+        """Test for success callback logs an info message."""
+        notification = UpstreamNotificationFactory(
+            status=UpstreamNotification.NotificationStatus.QUEUED
+        )
+        task_logger = logging.getLogger("regulatory_reporting.tasks")
+        task_logger.addHandler(caplog.handler)
+        try:
+            with caplog.at_level(logging.INFO, logger="regulatory_reporting.tasks"):
+                mark_upstream_notification_sent(None, notification.uuid)
+        finally:
+            task_logger.removeHandler(caplog.handler)
+        notification.refresh_from_db()
+        assert notification.status == UpstreamNotification.NotificationStatus.SENT
+        assert any(
+            str(notification.uuid) in record.getMessage() and record.levelname == "INFO"
+            for record in caplog.records
+        )
+
+    def test_mark_upstream_notification_failed_logs_error(self, caplog):
+        """Test for failure callback logs an error message."""
+        notification = UpstreamNotificationFactory(
+            status=UpstreamNotification.NotificationStatus.QUEUED
+        )
+        exc = Exception("SMTP connection refused")
+        task_logger = logging.getLogger("regulatory_reporting.tasks")
+        task_logger.addHandler(caplog.handler)
+        try:
+            with caplog.at_level(logging.ERROR, logger="regulatory_reporting.tasks"):
+                mark_upstream_notification_failed(None, exc, None, notification.uuid)
+        finally:
+            task_logger.removeHandler(caplog.handler)
+        notification.refresh_from_db()
+        assert notification.status == UpstreamNotification.NotificationStatus.FAILED
+        assert any(
+            str(notification.uuid) in record.getMessage()
+            and "Exception" in record.getMessage()
+            and record.levelname == "ERROR"
+            for record in caplog.records
+        )
+
+    def test_open_excludes_terminal_statuses(self):
+        """Test for open() excludes notifications in terminal statuses."""
+        open_notification = UpstreamNotificationFactory(
+            status=UpstreamNotification.NotificationStatus.REQUIRED
+        )
+        for terminal_status in [
+            UpstreamNotification.NotificationStatus.NOT_APPLICABLE,
+            UpstreamNotification.NotificationStatus.NOT_REQUIRED,
+            UpstreamNotification.NotificationStatus.SENT,
+        ]:
+            UpstreamNotificationFactory(status=terminal_status)
+
+        result = UpstreamNotification.objects.open()
+
+        assert open_notification in result
+        assert result.count() == 1
+
+    def test_stale_excludes_recently_updated(self):
+        """Test for stale() only returns notifications not updated since the given time."""
+        old_notification = UpstreamNotificationFactory()
+        UpstreamNotification.objects.filter(uuid=old_notification.uuid).update(
+            updated_dt=timezone.now() - timedelta(days=10)
+        )
+        recent_notification = UpstreamNotificationFactory()
+
+        cutoff = timezone.now() - timedelta(days=7)
+        result = UpstreamNotification.objects.stale(cutoff)
+
+        assert old_notification in result
+        assert recent_notification not in result
 
 
 class TestUpstreamProjectView:
