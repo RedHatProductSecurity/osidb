@@ -24,30 +24,39 @@ class Migration(migrations.Migration):
             model_name="flawlabel",
             name="delete_delete",
         ),
-        migrations.RenameField(
-            model_name="aliaslabel",
-            old_name="flawlabelv2_ptr",
-            new_name="flawlabel_ptr",
-        ),
-        migrations.RenameField(
-            model_name="bulabel",
-            old_name="flawlabelv2_ptr",
-            new_name="flawlabel_ptr",
-        ),
-        migrations.RenameField(
-            model_name="collaboratorlabel",
-            old_name="flawlabelv2_ptr",
-            new_name="flawlabel_ptr",
-        ),
-        migrations.RenameField(
-            model_name="productfamilylabel",
-            old_name="flawlabelv2_ptr",
-            new_name="flawlabel_ptr",
-        ),
-        migrations.RenameField(
-            model_name="workflowlabel",
-            old_name="flawlabelv2_ptr",
-            new_name="flawlabel_ptr",
+        # Rename pointer fields in migration state only (no database changes).
+        # The database column names remain as flawlabelv2_ptr_id to match the
+        # parent table name (osidb_flawlabelv2, preserved via db_table in migration 0258).
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.RenameField(
+                    model_name="aliaslabel",
+                    old_name="flawlabelv2_ptr",
+                    new_name="flawlabel_ptr",
+                ),
+                migrations.RenameField(
+                    model_name="bulabel",
+                    old_name="flawlabelv2_ptr",
+                    new_name="flawlabel_ptr",
+                ),
+                migrations.RenameField(
+                    model_name="collaboratorlabel",
+                    old_name="flawlabelv2_ptr",
+                    new_name="flawlabel_ptr",
+                ),
+                migrations.RenameField(
+                    model_name="productfamilylabel",
+                    old_name="flawlabelv2_ptr",
+                    new_name="flawlabel_ptr",
+                ),
+                migrations.RenameField(
+                    model_name="workflowlabel",
+                    old_name="flawlabelv2_ptr",
+                    new_name="flawlabel_ptr",
+                ),
+            ],
+            # No database operations - columns stay as flawlabelv2_ptr_id
+            database_operations=[],
         ),
         pgtrigger.migrations.AddTrigger(
             model_name="flawlabel",
