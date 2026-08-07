@@ -105,6 +105,7 @@ class TrackingMixinManager(models.Manager):
         """
         filter out auto_timestamps from the defaults
         """
+        defaults = dict(defaults or {})
         defaults.pop("auto_timestamps", None)
         return super().get_or_create(defaults, **kwargs)
 
