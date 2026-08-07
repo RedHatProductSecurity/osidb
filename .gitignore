@@ -44,5 +44,8 @@ pyrightconfig.json
 \#*\#
 .\#*
 
+# Silk profiling output
+*.prof
+
 # Codegraph knowledge graph directory
 .codegraph/
