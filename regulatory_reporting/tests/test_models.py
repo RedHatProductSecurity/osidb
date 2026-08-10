@@ -15,6 +15,7 @@ from regulatory_reporting.models import (
 from regulatory_reporting.tests.factories import (
     SRPReportFactory,
     SRPReportMilestoneFactory,
+    SRPReportWithMilestonesFactory,
 )
 
 pytestmark = [
@@ -22,22 +23,6 @@ pytestmark = [
     pytest.mark.no_cra_reporting,
     pytest.mark.no_cra_notifications,
 ]
-
-
-def _report_kwargs(**overrides):
-    flaw = overrides.pop("flaw", None) or FlawFactory()
-    defaults = {
-        "flaw": flaw,
-        "title": "Test report",
-        "responsibility_scope": SRPReport.ResponsibilityScope.MANUFACTURER,
-        "reportable_event_type": (SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED),
-        "timer_started_at": timezone.now(),
-        "status": SRPReport.SRPReportStatus.REQUIRED,
-        "acl_read": flaw.acl_read,
-        "acl_write": flaw.acl_write,
-    }
-    defaults.update(overrides)
-    return defaults
 
 
 def _milestone_kwargs(srp_report, **overrides):
@@ -53,15 +38,64 @@ def _milestone_kwargs(srp_report, **overrides):
 
 class TestSRPReport:
     def test_create_and_save(self):
-        report = SRPReportFactory()
+        report = SRPReportWithMilestonesFactory()
+        milestone_24h = report.milestones.get(
+            milestone_type=SRPReport.MilestoneType.LEVEL_24H
+        )
 
         assert report.uuid is not None
-        assert report.status == SRPReport.SRPReportStatus.REQUIRED
+        assert (
+            report.status
+            == f"{SRPReport.MilestoneType.LEVEL_24H}:{SRPReport.SRPReportStatus.REQUIRED}"
+        )
+        assert report.active_due_at() == milestone_24h.due_at
         assert report.timer_started_at is not None
+
+    def test_status_falls_back_to_furthest_closed_milestone(self):
+        """When no milestone is active, status uses furthest closed (final)."""
+        report = SRPReportWithMilestonesFactory()
+        for milestone in report.milestones.all():
+            milestone.status = SRPReport.SRPReportStatus.SUBMITTED
+            milestone.save()
+
+        report = SRPReport.objects.get(pk=report.pk)
+        milestone_final = report.milestones.get(
+            milestone_type=SRPReport.MilestoneType.LEVEL_FINAL
+        )
+        assert (
+            report.status
+            == f"{SRPReport.MilestoneType.LEVEL_FINAL}:{SRPReport.SRPReportStatus.SUBMITTED}"
+        )
+        assert report.active_due_at() == milestone_final.due_at
+
+    def test_status_and_active_due_at_follow_next_active_milestone(self):
+        """After 24h is closed, status and due date follow the 72h milestone."""
+        report = SRPReportWithMilestonesFactory()
+        milestone_24h = report.milestones.get(
+            milestone_type=SRPReport.MilestoneType.LEVEL_24H
+        )
+        milestone_24h.status = SRPReport.SRPReportStatus.SUBMITTED
+        milestone_24h.save()
+
+        report = SRPReport.objects.get(pk=report.pk)
+        milestone_72h = report.milestones.get(
+            milestone_type=SRPReport.MilestoneType.LEVEL_72H
+        )
+        assert (
+            report.status
+            == f"{SRPReport.MilestoneType.LEVEL_72H}:{SRPReport.SRPReportStatus.REQUIRED}"
+        )
+        assert report.active_due_at() == milestone_72h.due_at
+
+    def test_status_and_active_due_at_none_without_milestones(self):
+        report = SRPReportFactory()
+
+        assert report.status is None
+        assert report.active_due_at() is None
 
     def test_str(self):
         flaw = FlawFactory(cve_id="CVE-2024-1234")
-        report = SRPReportFactory(flaw=flaw)
+        report = SRPReportWithMilestonesFactory(flaw=flaw)
 
         assert str(report) == f"SRP Report {report.uuid} for CVE-2024-1234"
 
@@ -69,19 +103,6 @@ class TestSRPReport:
         report = SRPReportFactory()
 
         assert list(report.flaw.srp_reports.all()) == [report]
-
-    @pytest.mark.parametrize(
-        "status",
-        [SRPReport.SRPReportStatus.REQUIRED, SRPReport.SRPReportStatus.PREPARED],
-    )
-    def test_timer_started_required(self, status):
-        report = SRPReport(**_report_kwargs(status=status, timer_started_at=None))
-
-        with pytest.raises(
-            ValidationError,
-            match="timer_started_at must be set",
-        ):
-            report.save()
 
     @pytest.mark.parametrize(
         "status",
@@ -94,57 +115,73 @@ class TestSRPReport:
         ],
     )
     def test_timer_started_not_required_for_other_statuses(self, status):
-        report = SRPReportFactory(status=status, timer_started_at=None)
-
-        assert report.timer_started_at is None
-
-    def test_srp_reference_required_when_submitted(self):
-        report = SRPReport(
-            **_report_kwargs(
-                status=SRPReport.SRPReportStatus.SUBMITTED,
-                timer_started_at=timezone.now(),
-                srp_reference_id="",
-            )
+        # Use additional-info milestones so due_at comes from request_received_at
+        # and does not require report.timer_started_at.
+        report = SRPReportFactory(
+            timer_started_at=None,
+            evidence=(
+                "Manual create justification."
+                if status == SRPReport.SRPReportStatus.PRE_REQUIRED
+                else ""
+            ),
+        )
+        milestone_type = SRPReport.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
+        SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=milestone_type,
+            status=status,
+            request_received_at=timezone.now(),
         )
 
-        with pytest.raises(
-            ValidationError,
-            match="srp_reference_id must be set when status is SUBMITTED",
-        ):
-            report.save()
+        report = SRPReport.objects.get(pk=report.pk)
+        assert report.status == f"{milestone_type}:{status}"
+        assert report.timer_started_at is None
+        report.validate()
 
     def test_srp_reference_not_required_when_prepared(self):
         report = SRPReportFactory(
-            status=SRPReport.SRPReportStatus.PREPARED,
             timer_started_at=timezone.now(),
             srp_reference_id="",
         )
+        SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReport.MilestoneType.LEVEL_24H,
+            status=SRPReport.SRPReportStatus.PREPARED,
+        )
 
+        report = SRPReport.objects.get(pk=report.pk)
+        assert (
+            report.status
+            == f"{SRPReport.MilestoneType.LEVEL_24H}:{SRPReport.SRPReportStatus.PREPARED}"
+        )
         assert report.srp_reference_id == ""
+        report.validate()
 
     @pytest.mark.parametrize("evidence", ["", "   "])
     def test_evidence_required_when_pre_required(self, evidence):
-        report = SRPReport(
-            **_report_kwargs(
-                status=SRPReport.SRPReportStatus.PRE_REQUIRED,
-                timer_started_at=None,
-                evidence=evidence,
-            )
+        report = SRPReportFactory(
+            timer_started_at=None,
+            evidence=evidence,
+        )
+        SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReport.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
+            status=SRPReport.SRPReportStatus.PRE_REQUIRED,
+            request_received_at=timezone.now(),
         )
 
+        report = SRPReport.objects.get(pk=report.pk)
         with pytest.raises(
             ValidationError,
             match="evidence must be set when status is PRE_REQUIRED",
         ):
-            report.save()
+            report.validate()
 
     def test_evidence_not_required_when_required(self):
-        report = SRPReportFactory(
-            status=SRPReport.SRPReportStatus.REQUIRED,
-            evidence="",
-        )
+        report = SRPReportWithMilestonesFactory(evidence="")
 
         assert report.evidence == ""
+        report.validate()
 
     def test_flaw_protect_on_delete(self):
         flaw = FlawFactory()

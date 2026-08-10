@@ -44,24 +44,6 @@ class SRPReportMilestone(SRPReportBase):
     final report) for an SRP report, each with their own ENISA template and payload.
     """
 
-    class MilestoneType(models.TextChoices):
-        """Milestone type level for this milestone"""
-
-        LEVEL_24H = "24h", "24 Hour Template"
-        LEVEL_72H = "72h", "72 Hour Template"
-        LEVEL_FINAL = "final", "Final Report Template"
-        LEVEL_ADDITIONAL_INFORMATION_RESPONSE = (
-            "additional_information_response",
-            "Additional Information Response Template",
-        )
-
-    MILESTONE_DURATION_BY_TYPE = {
-        MilestoneType.LEVEL_24H: timedelta(hours=24),
-        MilestoneType.LEVEL_72H: timedelta(hours=72),
-        MilestoneType.LEVEL_FINAL: None,  # Duration is calculated based on the reportable event type
-        MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE: timedelta(days=30),
-    }
-
     # Foreign key to parent SRP report
     srp_report = models.ForeignKey(
         SRPReport,
@@ -72,7 +54,7 @@ class SRPReportMilestone(SRPReportBase):
 
     # Milestone classification
     milestone_type = models.CharField(
-        choices=MilestoneType.choices,
+        choices=SRPReportBase.MilestoneType.choices,
         max_length=50,
         help_text="Type of milestone (24h, 72h, final, etc.)",
     )

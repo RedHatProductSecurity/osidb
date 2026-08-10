@@ -261,7 +261,6 @@ class TestSRPReportSerializer:
         original_acl_write = list(report.acl_write)
 
         payload = {
-            "status": SRPReport.SRPReportStatus.PREPARED,
             "updated_dt": report.updated_dt,
         }
         serializer = SRPReportSerializer(
@@ -277,4 +276,3 @@ class TestSRPReportSerializer:
         assert updated.is_embargoed
         assert list(updated.acl_read) == original_acl_read
         assert list(updated.acl_write) == original_acl_write
-        assert updated.status == SRPReport.SRPReportStatus.PREPARED

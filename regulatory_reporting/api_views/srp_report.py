@@ -31,7 +31,7 @@ class SRPReportViewSet(ModelViewSet):
     - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
     Reports are also auto-created by signals when Critter criteria are met.
-    Manual POST creates the report in PRE_REQUIRED status with milestones.
+    Manual POST creates milestones in PRE_REQUIRED; report status is derived.
     DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
     """
 
@@ -53,7 +53,6 @@ class SRPReportViewSet(ModelViewSet):
         flaw = serializer.validated_data["flaw"]
         with transaction.atomic():
             srp_report = serializer.save(
-                status=SRPReport.SRPReportStatus.PRE_REQUIRED,
                 acl_read=flaw.acl_read,
                 acl_write=flaw.acl_write,
             )

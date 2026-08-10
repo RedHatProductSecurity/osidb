@@ -105,14 +105,6 @@ class SRPReport(SRPReportBase):
         help_text="Type of event being reported to ENISA",
     )
 
-    # Report lifecycle status
-    status = models.CharField(
-        choices=SRPReportBase.SRPReportStatus.choices,
-        max_length=20,
-        default=SRPReportBase.SRPReportStatus.REQUIRED,
-        help_text="Current status of the SRP report",
-    )
-
     evidence = models.TextField(
         blank=True,
         help_text=(
@@ -170,7 +162,6 @@ class SRPReport(SRPReportBase):
 
         indexes = TrackingMixin.Meta.indexes + [
             models.Index(fields=["flaw"]),
-            models.Index(fields=["status"]),
             models.Index(fields=["timer_started_at"]),
             models.Index(fields=["reportable_event_type"]),
             models.Index(fields=["responsibility_scope"]),
@@ -188,11 +179,29 @@ class SRPReport(SRPReportBase):
     def __str__(self):
         return f"SRP Report {self.uuid} for {self.flaw.cve_id or self.flaw.uuid}"
 
+    ACTIVE_MILESTONE_STATUSES = (
+        SRPReportBase.SRPReportStatus.PRE_REQUIRED,
+        SRPReportBase.SRPReportStatus.REQUIRED,
+        SRPReportBase.SRPReportStatus.PREPARED,
+    )
+
+    STANDARD_MILESTONE_TYPES = (
+        SRPReportBase.MilestoneType.LEVEL_24H,
+        SRPReportBase.MilestoneType.LEVEL_72H,
+        SRPReportBase.MilestoneType.LEVEL_FINAL,
+    )
+
+    def _status_suffix(self):
+        """Return the milestone-status half of the derived `{type}:{status}` value."""
+        if not self.status or ":" not in self.status:
+            return None
+        return self.status.split(":", 1)[1]
+
     @validator
     def _validate_timer_started_required(self, **kwargs):
         """Timer must be set when status transitions to REQUIRED or beyond"""
         if (
-            self.status
+            self._status_suffix()
             in [
                 SRPReportBase.SRPReportStatus.REQUIRED,
                 SRPReportBase.SRPReportStatus.PREPARED,
@@ -207,7 +216,7 @@ class SRPReport(SRPReportBase):
     @validator
     def _validate_evidence_required(self, **kwargs):
         """Evidence is required for manually created (PRE_REQUIRED) reports"""
-        if self.status == SRPReportBase.SRPReportStatus.PRE_REQUIRED and (
+        if self._status_suffix() == SRPReportBase.SRPReportStatus.PRE_REQUIRED and (
             not self.evidence or not self.evidence.strip()
         ):
             raise ValidationError("evidence must be set when status is PRE_REQUIRED")
@@ -216,9 +225,79 @@ class SRPReport(SRPReportBase):
     def _validate_srp_reference_required(self, **kwargs):
         """SRP reference ID must be set when status is SUBMITTED"""
         if (
-            self.status == SRPReportBase.SRPReportStatus.SUBMITTED
+            self._status_suffix() == SRPReportBase.SRPReportStatus.SUBMITTED
             and not self.srp_reference_id
         ):
             raise ValidationError(
                 "srp_reference_id must be set when status is SUBMITTED"
             )
+
+    def _get_last_active_milestone(self):
+        """
+        Milestone that drives the derived report status.
+
+        Prefer the first active milestone (PRE_REQUIRED/REQUIRED/PREPARED)
+        in priority order:
+        24h → 72h → final → earliest additional_information_response
+        (by request_received_at).
+
+        If none are active, fall back to the furthest milestone in the pipeline:
+        latest additional_information_response → final → 72h → 24h.
+        """
+        milestones = list(self.milestones.all())
+        active = [m for m in milestones if m.status in self.ACTIVE_MILESTONE_STATUSES]
+
+        for milestone_type in self.STANDARD_MILESTONE_TYPES:
+            for milestone in active:
+                if milestone.milestone_type == milestone_type:
+                    return milestone
+
+        active_additionals = [
+            m
+            for m in active
+            if m.milestone_type
+            == self.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
+        ]
+        active_additionals.sort(
+            key=lambda m: (
+                m.request_received_at is None,
+                m.request_received_at or m.created_dt,
+            )
+        )
+        if active_additionals:
+            return active_additionals[0]
+
+        # No active milestones: furthest closed milestone in the pipeline.
+        all_additionals = [
+            m
+            for m in milestones
+            if m.milestone_type
+            == self.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
+        ]
+        if all_additionals:
+            dated = [m for m in all_additionals if m.request_received_at is not None]
+            if dated:
+                # Tie-break with newer created_dt to match filter ordering.
+                return max(dated, key=lambda m: (m.request_received_at, m.created_dt))
+            return max(all_additionals, key=lambda m: m.created_dt)
+
+        by_type = {m.milestone_type: m for m in milestones}
+        for milestone_type in reversed(self.STANDARD_MILESTONE_TYPES):
+            if milestone_type in by_type:
+                return by_type[milestone_type]
+
+        return None
+
+    @property
+    def status(self):
+        last_active_milestone = self._get_last_active_milestone()
+        if not last_active_milestone:
+            return None
+        return f"{last_active_milestone.milestone_type}:{last_active_milestone.status}"
+
+    def active_due_at(self):
+        """Return the due date for the active milestone"""
+        last_active_milestone = self._get_last_active_milestone()
+        if not last_active_milestone:
+            return None
+        return last_active_milestone.due_at

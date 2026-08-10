@@ -6,6 +6,7 @@ reports and upstream notifications as required by the EU Cyber Resilience Act.
 """
 
 import uuid
+from datetime import timedelta
 
 from django.db import models
 
@@ -37,6 +38,24 @@ class SRPReportBase(
         DEFERRED = "deferred", "Deferred"
         BLOCKED = "blocked", "Blocked"
         FAILED = "failed", "Failed"
+
+    class MilestoneType(models.TextChoices):
+        """Milestone type level for this milestone"""
+
+        LEVEL_24H = "24h", "24 Hour Template"
+        LEVEL_72H = "72h", "72 Hour Template"
+        LEVEL_FINAL = "final", "Final Report Template"
+        LEVEL_ADDITIONAL_INFORMATION_RESPONSE = (
+            "additional_information_response",
+            "Additional Information Response Template",
+        )
+
+    MILESTONE_DURATION_BY_TYPE = {
+        MilestoneType.LEVEL_24H: timedelta(hours=24),
+        MilestoneType.LEVEL_72H: timedelta(hours=72),
+        MilestoneType.LEVEL_FINAL: None,  # Duration is calculated based on the reportable event type
+        MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE: timedelta(days=30),
+    }
 
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 

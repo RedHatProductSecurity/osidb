@@ -27,6 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Upstream Maintainer Notifications Query (OSIDB-5103)
 - Add report payloads in milestones (OSIDB-5070)
 - Add manual POST create for SRP reports with PRE_REQUIRED status and evidence field (OSIDB-5284)
+- Add `last_active_status` and `milestone_status` filters for SRP reports (OSIDB-5280)
+
+### Changed
+- Make SRP report `status` and `due_at` a compute read-only property derived from milestones (OSIDB-5280)
+
 
 ## [5.16.3] - 2026-08-13
 ### Fixed

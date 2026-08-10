@@ -32,7 +32,7 @@ class TestSRPReportAutoCreation:
         an SRP Report should be automatically created with:
         - reportable_event_type = EXPLOITS_KEV_APPROVED
         - timer_started_at = flaw.major_incident_start_dt
-        - status = REQUIRED
+        - status = 24h:REQUIRED
         - responsibility_scope = MANUFACTURER
         - title populated from flaw
         """
@@ -60,7 +60,10 @@ class TestSRPReportAutoCreation:
             == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
         )
         assert report.timer_started_at == start_time
-        assert report.status == SRPReport.SRPReportStatus.REQUIRED
+        assert (
+            report.status
+            == f"{SRPReport.MilestoneType.LEVEL_24H}:{SRPReport.SRPReportStatus.REQUIRED}"
+        )
         assert report.responsibility_scope == SRPReport.ResponsibilityScope.MANUFACTURER
         assert report.title  # Title should be populated from flaw
         assert flaw.cve_id in report.title or flaw.title in report.title
@@ -71,7 +74,7 @@ class TestSRPReportAutoCreation:
         an SRP Report should be automatically created with:
         - reportable_event_type = MAJOR_INCIDENT_APPROVED
         - timer_started_at = flaw.major_incident_start_dt
-        - status = REQUIRED
+        - status = 24:REQUIRED
         - responsibility_scope = MANUFACTURER
         """
         # Arrange
@@ -97,7 +100,10 @@ class TestSRPReportAutoCreation:
             == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
         )
         assert report.timer_started_at == start_time
-        assert report.status == SRPReport.SRPReportStatus.REQUIRED
+        assert (
+            report.status
+            == f"{SRPReport.MilestoneType.LEVEL_24H}:{SRPReport.SRPReportStatus.REQUIRED}"
+        )
         assert report.responsibility_scope == SRPReport.ResponsibilityScope.MANUFACTURER
 
     def test_srp_report_created_on_flaw_creation_with_kev_approved(self):
@@ -274,7 +280,10 @@ class TestSRPReportAutoCreation:
             flaw=flaw,
             reportable_event_type=SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
         )
-        assert kev_report.status == SRPReport.SRPReportStatus.REQUIRED
+        assert (
+            kev_report.status
+            == f"{SRPReport.MilestoneType.LEVEL_24H}:{SRPReport.SRPReportStatus.REQUIRED}"
+        )
         assert (
             kev_report.responsibility_scope
             == SRPReport.ResponsibilityScope.MANUFACTURER
@@ -330,28 +339,6 @@ class TestSRPReportNoAutoCreation:
 
         # Assert
         assert SRPReport.objects.filter(flaw=flaw).count() == 0
-
-    def test_srp_report_status_is_not_changed_when_flaw_is_saved(self):
-        """
-        The status of the SRP Report should not be changed when the flaw is saved.
-        """
-        # Arrange
-        flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-            major_incident_start_dt=None,
-        )
-
-        # Act
-        flaw.save()
-        srp_report = SRPReport.objects.get(flaw=flaw)
-        assert srp_report.status == SRPReport.SRPReportStatus.REQUIRED
-        srp_report.status = SRPReport.SRPReportStatus.PREPARED
-        srp_report.save()
-        flaw.title = "New title"
-        flaw.save()
-        # Assert
-        srp_report.refresh_from_db()
-        assert srp_report.status == SRPReport.SRPReportStatus.PREPARED
 
     def test_srp_report_title_is_updated_when_flaw_is_saved(self):
         """

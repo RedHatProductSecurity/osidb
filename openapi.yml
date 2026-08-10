@@ -14776,7 +14776,7 @@ paths:
         - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
         Reports are also auto-created by signals when Critter criteria are met.
-        Manual POST creates the report in PRE_REQUIRED status with milestones.
+        Manual POST creates milestones in PRE_REQUIRED; report status is derived.
         DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
       parameters:
       - in: query
@@ -14794,12 +14794,24 @@ paths:
         schema:
           type: string
           format: uuid
+      - in: query
+        name: last_active_status
+        schema:
+          type: string
+        description: Status component of the derived report status only (e.g. required,
+          prepared, submitted).
       - name: limit
         required: false
         in: query
         description: Number of results to return per page.
         schema:
           type: integer
+      - in: query
+        name: milestone_status
+        schema:
+          type: string
+        description: Match reports that have any milestone with this status (e.g.
+          submitted), regardless of derived report status.
       - name: offset
         required: false
         in: query
@@ -14822,6 +14834,8 @@ paths:
         name: status
         schema:
           type: string
+        description: Derived report status as {milestone_type}:{status} (e.g. 24h:required,
+          72h:prepared).
       - in: query
         name: timer_started_at__gte
         schema:
@@ -14887,7 +14901,7 @@ paths:
         - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
         Reports are also auto-created by signals when Critter criteria are met.
-        Manual POST creates the report in PRE_REQUIRED status with milestones.
+        Manual POST creates milestones in PRE_REQUIRED; report status is derived.
         DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
       tags:
       - regulatory-reporting
@@ -15200,7 +15214,7 @@ paths:
         - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
         Reports are also auto-created by signals when Critter criteria are met.
-        Manual POST creates the report in PRE_REQUIRED status with milestones.
+        Manual POST creates milestones in PRE_REQUIRED; report status is derived.
         DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
       parameters:
       - in: path
@@ -15245,7 +15259,7 @@ paths:
         - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
         Reports are also auto-created by signals when Critter criteria are met.
-        Manual POST creates the report in PRE_REQUIRED status with milestones.
+        Manual POST creates milestones in PRE_REQUIRED; report status is derived.
         DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
       parameters:
       - in: path
@@ -19650,9 +19664,12 @@ components:
           - $ref: '#/components/schemas/ReportableEventTypeEnum'
           description: Type of event being reported to ENISA
         status:
-          allOf:
-          - $ref: '#/components/schemas/SRPReportStatusEnum'
-          description: Current status of the SRP report
+          type:
+          - string
+          - 'null'
+          readOnly: true
+          description: Derived report status as {milestone_type}:{status} (e.g. 24h:required).
+            Null when no milestone exists.
         evidence:
           type: string
           description: Justification for manually creating this SRP report when automatic
@@ -19712,6 +19729,7 @@ components:
       - milestones
       - reportable_event_type
       - responsibility_scope
+      - status
       - title
       - updated_dt
       - uuid
@@ -19720,10 +19738,11 @@ components:
       description: |-
         Serializer for manually creating SRP Reports.
 
-        Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
-        view's perform_create. evidence, srp_reference_id, and srp_reference_url
-        are required for manual create. timer_started_at is read-only and remains
-        null until the report transitions to REQUIRED.
+        Milestones are created in PRE_REQUIRED; report status is derived from
+        them. ACLs are inherited from the flaw in the view's perform_create.
+        evidence, srp_reference_id, and srp_reference_url are required for
+        manual create. timer_started_at is read-only and remains null until
+        the report transitions to REQUIRED.
       properties:
         uuid:
           type: string
@@ -19746,9 +19765,12 @@ components:
           - $ref: '#/components/schemas/ReportableEventTypeEnum'
           description: Type of event being reported to ENISA
         status:
-          allOf:
-          - $ref: '#/components/schemas/SRPReportStatusEnum'
+          type:
+          - string
+          - 'null'
           readOnly: true
+          description: Derived report status as {milestone_type}:{status} (e.g. 24h:required).
+            Null when no milestone exists.
         evidence:
           type: string
         timer_started_at:
@@ -19814,10 +19836,11 @@ components:
       description: |-
         Serializer for manually creating SRP Reports.
 
-        Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
-        view's perform_create. evidence, srp_reference_id, and srp_reference_url
-        are required for manual create. timer_started_at is read-only and remains
-        null until the report transitions to REQUIRED.
+        Milestones are created in PRE_REQUIRED; report status is derived from
+        them. ACLs are inherited from the flaw in the view's perform_create.
+        evidence, srp_reference_id, and srp_reference_url are required for
+        manual create. timer_started_at is read-only and remains null until
+        the report transitions to REQUIRED.
       properties:
         flaw_id:
           type: string
@@ -20140,10 +20163,6 @@ components:
           allOf:
           - $ref: '#/components/schemas/ReportableEventTypeEnum'
           description: Type of event being reported to ENISA
-        status:
-          allOf:
-          - $ref: '#/components/schemas/SRPReportStatusEnum'
-          description: Current status of the SRP report
         evidence:
           type: string
           description: Justification for manually creating this SRP report when automatic

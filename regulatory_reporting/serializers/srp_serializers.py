@@ -148,6 +148,16 @@ class SRPReportSerializer(
     # Nested milestones
     milestones = SRPReportMilestoneSerializer(many=True, read_only=True)
 
+    # Derived from the active milestone; not a persisted SRPReport column.
+    status = serializers.CharField(
+        read_only=True,
+        allow_null=True,
+        help_text=(
+            "Derived report status as {milestone_type}:{status} "
+            "(e.g. 24h:required). Null when no milestone exists."
+        ),
+    )
+
     meta_attr = serializers.SerializerMethodField()
 
     class Meta:
@@ -185,6 +195,7 @@ class SRPReportSerializer(
             "flaw_id",
             "meta_attr",
             "alerts",
+            "status",
         ]
 
     def update(self, instance, validated_data, *args, **kwargs):
@@ -206,10 +217,11 @@ class SRPReportCreateSerializer(SRPReportSerializer):
     """
     Serializer for manually creating SRP Reports.
 
-    Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
-    view's perform_create. evidence, srp_reference_id, and srp_reference_url
-    are required for manual create. timer_started_at is read-only and remains
-    null until the report transitions to REQUIRED.
+    Milestones are created in PRE_REQUIRED; report status is derived from
+    them. ACLs are inherited from the flaw in the view's perform_create.
+    evidence, srp_reference_id, and srp_reference_url are required for
+    manual create. timer_started_at is read-only and remains null until
+    the report transitions to REQUIRED.
     """
 
     flaw_id = serializers.PrimaryKeyRelatedField(
@@ -229,10 +241,6 @@ class SRPReportCreateSerializer(SRPReportSerializer):
         max_length=255,
     )
     srp_reference_url = serializers.URLField(allow_blank=False, max_length=200)
-    status = serializers.ChoiceField(
-        choices=SRPReport.SRPReportStatus.choices,
-        read_only=True,
-    )
     timer_started_at = serializers.DateTimeField(read_only=True, allow_null=True)
     updated_dt = serializers.DateTimeField(read_only=True)
 

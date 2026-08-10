@@ -47,7 +47,6 @@ def create_srp_report(sender, instance: Flaw, created: bool, **kwargs):
             reportable_event_type=event_type,
             defaults={
                 "title": instance.title or f"SRP Report for {instance.uuid}",
-                "status": SRPReport.SRPReportStatus.REQUIRED,
                 "responsibility_scope": SRPReport.ResponsibilityScope.MANUFACTURER,
                 "timer_started_at": instance.major_incident_start_dt,
                 "acl_read": instance.acl_read,

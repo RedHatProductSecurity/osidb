@@ -31,15 +31,6 @@ class SRPReportFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence", nb_words=4)
     responsibility_scope = SRPReport.ResponsibilityScope.MANUFACTURER
     reportable_event_type = SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
-    status = SRPReport.SRPReportStatus.REQUIRED
-    # PRE_REQUIRED reports require non-blank evidence at the model layer
-    evidence = factory.LazyAttribute(
-        lambda o: (
-            "Manual create justification."
-            if o.status == SRPReport.SRPReportStatus.PRE_REQUIRED
-            else ""
-        )
-    )
 
     timer_started_at = factory.LazyFunction(timezone.now)
     acl_read = factory.LazyAttribute(lambda o: o.flaw.acl_read)
@@ -54,6 +45,26 @@ class SRPReportMilestoneFactory(factory.django.DjangoModelFactory):
     milestone_type = SRPReportMilestone.MilestoneType.LEVEL_24H
     acl_read = factory.LazyAttribute(lambda o: o.srp_report.acl_read)
     acl_write = factory.LazyAttribute(lambda o: o.srp_report.acl_write)
+
+
+class SRPReportWithMilestonesFactory(SRPReportFactory):
+    """SRP report with the three standard CRA milestones."""
+
+    milestone_24h = factory.RelatedFactory(
+        SRPReportMilestoneFactory,
+        factory_related_name="srp_report",
+        milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H,
+    )
+    milestone_72h = factory.RelatedFactory(
+        SRPReportMilestoneFactory,
+        factory_related_name="srp_report",
+        milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H,
+    )
+    milestone_final = factory.RelatedFactory(
+        SRPReportMilestoneFactory,
+        factory_related_name="srp_report",
+        milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+    )
 
 
 class UpstreamProjectFactory(factory.django.DjangoModelFactory):

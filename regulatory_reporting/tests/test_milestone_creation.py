@@ -296,7 +296,7 @@ class TestSRPMilestoneAutoCreation:
             reportable_event_type=(
                 SRPReport.ReportableEventType.ADDITIONAL_INFORMATION_REQUEST
             ),
-            status=SRPReport.SRPReportStatus.PRE_REQUIRED,
+            evidence="Manual create justification.",
         )
         # Factory does not create milestones; call helper explicitly
         srp_report.milestones.all().delete()
