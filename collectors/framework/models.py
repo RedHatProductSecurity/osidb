@@ -535,6 +535,10 @@ def collector(
             data_models=data_models,
             depends_on=depends_on,
             dry_run=dry_run,
+            # Periodic/bulk collector imports run on a dedicated queue so a
+            # long-running import can't starve latency-sensitive interactive
+            # tasks (e.g. Jira task sync) queued on "default".
+            queue="collectors",
         )
         # wraps is necessary to set the correct collector name
         # which should correspond to collector module and fuction name

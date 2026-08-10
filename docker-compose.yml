@@ -194,6 +194,23 @@ services:
       #     condition: service_healthy
       #   redis:
       #     condition: service_started
+    # Dedicated worker for the "collectors" queue (periodic/bulk imports:
+    # Bugzilla, Jira, CVE.org, NVD, OSV, product-definitions, ...) so those
+    # long-running jobs can't starve the "default" queue used by
+    # latency-sensitive interactive tasks (Jira task sync/transition).
+    celery-collectors:
+      image: localhost/osidb-service
+      pull_policy: never
+      command:
+        celery -A config worker --pidfile /tmp/celery_worker.pid --loglevel DEBUG -Q collectors --concurrency=5 -E
+      deploy:
+        mode: replicated
+        replicas: ${OSIDB_CELERY_COLLECTORS_WORKERS_NO:-1}
+      volumes:
+        - ${PWD}:/opt/app-root/src:z
+      environment: *celery-env
+      depends_on: ["osidb-data", "osidb-service", "redis"]
+
     # WARNING: The amount of instances of celery-fifo pods must be equal or greater
     # than the environment variable OSIDB_CELERY_FIFO_POOL_SIZE, this is because
     # each of these pods listens to a single queue and if the application spawns 3
