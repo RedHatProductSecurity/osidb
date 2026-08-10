@@ -8,7 +8,7 @@ from datetime import datetime
 from importlib.metadata import distributions
 from types import SimpleNamespace
 from typing import Any, Type, cast
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 from uuid import uuid4
 
 import pghistory
@@ -2230,13 +2230,31 @@ class LabelView(
         raise Http404
 
 
+JIRA_RELATIVE_PATH_ERROR = "A Jira-relative path is required."
+
+
+def _validate_jira_relative_path(path_value):
+    parsed_path = urlparse(path_value or "")
+
+    if (
+        not path_value
+        or not parsed_path.path.startswith("/")
+        or parsed_path.scheme
+        or parsed_path.netloc
+    ):
+        raise ValidationError({"path": JIRA_RELATIVE_PATH_ERROR})
+
+    return path_value
+
+
 class IsAuthenticatedOrJiraBasicOrReadOnly(IsAuthenticatedOrReadOnly):
     def has_permission(self, request, view):
-        if super().has_permission(request, view):
+        authorization = request.headers.get("Authorization", "")
+        if authorization.lower().startswith("basic "):
+            _validate_jira_relative_path(request.query_params.get("path"))
             return True
 
-        authorization = request.headers.get("Authorization", "")
-        return authorization.lower().startswith("basic ")
+        return super().has_permission(request, view)
 
 
 # TODO: this view is temporary/undocumented and only applies to accessing JIRA stage and someday should be removed
@@ -2246,6 +2264,21 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
 
     proxies = {"https": HTTPS_PROXY}
     permission_classes = [IsAuthenticatedOrJiraBasicOrReadOnly]
+
+    def _get_target_url(self, request):
+        path_value = _validate_jira_relative_path(request.GET.get("path"))
+        target_url = f"{JIRA_SERVER.rstrip('/')}{path_value}"
+        jira_url = urlparse(JIRA_SERVER)
+        parsed_target = urlparse(target_url)
+
+        if (
+            parsed_target.scheme != jira_url.scheme
+            or parsed_target.hostname != jira_url.hostname
+            or parsed_target.port != jira_url.port
+        ):
+            raise ValidationError({"path": JIRA_RELATIVE_PATH_ERROR})
+
+        return target_url
 
     def _set_authorization_header(self, request, headers):
         authorization = request.headers.get("Authorization")
@@ -2263,8 +2296,7 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
     def get(self, request, *args, **kwargs):
         """perform JIRA stage HTTP GET"""
 
-        path_value = request.GET.get("path")
-        target_url = f"{JIRA_SERVER}{path_value}"
+        target_url = self._get_target_url(request)
         headers = {
             "Accept": "application/json",
             "Accept-Encoding": "gzip, deflate, br, zstd",
@@ -2285,8 +2317,7 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
     def post(self, request, *args, **kwargs):
         """perform JIRA stage HTTP POST"""
 
-        path_value = request.GET.get("path")
-        target_url = f"{JIRA_SERVER}{path_value}"
+        target_url = self._get_target_url(request)
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
@@ -2309,8 +2340,7 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
     def put(self, request, *args, **kwargs):
         """perform JIRA stage HTTP PUT"""
 
-        path_value = request.GET.get("path")
-        target_url = f"{JIRA_SERVER}{path_value}"
+        target_url = self._get_target_url(request)
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",

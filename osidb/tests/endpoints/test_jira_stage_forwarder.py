@@ -33,7 +33,7 @@ class TestJiraStageForwarder:
         assert response.status_code == 200
         assert response.json() == {"ok": True}
         request_mock.assert_called_once()
-        assert request_mock.call_args.args[0] == f"{JIRA_SERVER}{path}"
+        assert request_mock.call_args.args[0] == f"{JIRA_SERVER.rstrip('/')}{path}"
         assert (
             request_mock.call_args.kwargs["headers"]["Authorization"] == authorization
         )
@@ -56,6 +56,47 @@ class TestJiraStageForwarder:
         assert request_mock.call_args.kwargs["headers"]["Authorization"] == (
             "Bearer jira-token"
         )
+
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "https://evil.example/rest/api/3/myself",
+            f"{JIRA_SERVER}/rest/api/3/myself",
+            "//evil.example/rest/api/3/myself",
+            "@evil.example/rest/api/3/myself",
+        ],
+    )
+    def test_post_rejects_unsafe_basic_authorization_path(
+        self, client, test_api_uri, monkeypatch, path
+    ):
+        request_mock = Mock()
+        monkeypatch.setattr("osidb.api_views.requests.post", request_mock)
+
+        response = client.post(
+            f"{test_api_uri}/jira_stage_forwarder?path={path}",
+            data=b'{"body": "test"}',
+            content_type="application/json",
+            HTTP_AUTHORIZATION="Basic fake==",
+        )
+
+        assert response.status_code == 400
+        assert response.json() == {"path": ["A Jira-relative path is required."]}
+        request_mock.assert_not_called()
+
+    def test_get_rejects_unsafe_jira_api_key_path(
+        self, client, test_api_uri, monkeypatch
+    ):
+        request_mock = Mock()
+        monkeypatch.setattr("osidb.api_views.requests.get", request_mock)
+
+        response = client.get(
+            f"{test_api_uri}/jira_stage_forwarder?path=@evil.example/rest/api/3/myself",
+            HTTP_JIRA_API_KEY="jira-token",
+        )
+
+        assert response.status_code == 400
+        assert response.json() == {"path": ["A Jira-relative path is required."]}
+        request_mock.assert_not_called()
 
     def test_get_requires_jira_authorization(self, client, test_api_uri, monkeypatch):
         request_mock = Mock()
