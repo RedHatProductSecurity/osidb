@@ -16,7 +16,7 @@ checks the corresponding parent row's ACLs directly.
 from django.db import migrations
 
 PARENT_TABLE = "osidb_flawlabelv2"
-FK_COLUMN = "flawlabel_ptr_id"
+FK_COLUMN = "flawlabelv2_ptr_id"
 
 CHILD_TABLES = (
     ("osidb_aliaslabel", "aliaslabel"),

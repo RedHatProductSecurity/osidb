@@ -1,9 +1,8 @@
 """
 One-time cleanup of alerts for validators that no longer exist.
 
-Valid alert names are frozen from the codebase at the time this migration
-was written. Any Alert row whose name is not in the set is deleted in
-bounded chunks to keep memory and lock duration low.
+Optimized version that uses a single DELETE statement with WHERE NOT IN
+for better performance while staying transactional.
 """
 
 import logging
@@ -108,32 +107,54 @@ VALIDATOR_METHOD_NAMES = {
 
 VALID_ALERT_NAMES = EXPLICIT_ALERT_NAMES | VALIDATOR_METHOD_NAMES
 
-DELETE_BATCH_SIZE = 5000
-
 
 @bypass_rls
 def cleanup_stale_alerts(apps, schema_editor):
+    """
+    Delete alerts with names not in VALID_ALERT_NAMES.
+
+    Uses a single DELETE with WHERE NOT IN clause for better performance.
+    Still runs in a transaction, so it's atomic despite being a single statement.
+    """
     Alert = apps.get_model("osidb", "Alert")
 
-    db_names = set(Alert.objects.values_list("name", flat=True).distinct())
-    stale_names = db_names - VALID_ALERT_NAMES
+    # Use raw SQL for better performance - single DELETE statement
+    # Django ORM's exclude(name__in=...) would work but generates a subquery
+    with schema_editor.connection.cursor() as cursor:
+        # First, check how many stale alerts exist
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM osidb_alert
+            WHERE name NOT IN %s
+            """,
+            [tuple(VALID_ALERT_NAMES)]
+        )
+        stale_count = cursor.fetchone()[0]
 
-    if not stale_names:
-        logger.info("No stale alerts found")
-        return
+        if stale_count == 0:
+            logger.info("No stale alerts found")
+            return
 
-    count = 0
-    stale_qs = Alert.objects.filter(name__in=stale_names)
-    while True:
-        batch = list(stale_qs.values_list("pk", flat=True)[:DELETE_BATCH_SIZE])
-        if not batch:
-            break
-        deleted, _ = Alert.objects.filter(pk__in=batch).delete()
-        count += deleted
+        logger.info(f"Found {stale_count} stale alerts to delete")
 
-    logger.info(
-        "Deleted %d stale alerts for removed validators: %s", count, stale_names
-    )
+        # Delete all stale alerts in one statement
+        # PostgreSQL will still do this transactionally
+        cursor.execute(
+            """
+            DELETE FROM osidb_alert
+            WHERE name NOT IN %s
+            RETURNING name
+            """,
+            [tuple(VALID_ALERT_NAMES)]
+        )
+
+        # Fetch just the unique names that were deleted (for logging)
+        deleted_names = {row[0] for row in cursor.fetchall()}
+
+        logger.info(
+            f"Deleted {stale_count} stale alerts for validators: {deleted_names}"
+        )
 
 
 class Migration(migrations.Migration):
