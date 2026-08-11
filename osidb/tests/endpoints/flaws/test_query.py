@@ -14,6 +14,24 @@ from osidb.tests.factories import (
 pytestmark = pytest.mark.unit
 
 
+class TestQLErrorHandling:
+    """Test that DjangoQL errors return 400 instead of 500."""
+
+    def test_unknown_field(self, auth_client, test_api_uri):
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?query=nonexistent_field = 'test'"
+        )
+        assert response.status_code == 400
+
+    def test_lexer_error_illegal_character(self, auth_client, test_api_uri):
+        response = auth_client().get(f"{test_api_uri}/flaws?query=cve_id = @test")
+        assert response.status_code == 400
+
+    def test_syntax_error(self, auth_client, test_api_uri):
+        response = auth_client().get(f"{test_api_uri}/flaws?query=cve_id = =")
+        assert response.status_code == 400
+
+
 @pytest.fixture
 def test_data():
     community_product = PsProductFactory(business_unit="Community")

@@ -3,6 +3,7 @@ import logging
 from bugzilla.exceptions import BugzillaError, BugzillaHTTPError
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.utils import OperationalError
+from djangoql.exceptions import DjangoQLError
 from jira.exceptions import JIRAError
 from rest_framework import status
 from rest_framework.exceptions import ValidationError as DRFValidationError
@@ -88,6 +89,11 @@ def exception_handler(exc, context):
         logger.exception(exc)
         data = {"detail": str(exc)}
         return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    if isinstance(exc, DjangoQLError):
+        set_rollback()
+        data = {"detail": str(exc)}
+        return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
     if isinstance(exc, DjangoValidationError):
         exc = DRFValidationError(as_serializer_error(exc))
