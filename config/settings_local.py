@@ -1,3 +1,7 @@
+import os
+import sys
+from importlib.util import find_spec
+
 import ldap
 from django_auth_ldap.config import GroupOfNamesType, LDAPSearch
 
@@ -102,3 +106,29 @@ INSTALLED_APPS += ["osidb.tests"]
 # Email configuration
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# django-silk profiling (opt-in)
+#
+# Setup:
+#   1. Add OSIDB_ENABLE_SILK=1 to your .env
+#   2. make sync-deps              (update local venv)
+#   3. make apply-uv-dev-sync      (install dev deps in osidb-service container)
+#   4. podman restart osidb-service (runs migrate + starts runserver)
+#   5. Browse http://localhost:8000/silk/
+#
+# For load testing + profiling, see perf/silk_profiling.py
+#
+# To disable: remove OSIDB_ENABLE_SILK from .env and restart.
+# Silk tables are harmless when left behind; to drop them:
+#   podman exec osidb-service python manage.py migrate silk zero
+if (
+    os.environ.get("OSIDB_ENABLE_SILK", "").strip() not in ("", "0")
+    and "pytest" not in sys.modules
+    and find_spec("silk")
+):
+    INSTALLED_APPS += ["silk"]
+    # Must be after GZipMiddleware per silk docs
+    _gzip = MIDDLEWARE.index("django.middleware.gzip.GZipMiddleware")
+    MIDDLEWARE.insert(_gzip + 1, "silk.middleware.SilkyMiddleware")
+    SILKY_PYTHON_PROFILER = True
+    SILKY_INTERCEPT_PERCENT = 100
