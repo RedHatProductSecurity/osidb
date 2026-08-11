@@ -50,6 +50,11 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 app.conf.task_queues = [
     Queue("default", routing_key="default"),
+    # Bulk/periodic collector tasks (Bugzilla, Jira, CVE.org, etc. imports) are
+    # routed here so they don't starve latency-sensitive tasks (Jira task
+    # sync/transition) waiting on the "default" queue behind long-running
+    # imports.
+    Queue("collectors", routing_key="collectors"),
     *[
         Queue(f"fifo.{i}", routing_key=f"fifo.{i}")
         for i in range(CelerySettings().fifo_pool_size)
