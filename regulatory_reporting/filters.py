@@ -2,6 +2,8 @@
 Filters for regulatory reporting API endpoints.
 """
 
+from typing import ClassVar
+
 from django_filters import ChoiceFilter
 from django_filters.rest_framework import (
     CharFilter,
@@ -32,6 +34,17 @@ class UpstreamNotificationFilter(FilterSet):
     )
     upstream_project = UUIDFilter(field_name="upstream_project__uuid")
     flaw = UUIDFilter(field_name="flaw__uuid")
+    owner = CharFilter(field_name="actor__username", lookup_expr="exact")
+
+    class Meta:
+        model = UpstreamNotification
+        fields: ClassVar[list[str]] = [
+            "status",
+            "method",
+            "upstream_project",
+            "flaw",
+            "owner",
+        ]
 
 
 class SRPReportQLSchema(DjangoQLSchema):
