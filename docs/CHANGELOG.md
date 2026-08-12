@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - surface DjangoQL errors as 400 instead of 500 (OSIDB-5316)
+- ACE: auto-created HUM/UBI affects incorrectly resolving to AFFECTED/DEFER
+  instead of AFFECTED/DELEGATED (OSIDB-5379)
 
 ## [5.15.0] - 2026-08-07
 ### Changed
