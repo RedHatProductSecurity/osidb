@@ -692,6 +692,7 @@ def _sync_affects_from_results(
                 flaw=flaw,
                 ps_update_stream=ps_update_stream,
                 purl=purl_str,
+                ps_component=ps_component,
                 acl_read=flaw.acl_read,
                 acl_write=flaw.acl_write,
                 created_by="AffectCreationEngine",
