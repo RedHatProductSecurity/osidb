@@ -137,6 +137,25 @@ def _is_verified_mapping(component: str, resolved: list[str]) -> bool:
     return False
 
 
+def _is_manual_triage_component(resolved: list[str], ecosystem: str) -> bool:
+    """
+    Check whether any of the resolved upstream names is configured
+    (via ``OSIDB_AFFECTS_MANUAL_TRIAGE_COMPONENTS``) to require manual
+    triage, optionally restricted to specific ecosystems.
+    """
+    manual_triage_components = AffectSettings().manual_triage_components
+    ecosystem_lower = ecosystem.strip().lower()
+    for name in resolved:
+        allowed_ecosystems = manual_triage_components.get(name.strip().lower())
+        if allowed_ecosystems is None:
+            continue
+        if not allowed_ecosystems:
+            return True
+        if ecosystem_lower in (eco.lower() for eco in allowed_ecosystems):
+            return True
+    return False
+
+
 def _apply_label(flaw: Flaw, label: str) -> None:
     if not label:
         return
@@ -155,11 +174,12 @@ def _pre_filter_component(
       2. Go stdlib -> special workflow
       3. Chromium -> special workflow
       4. Resolve component name
-      5. Verified mapping guard -> manual triage if unverified
-      6. Cross-ecosystem guard -> manual triage if ambiguous
-      7. Semi-strict review -> manual triage if unresolved
-      8. Confidence check -> potential-rejection if low confidence
-      9. All checks pass -> search (auto-affects)
+      5. Manual-triage guard -> manual triage if configured (e.g. kernel)
+      6. Verified mapping guard -> manual triage if unverified
+      7. Cross-ecosystem guard -> manual triage if ambiguous
+      8. Semi-strict review -> manual triage if unresolved
+      9. Confidence check -> potential-rejection if low confidence
+      10. All checks pass -> search (auto-affects)
     """
     component_lower = component.strip().lower()
 
@@ -195,6 +215,17 @@ def _pre_filter_component(
         )
 
     resolved, has_custom_mapping = _resolve_component(component)
+
+    # Manual-triage guard (e.g. Linux kernel: ACE is not equipped yet
+    # for its special handling), configurable via
+    # OSIDB_AFFECTS_MANUAL_TRIAGE_COMPONENTS.
+    if _is_manual_triage_component(resolved, ecosystem):
+        return PreFilterResult(
+            action=PreFilterAction.MANUAL,
+            label=LABEL_MANUAL_TRIAGE,
+            resolved_names=resolved,
+            reason=f"Component '{component}' is configured for manual triage",
+        )
 
     # Verified mapping guard
     if has_custom_mapping and not _is_verified_mapping(component, resolved):

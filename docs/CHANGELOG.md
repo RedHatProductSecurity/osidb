@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Affects that impact UBI components are labeled as such (OSIDB-5279)
+- Introduced a mechanism for bypassing automated workflow based on
+  component/ecosystem combination (OSIDB-5370)
 
 ### Fixed
 - surface DjangoQL errors as 400 instead of 500 (OSIDB-5316)

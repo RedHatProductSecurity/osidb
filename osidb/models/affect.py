@@ -47,6 +47,11 @@ class AffectSettings(BaseSettings):
     auto_create_ps_modules: list[str] = Field(
         default_factory=lambda: ["hummingbird-1"],
     )
+    # Resolved upstream component names (see collectors.component_mapping)
+    # that ACE should route to manual triage instead of auto-creating affects.
+    # Maps a lowercase component name to the lowercase ecosystems it should
+    # apply to; an empty ecosystem list means "any ecosystem".
+    manual_triage_components: dict[str, list[str]] = Field(default_factory=dict)
 
 
 class NotAffectedJustification(models.TextChoices):
