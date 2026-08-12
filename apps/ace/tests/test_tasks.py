@@ -895,6 +895,67 @@ def test_pre_filter_verified_mapping_proceeds():
     assert result.action is PreFilterAction.SEARCH
 
 
+# ── Manual-triage components guard ──────────────────────────────────────────
+
+
+class _FakeAffectSettingsUnrestricted:
+    manual_triage_components = {"kernel": []}
+
+
+class _FakeAffectSettingsEcosystemRestricted:
+    manual_triage_components = {"kernel": ["Linux", "cargo"]}
+
+
+@pytest.mark.django_db
+def test_pre_filter_manual_triage_component_unrestricted(monkeypatch):
+    """An empty ecosystem list means the component is routed regardless of ecosystem."""
+    monkeypatch.setattr(
+        "apps.ace.tasks.AffectSettings", _FakeAffectSettingsUnrestricted
+    )
+    flaw = FlawFactory(components=["kernel"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "kernel", "pypi")
+
+    assert result.action is PreFilterAction.MANUAL
+    assert result.label == LABEL_MANUAL_TRIAGE
+    assert "manual triage" in result.reason
+
+
+@pytest.mark.django_db
+def test_pre_filter_manual_triage_component_kernel_subpackage(monkeypatch):
+    """Kernel subpackages resolving to 'kernel' are also routed to manual triage."""
+    from collectors.component_mapping.models import ComponentMapEntry
+
+    monkeypatch.setattr(
+        "apps.ace.tasks.AffectSettings", _FakeAffectSettingsUnrestricted
+    )
+    ComponentMapEntry.objects.create(name="kernel-devel", upstream_packages="kernel")
+    flaw = FlawFactory(components=["kernel-devel"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "kernel-devel", "")
+
+    assert result.action is PreFilterAction.MANUAL
+    assert result.label == LABEL_MANUAL_TRIAGE
+    assert "configured for manual triage" in result.reason
+
+
+@pytest.mark.django_db
+def test_pre_filter_manual_triage_component_ecosystem_restricted(monkeypatch):
+    """Restricting to specific ecosystems only routes matching ecosystems."""
+    monkeypatch.setattr(
+        "apps.ace.tasks.AffectSettings", _FakeAffectSettingsEcosystemRestricted
+    )
+    flaw = FlawFactory(components=["kernel"], embargoed=False)
+
+    linux = _pre_filter_component(flaw, "kernel", "Linux")
+    cargo = _pre_filter_component(flaw, "kernel", "cargo")
+    pypi = _pre_filter_component(flaw, "kernel", "pypi")
+
+    assert linux.action is PreFilterAction.MANUAL
+    assert cargo.action is PreFilterAction.MANUAL
+    assert pypi.action is not PreFilterAction.MANUAL
+
+
 # ── Semi-strict review ───────────────────────────────────────────────────────
 
 
