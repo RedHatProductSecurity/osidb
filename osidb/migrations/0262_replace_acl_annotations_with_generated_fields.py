@@ -7,42 +7,128 @@ from django.db import migrations, models
 from osidb.acls import ACL
 
 
-SORT_ACL_ARRAYS = """
+SORT_ACL_TABLES = [
+    "osidb_affect",
+    "osidb_affectaudit",
+    "osidb_affectcvss",
+    "osidb_affectcvssaudit",
+    "osidb_alert",
+    "osidb_flaw",
+    "osidb_flawacknowledgment",
+    "osidb_flawacknowledgmentaudit",
+    "osidb_flawaudit",
+    "osidb_flawcomment",
+    "osidb_flawcommentaudit",
+    "osidb_flawcvss",
+    "osidb_flawcvssaudit",
+    "osidb_flawreference",
+    "osidb_flawreferenceaudit",
+    "osidb_flawlabelv2",
+    "osidb_flawlabelv2audit",
+    "osidb_package",
+    "osidb_snippet",
+    "osidb_tracker",
+    "osidb_trackeraudit",
+    "osidb_upstreamdata",
+]
+
+# model_name -> db table name (only non-standard mappings)
+MODEL_TO_TABLE = {"flawlabel": "osidb_flawlabelv2"}
+
+# Models that receive embargoed + visibility GeneratedFields, in migration order.
+GENERATED_FIELD_MODELS = [
+    "affect",
+    "affectaudit",
+    "affectcvss",
+    "affectcvssaudit",
+    "alert",
+    "flaw",
+    "flawacknowledgment",
+    "flawacknowledgmentaudit",
+    "flawaudit",
+    "flawcomment",
+    "flawcommentaudit",
+    "flawcvss",
+    "flawcvssaudit",
+    "flawreference",
+    "flawreferenceaudit",
+    "flawlabel",
+    "flawlabelv2audit",
+    "package",
+    "snippet",
+    "tracker",
+    "trackeraudit",
+    "upstreamdata",
+]
+
+
+def _table_for(model_name):
+    return MODEL_TO_TABLE.get(model_name, f"osidb_{model_name}")
+
+
+def _sort_acl_sql(table):
+    """Return a DO $$ block that sorts acl arrays for one table.
+
+    Disables user triggers (pghistory audit triggers block UPDATE on audit
+    tables), sorts, then re-enables — all within a single implicit transaction.
+    """
+    return f"""
 DO $$
-DECLARE
-    tbl text;
 BEGIN
-    FOR tbl IN SELECT unnest(ARRAY[
-        'osidb_affect', 'osidb_affectaudit', 'osidb_affectcvss', 'osidb_affectcvssaudit',
-        'osidb_alert', 'osidb_flaw', 'osidb_flawacknowledgment', 'osidb_flawacknowledgmentaudit',
-        'osidb_flawaudit', 'osidb_flawcomment', 'osidb_flawcommentaudit',
-        'osidb_flawcvss', 'osidb_flawcvssaudit', 'osidb_flawreference', 'osidb_flawreferenceaudit',
-        'osidb_flawlabelv2', 'osidb_flawlabelv2audit',
-        'osidb_package', 'osidb_snippet', 'osidb_tracker', 'osidb_trackeraudit', 'osidb_upstreamdata'
-    ]) LOOP
-        -- pghistory append-only triggers block UPDATE on audit tables;
-        -- safe to disable within this migration's atomic transaction.
-        EXECUTE format('ALTER TABLE %I DISABLE TRIGGER USER', tbl);
-        EXECUTE format(
-            'UPDATE %I SET '
-            'acl_read = COALESCE((SELECT array_agg(u ORDER BY u) FROM unnest(acl_read) u), ARRAY[]::uuid[]), '
-            'acl_write = COALESCE((SELECT array_agg(u ORDER BY u) FROM unnest(acl_write) u), ARRAY[]::uuid[])',
-            tbl
-        );
-        EXECUTE format('ALTER TABLE %I ENABLE TRIGGER USER', tbl);
-    END LOOP;
+    EXECUTE 'ALTER TABLE {table} DISABLE TRIGGER USER';
+    EXECUTE 'UPDATE {table} SET '
+        'acl_read = COALESCE((SELECT array_agg(u ORDER BY u) FROM unnest(acl_read) u), ARRAY[]::uuid[]), '
+        'acl_write = COALESCE((SELECT array_agg(u ORDER BY u) FROM unnest(acl_write) u), ARRAY[]::uuid[])';
+    EXECUTE 'ALTER TABLE {table} ENABLE TRIGGER USER';
 END $$;
 """
 
 
+def _drop_generated_columns_sql(table):
+    """Drop embargoed/visibility if they exist — makes AddField re-runnable."""
+    return (
+        f"ALTER TABLE {table} DROP COLUMN IF EXISTS embargoed,"
+        f" DROP COLUMN IF EXISTS visibility;"
+    )
+
+
+def _add_field_ops(model_name):
+    """Return the cleanup RunSQL + two AddField ops for one model."""
+    table = _table_for(model_name)
+    return [
+        migrations.RunSQL(_drop_generated_columns_sql(table), migrations.RunSQL.noop),
+        migrations.AddField(
+            model_name=model_name,
+            name='embargoed',
+            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
+        ),
+        migrations.AddField(
+            model_name=model_name,
+            name='visibility',
+            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
+        ),
+    ]
+
+
 class Migration(migrations.Migration):
+    # Each operation runs in its own implicit transaction so ACCESS EXCLUSIVE
+    # locks are released between tables — prevents the deadlock that occurs
+    # when a single long transaction holds locks on many tables while live
+    # traffic contends for the same tables.
+    atomic = False
 
     dependencies = [
         ('osidb', '0261_cleanup_stale_contenttypes'),
     ]
 
     operations = [
-        migrations.RunSQL(SORT_ACL_ARRAYS, migrations.RunSQL.noop),
+        # Phase 1: sort acl arrays per table (each in its own transaction)
+        *[
+            migrations.RunSQL(_sort_acl_sql(tbl), migrations.RunSQL.noop)
+            for tbl in SORT_ACL_TABLES
+        ],
+
+        # Phase 2: remove old audit triggers (idempotent — uses DROP IF EXISTS)
         pgtrigger.migrations.RemoveTrigger(
             model_name='affect',
             name='update_update',
@@ -55,226 +141,13 @@ class Migration(migrations.Migration):
             model_name='tracker',
             name='update_update',
         ),
-        migrations.AddField(
-            model_name='affect',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='affect',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='affectaudit',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='affectaudit',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='affectcvss',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='affectcvss',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='affectcvssaudit',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='affectcvssaudit',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='alert',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='alert',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='flaw',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='flaw',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='flawacknowledgment',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='flawacknowledgment',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='flawacknowledgmentaudit',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='flawacknowledgmentaudit',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='flawaudit',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='flawaudit',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='flawcomment',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='flawcomment',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='flawcommentaudit',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='flawcommentaudit',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='flawcvss',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='flawcvss',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='flawcvssaudit',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='flawcvssaudit',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='flawreference',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='flawreference',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='flawreferenceaudit',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='flawreferenceaudit',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='flawlabel',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='flawlabel',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='flawlabelv2audit',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='flawlabelv2audit',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='package',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='package',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='snippet',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='snippet',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='tracker',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='tracker',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='trackeraudit',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='trackeraudit',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
-        migrations.AddField(
-            model_name='upstreamdata',
-            name='embargoed',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=True), default=False, output_field=models.BooleanField()), output_field=models.BooleanField()),
-        ),
-        migrations.AddField(
-            model_name='upstreamdata',
-            name='visibility',
-            field=models.GeneratedField(db_persist=True, expression=models.Case(models.When(acl_read=ACL.EMBARGO.uuid_read, then=models.Value('EMBARGOED')), models.When(acl_read=ACL.INTERNAL.uuid_read, then=models.Value('INTERNAL')), models.When(acl_read=ACL.PUBLIC.uuid_read, then=models.Value('PUBLIC')), default=models.Value('PUBLIC'), output_field=models.CharField()), output_field=models.CharField(max_length=10)),
-        ),
+
+        # Phase 3: add generated fields — each table gets a DROP COLUMN IF
+        # EXISTS guard so a partial previous run doesn't block a re-run
+        *[op for m in GENERATED_FIELD_MODELS for op in _add_field_ops(m)],
+
+        # Phase 4: re-add audit triggers with embargoed/visibility in their
+        # WHEN conditions (idempotent — uses DROP IF EXISTS + CREATE)
         pgtrigger.migrations.AddTrigger(
             model_name='affect',
             trigger=pgtrigger.compiler.Trigger(name='update_update', sql=pgtrigger.compiler.UpsertTriggerSql(condition='WHEN (OLD."acl_read" IS DISTINCT FROM (NEW."acl_read") OR OLD."acl_write" IS DISTINCT FROM (NEW."acl_write") OR OLD."affectedness" IS DISTINCT FROM (NEW."affectedness") OR OLD."assist_meta" IS DISTINCT FROM (NEW."assist_meta") OR OLD."created_by" IS DISTINCT FROM (NEW."created_by") OR OLD."created_dt" IS DISTINCT FROM (NEW."created_dt") OR OLD."cve_id" IS DISTINCT FROM (NEW."cve_id") OR OLD."embargoed" IS DISTINCT FROM (NEW."embargoed") OR OLD."flaw_id" IS DISTINCT FROM (NEW."flaw_id") OR OLD."impact" IS DISTINCT FROM (NEW."impact") OR OLD."labels" IS DISTINCT FROM (NEW."labels") OR OLD."last_validated_dt" IS DISTINCT FROM (NEW."last_validated_dt") OR OLD."not_affected_justification" IS DISTINCT FROM (NEW."not_affected_justification") OR OLD."ps_component" IS DISTINCT FROM (NEW."ps_component") OR OLD."ps_module" IS DISTINCT FROM (NEW."ps_module") OR OLD."ps_update_stream" IS DISTINCT FROM (NEW."ps_update_stream") OR OLD."purl" IS DISTINCT FROM (NEW."purl") OR OLD."resolution" IS DISTINCT FROM (NEW."resolution") OR OLD."resolved_dt" IS DISTINCT FROM (NEW."resolved_dt") OR OLD."subpackage_purls" IS DISTINCT FROM (NEW."subpackage_purls") OR OLD."tracker_id" IS DISTINCT FROM (NEW."tracker_id") OR OLD."updated_by" IS DISTINCT FROM (NEW."updated_by") OR OLD."updated_dt" IS DISTINCT FROM (NEW."updated_dt") OR OLD."uuid" IS DISTINCT FROM (NEW."uuid") OR OLD."visibility" IS DISTINCT FROM (NEW."visibility"))', func='INSERT INTO "osidb_affectaudit" ("acl_read", "acl_write", "affectedness", "assist_meta", "created_by", "created_dt", "cve_id", "flaw_id", "impact", "labels", "last_validated_dt", "not_affected_justification", "pgh_context_id", "pgh_created_at", "pgh_label", "pgh_obj_id", "ps_component", "ps_module", "ps_update_stream", "purl", "resolution", "resolved_dt", "subpackage_purls", "tracker_id", "updated_by", "updated_dt", "uuid") VALUES (NEW."acl_read", NEW."acl_write", NEW."affectedness", NEW."assist_meta", NEW."created_by", NEW."created_dt", NEW."cve_id", NEW."flaw_id", NEW."impact", NEW."labels", NEW."last_validated_dt", NEW."not_affected_justification", _pgh_attach_context(), NOW(), \'update\', NEW."uuid", NEW."ps_component", NEW."ps_module", NEW."ps_update_stream", NEW."purl", NEW."resolution", NEW."resolved_dt", NEW."subpackage_purls", NEW."tracker_id", NEW."updated_by", NEW."updated_dt", NEW."uuid"); RETURN NULL;', hash='77bfe303f508dde43bfbbd452c44227cfb2085b2', operation='UPDATE', pgid='pgtrigger_update_update_fdef6', table='osidb_affect', when='AFTER')),
