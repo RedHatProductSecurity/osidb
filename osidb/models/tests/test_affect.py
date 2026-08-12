@@ -569,6 +569,31 @@ class TestAutoResolve:
         assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
         assert affect.resolution == Affect.AffectResolution.DELEGATED
 
+    def test_hummingbird_moderate_low_cvss_skips_defer_when_ps_module_not_denormalized(
+        self, hummingbird_ps_stream_with_moderate_tracker, flaw_with_cvss
+    ):
+        """
+        Regression test: apps.ace.tasks._sync_affects_from_results constructs an
+        Affect with only ps_update_stream (and purl) set, then calls auto_resolve()
+        BEFORE save() — the only place that denormalizes ps_update_stream into
+        ps_module. auto_resolve() must not rely on self.ps_module being populated
+        to correctly detect hummingbird streams and skip the DEFER check.
+        """
+        stream = hummingbird_ps_stream_with_moderate_tracker
+        flaw = flaw_with_cvss(
+            Impact.MODERATE,
+            "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:N/A:N",  # score 3.5
+        )
+        affect = AffectFactory.build(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            impact=Impact.MODERATE,
+        )
+        assert affect.ps_module == ""
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DELEGATED
+
     # ── UBI packages skip mod7 DEFER check ──────────────────────────────────
 
     def test_ubi_low_impact_skips_defer(self, ubi_ps_stream_with_moderate_tracker):
@@ -599,6 +624,33 @@ class TestAutoResolve:
             ps_component="ubi-test-component",
             impact=Impact.MODERATE,
         )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DELEGATED
+
+    def test_ubi_moderate_low_cvss_skips_defer_when_ps_module_not_denormalized(
+        self, ubi_ps_stream_with_moderate_tracker, flaw_with_cvss
+    ):
+        """
+        Regression test: apps.ace.tasks._sync_affects_from_results constructs an
+        Affect with ps_update_stream, purl, and ps_component set, then calls
+        auto_resolve() BEFORE save() — the only place that denormalizes
+        ps_update_stream into ps_module. auto_resolve() must not rely on
+        self.ps_module being populated to correctly detect UBI packages and skip
+        the DEFER check.
+        """
+        stream = ubi_ps_stream_with_moderate_tracker
+        flaw = flaw_with_cvss(
+            Impact.MODERATE,
+            "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:U/C:L/I:N/A:N",  # score 3.5
+        )
+        affect = AffectFactory.build(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            ps_component="ubi-test-component",
+            impact=Impact.MODERATE,
+        )
+        assert affect.ps_module == ""
         affect.auto_resolve()
         assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
         assert affect.resolution == Affect.AffectResolution.DELEGATED

@@ -903,16 +903,31 @@ class Affect(
     def is_hummingbird(self) -> bool:
         """
         check and return whether the given affect is targeting HUM project
+
+        Looks the module up via ps_update_stream rather than the denormalized
+        ps_module field, as ps_update_stream is a required field that is always set
+        by the time this is called (even on an unsaved instance), whereas ps_module
+        is only populated by save().
         """
-        return PsModule.objects.filter(name=self.ps_module, bts_key="HUM").exists()
+        return PsUpdateStream.objects.filter(
+            name=self.ps_update_stream, ps_module__bts_key="HUM"
+        ).exists()
 
     def is_ubi(self) -> bool:
         """
         check and return whether the given affect's component is a UBI package
         for the matching ps_module (e.g. rhel-8, rhel-9, rhel-10)
+
+        Looks the module up via ps_update_stream rather than the denormalized
+        ps_module field, as ps_update_stream is a required field that is always set
+        by the time this is called (even on an unsaved instance), whereas ps_module
+        is only populated by save().
         """
         return UbiPackage.objects.filter(
-            name=self.ps_component, ps_module=self.ps_module
+            name=self.ps_component,
+            ps_module__in=PsUpdateStream.objects.filter(
+                name=self.ps_update_stream
+            ).values_list("ps_module__name", flat=True),
         ).exists()
 
     @property
