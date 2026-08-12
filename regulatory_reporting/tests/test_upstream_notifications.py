@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import pytest
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -146,6 +147,27 @@ class TestUpstreamNotificationView:
         )
 
         assert response.status_code == 401
+
+
+class TestUpstreamNotificationFiltering:
+    def test_filter_by_owner(self, auth_client):
+        """Test that notifications can be filtered by owner (actor username)."""
+        User = get_user_model()
+        owner = User.objects.create(username="notification-owner")
+        other_owner = User.objects.create(username="someone")
+
+        target = UpstreamNotificationFactory(actor=owner)
+        UpstreamNotificationFactory(actor=other_owner)
+        UpstreamNotificationFactory()
+
+        response = auth_client().get(
+            "/regulatory-reporting/api/v1/notifications/upstream?owner=notification-owner"
+        )
+
+        assert response.status_code == 200
+        results = response.json()["results"]
+        assert len(results) == 1
+        assert results[0]["uuid"] == str(target.uuid)
 
 
 @pytest.mark.no_cra_notifications
