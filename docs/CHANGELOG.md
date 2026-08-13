@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [5.16.2] - 2026-08-13
+
 ## [5.16.1] - 2026-08-12
 ### Fixed
 - Migration 0262 no longer gets stuck in a deadlock
