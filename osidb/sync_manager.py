@@ -10,7 +10,6 @@ from django.conf import settings
 from django.db import models, transaction
 from django.db.models import F, Q
 from django.utils import timezone
-from rhubarb.exceptions import ConcurrentExecutionException
 from rhubarb.tasks import LockableTaskWithArgs
 
 from config.celery import app
@@ -152,72 +151,27 @@ class SyncManager(models.Model):
         if schedule_options is None:
             schedule_options = {}
 
-        if cls.MODE != cls.SyncManagerMode.EXCLUSIVE:
-            # No dedup decision to make, no need for locking.
-            SyncManager.objects.get_or_create(name=cls.__name__, sync_id=sync_id)
-            cls._enqueue(sync_id, *args, schedule_options=schedule_options, **kwargs)
-            return
-
-        # select_for_update() serializes concurrent schedule() calls for the
-        # same sync_id: without it, two callers could both pass the
-        # is_scheduled()/is_in_progress() checks below before either's
-        # write lands, and both end up enqueuing a duplicate task. The row
-        # lock is released on commit of the outermost transaction, not on
-        # return from this atomic() block: this method can run inside
-        # Flaw.tasksync()'s transaction.atomic(), and ATOMIC_REQUESTS wraps
-        # the whole request in an outer transaction too, so the lock stays
-        # held (and other schedule() calls for the same sync_id stay
-        # blocked) until that outermost transaction commits, well after
-        # _enqueue()/reschedule() return.
-        with transaction.atomic():
-            _, created = SyncManager.objects.select_for_update().get_or_create(
-                name=cls.__name__, sync_id=sync_id
-            )
-
-            if not created:
-                if cls.is_scheduled(sync_id):
-                    # A fresh schedule or a pending reschedule already
-                    # exists (e.g. a previous call already deferred a
-                    # retry) - queuing another one here would just be a
-                    # duplicate task.
-                    logger.info(
-                        f"{cls.__name__} {sync_id}: Already scheduled, skipping"
-                    )
-                    return
-
-                if cls.is_in_progress(sync_id):
-                    countdown = schedule_options.get("countdown", cls.COUNTDOWN)
-                    logger.info(
-                        f"{cls.__name__} {sync_id}: Task already in progress"
-                        f", postponing for {countdown} seconds"
-                    )
-                    # Copy so we don't mutate the caller's dict.
-                    reschedule_options = {**schedule_options, "countdown": countdown}
-                    cls.reschedule(
-                        sync_id,
-                        "Task already in progress",
-                        *args,
-                        schedule_options=reschedule_options,
-                        **kwargs,
-                    )
-                    return
-
-            cls._enqueue(sync_id, *args, schedule_options=schedule_options, **kwargs)
-
-    @classmethod
-    def _enqueue(cls, sync_id, *args, schedule_options=None, **kwargs):
-        """
-        Record the schedule timestamp and actually put sync_task on the
-        Celery queue, bypassing the EXCLUSIVE-mode dedup checks in
-        schedule(). Used both for genuinely new schedules and by
-        reschedule(), which has already decided a new run is warranted.
-        """
-        if schedule_options is None:
-            schedule_options = {}
-
-        SyncManager.objects.filter(name=cls.__name__, sync_id=sync_id).update(
-            last_scheduled_dt=timezone.now()
+        _, created = SyncManager.objects.update_or_create(
+            name=cls.__name__,
+            sync_id=sync_id,
+            defaults={"last_scheduled_dt": timezone.now()},
         )
+
+        if not created and cls.MODE == cls.SyncManagerMode.EXCLUSIVE:
+            # Check if the task needs to be rescheduled
+            if not cls.is_scheduled(sync_id):
+                logger.info(
+                    f"{cls.__name__} {sync_id}: Task already in progress"
+                    f", postponing for {schedule_options.get('countdown', cls.COUNTDOWN)} seconds"
+                )
+                if "countdown" not in schedule_options:
+                    schedule_options["countdown"] = cls.COUNTDOWN
+                cls.reschedule(
+                    sync_id,
+                    "Task already in progress",
+                    schedule_options=schedule_options,
+                )
+                return
 
         # Create model linkage if possible to make checking for conflicting
         # sync managers possible
@@ -365,15 +319,7 @@ class SyncManager(models.Model):
             last_rescheduled_reason=reason,
             last_consecutive_reschedules=updated_last_consecutive_reschedules,
         )
-        if cls.MODE == cls.SyncManagerMode.EXCLUSIVE:
-            # Bypass schedule()'s EXCLUSIVE dedup check: we've just recorded
-            # the reschedule above, so this must actually enqueue the task.
-            cls._enqueue(sync_id, *args, **kwargs)
-        else:
-            # Non-EXCLUSIVE managers may override schedule() with their own
-            # policy (e.g. BZSyncManager's duplicate-schedule window and
-            # mandatory countdown=20) that a bare _enqueue() would skip.
-            cls.schedule(sync_id, *args, **kwargs)
+        cls.schedule(sync_id, *args, **kwargs)
         logger.info(f"{cls.__name__} {sync_id}: Sync re-scheduled ({reason})")
 
     @classmethod
@@ -795,32 +741,6 @@ class BZSyncManager(SyncManager):
             BZSyncManager.finished(flaw_id)
 
 
-class RetryOnLockContention(LockableTaskWithArgs):
-    """
-    LockableTaskWithArgs rejects a task outright when it can't acquire the
-    lock (another execution for the same args is already running), and
-    that rejection is a Celery Reject(requeue=False): it's never retried,
-    leaving recovery entirely to check_for_reschedules()'s 24h
-    MAX_SCHEDULE_DELAY safety net.
-
-    Retry a bounded number of times with a short delay instead: lock
-    contention is almost always short-lived (the other run finishes
-    normally within minutes), and even in the worst case (the lock holder
-    crashed without releasing it) the lock's TTL guarantees it clears
-    within SyncManager.MAX_RUN_LENGTH - comfortably inside these retries'
-    total window, well before MAX_SCHEDULE_DELAY would otherwise kick in.
-    """
-
-    default_retry_delay = 30
-    max_retries = int(SyncManager.MAX_RUN_LENGTH.total_seconds() // 30) + 10
-
-    def before_start(self, task_id, args, kwargs):
-        try:
-            super().before_start(task_id, args, kwargs)
-        except ConcurrentExecutionException as exc:
-            raise self.retry(exc=exc, countdown=self.default_retry_delay)
-
-
 class JiraTaskSyncManager(SyncManager):
     """
     Sync manager class for OSIDB => Jira Task synchronization.
@@ -828,15 +748,6 @@ class JiraTaskSyncManager(SyncManager):
 
     class Meta:
         proxy = True
-
-    # Multiple flaw saves in quick succession (e.g. creation immediately
-    # followed by field autofill) each call schedule() for the same flaw.
-    # The task always re-fetches the flaw's current state and uses the
-    # service account token, so a schedule while one is already running
-    # carries no extra payload - collapse it into a single reschedule
-    # instead of queuing a redundant duplicate (mirrors
-    # JiraTaskTransitionManager).
-    MODE = SyncManager.SyncManagerMode.EXCLUSIVE
 
     def __str__(self):
         from osidb.models import Flaw
@@ -849,16 +760,7 @@ class JiraTaskSyncManager(SyncManager):
         return result
 
     @staticmethod
-    @app.task(
-        base=RetryOnLockContention,
-        name="sync_manager.jira_task_sync",
-        bind=True,
-        # Must last at least MAX_RUN_LENGTH - the same threshold
-        # is_in_progress()/check_for_reschedules() use to decide a run is
-        # stuck - or the Redis lock could expire while a still-legitimate
-        # run is in flight, letting a concurrent duplicate through.
-        lock_ttl=int(SyncManager.MAX_RUN_LENGTH.total_seconds()),
-    )
+    @app.task(name="sync_manager.jira_task_sync", bind=True)
     def sync_task(task, flaw_id, **kwargs):
         """
         perform the sync of the task of the given flaw to Jira
