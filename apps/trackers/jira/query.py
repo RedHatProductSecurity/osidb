@@ -587,34 +587,25 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
         if not value:
             return
 
-        # Try to use Jira field "Target Release"
-        field_name = "Target Release"
-        field_id = PS_ADDITIONAL_FIELD_TO_JIRA["target_release"]
-        field_obj = JiraProjectFields.objects.filter(
-            project_key=self.ps_module.bts_key, field_id=field_id
-        ).first()
-        if field_obj is None:
-            # Use field "Target Version" as fallback option
-            field_name = "Target Version"
-            field_id = PS_ADDITIONAL_FIELD_TO_JIRA["target_version"]
-            field_obj = JiraProjectFields.objects.filter(
-                project_key=self.ps_module.bts_key, field_id=field_id
-            ).first()
-        if field_obj is None:
-            # The fields are not available for this project
+        # Prefer "Target Release" field; fall back to "Target Version"
+        field_obj = self.get_jira_field("Target Release", required=False)
+        if field_obj is not None:
+            if field_obj.allowed_values and value not in field_obj.allowed_values:
+                raise MissingTargetReleaseVersionError(
+                    f"Jira project {self.ps_module.bts_key} does not have Target Release with value "
+                    f"{value} available; allowed values are: {', '.join(field_obj.allowed_values)}"
+                )
+            self._query["fields"][field_obj.field_id] = {"name": value}
             return
 
-        allowed_values = field_obj.allowed_values
-        if allowed_values and value in allowed_values:
-            query_value = (
-                {"name": value} if field_name == "Target Release" else [{"name": value}]
-            )
-            self._query["fields"][field_id] = query_value
-        else:
-            raise MissingTargetReleaseVersionError(
-                f"Jira project {self.ps_module.bts_key} does not have {field_name} with value "
-                f"{value} available; allowed values values are: {', '.join(allowed_values)}"
-            )
+        field_obj = self.get_jira_field("Target Version", required=False)
+        if field_obj is not None:
+            if field_obj.allowed_values and value not in field_obj.allowed_values:
+                raise MissingTargetReleaseVersionError(
+                    f"Jira project {self.ps_module.bts_key} does not have Target Version with value "
+                    f"{value} available; allowed values are: {', '.join(field_obj.allowed_values)}"
+                )
+            self._query["fields"][field_obj.field_id] = [{"name": value}]
 
     @property
     def query_comment(self):

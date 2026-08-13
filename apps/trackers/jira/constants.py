@@ -24,8 +24,6 @@ JIRA_FIELD_OVERRIDES = get_env("JIRA_FIELD_OVERRIDES", default="{}", is_json=Tru
 PS_ADDITIONAL_FIELD_TO_JIRA = {
     "fixVersions": "fixVersions",
     "release_blocker": "customfield_10847",
-    "target_release": "customfield_10813",
-    "target_version": "customfield_10855",
 }
 
 

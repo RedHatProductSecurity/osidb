@@ -816,17 +816,14 @@ class TestBothNewOldTrackerJiraQueryBuilder:
             embargoed=flaw.embargoed,
         )
 
-        # Create mock field
+        jira_field = None
         if available_field:
             if target_release is not None:
-                field_id = "customfield_10813"
                 field_name = "Target Release"
             else:
-                field_id = "customfield_10855"
                 field_name = "Target Version"
-            JiraProjectFieldsFactory(
+            jira_field = JiraProjectFieldsFactory(
                 project_key=ps_module.bts_key,
-                field_id=field_id,
                 field_name=field_name,
                 allowed_values=[
                     "4.1.0",
@@ -837,13 +834,11 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         query_builder = querybuilder_class(tracker)
         query_builder._query = {"fields": {}}
         if not available_field:
-            # If the field is not available in the project, nothing is generated
             query_builder.generate_target_release()
-            assert "customfield_10813" not in query_builder.query["fields"]
-            assert "customfield_10855" not in query_builder.query["fields"]
+            assert not query_builder.query["fields"]
         elif valid_jira_field:
             query_builder.generate_target_release()
-            query_value = query_builder.query["fields"].get(field_id)
+            query_value = query_builder.query["fields"].get(jira_field.field_id)
             if target_release is not None:
                 assert query_value == {"name": target_release}
             elif target_version is not None:
@@ -851,6 +846,53 @@ class TestBothNewOldTrackerJiraQueryBuilder:
         else:
             with pytest.raises(MissingTargetReleaseVersionError):
                 query_builder.generate_target_release()
+
+    def test_generate_target_release_prefers_target_release(
+        self,
+        querybuilder_class,
+    ):
+        """
+        Regression test for OSIDB-5318: when a project has both Target Release
+        and Target Version fields, the value must go to Target Release.
+        """
+        target_release_value = "odf-4.21.z"
+
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            target_release=target_release_value,
+        )
+        flaw = FlawFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            type=Tracker.TrackerType.JIRA,
+            ps_update_stream=ps_update_stream.name,
+            embargoed=flaw.embargoed,
+        )
+
+        target_release_field = JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_name="Target Release",
+            allowed_values=[target_release_value],
+        )
+        target_version_field = JiraProjectFieldsFactory(
+            project_key=ps_module.bts_key,
+            field_name="Target Version",
+            allowed_values=[target_release_value],
+        )
+
+        query_builder = querybuilder_class(tracker)
+        query_builder._query = {"fields": {}}
+        query_builder.generate_target_release()
+
+        fields = query_builder.query["fields"]
+        assert fields[target_release_field.field_id] == {"name": target_release_value}
+        assert target_version_field.field_id not in fields
 
     def test_generate_target_release_empty_string(
         self,
