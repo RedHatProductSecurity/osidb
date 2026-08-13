@@ -1074,7 +1074,6 @@ class Flaw(
             self.task_key = jtq.create_or_update_task(self)
             self.adjust_classification(save=False)
             Flaw.objects.filter(uuid=self.uuid).update(
-                auto_timestamps=False,
                 task_key=self.task_key,
                 workflow_name=self.workflow_name,
                 workflow_state=self.workflow_state,
