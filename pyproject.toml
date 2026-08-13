@@ -1,6 +1,6 @@
 [project]
 name = "osidb"
-version = "5.16.2"
+version = "5.16.3"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "advisory-parser>=1.14",
