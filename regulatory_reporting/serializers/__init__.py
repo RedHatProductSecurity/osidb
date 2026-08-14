@@ -1,4 +1,5 @@
 from .srp_serializers import (
+    SRPReportCreateSerializer,
     SRPReportMilestoneCreateSerializer,
     SRPReportMilestoneSerializer,
     SRPReportSerializer,
@@ -11,6 +12,7 @@ from .upstream import (
 
 __all__ = [
     "FlawUpstreamMappingSerializer",
+    "SRPReportCreateSerializer",
     "SRPReportMilestoneCreateSerializer",
     "SRPReportMilestoneSerializer",
     "SRPReportSerializer",
