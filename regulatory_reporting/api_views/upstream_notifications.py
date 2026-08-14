@@ -153,6 +153,10 @@ class UpstreamNotificationView(
         preview_data = render_upstream_notification_preview(notification)
         return Response(preview_data, status=200)
 
+    def initialize_request(self, request, *args, **kwargs):
+        with _redact_query_string_for_logging(request):
+            return super().initialize_request(request, *args, **kwargs)
+
 
 @contextmanager
 def _redact_query_string_for_logging(request):
