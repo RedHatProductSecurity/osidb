@@ -2049,6 +2049,57 @@ paths:
                     version:
                       type: string
           description: ''
+  /osidb/api/v1/affects/auto-resolve:
+    get:
+      operationId: osidb_api_v1_affects_auto_resolve_retrieve
+      description: Resolve ACE affectedness and resolution for a would-be affect using
+        the same rules as Affect.auto_resolve(). Used by the affect-creator microservice.
+      parameters:
+      - in: query
+        name: flaw
+        schema:
+          type: string
+        description: Flaw UUID (for impact fallback and CVSS-based defer rules).
+      - in: query
+        name: flaw_has_high_cvss_score
+        schema:
+          type: boolean
+        description: Whether the flaw has CVSSv3 >= 7.0; computed from the flaw when
+          omitted.
+      - in: query
+        name: impact
+        schema:
+          type: string
+        description: Affect impact; defaults to the flaw impact when flaw is given.
+      - in: query
+        name: ps_update_stream
+        schema:
+          type: string
+        description: Target PS update stream for the affect.
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/AffectAutoResolveResponse'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /osidb/api/v1/alerts:
     get:
       operationId: osidb_api_v1_alerts_list
@@ -2423,6 +2474,51 @@ paths:
                     type: string
                   version:
                     type: string
+          description: ''
+  /osidb/api/v1/component-mapping/pre-filter:
+    get:
+      operationId: osidb_api_v1_component_mapping_pre_filter_retrieve
+      description: Evaluate ACE component-mapping pre-filter rules for a single flaw
+        component. Used by the affect-creator microservice before querying lib-newtopia.
+      parameters:
+      - in: query
+        name: component
+        schema:
+          type: string
+        description: Flaw component name to evaluate.
+        required: true
+      - in: query
+        name: ecosystem
+        schema:
+          type: string
+        description: Upstream ecosystem context (e.g. npm, pypi).
+      - in: query
+        name: flaw_components
+        schema:
+          type: string
+        description: Comma-separated list of all flaw components (for Go stdlib detection).
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ComponentMappingPreFilterResponse'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
           description: ''
   /osidb/api/v1/flaws:
     get:
@@ -6741,6 +6837,41 @@ paths:
                     type: string
                   version:
                     type: string
+          description: ''
+  /osidb/api/v1/ps-modules/active-streams:
+    get:
+      operationId: osidb_api_v1_ps_modules_active_streams_retrieve
+      description: Return active PS update stream names for one or more PS modules.
+        Used by affect-creator for Go stdlib Phase 4 builder-container affects.
+      parameters:
+      - in: query
+        name: names
+        schema:
+          type: string
+        description: Comma-separated PS module names (e.g. openshift-4,cnv-4).
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PsModuleActiveStreamsResponse'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
           description: ''
   /osidb/api/v1/schema/:
     get:
@@ -14377,6 +14508,13 @@ paths:
           description: ''
 components:
   schemas:
+    ActionEnum:
+      enum:
+      - search
+      - skip
+      - manual
+      - special
+      type: string
     Affect:
       type: object
       description: Affect serializer
@@ -14513,6 +14651,16 @@ components:
       - updated_dt
       - uuid
       - visibility
+    AffectAutoResolveResponse:
+      type: object
+      properties:
+        affectedness:
+          type: string
+        resolution:
+          type: string
+      required:
+      - affectedness
+      - resolution
     AffectBulkPostPutResponse:
       type: object
       properties:
@@ -15338,6 +15486,29 @@ components:
       required:
       - text
       - updated_dt
+    ComponentMappingPreFilterResponse:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        label:
+          type: string
+        resolved_names:
+          type: array
+          items:
+            type: string
+        reason:
+          type: string
+        workflow:
+          oneOf:
+          - $ref: '#/components/schemas/WorkflowEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+      required:
+      - action
+      - label
+      - reason
+      - resolved_names
+      - workflow
     CvssVersionEnum:
       enum:
       - V2
@@ -17980,6 +18151,17 @@ components:
         jira_user_id:
           type: string
           maxLength: 100
+    PsModuleActiveStreamsResponse:
+      type: object
+      properties:
+        ps_modules:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      required:
+      - ps_modules
     PsStreamSelection:
       type: object
       properties:
@@ -18711,6 +18893,11 @@ components:
       - EMBARGOED
       - INTERNAL
       - PUBLIC
+      type: string
+    WorkflowEnum:
+      enum:
+      - chromium
+      - go_stdlib
       type: string
   securitySchemes:
     KerberosAuthentication:

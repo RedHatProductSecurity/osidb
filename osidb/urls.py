@@ -6,6 +6,11 @@ from django.urls import include, path, re_path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
+from apps.ace.api_views import (
+    AffectAutoResolveView,
+    ComponentMappingPreFilterView,
+    PsModuleActiveStreamsView,
+)
 from apps.workflows.api import (
     PromoteWorkflow,
     RejectWorkflow,
@@ -136,6 +141,18 @@ urlpatterns = [
     ),
     path(f"api/{OSIDB_API_VERSION}/status", StatusView.as_view()),
     path(f"api/{OSIDB_API_VERSION}/manifest", ManifestView.as_view()),
+    path(
+        f"api/{OSIDB_API_VERSION}/component-mapping/pre-filter",
+        ComponentMappingPreFilterView.as_view(),
+    ),
+    path(
+        f"api/{OSIDB_API_VERSION}/affects/auto-resolve",
+        AffectAutoResolveView.as_view(),
+    ),
+    path(
+        f"api/{OSIDB_API_VERSION}/ps-modules/active-streams",
+        PsModuleActiveStreamsView.as_view(),
+    ),
     path(f"api/{OSIDB_API_VERSION}/", include(router.urls)),
     path(
         f"api/{OSIDB_API_VERSION}/schema/", SpectacularAPIView.as_view(), name="schema"

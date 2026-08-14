@@ -306,6 +306,8 @@ SPECTACULAR_SETTINGS = {
             ("workflow", "Workflow"),
         ],
         "UpstreamDataSource": "osidb.models.flaw.upstream.UpstreamData.Source",
+        "AffectednessEnum": "osidb.models.affect.Affect.AffectAffectedness",
+        "ResolutionEnum": "osidb.models.affect.Affect.AffectResolution",
     },
     "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
     "COMPONENT_SPLIT_REQUEST": True,

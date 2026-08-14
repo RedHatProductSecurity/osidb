@@ -639,7 +639,7 @@ def test_pre_filter_blocklist_skips():
     BlocklistEntry.objects.create(name="gitlab", reason="Not shipped by Red Hat")
     flaw = FlawFactory(components=["GitLab"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "GitLab", "")
+    result = _pre_filter_component(flaw.components or [], "GitLab", "")
 
     assert result.action is PreFilterAction.SKIP
     assert result.label == LABEL_AUTO_REJECTED
@@ -653,7 +653,7 @@ def test_pre_filter_allows_non_blocked():
     StrictPackage.objects.create(name="openssl", repos=["rhel-9"])
     flaw = FlawFactory(components=["openssl"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "openssl", "")
+    result = _pre_filter_component(flaw.components or [], "openssl", "")
 
     assert result.action is PreFilterAction.SEARCH
     assert result.label == LABEL_AUTO_AFFECTS
@@ -802,7 +802,7 @@ def test_is_go_stdlib_component_false():
 def test_pre_filter_go_stdlib_subcomponent_special():
     flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "net/http", "")
+    result = _pre_filter_component(flaw.components or [], "net/http", "")
 
     assert result.action is PreFilterAction.SPECIAL
     assert result.label == LABEL_AUTO_AFFECTS
@@ -814,7 +814,7 @@ def test_pre_filter_go_stdlib_golang_skipped():
     """The 'golang' component itself is skipped — Phase 1 of the handler covers it."""
     flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "golang", "")
+    result = _pre_filter_component(flaw.components or [], "golang", "")
 
     assert result.action is PreFilterAction.MANUAL
 
@@ -823,7 +823,7 @@ def test_pre_filter_go_stdlib_golang_skipped():
 def test_pre_filter_chromium_special():
     flaw = FlawFactory(components=["chromium"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "chromium", "")
+    result = _pre_filter_component(flaw.components or [], "chromium", "")
 
     assert result.action is PreFilterAction.SPECIAL
     assert result.label == LABEL_AUTO_AFFECTS
@@ -840,7 +840,7 @@ def test_pre_filter_cross_ecosystem_no_ecosystem():
     CrossEcosystemName.objects.create(name="redis", ecosystems=["npm", "pypi"])
     flaw = FlawFactory(components=["redis"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "redis", "")
+    result = _pre_filter_component(flaw.components or [], "redis", "")
 
     assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_MANUAL_TRIAGE
@@ -854,7 +854,7 @@ def test_pre_filter_cross_ecosystem_with_ecosystem_proceeds():
     CrossEcosystemName.objects.create(name="redis", ecosystems=["npm", "pypi"])
     flaw = FlawFactory(components=["redis"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "redis", "npm")
+    result = _pre_filter_component(flaw.components or [], "redis", "npm")
 
     assert result.action is PreFilterAction.SEARCH
 
@@ -871,7 +871,7 @@ def test_pre_filter_unverified_mapping_manual_triage():
     )
     flaw = FlawFactory(components=["SomeGoLib"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "SomeGoLib", "")
+    result = _pre_filter_component(flaw.components or [], "SomeGoLib", "")
 
     assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_MANUAL_TRIAGE
@@ -890,7 +890,7 @@ def test_pre_filter_verified_mapping_proceeds():
     )
     flaw = FlawFactory(components=["Vault"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "Vault", "")
+    result = _pre_filter_component(flaw.components or [], "Vault", "")
 
     assert result.action is PreFilterAction.SEARCH
 
@@ -914,7 +914,7 @@ def test_pre_filter_manual_triage_component_unrestricted(monkeypatch):
     )
     flaw = FlawFactory(components=["kernel"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "kernel", "pypi")
+    result = _pre_filter_component(flaw.components or [], "kernel", "pypi")
 
     assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_MANUAL_TRIAGE
@@ -932,7 +932,7 @@ def test_pre_filter_manual_triage_component_kernel_subpackage(monkeypatch):
     ComponentMapEntry.objects.create(name="kernel-devel", upstream_packages="kernel")
     flaw = FlawFactory(components=["kernel-devel"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "kernel-devel", "")
+    result = _pre_filter_component(flaw.components or [], "kernel-devel", "")
 
     assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_MANUAL_TRIAGE
@@ -947,9 +947,9 @@ def test_pre_filter_manual_triage_component_ecosystem_restricted(monkeypatch):
     )
     flaw = FlawFactory(components=["kernel"], embargoed=False)
 
-    linux = _pre_filter_component(flaw, "kernel", "Linux")
-    cargo = _pre_filter_component(flaw, "kernel", "cargo")
-    pypi = _pre_filter_component(flaw, "kernel", "pypi")
+    linux = _pre_filter_component(flaw.components or [], "kernel", "Linux")
+    cargo = _pre_filter_component(flaw.components or [], "kernel", "cargo")
+    pypi = _pre_filter_component(flaw.components or [], "kernel", "pypi")
 
     assert linux.action is PreFilterAction.MANUAL
     assert cargo.action is PreFilterAction.MANUAL
@@ -968,7 +968,7 @@ def test_pre_filter_semi_strict_no_pick_manual_triage():
     )
     flaw = FlawFactory(components=["accelerator"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "accelerator", "")
+    result = _pre_filter_component(flaw.components or [], "accelerator", "")
 
     assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_MANUAL_TRIAGE
@@ -985,7 +985,7 @@ def test_pre_filter_semi_strict_with_pick_uses_picked():
     StrictPackage.objects.create(name="pkg-a", repos=[])
     flaw = FlawFactory(components=["accelerator"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "accelerator", "")
+    result = _pre_filter_component(flaw.components or [], "accelerator", "")
 
     assert result.action is PreFilterAction.SEARCH
     assert result.label == LABEL_AUTO_AFFECTS
@@ -1002,7 +1002,7 @@ def test_pre_filter_strict_package_auto_affects():
     StrictPackage.objects.create(name="openssl", repos=["rhel-9"])
     flaw = FlawFactory(components=["openssl"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "openssl", "")
+    result = _pre_filter_component(flaw.components or [], "openssl", "")
 
     assert result.action is PreFilterAction.SEARCH
     assert result.label == LABEL_AUTO_AFFECTS
@@ -1012,7 +1012,7 @@ def test_pre_filter_strict_package_auto_affects():
 def test_pre_filter_non_strict_potential_rejection():
     flaw = FlawFactory(components=["unknown-pkg"], embargoed=False)
 
-    result = _pre_filter_component(flaw, "unknown-pkg", "")
+    result = _pre_filter_component(flaw.components or [], "unknown-pkg", "")
 
     assert result.action is PreFilterAction.SEARCH
     assert result.label == LABEL_POTENTIAL_REJECTION
@@ -1444,207 +1444,19 @@ def test_sync_runs_for_eligible_default_workflow_states(
         )
 
 
-# ── Signal handler tests ──────────────────────────────────────────────────────
+# ── In-process ACE automation disabled ────────────────────────────────────────
 
 
-class _FakeSettings:
-    auto_create = True
-
-
-@pytest.fixture
-def signal_ace_enabled(monkeypatch):
-    """Patch AffectSettings so the signal handler's auto_create gate is open."""
-    monkeypatch.setattr("apps.ace.signals.AffectSettings", _FakeSettings)
-
-
-def _count_enqueues(monkeypatch):
-    """Replace transaction.on_commit with a counter; return the counter list."""
+@pytest.mark.enable_signals
+def test_flaw_save_does_not_enqueue_in_process_ace(monkeypatch):
+    """ACE auto-creation runs in affect-creator; OSIDB must not enqueue on Flaw save."""
     calls = []
     monkeypatch.setattr("django.db.transaction.on_commit", lambda fn: calls.append(fn))
-    return calls
 
-
-@pytest.mark.enable_signals
-def test_signal_enqueues_on_components_change_in_eligible_state(
-    monkeypatch, signal_ace_enabled
-):
-    """Changing components while in an eligible state must enqueue ACE."""
     flaw = FlawFactory(
         components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
     )
-    calls = _count_enqueues(monkeypatch)
-
-    flaw.components = ["openssl", "gnutls"]
-    flaw.save()
-
-    assert len(calls) == 1
-
-
-@pytest.mark.enable_signals
-def test_signal_enqueues_on_triage_promotion_with_existing_components(
-    monkeypatch, signal_ace_enabled
-):
-    """Promoting a flaw from NEW to TRIAGE must enqueue ACE even if components didn't change."""
-    flaw = FlawFactory(
-        components=["openssl"], workflow_name="DEFAULT", workflow_state="NEW"
-    )
-    calls = _count_enqueues(monkeypatch)
-
-    flaw.workflow_state = "TRIAGE"
-    flaw.save()
-
-    assert len(calls) == 1
-
-
-@pytest.mark.enable_signals
-def test_signal_does_not_enqueue_on_triage_promotion_without_components(
-    monkeypatch, signal_ace_enabled
-):
-    """Promoting to TRIAGE with no components must not enqueue ACE."""
-    flaw = FlawFactory(components=[], workflow_name="DEFAULT", workflow_state="NEW")
-    calls = _count_enqueues(monkeypatch)
-
-    flaw.workflow_state = "TRIAGE"
-    flaw.save()
-
-    assert len(calls) == 0
-
-
-@pytest.mark.enable_signals
-def test_signal_does_not_enqueue_for_non_default_workflow(
-    monkeypatch, signal_ace_enabled
-):
-    """Changing components in the MANUAL workflow must not enqueue ACE."""
-    flaw = FlawFactory(
-        components=["openssl"], workflow_name="MANUAL", workflow_state="TRIAGE"
-    )
-    calls = _count_enqueues(monkeypatch)
-
     flaw.components = ["openssl", "gnutls"]
     flaw.save()
 
     assert len(calls) == 0
-
-
-@pytest.mark.enable_signals
-def test_signal_does_not_enqueue_for_new_state(monkeypatch, signal_ace_enabled):
-    """Changing components while still in NEW state must not enqueue ACE."""
-    flaw = FlawFactory(
-        components=["openssl"], workflow_name="DEFAULT", workflow_state="NEW"
-    )
-    calls = _count_enqueues(monkeypatch)
-
-    flaw.components = ["openssl", "gnutls"]
-    flaw.save()
-
-    assert len(calls) == 0
-
-
-@pytest.mark.enable_signals
-def test_signal_does_not_enqueue_for_done_state(monkeypatch, signal_ace_enabled):
-    """Changing components while in DONE state must not enqueue ACE."""
-    flaw = FlawFactory(
-        components=["openssl"], workflow_name="DEFAULT", workflow_state="DONE"
-    )
-    calls = _count_enqueues(monkeypatch)
-
-    flaw.components = ["openssl", "gnutls"]
-    flaw.save()
-
-    assert len(calls) == 0
-
-
-@pytest.mark.enable_signals
-def test_signal_enqueues_on_empty_to_triage_promotion(monkeypatch, signal_ace_enabled):
-    """Legacy flaw (empty workflow) promoted straight to TRIAGE must enqueue ACE."""
-    flaw = FlawFactory(
-        components=["openssl"], workflow_name="DEFAULT", workflow_state=""
-    )
-    calls = _count_enqueues(monkeypatch)
-
-    flaw.workflow_state = "TRIAGE"
-    flaw.save()
-
-    assert len(calls) == 1
-
-
-@pytest.mark.enable_signals
-def test_signal_does_not_enqueue_on_empty_to_new_transition(
-    monkeypatch, signal_ace_enabled
-):
-    """Transitioning from empty to NEW must not enqueue ACE — NEW is still a blocked state."""
-    flaw = FlawFactory(
-        components=["openssl"], workflow_name="DEFAULT", workflow_state=""
-    )
-    calls = _count_enqueues(monkeypatch)
-
-    flaw.workflow_state = "NEW"
-    flaw.save()
-
-    assert len(calls) == 0
-
-
-@pytest.mark.enable_signals
-def test_signal_does_not_enqueue_on_new_to_done_transition(
-    monkeypatch, signal_ace_enabled
-):
-    """Transitioning from NEW to DONE (skipping triage) must not enqueue ACE."""
-    flaw = FlawFactory(
-        components=["openssl"], workflow_name="DEFAULT", workflow_state="NEW"
-    )
-    calls = _count_enqueues(monkeypatch)
-
-    flaw.workflow_state = "DONE"
-    flaw.save()
-
-    assert len(calls) == 0
-
-
-@pytest.mark.enable_signals
-def test_signal_does_not_enqueue_on_within_eligible_state_change(
-    monkeypatch, signal_ace_enabled
-):
-    """Moving between eligible states (TRIAGE→ANALYSIS) without component changes must not re-enqueue ACE."""
-    flaw = FlawFactory(
-        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
-    )
-    calls = _count_enqueues(monkeypatch)
-
-    flaw.workflow_state = "ANALYSIS"
-    flaw.save()
-
-    assert len(calls) == 0
-
-
-@pytest.mark.enable_signals
-def test_signal_enqueues_on_workflow_transition_to_default(
-    monkeypatch, signal_ace_enabled
-):
-    """Transitioning from REJECTED/DONE to DEFAULT/TRIAGE must enqueue ACE."""
-    flaw = FlawFactory(
-        components=["openssl"], workflow_name="REJECTED", workflow_state="DONE"
-    )
-    calls = _count_enqueues(monkeypatch)
-
-    flaw.workflow_name = "DEFAULT"
-    flaw.workflow_state = "TRIAGE"
-    flaw.save()
-
-    assert len(calls) == 1
-
-
-@pytest.mark.enable_signals
-def test_signal_enqueues_on_workflow_transition_partial_save(
-    monkeypatch, signal_ace_enabled
-):
-    """Partial save updating only workflow_name and workflow_state must still enqueue ACE."""
-    flaw = FlawFactory(
-        components=["openssl"], workflow_name="REJECTED", workflow_state="DONE"
-    )
-    calls = _count_enqueues(monkeypatch)
-
-    flaw.workflow_name = "DEFAULT"
-    flaw.workflow_state = "TRIAGE"
-    flaw.save(update_fields=["workflow_name", "workflow_state"])
-
-    assert len(calls) == 1

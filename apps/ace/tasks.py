@@ -40,9 +40,11 @@ from collectors.component_mapping.models import (
 from config.celery import app
 from osidb.helpers import bypass_rls
 from osidb.models import Flaw, FlawCVSS, PsModule
+from osidb.models.abstract import Impact
 from osidb.models.affect import Affect, AffectSettings, NotAffectedJustification
 from osidb.models.flaw.label import WorkflowLabel
 from osidb.models.flaw.upstream import UpstreamData
+from osidb.models.ps_update_stream import PsUpdateStream
 
 logger = get_task_logger(__name__)
 
@@ -82,6 +84,79 @@ class PreFilterResult:
     resolved_names: list[str] = field(default_factory=list)
     reason: str = ""
     workflow: SpecialWorkflow = SpecialWorkflow.NONE
+
+
+def pre_filter_result_to_dict(result: PreFilterResult) -> dict[str, Any]:
+    """Serialize a pre-filter result for the component-mapping API."""
+    return {
+        "action": result.action.value,
+        "label": result.label,
+        "resolved_names": result.resolved_names,
+        "reason": result.reason,
+        "workflow": result.workflow.value,
+    }
+
+
+class AutoResolveInputError(Exception):
+    """Raised when auto-resolve inputs are insufficient for resolution."""
+
+    def __init__(self, errors: dict[str, list[str]]):
+        self.errors = errors
+        super().__init__(errors)
+
+
+def auto_resolve_affect_fields(
+    ps_update_stream: str,
+    impact: str = "",
+    flaw: Flaw | None = None,
+    flaw_has_high_cvss_score: bool | None = None,
+) -> dict[str, str]:
+    """
+    Run Affect.auto_resolve() for ACE affect creation without saving.
+
+    Returns affectedness and resolution strings for the OSIDB REST API.
+    """
+    if flaw is None:
+        if not (impact or "").strip():
+            raise AutoResolveInputError(
+                {"impact": ["This field is required when flaw is omitted."]}
+            )
+        if flaw_has_high_cvss_score is None and impact == Impact.MODERATE:
+            raise AutoResolveInputError(
+                {
+                    "flaw_has_high_cvss_score": [
+                        "This field is required when flaw is omitted and impact is MODERATE."
+                    ]
+                }
+            )
+        if flaw_has_high_cvss_score is None:
+            flaw_has_high_cvss_score = False
+
+    ps_module_name = ""
+    try:
+        stream_obj = PsUpdateStream.objects.select_related(
+            "ps_module", "ps_module__ps_product"
+        ).get(name=ps_update_stream)
+        if stream_obj.ps_module:
+            ps_module_name = stream_obj.ps_module.name
+    except PsUpdateStream.DoesNotExist:
+        pass
+
+    affect = Affect(
+        flaw=flaw,
+        ps_update_stream=ps_update_stream,
+        ps_module=ps_module_name,
+        impact=impact or "",
+    )
+    if flaw_has_high_cvss_score is None and flaw is not None:
+        flaw_has_high_cvss_score = flaw.has_high_cvss_score
+
+    affect.auto_resolve(flaw_has_high_cvss_score=flaw_has_high_cvss_score)
+
+    return {
+        "affectedness": affect.affectedness,
+        "resolution": affect.resolution,
+    }
 
 
 def _resolve_component(component: str) -> tuple[list[str], bool]:
@@ -163,7 +238,7 @@ def _apply_label(flaw: Flaw, label: str) -> None:
 
 
 def _pre_filter_component(
-    flaw: Flaw, component: str, ecosystem: str
+    flaw_components: list[str], component: str, ecosystem: str
 ) -> PreFilterResult:
     """
     Check a component against mapping data (source-component-mapping)
@@ -194,7 +269,7 @@ def _pre_filter_component(
 
     # Go stdlib check: the handler runs per stdlib subcomponent path.
     # "golang" component itself is skipped here as it's automatically handled later.
-    if _is_go_stdlib_component(component, flaw.components or []):
+    if _is_go_stdlib_component(component, flaw_components):
         if component_lower == "golang":
             return PreFilterResult(
                 action=PreFilterAction.MANUAL,
@@ -747,10 +822,9 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
     :attr:`osidb.models.affect.AffectSettings.auto_create_ps_modules`
     (``OSIDB_AFFECTS_AUTO_CREATE_PS_MODULES``, JSON list; default ``["hummingbird-1"]``).
 
-    When :attr:`osidb.models.affect.AffectSettings.auto_create` is true
-    (``OSIDB_AFFECTS_AUTO_CREATE``), changes to :attr:`~osidb.models.flaw.flaw.Flaw.components`
-    register this task on :func:`django.db.transaction.on_commit` from a ``pre_save`` signal
-    on :class:`~osidb.models.flaw.flaw.Flaw`.
+    This task is no longer scheduled automatically on ``Flaw`` save; the
+    affect-creator microservice polls OSIDB and creates affects via the REST API.
+    It remains available for unit tests and manual invocation.
 
     If ``lib_newtopia`` is not installed this task is a no-op — it logs a warning and returns
     without creating any affects. Install the package from the internal Nexus repository
@@ -796,7 +870,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
     for flaw_component in components:
         ecosystems = component_ecosystems.get(flaw_component.strip().lower(), [""])
         for ecosystem in ecosystems:
-            pf = _pre_filter_component(flaw, flaw_component, ecosystem)
+            pf = _pre_filter_component(components, flaw_component, ecosystem)
             pre_filter_results.append((flaw_component, ecosystem, pf))
 
     skip_result = next(

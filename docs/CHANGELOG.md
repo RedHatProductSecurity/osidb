@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [5.15.0] - 2026-08-07
 ### Changed
+- moved ACE logic to affect-creator microservice (OSIDB-5203)
 - migrate alias-typed manual-triage labels to workflow type (OSIDB-5335)
 - bulk add approved workflow label to the flaws resolved before Argus (OSIDB-5334)
 - make V2 labels be just labels (OSIDB-5320)
