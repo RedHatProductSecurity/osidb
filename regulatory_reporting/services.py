@@ -1,16 +1,71 @@
 import json
+import logging
 
 from django.template.loader import render_to_string
 from django.utils import timezone
 
 from osidb.models import Flaw, FlawCVSS
 from osidb.models.flaw import FlawSource
+from regulatory_reporting.constants import MILESTONES_TYPES_BY_REPORTABLE_EVENT_TYPE
+from regulatory_reporting.models import SRPReport, SRPReportMilestone
+from regulatory_reporting.models.upstream import UpstreamNotification
 
-from .models.srp_report import SRPReport
-from .models.srp_report_milestone import SRPReportMilestone
-from .models.upstream import UpstreamNotification
+logger = logging.getLogger(__name__)
 
 REDHAT_IDENTIFIED_SOURCES = {FlawSource.REDHAT}
+
+
+def create_srp_report_milestones(
+    srp_report: SRPReport,
+    status: str = SRPReport.SRPReportStatus.REQUIRED,
+):
+    """
+    Create the required SRP milestones for a new SRP Report.
+
+    For KEV / severe-incident reports: creates 24h, 72h, and final milestones.
+    For ADDITIONAL_INFORMATION_REQUEST reports: creates a single
+    additional_information_response milestone (no 24h/72h/final).
+
+    Extra additional_information_response milestones may still be created
+    on-demand via the milestone POST API when further requests are received.
+
+    Args:
+        srp_report: The SRP Report to create milestones for
+        status: Initial status for created milestones (default REQUIRED)
+    """
+
+    for milestone_type in MILESTONES_TYPES_BY_REPORTABLE_EVENT_TYPE[
+        srp_report.reportable_event_type
+    ]:
+        milestone = SRPReportMilestone.objects.create(
+            srp_report=srp_report,
+            milestone_type=milestone_type,
+            status=status,
+            acl_read=srp_report.acl_read,
+            acl_write=srp_report.acl_write,
+        )
+        logger.info(
+            f"Created {milestone_type} milestone for SRP Report {srp_report.uuid} "
+            f"for Flaw {srp_report.flaw.uuid}, created at {milestone.created_dt}, due at {milestone.due_at}"
+        )
+
+
+def update_srp_report_milestones(srp_report: SRPReport):
+    """
+    Update the milestones for an existing SRP Report.
+
+    Args:
+        srp_report: The SRP Report to update milestones for
+    """
+    all_milestones = SRPReportMilestone.objects.filter(srp_report=srp_report)
+    for milestone in all_milestones:
+        milestone.acl_read = srp_report.acl_read
+        milestone.acl_write = srp_report.acl_write
+        milestone.save()
+        logger.info(
+            f"Updated {milestone.milestone_type} milestone for SRP Report {srp_report.uuid} "
+            f"for Flaw {srp_report.flaw.uuid}, created at {milestone.created_dt}, due at {milestone.due_at}"
+        )
 
 
 def _is_public_feed_only(flaw: Flaw) -> bool:
@@ -122,7 +177,11 @@ class SRPPayloadBuilder:
     def _build_common_fields(self):
         fields = {}
 
-        fields["notification_type"] = self.srp_report.reportable_event_type
+        fields["notification_type"] = (
+            SRPReport.ReportableEventType.enisa_notification_type(
+                self.srp_report.reportable_event_type
+            )
+        )
         fields["notification_level"] = self.milestone.milestone_type
         fields["manufacturer_or_steward_name"] = (
             self.srp_report.manufacturer_or_steward_name or ""
@@ -193,12 +252,12 @@ class SRPPayloadBuilder:
         required = list(self.REQUIRED_COMMON_FIELDS)
         if (
             self.srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
         ):
             required += self.REQUIRED_VULNERABILITY_FIELDS
         elif (
             self.srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.SEVERE_INCIDENT
+            == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
         ):
             required += self.REQUIRED_INCIDENT_FIELDS
         return required
@@ -231,12 +290,12 @@ class SRPPayloadBuilder:
 
         if (
             self.srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
         ):
             payload.update(self._build_vulnerability_fields())
         elif (
             self.srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.SEVERE_INCIDENT
+            == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
         ):
             payload.update(self._build_incident_fields())
 
