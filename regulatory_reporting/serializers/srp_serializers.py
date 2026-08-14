@@ -4,10 +4,14 @@ Serializers for SRP (Single Reporting Platform) models.
 Provides REST API serialization for CRA compliance reporting.
 """
 
+import uuid
+
+from django.db import IntegrityError, transaction
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
+from osidb.core import generate_acls
+from osidb.models import Flaw
 from osidb.serializer import (
     ACLMixinSerializer,
     AlertMixinSerializer,
@@ -161,6 +165,7 @@ class SRPReportSerializer(
             "responsibility_scope",
             "reportable_event_type",
             "status",
+            "evidence",
             "timer_started_at",
             "srp_reference_id",
             "srp_reference_url",
@@ -197,3 +202,134 @@ class SRPReportSerializer(
         return super(ACLMixinSerializer, self).update(
             instance, validated_data, *args, **kwargs
         )
+
+
+class SRPReportCreateSerializer(SRPReportSerializer):
+    """
+    Serializer for manually creating SRP Reports.
+
+    Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
+    view's perform_create. evidence, srp_reference_id, and srp_reference_url
+    are required for manual create. timer_started_at is read-only and remains
+    null until the report transitions to REQUIRED.
+    """
+
+    flaw_id = serializers.PrimaryKeyRelatedField(
+        queryset=Flaw.objects.all(),
+        source="flaw",
+        help_text="UUID of the flaw to create an SRP report for",
+    )
+    title = serializers.CharField(required=False)
+    responsibility_scope = serializers.ChoiceField(
+        choices=SRPReport.ResponsibilityScope.choices,
+        required=False,
+    )
+    evidence = serializers.CharField(allow_blank=False, trim_whitespace=True)
+    srp_reference_id = serializers.CharField(
+        allow_blank=False,
+        trim_whitespace=True,
+        max_length=255,
+    )
+    srp_reference_url = serializers.URLField(allow_blank=False, max_length=200)
+    status = serializers.ChoiceField(
+        choices=SRPReport.SRPReportStatus.choices,
+        read_only=True,
+    )
+    timer_started_at = serializers.DateTimeField(read_only=True, allow_null=True)
+    updated_dt = serializers.DateTimeField(read_only=True)
+
+    class Meta(SRPReportSerializer.Meta):
+        # Disable auto UniqueTogetherValidator so validate()/IntegrityError
+        # can return a field-scoped error on reportable_event_type.
+        validators = []
+        read_only_fields = [
+            "uuid",
+            "created_dt",
+            "updated_dt",
+            "milestones",
+            "meta_attr",
+            "alerts",
+            "status",
+            "timer_started_at",
+        ]
+
+    @staticmethod
+    def _require_nonblank(value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("This field may not be blank.")
+        return value.strip()
+
+    def validate_evidence(self, value):
+        return self._require_nonblank(value)
+
+    def validate_srp_reference_id(self, value):
+        return self._require_nonblank(value)
+
+    def _validate_acl_write(self, flaw):
+        if not flaw:
+            return
+        request = self.context.get("request")
+        user = getattr(request, "user", None) if request else None
+        if user is None or not user.is_authenticated:
+            raise serializers.ValidationError(
+                {"flaw_id": "You do not have write access to this flaw."}
+            )
+        user_acls = {
+            uuid.UUID(acl)
+            for acl in generate_acls([group.name for group in user.groups.all()])
+        }
+        if not user_acls.intersection(flaw.acl_write):
+            raise serializers.ValidationError(
+                {"flaw_id": "You do not have write access to this flaw."}
+            )
+
+    def _validate_unique_reportable_event_type(self, flaw, reportable_event_type):
+        if (
+            flaw
+            and reportable_event_type
+            and SRPReport.objects.filter(
+                flaw=flaw,
+                reportable_event_type=reportable_event_type,
+            ).exists()
+        ):
+            raise serializers.ValidationError(
+                {
+                    "reportable_event_type": (
+                        "An SRP report with this reportable_event_type already "
+                        "exists for this flaw."
+                    )
+                }
+            )
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        flaw = attrs.get("flaw")
+        reportable_event_type = attrs.get("reportable_event_type")
+        self._validate_acl_write(flaw)
+        self._validate_unique_reportable_event_type(flaw, reportable_event_type)
+        return attrs
+
+    def create(self, validated_data):
+        flaw = validated_data["flaw"]
+        validated_data.setdefault(
+            "title",
+            flaw.title or f"SRP Report for {flaw.uuid}",
+        )
+        validated_data.setdefault(
+            "responsibility_scope",
+            SRPReport.ResponsibilityScope.MANUFACTURER,
+        )
+        try:
+            with transaction.atomic():
+                return super().create(validated_data)
+        except IntegrityError as exc:
+            if "unique_srp_report_flaw_event_type" not in str(exc):
+                raise
+            raise serializers.ValidationError(
+                {
+                    "reportable_event_type": (
+                        "An SRP report with this reportable_event_type already "
+                        "exists for this flaw."
+                    )
+                }
+            ) from exc

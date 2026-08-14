@@ -14772,10 +14772,12 @@ paths:
         Supports:
         - GET /regulatory-reporting/api/v1/srp-reports - List all reports with filtering
         - GET /regulatory-reporting/api/v1/srp-reports/{uuid} - Retrieve single report
+        - POST /regulatory-reporting/api/v1/srp-reports - Manually create a report
         - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
-        No POST/DELETE - reports are auto-created by signals.
-        PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
+        Reports are also auto-created by signals when Critter criteria are met.
+        Manual POST creates the report in PRE_REQUIRED status with milestones.
+        DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
       parameters:
       - in: query
         name: created_dt__gte
@@ -14861,6 +14863,55 @@ paths:
               schema:
                 allOf:
                 - $ref: '#/components/schemas/PaginatedSRPReportList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: regulatory_reporting_api_v1_srp_reports_create
+      description: |-
+        ViewSet for SRP Reports (top-level).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports - List all reports with filtering
+        - GET /regulatory-reporting/api/v1/srp-reports/{uuid} - Retrieve single report
+        - POST /regulatory-reporting/api/v1/srp-reports - Manually create a report
+        - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
+
+        Reports are also auto-created by signals when Critter criteria are met.
+        Manual POST creates the report in PRE_REQUIRED status with milestones.
+        DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SRPReportCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SRPReportCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SRPReportCreateRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReportCreate'
                 - type: object
                   properties:
                     dt:
@@ -15145,10 +15196,12 @@ paths:
         Supports:
         - GET /regulatory-reporting/api/v1/srp-reports - List all reports with filtering
         - GET /regulatory-reporting/api/v1/srp-reports/{uuid} - Retrieve single report
+        - POST /regulatory-reporting/api/v1/srp-reports - Manually create a report
         - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
-        No POST/DELETE - reports are auto-created by signals.
-        PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
+        Reports are also auto-created by signals when Critter criteria are met.
+        Manual POST creates the report in PRE_REQUIRED status with milestones.
+        DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
       parameters:
       - in: path
         name: uuid
@@ -15188,10 +15241,12 @@ paths:
         Supports:
         - GET /regulatory-reporting/api/v1/srp-reports - List all reports with filtering
         - GET /regulatory-reporting/api/v1/srp-reports/{uuid} - Retrieve single report
+        - POST /regulatory-reporting/api/v1/srp-reports - Manually create a report
         - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
-        No POST/DELETE - reports are auto-created by signals.
-        PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
+        Reports are also auto-created by signals when Critter criteria are met.
+        Manual POST creates the report in PRE_REQUIRED status with milestones.
+        DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
       parameters:
       - in: path
         name: uuid
@@ -19557,9 +19612,9 @@ components:
       type: string
     ReportableEventTypeEnum:
       enum:
-      - actively_exploited_vulnerability
-      - severe_incident
-      - additional_information_request
+      - EXPLOITS_KEV_APPROVED
+      - MAJOR_INCIDENT_APPROVED
+      - ADDITIONAL_INFORMATION_REQUEST
       type: string
     ResolutionEnum:
       enum:
@@ -19594,7 +19649,6 @@ components:
         title:
           type: string
           description: Title of the SRP report
-          maxLength: 255
         manufacturer_or_steward_name:
           type: string
           description: Name of the manufacturer or steward
@@ -19609,8 +19663,12 @@ components:
           description: Type of event being reported to ENISA
         status:
           allOf:
-          - $ref: '#/components/schemas/StatusB26Enum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the SRP report
+        evidence:
+          type: string
+          description: Justification for manually creating this SRP report when automatic
+            criteria were not met
         timer_started_at:
           type:
           - string
@@ -19669,6 +19727,160 @@ components:
       - title
       - updated_dt
       - uuid
+    SRPReportCreate:
+      type: object
+      description: |-
+        Serializer for manually creating SRP Reports.
+
+        Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
+        view's perform_create. evidence, srp_reference_id, and srp_reference_url
+        are required for manual create. timer_started_at is read-only and remains
+        null until the report transitions to REQUIRED.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        flaw_id:
+          type: string
+          format: uuid
+          description: UUID of the flaw to create an SRP report for
+        title:
+          type: string
+        manufacturer_or_steward_name:
+          type: string
+          description: Name of the manufacturer or steward
+          maxLength: 255
+        responsibility_scope:
+          $ref: '#/components/schemas/ResponsibilityScopeEnum'
+        reportable_event_type:
+          allOf:
+          - $ref: '#/components/schemas/ReportableEventTypeEnum'
+          description: Type of event being reported to ENISA
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
+          readOnly: true
+        evidence:
+          type: string
+        timer_started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          readOnly: true
+        srp_reference_id:
+          type: string
+          maxLength: 255
+        srp_reference_url:
+          type: string
+          format: uri
+          maxLength: 200
+        member_states_available:
+          type: array
+          items:
+            type: string
+            maxLength: 2
+          description: List of EU member state codes where product is available
+        designated_csirt_country:
+          type: string
+          description: Country code of the designated CSIRT coordinator
+          maxLength: 2
+        designated_csirt_source:
+          type: string
+          description: Source of the designated CSIRT coordinator
+          maxLength: 255
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        milestones:
+          type: array
+          items:
+            $ref: '#/components/schemas/SRPReportMilestone'
+          readOnly: true
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+      required:
+      - alerts
+      - created_dt
+      - evidence
+      - flaw_id
+      - milestones
+      - reportable_event_type
+      - srp_reference_id
+      - srp_reference_url
+      - status
+      - timer_started_at
+      - updated_dt
+      - uuid
+    SRPReportCreateRequest:
+      type: object
+      description: |-
+        Serializer for manually creating SRP Reports.
+
+        Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
+        view's perform_create. evidence, srp_reference_id, and srp_reference_url
+        are required for manual create. timer_started_at is read-only and remains
+        null until the report transitions to REQUIRED.
+      properties:
+        flaw_id:
+          type: string
+          format: uuid
+          description: UUID of the flaw to create an SRP report for
+        title:
+          type: string
+          minLength: 1
+        manufacturer_or_steward_name:
+          type: string
+          description: Name of the manufacturer or steward
+          maxLength: 255
+        responsibility_scope:
+          $ref: '#/components/schemas/ResponsibilityScopeEnum'
+        reportable_event_type:
+          allOf:
+          - $ref: '#/components/schemas/ReportableEventTypeEnum'
+          description: Type of event being reported to ENISA
+        evidence:
+          type: string
+          minLength: 1
+        srp_reference_id:
+          type: string
+          minLength: 1
+          maxLength: 255
+        srp_reference_url:
+          type: string
+          format: uri
+          minLength: 1
+          maxLength: 200
+        member_states_available:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2
+          description: List of EU member state codes where product is available
+        designated_csirt_country:
+          type: string
+          description: Country code of the designated CSIRT coordinator
+          maxLength: 2
+        designated_csirt_source:
+          type: string
+          description: Source of the designated CSIRT coordinator
+          maxLength: 255
+      required:
+      - evidence
+      - flaw_id
+      - reportable_event_type
+      - srp_reference_id
+      - srp_reference_url
     SRPReportMilestone:
       type: object
       description: |-
@@ -19692,7 +19904,7 @@ components:
           description: Type of milestone (24h, 72h, final, etc.)
         status:
           allOf:
-          - $ref: '#/components/schemas/StatusB26Enum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the milestone
         request_received_at:
           type:
@@ -19789,7 +20001,7 @@ components:
           description: Type of milestone (24h, 72h, final, etc.)
         status:
           allOf:
-          - $ref: '#/components/schemas/StatusB26Enum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the milestone
         request_received_at:
           type:
@@ -19871,7 +20083,7 @@ components:
       properties:
         status:
           allOf:
-          - $ref: '#/components/schemas/StatusB26Enum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the milestone
         request_received_at:
           type:
@@ -19895,7 +20107,7 @@ components:
       properties:
         status:
           allOf:
-          - $ref: '#/components/schemas/StatusB26Enum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the milestone
         request_received_at:
           type:
@@ -19928,7 +20140,6 @@ components:
           type: string
           minLength: 1
           description: Title of the SRP report
-          maxLength: 255
         manufacturer_or_steward_name:
           type: string
           description: Name of the manufacturer or steward
@@ -19943,8 +20154,12 @@ components:
           description: Type of event being reported to ENISA
         status:
           allOf:
-          - $ref: '#/components/schemas/StatusB26Enum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the SRP report
+        evidence:
+          type: string
+          description: Justification for manually creating this SRP report when automatic
+            criteria were not met
         timer_started_at:
           type:
           - string
@@ -19985,6 +20200,18 @@ components:
       - responsibility_scope
       - title
       - updated_dt
+    SRPReportStatusEnum:
+      enum:
+      - not_applicable
+      - not_required
+      - pre_required
+      - required
+      - prepared
+      - submitted
+      - deferred
+      - blocked
+      - failed
+      type: string
     SpecialHandlingEnum:
       enum:
       - Major Incident
@@ -20001,17 +20228,6 @@ components:
       - REQ
       - SKIP
       - DONE
-      type: string
-    StatusB26Enum:
-      enum:
-      - not_applicable
-      - not_required
-      - required
-      - prepared
-      - submitted
-      - deferred
-      - blocked
-      - failed
       type: string
     StreamComponent:
       type: object
