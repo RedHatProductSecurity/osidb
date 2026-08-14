@@ -119,10 +119,6 @@ def create_flaw_report() -> Callable[
             return created.get()
 
         # Signal used get_or_create; return the report for this event type.
-        from regulatory_reporting.signals import REPORTABLE_EVENT_TYPE_MAP
-
-        return flaw.srp_reports.get(
-            reportable_event_type=REPORTABLE_EVENT_TYPE_MAP[incident_state]
-        )
+        return flaw.srp_reports.get(reportable_event_type=incident_state)
 
     return _create_report
