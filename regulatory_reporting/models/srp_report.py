@@ -73,6 +73,11 @@ class SRPReport(SRPReportBase):
             "Additional Information Request",
         )
 
+        @classmethod
+        def enisa_notification_type(cls, value: str) -> str:
+            """Return the ENISA notification_type for a reportable_event_type value."""
+            return cls(value).label.lower().replace(" ", "_")
+
     flaw = models.ForeignKey(
         Flaw,
         on_delete=models.PROTECT,
