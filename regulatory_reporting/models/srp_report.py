@@ -52,15 +52,24 @@ class SRPReport(SRPReportBase):
         STEWARD = "steward", "Steward"
 
     class ReportableEventType(models.TextChoices):
-        """Type of reportable event according to CRA"""
+        """
+        Type of reportable event according to CRA.
 
-        ACTIVELY_EXPLOITED_VULNERABILITY = (
-            "actively_exploited_vulnerability",
+        Auto-created values match Flaw.FlawMajorIncident so signals can use
+        major_incident_state directly without a mapping table.
+        ADDITIONAL_INFORMATION_REQUEST is CRA-only (no Flaw counterpart).
+        """
+
+        EXPLOITS_KEV_APPROVED = (
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
             "Actively Exploited Vulnerability",
         )
-        SEVERE_INCIDENT = "severe_incident", "Severe Incident"
+        MAJOR_INCIDENT_APPROVED = (
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+            "Severe Incident",
+        )
         ADDITIONAL_INFORMATION_REQUEST = (
-            "additional_information_request",
+            "ADDITIONAL_INFORMATION_REQUEST",
             "Additional Information Request",
         )
 
@@ -71,7 +80,8 @@ class SRPReport(SRPReportBase):
         help_text="The flaw for which this SRP report is being created",
     )
 
-    title = models.CharField(max_length=255, help_text="Title of the SRP report")
+    # TextField to match Flaw.title (unbounded); report title is copied from the flaw
+    title = models.TextField(help_text="Title of the SRP report")
 
     manufacturer_or_steward_name = models.CharField(
         max_length=255,
@@ -99,6 +109,14 @@ class SRPReport(SRPReportBase):
         help_text="Current status of the SRP report",
     )
 
+    evidence = models.TextField(
+        blank=True,
+        help_text=(
+            "Justification for manually creating this SRP report when automatic "
+            "criteria were not met"
+        ),
+    )
+
     # SLA tracking
     timer_started_at = models.DateTimeField(
         null=True,
@@ -114,6 +132,7 @@ class SRPReport(SRPReportBase):
     )
 
     srp_reference_url = models.URLField(
+        max_length=200,
         blank=True,
         help_text="URL of the SRP reference",
     )
@@ -153,6 +172,12 @@ class SRPReport(SRPReportBase):
             models.Index(fields=["responsibility_scope"]),
             GinIndex(fields=["acl_read"]),
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["flaw", "reportable_event_type"],
+                name="unique_srp_report_flaw_event_type",
+            ),
+        ]
 
     objects = SRPReportManager()
 
@@ -174,6 +199,14 @@ class SRPReport(SRPReportBase):
             raise ValidationError(
                 "timer_started_at must be set when status is REQUIRED, PREPARED, or SUBMITTED"
             )
+
+    @validator
+    def _validate_evidence_required(self, **kwargs):
+        """Evidence is required for manually created (PRE_REQUIRED) reports"""
+        if self.status == SRPReportBase.SRPReportStatus.PRE_REQUIRED and (
+            not self.evidence or not self.evidence.strip()
+        ):
+            raise ValidationError("evidence must be set when status is PRE_REQUIRED")
 
     @validator
     def _validate_srp_reference_required(self, **kwargs):
