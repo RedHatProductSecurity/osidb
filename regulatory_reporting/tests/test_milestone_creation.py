@@ -12,13 +12,14 @@ from datetime import timedelta
 
 import pytest
 from django.core.exceptions import ValidationError
-from django.test import override_settings
 from django.utils import timezone
 
 from osidb.models import Flaw
 from osidb.tests.factories import FlawFactory
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 from regulatory_reporting.models.abstracts import SRPReportBase
+from regulatory_reporting.services import create_srp_report_milestones
+from regulatory_reporting.tests.factories import SRPReportFactory
 
 pytestmark = [pytest.mark.unit, pytest.mark.enable_signals, pytest.mark.cra_reporting]
 
@@ -41,7 +42,7 @@ class TestSRPMilestoneAutoCreation:
         srp_report = SRPReport.objects.get(flaw=flaw)
         assert (
             srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
         )
 
         # Exactly 3 milestones created
@@ -78,7 +79,7 @@ class TestSRPMilestoneAutoCreation:
         srp_report = SRPReport.objects.get(flaw=flaw)
         assert (
             srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.SEVERE_INCIDENT
+            == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
         )
 
         # Assert - Exactly 3 milestones created
@@ -264,8 +265,9 @@ class TestSRPMilestoneAutoCreation:
 
     def test_additional_information_response_not_auto_created(self):
         """
-        LEVEL_ADDITIONAL_INFORMATION_RESPONSE should NOT be created automatically.
-        It's only created on-demand when authorities send follow-up requests.
+        For KEV / severe-incident reports, LEVEL_ADDITIONAL_INFORMATION_RESPONSE
+        should NOT be created automatically with the standard 24h/72h/final set.
+        Extra AIR milestones are created on-demand when authorities send follow-ups.
         """
 
         start_time = timezone.now()
@@ -285,6 +287,32 @@ class TestSRPMilestoneAutoCreation:
             "Additional information response milestones should NOT be auto-created"
         )
 
+    def test_additional_information_request_report_creates_only_air_milestone(self):
+        """
+        ADDITIONAL_INFORMATION_REQUEST reports get a single AIR milestone,
+        not the standard 24h/72h/final set.
+        """
+        srp_report = SRPReportFactory(
+            reportable_event_type=(
+                SRPReport.ReportableEventType.ADDITIONAL_INFORMATION_REQUEST
+            ),
+            status=SRPReport.SRPReportStatus.PRE_REQUIRED,
+        )
+        # Factory does not create milestones; call helper explicitly
+        srp_report.milestones.all().delete()
+        create_srp_report_milestones(
+            srp_report,
+            status=SRPReport.SRPReportStatus.PRE_REQUIRED,
+        )
+
+        milestones = list(srp_report.milestones.all())
+        assert len(milestones) == 1
+        assert (
+            milestones[0].milestone_type
+            == SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
+        )
+        assert milestones[0].status == SRPReport.SRPReportStatus.PRE_REQUIRED
+
     def test_milestones_created_for_both_event_types_on_state_transition(self):
         """
         If a flaw transitions from MAJOR_INCIDENT_APPROVED to EXPLOITS_KEV_APPROVED,
@@ -299,7 +327,7 @@ class TestSRPMilestoneAutoCreation:
         # Verify first report and milestones created
         severe_report = SRPReport.objects.get(
             flaw=flaw,
-            reportable_event_type=SRPReport.ReportableEventType.SEVERE_INCIDENT,
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
         )
         severe_milestones = SRPReportMilestone.objects.filter(srp_report=severe_report)
         assert severe_milestones.count() == 3
@@ -311,7 +339,7 @@ class TestSRPMilestoneAutoCreation:
         # KEV report created with its own milestones
         kev_report = SRPReport.objects.get(
             flaw=flaw,
-            reportable_event_type=SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY,
+            reportable_event_type=SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
         )
         kev_milestones = SRPReportMilestone.objects.filter(srp_report=kev_report)
         assert kev_milestones.count() == 3, (
@@ -573,7 +601,7 @@ class TestMilestoneDueDateProperty:
         srp_report = SRPReport.objects.get(flaw=flaw)
         assert (
             srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.SEVERE_INCIDENT
+            == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
         )
 
         # Act - create additional info milestone

@@ -5,10 +5,10 @@ Tests read-only access to reports and milestones via flaw context.
 """
 
 import pytest
-from django.conf import settings
 from rest_framework import status
 
 from osidb.models import Flaw
+from regulatory_reporting.models import SRPReport
 from regulatory_reporting.tests.factories import (
     NonReportableFlawFactory,
     SRPReportFactory,
@@ -284,8 +284,14 @@ class TestFlawSRPMilestoneRetrieve:
     def test_retrieve_milestone_wrong_report_404(self, api_client):
         """404 when milestone belongs to different report."""
         flaw = NonReportableFlawFactory()
-        report1 = SRPReportFactory(flaw=flaw)
-        report2 = SRPReportFactory(flaw=flaw)
+        report1 = SRPReportFactory(
+            flaw=flaw,
+            reportable_event_type=SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
+        )
+        report2 = SRPReportFactory(
+            flaw=flaw,
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+        )
         milestone = SRPReportMilestoneFactory(srp_report=report2)
 
         response = api_client.get(

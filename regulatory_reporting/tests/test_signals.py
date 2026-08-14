@@ -30,7 +30,7 @@ class TestSRPReportAutoCreation:
         """
         When a flaw's major_incident_state is set to EXPLOITS_KEV_APPROVED,
         an SRP Report should be automatically created with:
-        - reportable_event_type = ACTIVELY_EXPLOITED_VULNERABILITY
+        - reportable_event_type = EXPLOITS_KEV_APPROVED
         - timer_started_at = flaw.major_incident_start_dt
         - status = REQUIRED
         - responsibility_scope = MANUFACTURER
@@ -57,7 +57,7 @@ class TestSRPReportAutoCreation:
         report = reports.first()
         assert (
             report.reportable_event_type
-            == SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
         )
         assert report.timer_started_at == start_time
         assert report.status == SRPReport.SRPReportStatus.REQUIRED
@@ -69,7 +69,7 @@ class TestSRPReportAutoCreation:
         """
         When a flaw's major_incident_state is set to MAJOR_INCIDENT_APPROVED,
         an SRP Report should be automatically created with:
-        - reportable_event_type = SEVERE_INCIDENT
+        - reportable_event_type = MAJOR_INCIDENT_APPROVED
         - timer_started_at = flaw.major_incident_start_dt
         - status = REQUIRED
         - responsibility_scope = MANUFACTURER
@@ -94,7 +94,7 @@ class TestSRPReportAutoCreation:
         report = reports.first()
         assert (
             report.reportable_event_type
-            == SRPReport.ReportableEventType.SEVERE_INCIDENT
+            == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
         )
         assert report.timer_started_at == start_time
         assert report.status == SRPReport.SRPReportStatus.REQUIRED
@@ -119,7 +119,7 @@ class TestSRPReportAutoCreation:
         report = reports.first()
         assert (
             report.reportable_event_type
-            == SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
         )
         assert report.timer_started_at == start_time
 
@@ -220,7 +220,7 @@ class TestSRPReportAutoCreation:
         assert reports.count() == 1
         assert (
             reports.first().reportable_event_type
-            == SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
         )
 
     def test_flaw_can_have_both_event_type_reports(self):
@@ -238,12 +238,12 @@ class TestSRPReportAutoCreation:
             major_incident_start_dt=start_time_mi,
         )
 
-        # Verify first report created for SEVERE_INCIDENT
+        # Verify first report created for MAJOR_INCIDENT_APPROVED
         assert SRPReport.objects.filter(flaw=flaw).count() == 1
         severe_report = SRPReport.objects.get(flaw=flaw)
         assert (
             severe_report.reportable_event_type
-            == SRPReport.ReportableEventType.SEVERE_INCIDENT
+            == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
         )
         assert severe_report.timer_started_at == start_time_mi
 
@@ -262,18 +262,17 @@ class TestSRPReportAutoCreation:
 
         # Verify both event types are present
         event_types = {r.reportable_event_type for r in reports}
-        assert SRPReport.ReportableEventType.SEVERE_INCIDENT in event_types, (
+        assert SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED in event_types, (
             "Should have severe incident report"
         )
-        assert (
-            SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
-            in event_types
-        ), "Should have KEV report"
+        assert SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED in event_types, (
+            "Should have KEV report"
+        )
 
         # Verify the KEV report has correct data
         kev_report = SRPReport.objects.get(
             flaw=flaw,
-            reportable_event_type=SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY,
+            reportable_event_type=SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
         )
         assert kev_report.status == SRPReport.SRPReportStatus.REQUIRED
         assert (

@@ -1,16 +1,15 @@
 """
 Tests for top-level SRP Report API endpoints.
 
-Tests list, retrieve, update operations and filtering.
+Tests list, retrieve, create, update operations and filtering.
 """
 
 import pytest
-from django.conf import settings
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
 
-from regulatory_reporting.models import SRPReport
+from regulatory_reporting.models import SRPReport, SRPReportMilestone
 from regulatory_reporting.tests.factories import (
     NonReportableFlawFactory,
     SRPReportFactory,
@@ -101,9 +100,272 @@ class TestSRPReportList:
         assert "reportable_event_type" in data
         assert "status" in data
         assert "timer_started_at" in data
+        assert "evidence" in data
         assert "created_dt" in data
         assert "updated_dt" in data
         assert "milestones" in data
+
+
+@pytest.mark.django_db
+class TestSRPReportCreate:
+    """Tests for POST /regulatory-reporting/api/v1/srp-reports (manual create)."""
+
+    @staticmethod
+    def _create_payload(flaw, **overrides):
+        data = {
+            "flaw_id": str(flaw.uuid),
+            "reportable_event_type": SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+            "evidence": "Operator decided to report despite no MI approval.",
+            "srp_reference_id": "SRP-2026-001",
+            "srp_reference_url": "https://enisa.europa.eu/reports/SRP-2026-001",
+        }
+        data.update(overrides)
+        return data
+
+    def test_create_report_unauthenticated_fails(self, api_client):
+        """Unauthenticated users cannot create reports."""
+        flaw = NonReportableFlawFactory()
+        response = api_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_create_report_without_flaw_write_acl_fails(
+        self, api_client, django_user_model
+    ):
+        """Authenticated users without flaw write ACL cannot create reports."""
+        user = django_user_model.objects.create_user(username="readonly-user")
+        api_client.force_authenticate(user=user)
+        flaw = NonReportableFlawFactory()
+        response = api_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "flaw_id" in response.data
+
+    def test_create_report_without_critter_criteria(self, authenticated_client):
+        """Can manually create a report when Critter criteria are not met."""
+        flaw = NonReportableFlawFactory(title="Manual ENISA report flaw")
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        assert response.data["status"] == SRPReport.SRPReportStatus.PRE_REQUIRED
+        assert response.data["flaw_id"] == flaw.uuid
+        assert (
+            response.data["evidence"]
+            == "Operator decided to report despite no MI approval."
+        )
+        assert response.data["srp_reference_id"] == "SRP-2026-001"
+        assert (
+            response.data["srp_reference_url"]
+            == "https://enisa.europa.eu/reports/SRP-2026-001"
+        )
+        assert response.data["title"] == "Manual ENISA report flaw"
+        assert (
+            response.data["responsibility_scope"]
+            == SRPReport.ResponsibilityScope.MANUFACTURER
+        )
+        assert response.data["timer_started_at"] is None
+
+        report = SRPReport.objects.get(uuid=response.data["uuid"])
+        assert report.acl_read == flaw.acl_read
+        assert report.acl_write == flaw.acl_write
+
+        milestones = list(report.milestones.order_by("milestone_type"))
+        assert len(milestones) == 3
+        assert {m.milestone_type for m in milestones} == {
+            SRPReportMilestone.MilestoneType.LEVEL_24H,
+            SRPReportMilestone.MilestoneType.LEVEL_72H,
+            SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+        }
+        assert all(
+            m.status == SRPReport.SRPReportStatus.PRE_REQUIRED for m in milestones
+        )
+        assert len(response.data["milestones"]) == 3
+
+    def test_create_additional_information_request_creates_only_air_milestone(
+        self, authenticated_client
+    ):
+        """ADDITIONAL_INFORMATION_REQUEST reports get only an AIR milestone."""
+        flaw = NonReportableFlawFactory()
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(
+                flaw,
+                reportable_event_type=(
+                    SRPReport.ReportableEventType.ADDITIONAL_INFORMATION_REQUEST
+                ),
+            ),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        assert response.data["status"] == SRPReport.SRPReportStatus.PRE_REQUIRED
+        assert (
+            response.data["reportable_event_type"]
+            == SRPReport.ReportableEventType.ADDITIONAL_INFORMATION_REQUEST
+        )
+
+        report = SRPReport.objects.get(uuid=response.data["uuid"])
+        milestones = list(report.milestones.all())
+        assert len(milestones) == 1
+        assert (
+            milestones[0].milestone_type
+            == SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
+        )
+        assert milestones[0].status == SRPReport.SRPReportStatus.PRE_REQUIRED
+        assert len(response.data["milestones"]) == 1
+
+    def test_create_report_defaults_long_flaw_title(self, authenticated_client):
+        """Default title accepts Flaw.title longer than former CharField(255)."""
+        long_title = "A" * 300
+        flaw = NonReportableFlawFactory(title=long_title)
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        assert response.data["title"] == long_title
+
+    def test_create_report_ignores_timer_started_at(self, authenticated_client):
+        """timer_started_at is read-only on create and stays null for PRE_REQUIRED."""
+        flaw = NonReportableFlawFactory()
+        backdated = timezone.now() - timezone.timedelta(days=3)
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw, timer_started_at=backdated.isoformat()),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        assert response.data["timer_started_at"] is None
+        report = SRPReport.objects.get(uuid=response.data["uuid"])
+        assert report.timer_started_at is None
+
+    def test_create_report_missing_evidence_fails(self, authenticated_client):
+        """evidence is required for manual create."""
+        flaw = NonReportableFlawFactory()
+        payload = self._create_payload(
+            flaw,
+            reportable_event_type=(SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED),
+        )
+        del payload["evidence"]
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            payload,
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "evidence" in response.data
+
+    def test_create_report_blank_evidence_fails(self, authenticated_client):
+        """Blank evidence is rejected."""
+        flaw = NonReportableFlawFactory()
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw, evidence="   "),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "evidence" in response.data
+
+    def test_create_report_missing_srp_reference_fields_fails(
+        self, authenticated_client
+    ):
+        """srp_reference_id and srp_reference_url are required for manual create."""
+        flaw = NonReportableFlawFactory()
+        payload = self._create_payload(flaw)
+        del payload["srp_reference_id"]
+        del payload["srp_reference_url"]
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            payload,
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "srp_reference_id" in response.data
+        assert "srp_reference_url" in response.data
+
+    def test_create_report_blank_srp_reference_id_fails(self, authenticated_client):
+        """Blank srp_reference_id is rejected."""
+        flaw = NonReportableFlawFactory()
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw, srp_reference_id="   "),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "srp_reference_id" in response.data
+
+    def test_create_report_blank_srp_reference_url_fails(self, authenticated_client):
+        """Blank srp_reference_url is rejected."""
+        flaw = NonReportableFlawFactory()
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw, srp_reference_url="   "),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "srp_reference_url" in response.data
+
+    def test_create_report_srp_reference_url_too_long_fails(self, authenticated_client):
+        """srp_reference_url longer than 200 characters is rejected."""
+        flaw = NonReportableFlawFactory()
+        long_url = "https://enisa.europa.eu/" + ("a" * 200)
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw, srp_reference_url=long_url),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "srp_reference_url" in response.data
+
+    def test_create_report_duplicate_event_type_fails(self, authenticated_client):
+        """Duplicate (flaw, reportable_event_type) is rejected."""
+        flaw = NonReportableFlawFactory()
+        SRPReportFactory(
+            flaw=flaw,
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+        )
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(flaw, evidence="Second attempt."),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "reportable_event_type" in response.data
+
+    def test_create_report_allows_second_event_type(self, authenticated_client):
+        """Same flaw can have a second report with a different event type."""
+        flaw = NonReportableFlawFactory()
+        SRPReportFactory(
+            flaw=flaw,
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+        )
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(
+                flaw,
+                reportable_event_type=(
+                    SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
+                ),
+                evidence="Also reporting as KEV.",
+                srp_reference_id="SRP-2026-002",
+                srp_reference_url="https://enisa.europa.eu/reports/SRP-2026-002",
+            ),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert (
+            response.data["reportable_event_type"]
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
+        )
 
 
 @pytest.mark.django_db
@@ -225,28 +487,28 @@ class TestSRPReportFiltering:
     def test_filter_by_reportable_event_type(self, api_client):
         """Can filter by reportable_event_type."""
         SRPReportFactory(
-            reportable_event_type=SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+            reportable_event_type=SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
         )
         SRPReportFactory(
-            reportable_event_type=SRPReport.ReportableEventType.SEVERE_INCIDENT
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
         )
 
         response = api_client.get(
-            f"/regulatory-reporting/api/v1/srp-reports?reportable_event_type={SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY}"
+            f"/regulatory-reporting/api/v1/srp-reports?reportable_event_type={SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["results"]) == 1
         assert (
             response.data["results"][0]["reportable_event_type"]
-            == SRPReport.ReportableEventType.ACTIVELY_EXPLOITED_VULNERABILITY
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
         )
 
     def test_filter_by_flaw_id(self, api_client):
         """Can filter by flaw_id."""
         flaw1 = NonReportableFlawFactory()
         flaw2 = NonReportableFlawFactory()
-        report1 = SRPReportFactory(flaw=flaw1)
-        report2 = SRPReportFactory(flaw=flaw2)
+        SRPReportFactory(flaw=flaw1)
+        SRPReportFactory(flaw=flaw2)
 
         response = api_client.get(
             f"/regulatory-reporting/api/v1/srp-reports?flaw_id={flaw1.uuid}"
@@ -303,14 +565,6 @@ class TestSRPReportAPIDisabled:
 @pytest.mark.django_db
 class TestSRPReportHTTPMethods:
     """Tests for unsupported HTTP methods."""
-
-    def test_post_not_allowed(self, authenticated_client):
-        """POST is not allowed (reports auto-created by signals)."""
-        data = {"title": "New Report"}
-        response = authenticated_client.post(
-            "/regulatory-reporting/api/v1/srp-reports", data
-        )
-        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
     def test_delete_not_allowed(self, authenticated_client):
         """DELETE is not allowed (reports are permanent)."""
