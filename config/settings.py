@@ -314,6 +314,9 @@ SPECTACULAR_SETTINGS = {
             ("workflow", "Workflow"),
         ],
         "UpstreamDataSource": "osidb.models.flaw.upstream.UpstreamData.Source",
+        "SRPReportStatusEnum": (
+            "regulatory_reporting.models.abstracts.SRPReportBase.SRPReportStatus"
+        ),
     },
     "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
     "COMPONENT_SPLIT_REQUEST": True,
