@@ -212,7 +212,7 @@ class TestSRPReportSerializer:
         data = serializer.data
 
         # Assert - different event type
-        assert data["reportable_event_type"] == "severe_incident"
+        assert data["reportable_event_type"] == "MAJOR_INCIDENT_APPROVED"
         assert len(data["milestones"]) == 3
 
         final_milestone_obj = srp_report.milestones.get(
