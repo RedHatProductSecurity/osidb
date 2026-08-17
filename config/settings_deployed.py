@@ -25,9 +25,6 @@ Optional env vars for per-environment tuning:
 
 import ssl
 
-import ldap
-from django_auth_ldap.config import GroupOfUniqueNamesType, LDAPSearch, LDAPSearchUnion
-
 from .settings import *
 
 # --- Environment ---
@@ -72,44 +69,6 @@ INTERNAL_READ_GROUP = INTERNAL_READ_GROUPS[0]
 INTERNAL_WRITE_GROUP = INTERNAL_WRITE_GROUPS[0]
 EMBARGO_READ_GROUP = EMBARGO_READ_GROUPS[0]
 EMBARGO_WRITE_GROUP = EMBARGO_WRITE_GROUPS[0]
-
-# --- LDAP ---
-
-ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
-
-AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(
-    LDAPSearch("ou=users,dc=redhat,dc=com", ldap.SCOPE_SUBTREE, "(uid=%(user)s)"),
-    LDAPSearch(
-        "ou=serviceaccounts,dc=redhat,dc=com", ldap.SCOPE_SUBTREE, "(uid=%(user)s)"
-    ),
-)
-
-AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
-    "ou=adhoc,ou=managedgroups,dc=redhat,dc=com",
-    ldap.SCOPE_SUBTREE,
-    "(objectClass=groupOfUniqueNames)",
-)
-AUTH_LDAP_GROUP_TYPE = GroupOfUniqueNamesType(name_attr="cn")
-
-AUTH_LDAP_ALWAYS_UPDATE_USER = True
-AUTH_LDAP_FIND_GROUP_PERMS = True
-AUTH_LDAP_MIRROR_GROUPS = True
-
-AUTH_LDAP_USER_ATTR_MAP = {
-    "first_name": "givenName",
-    "last_name": "sn",
-    "email": "mail",
-}
-
-AUTH_LDAP_REQUIRE_GROUP = (
-    f"cn={PUBLIC_READ_GROUPS[0]},ou=adhoc,ou=managedgroups,dc=redhat,dc=com"
-)
-
-AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    "is_active": f"cn={PUBLIC_READ_GROUPS[0]},ou=adhoc,ou=managedgroups,dc=redhat,dc=com",
-    "is_staff": f"cn={SERVICE_MANAGE_GROUP},ou=adhoc,ou=managedgroups,dc=redhat,dc=com",
-    "is_superuser": f"cn={SERVICE_MANAGE_GROUP},ou=adhoc,ou=managedgroups,dc=redhat,dc=com",
-}
 
 # --- Database ---
 
@@ -176,9 +135,11 @@ INSTALLED_APPS += [
 ]
 AUTHENTICATION_BACKENDS += [
     "kaminarimon.backend.LDAPRemoteUser",
-    # TODO: remove and replace by krb auth for admin interface
-    "django_auth_ldap.backend.LDAPBackend",
 ]
+
+KAMINARIMON_LDAP_SERVERS = get_env("LDAP_SERVERS", is_json=True, default="[]")
+KAMINARIMON_LDAP_BASE_DN = LDAP_BASE_DN
+
 KRB5_HOSTNAME = get_env("KRB5_HOSTNAME")
 
 # Execute once an hour in production

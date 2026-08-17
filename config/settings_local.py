@@ -43,14 +43,16 @@ INTERNAL_IPS = ["127.0.0.1", "::1"]
 
 AUTHENTICATION_BACKENDS += ("django_auth_ldap.backend.LDAPBackend",)
 
-AUTH_LDAP_BIND_DN = "cn=admin,dc=redhat,dc=com"
+AUTH_LDAP_SERVER_URI = "ldap://testldap:1389"
+
+AUTH_LDAP_BIND_DN = f"cn=admin,{LDAP_BASE_DN}"
 AUTH_LDAP_BIND_PASSWORD = "adminpassword"
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
-    "ou=users,dc=redhat,dc=com", ldap.SCOPE_SUBTREE, "(uid=%(user)s)"
+    f"cn=users,cn=accounts,{LDAP_BASE_DN}", ldap.SCOPE_SUBTREE, "(uid=%(user)s)"
 )
 
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
-    "ou=users,dc=redhat,dc=com",
+    f"cn=groups,cn=accounts,{LDAP_BASE_DN}",
     ldap.SCOPE_SUBTREE,
     "(objectClass=groupOfNames)",
 )
@@ -65,12 +67,12 @@ AUTH_LDAP_USER_ATTR_MAP = {
     "email": "mail",
 }
 
-AUTH_LDAP_REQUIRE_GROUP = "cn=active,ou=users,dc=redhat,dc=com"
+AUTH_LDAP_REQUIRE_GROUP = f"cn=active,cn=groups,cn=accounts,{LDAP_BASE_DN}"
 
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    "is_active": "cn=active,ou=users,dc=redhat,dc=com",
-    "is_staff": f"cn={SERVICE_MANAGE_GROUP},ou=users,dc=redhat,dc=com",
-    "is_superuser": f"cn={SERVICE_MANAGE_GROUP},ou=users,dc=redhat,dc=com",
+    "is_active": f"cn=active,cn=groups,cn=accounts,{LDAP_BASE_DN}",
+    "is_staff": f"cn={SERVICE_MANAGE_GROUP},cn=groups,cn=accounts,{LDAP_BASE_DN}",
+    "is_superuser": f"cn={SERVICE_MANAGE_GROUP},cn=groups,cn=accounts,{LDAP_BASE_DN}",
 }
 
 

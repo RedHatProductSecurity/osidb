@@ -30,6 +30,7 @@ RUN curl "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem" \
 # install dependencies and security updates
 RUN dnf --nodocs --setopt install_weak_deps=false -y install \
         cargo \
+        cyrus-sasl-gssapi \
         gcc \
         git \
         krb5-devel \
