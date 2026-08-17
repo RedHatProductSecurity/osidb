@@ -4,11 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [5.16.3] - 2026-08-13
 ### Fixed
 - fix disabled automatic timestamp update on task creation/update (OSIDB-5387)
 
 ## [5.16.2] - 2026-08-13
+### Fixed
+- fix the Celery worker and queuing issues
 
 ## [5.16.1] - 2026-08-12
 ### Fixed
