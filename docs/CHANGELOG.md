@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Fixed
+- Fix tracker target_release value being written to Target Version field
+  instead of Target Release when the Jira project uses a non-default custom
+  field ID (OSIDB-5318)
+
 ## [5.16.3] - 2026-08-13
 ### Fixed
 - fix disabled automatic timestamp update on task creation/update (OSIDB-5387)
