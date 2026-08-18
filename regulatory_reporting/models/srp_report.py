@@ -13,7 +13,6 @@ from django.db import models
 from psqlextra.fields import HStoreField
 
 from osidb.mixins import (
-    ACLMixinManager,
     TrackingMixin,
     TrackingMixinManager,
     validator,
@@ -23,7 +22,7 @@ from osidb.models.flaw.flaw import Flaw
 from .abstracts import SRPReportBase
 
 
-class SRPReportManager(ACLMixinManager, TrackingMixinManager):
+class SRPReportManager(TrackingMixinManager):
     """SRP Report manager"""
 
     pass

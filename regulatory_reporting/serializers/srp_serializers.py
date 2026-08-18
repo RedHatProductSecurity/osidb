@@ -15,7 +15,6 @@ from osidb.models import Flaw
 from osidb.serializer import (
     ACLMixinSerializer,
     AlertMixinSerializer,
-    EmbargoedField,
     IncludeMetaAttrMixin,
     TrackingMixinSerializer,
 )
@@ -43,8 +42,7 @@ class SRPReportMilestoneSerializer(
     # Must be declared read_only: Meta.read_only_fields does not apply to
     # fields declared on ACLMixinSerializer. update() also skips
     # ACLMixinSerializer.update() so omitted embargoed cannot rewrite ACLs.
-    embargoed = EmbargoedField(
-        source="*",
+    embargoed = serializers.BooleanField(
         read_only=True,
         help_text=(
             "The embargoed boolean attribute is technically read-only as it just "
