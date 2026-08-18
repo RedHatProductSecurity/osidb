@@ -28,8 +28,8 @@ jobs:
       testldap:
         image: mirror.gcr.io/osixia/openldap:1.5.0
         env:
-          LDAP_DOMAIN: redhat.com
-          LDAP_BASE_DN: dc=redhat,dc=com
+          LDAP_DOMAIN: ipa.redhat.com
+          LDAP_BASE_DN: dc=ipa,dc=redhat,dc=com
           LDAP_ADMIN_PASSWORD: adminpassword
           LDAP_PORT: 1389
           LDAPS_PORT: 1636
@@ -63,7 +63,7 @@ jobs:
       - name: Setup PostgreSQL service
         run: psql -f etc/pg/local-dev-app-user.sql -f etc/pg/template-permissions.sql postgres://postgres:test@postgres:5432/
       - name: Setup LDAP service
-        run: ldapadd -c -H "ldap://testldap:1389" -x -D "cn=admin,dc=redhat,dc=com" -w "adminpassword" -f etc/openldap/local-export.ldif || true
+        run: ldapadd -c -H "ldap://testldap:1389" -x -D "cn=admin,dc=ipa,dc=redhat,dc=com" -w "adminpassword" -f etc/openldap/local-export.ldif || true
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:

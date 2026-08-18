@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- Migrate LDAP from legacy Red Hat LDAP (`dc=redhat,dc=com`) to IPA LDAP
+  (`dc=ipa,dc=redhat,dc=com`) and upgrade django-kaminarimon to 0.3.0, which
+  replaces anonymous LDAP bind with GSSAPI authentication (OSIDB-4845)
+- New `LDAP_SERVERS` env variable required for deployed environments
+  (JSON list of LDAP server URIs) (OSIDB-4845)
+
 ### Fixed
 - Fix tracker target_release value being written to Target Version field
   instead of Target Release when the Jira project uses a non-default custom

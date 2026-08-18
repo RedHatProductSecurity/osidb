@@ -30,7 +30,8 @@ ALLOWED_HOSTS = [
 ]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-AUTH_LDAP_SERVER_URI = get_env("LDAP_SERVER_URL", default="ldap://testldap:1389")
+
+LDAP_BASE_DN = "dc=ipa,dc=redhat,dc=com"
 
 BLACKLISTED_HTTP_METHODS = ("patch",)
 READONLY_MODE: bool = get_env("OSIDB_READONLY_MODE", default="False", is_bool=True)

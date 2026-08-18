@@ -4,95 +4,74 @@ version: 1
 # top level
 #################
 
-dn: ou=users,dc=redhat,dc=com
-objectclass: organizationalUnit
-ou: users
+dn: cn=accounts,dc=ipa,dc=redhat,dc=com
+cn: accounts
+objectclass: organizationalRole
 
-dn: ou=serviceaccounts,dc=redhat,dc=com
-objectclass: organizationalUnit
-ou: serviceaccounts
+dn: cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
+cn: users
+objectclass: organizationalRole
+
+dn: cn=groups,cn=accounts,dc=ipa,dc=redhat,dc=com
+cn: groups
+objectclass: organizationalRole
 
 #################
 # Users
 #################
 
-dn: cn=testuser,ou=users,dc=redhat,dc=com
+dn: uid=testuser,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
 cn: User01
 cn: testuser
-gidnumber: 1000
 givenName: Monke
-homedirectory: /home/testuser
 mail: monke@banana.com
 objectclass: inetOrgPerson
-objectclass: posixAccount
-objectclass: shadowAccount
 sn: Perlis
 uid: testuser
-uidnumber: 1000
 userpassword: password
 
-dn: cn=anon,ou=users,dc=redhat,dc=com
+dn: uid=anon,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
 cn: Anonymous
 cn: anon
-gidnumber: 1001
 givenName: Anonymous
-homedirectory: /home/anon
 mail: anon@ymous.com
 objectclass: inetOrgPerson
-objectclass: posixAccount
-objectclass: shadowAccount
 sn: Fool
 uid: anon
-uidnumber: 1001
 userpassword: password
 
-dn: cn=pubread,ou=users,dc=redhat,dc=com
+dn: uid=pubread,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
 cn: PublicRead
 cn: pubread
-gidnumber: 1002
 givenName: Robert
-homedirectory: /home/pubread
 mail: pubread@redhat.com
 objectclass: inetOrgPerson
-objectclass: posixAccount
-objectclass: shadowAccount
 sn: California
 uid: pubread
-uidnumber: 1002
 userpassword: password
 
-dn: cn=pubrw,ou=users,dc=redhat,dc=com
+dn: uid=pubrw,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
 cn: PublicReadWrite
 cn: pubrw
-gidnumber: 1003
 givenName: Joseph
-homedirectory: /home/pubrw
 mail: pubrw@redhat.com
 objectclass: inetOrgPerson
-objectclass: posixAccount
-objectclass: shadowAccount
 sn: California
 uid: pubrw
-uidnumber: 1003
 userpassword: password
 
 #################
 # Service accounts
 #################
 
-dn: cn=testservice,ou=serviceaccounts,dc=redhat,dc=com
+dn: uid=testservice,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
 cn: Service1
 cn: testservice
-gidnumber: 2000
 givenName: silenceawarning
-homedirectory: /home/testservice
 mail: silenceawarning
 objectclass: inetOrgPerson
-objectclass: posixAccount
-objectclass: shadowAccount
 sn: Faker
 uid: testservice
-uidnumber: 2000
 userpassword: password
 
 #################
@@ -100,19 +79,19 @@ userpassword: password
 #################
 
 # access to osidb manage
-dn: cn=osidb-service-manage,ou=users,dc=redhat,dc=com
+dn: cn=osidb-service-manage,cn=groups,cn=accounts,dc=ipa,dc=redhat,dc=com
 cn: osidb-service-manage
-member: cn=testuser,ou=users,dc=redhat,dc=com
+member: uid=testuser,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # access to osidb
-dn: cn=active,ou=users,dc=redhat,dc=com
+dn: cn=active,cn=groups,cn=accounts,dc=ipa,dc=redhat,dc=com
 cn: active
-member: cn=testuser,ou=users,dc=redhat,dc=com
-member: cn=anon,ou=users,dc=redhat,dc=com
-member: cn=pubread,ou=users,dc=redhat,dc=com
-member: cn=pubrw,ou=users,dc=redhat,dc=com
-member: cn=testservice,ou=serviceaccounts,dc=redhat,dc=com
+member: uid=testuser,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
+member: uid=anon,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
+member: uid=pubread,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
+member: uid=pubrw,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
+member: uid=testservice,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
 objectclass: groupOfNames
 
 #################
@@ -120,42 +99,42 @@ objectclass: groupOfNames
 #################
 
 # prodsec data
-dn: cn=data-prodsec,ou=users,dc=redhat,dc=com
+dn: cn=data-prodsec,cn=groups,cn=accounts,dc=ipa,dc=redhat,dc=com
 cn: data-prodsec
-member: cn=testuser,ou=users,dc=redhat,dc=com
-member: cn=pubread,ou=users,dc=redhat,dc=com
-member: cn=pubrw,ou=users,dc=redhat,dc=com
+member: uid=testuser,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
+member: uid=pubread,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
+member: uid=pubrw,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # prodsec data write
-dn: cn=data-prodsec-write,ou=users,dc=redhat,dc=com
+dn: cn=data-prodsec-write,cn=groups,cn=accounts,dc=ipa,dc=redhat,dc=com
 cn: data-prodsec-write
-member: cn=testuser,ou=users,dc=redhat,dc=com
-member: cn=pubrw,ou=users,dc=redhat,dc=com
+member: uid=testuser,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
+member: uid=pubrw,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # topsecret data
-dn: cn=data-topsecret,ou=users,dc=redhat,dc=com
+dn: cn=data-topsecret,cn=groups,cn=accounts,dc=ipa,dc=redhat,dc=com
 cn: data-topsecret
-member: cn=testuser,ou=users,dc=redhat,dc=com
+member: uid=testuser,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # topsecret data
-dn: cn=data-topsecret-write,ou=users,dc=redhat,dc=com
+dn: cn=data-topsecret-write,cn=groups,cn=accounts,dc=ipa,dc=redhat,dc=com
 cn: data-topsecret-write
-member: cn=testuser,ou=users,dc=redhat,dc=com
+member: uid=testuser,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # internal data
-dn: cn=data-internal-read,ou=users,dc=redhat,dc=com
+dn: cn=data-internal-read,cn=groups,cn=accounts,dc=ipa,dc=redhat,dc=com
 cn: data-internal-read
-member: cn=testuser,ou=users,dc=redhat,dc=com
-member: cn=pubrw,ou=users,dc=redhat,dc=com
+member: uid=testuser,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
+member: uid=pubrw,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
 objectclass: groupOfNames
 
 # internal data
-dn: cn=data-internal-write,ou=users,dc=redhat,dc=com
+dn: cn=data-internal-write,cn=groups,cn=accounts,dc=ipa,dc=redhat,dc=com
 cn: data-internal-write
-member: cn=testuser,ou=users,dc=redhat,dc=com
-member: cn=pubrw,ou=users,dc=redhat,dc=com
+member: uid=testuser,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
+member: uid=pubrw,cn=users,cn=accounts,dc=ipa,dc=redhat,dc=com
 objectclass: groupOfNames
