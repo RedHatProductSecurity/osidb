@@ -5,6 +5,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Add new module "regulatory_reporting" (OSIDB-5127)
+- Add new Models SRPReport and SRPReportMilestone (OSIDB-5066)
+- Add `upstream maintainer` notification models (OSIDB-5076)
+- Add create SRP report when Flaw is EXPLOITS_KEV_APPROVED or MAJOR_INCIDENT (OSIDB-5067)
+- Automatic creation of upstream maintainer notification when criteria is met for flaw (OSIDB-5077)
+- Add serializers for upstream maintainer notification (OSIDB-5081)
+- Add signal to trigger upstream maintainer notification creation on FlawUpstreamMapping save (OSIDB-5078)
+- Add SRP report serializer (OSIDB-5072)
+- Add SRP report milestone creation (OSIDB-5068)
+- Add Upstream Maintainer Notification Subresource Endpoints (OSIDB-5083)
+- Add Upstream Maintainer Email Template (OSIDB-5086)
+- Add Upstream Maintainer Notification Payload Preparation Service (OSIDB-5087)
+- Add SRP report endpoints (OSIDB-5073)
+- Add Upstream Project Contact Endpoints (OSIDB-5084)
+- Add Flaw-to-Upstream Mapping Endpoints (OSIDB-5085)
+- Add Upstream Maintainer Send Email Action (OSIDB-5088)
+- Add RLS turned on for ACL in regulatory_reporting (OSIDB-5238)
+- Add Observability for Upstream Maintainer Email Actions (OSIDB-5104)
+- Add Upstream Maintainer Notifications Query (OSIDB-5103)
+- Add report payloads in milestones (OSIDB-5070)
+- Add manual POST create for SRP reports with PRE_REQUIRED status and evidence field (OSIDB-5284)
 
 ## [5.17.0] - 2026-08-26
 ### Added
@@ -95,24 +117,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - document workflow framework
 - introduce EMBARGOED workflow
 - introduce workflow labels
-- Add new module "regulatory_reporting" (OSIDB-5127)
-- Add new Models SRPReport and SRPReportMilestone (OSIDB-5066)
-- Add `upstream maintainer` notification models (OSIDB-5076)
-- Add create SRP report when Flaw is EXPLOITS_KEV_APPROVED or MAJOR_INCIDENT (OSIDB-5067)
-- Automatic creation of upsteam maintainer notification when criteria is met for flaw (OSIDB-5077)
-- Add SRP report milestone creation (OSIDB-5068)
-- Add Upstream Maintainer Notification Subresource Endpoints (OSIDB-5083)
-- Add Upstream Maintainer Email Template (OSIDB-5086)
-- Add Upstream Maintainer Notification Payload Preparation Service (OSIDB-5087)
-- Add SRP report endpoints (OSIDB-5073)
-- Add Upstream Project Contact Endpoints (OSIDB-5084)
-- Add Flaw-to-Upstream Mapping Endpoints (OSIDB-5085)
-- Add Upstream Maintainer Send Email Action (OSIDB-5088)
-- Add RLS turned on for ACL in regulatory_reporting (OSIDB-5238)
-- Add Observability for Upstream Maintainer Email Actions (OSIDB-5104)
-- Add Upstream Maintainer Notifications Query (OSIDB-5103)
-- Add report payloads in milestones (OSIDB-5070)
-- Add manual POST create for SRP reports with PRE_REQUIRED status and evidence field (OSIDB-5284)
 - ACE: Add Chromium special CVE workflow (OSIDB-5033)
 - ACE: Add Go stdlib special CVE workflow (OSIDB-5033)
 - Context for signals (OSIDB-5244)
@@ -164,14 +168,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Make HashiCorp Vault integration credential-based opt-in (OSIDB-5108)
 - Performance improvements for pghistory-related queries (OSIDB-4906)
-- Make HashiCorp Vault integration credential-based opt-in (OSIDB-5108)
 
 ### Fixed
 - Fix FieldDoesNotExist being raised for non-DB declared filters (OSIDB-4734)
 - Wrap external errors with affect context for bulk PUT endpoint (OSIDB-5038)
-- Wrapped bulk ACL updates - Exclude orphaned trackers from v1 flaw and tracker endpoints when filtering by tracker_ids(OSIDB-4927)
-)
->>>>>>> 5432c362 (OSIDB-5077- Mark flaw as Upstream Maintainer Notifiable When Criteria Are Met)
+- Wrapped bulk ACL updates in a transaction to prevent them from auto-committing outside the request transaction (OSIDB-4992)
+- Exclude orphaned trackers from v1 flaw and tracker endpoints when filtering by tracker_ids(OSIDB-4927)
 
 ## [5.11.1] - 2026-06-10
 ### Fixed
