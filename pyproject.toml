@@ -49,6 +49,17 @@ dependencies = [
     "requests-cache>=0.9.1",
     "requests-gssapi>=1.2.3",
     "rhubarb>=0.2.0",
+    # opentelemetry-instrumentation-* packages track a 0.xxb0 pre-release
+    # version scheme upstream (separate from the stable 1.x core SDK/exporter);
+    # there is no stable-versioned alternative. Exact versions are pinned in
+    # uv.lock.
+    "opentelemetry-distro>=0.50b0",
+    "opentelemetry-exporter-otlp>=1.29.0",
+    "opentelemetry-instrumentation-django>=0.50b0",
+    "opentelemetry-instrumentation-celery>=0.50b0",
+    "opentelemetry-instrumentation-psycopg2>=0.50b0",
+    "opentelemetry-instrumentation-requests>=0.50b0",
+    "opentelemetry-instrumentation-redis>=0.50b0",
 ]
 
 [dependency-groups]
