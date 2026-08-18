@@ -3,7 +3,6 @@ from rest_framework import serializers
 
 from osidb.serializer import (
     ACLMixinSerializer,
-    EmbargoedField,
     IncludeExcludeFieldsMixin,
     TrackingMixinSerializer,
 )
@@ -71,8 +70,7 @@ class UpstreamNotificationSerializer(
     # apply to fields declared on ACLMixinSerializer. update() also skips
     # ACLMixinSerializer.update() so an omitted/spoofed embargoed value cannot
     # desynchronize this notification's ACLs from its parent flaw's.
-    embargoed = EmbargoedField(
-        source="*",
+    embargoed = serializers.BooleanField(
         read_only=True,
         help_text=(
             "The embargoed boolean attribute is technically read-only as it just "

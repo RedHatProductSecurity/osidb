@@ -14,7 +14,6 @@ from django.db import models
 from psqlextra.fields import HStoreField
 
 from osidb.mixins import (
-    ACLMixinManager,
     TrackingMixin,
     TrackingMixinManager,
     validator,
@@ -24,7 +23,7 @@ from .abstracts import SRPReportBase
 from .srp_report import SRPReport
 
 
-class SRPReportMilestoneManager(ACLMixinManager, TrackingMixinManager):
+class SRPReportMilestoneManager(TrackingMixinManager):
     """SRP Report Milestone manager"""
 
     pass

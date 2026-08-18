@@ -4,7 +4,7 @@ import pghistory
 from django.conf import settings
 from django.db import models
 
-from osidb.mixins import ACLMixin, ACLMixinManager, TrackingMixin, TrackingMixinManager
+from osidb.mixins import ACLMixin, TrackingMixin, TrackingMixinManager
 from osidb.models.fields import PURLField
 
 
@@ -69,7 +69,7 @@ class UpstreamNotificationQuerySet(models.QuerySet):
         return self.filter(updated_dt__lt=since)
 
 
-class UpstreamNotificationManager(ACLMixinManager, TrackingMixinManager):
+class UpstreamNotificationManager(TrackingMixinManager):
     pass
 
 
