@@ -1572,7 +1572,7 @@ wheels = [
 
 [[package]]
 name = "osidb"
-version = "5.16.3"
+version = "5.16.4"
 source = { virtual = "." }
 dependencies = [
     { name = "advisory-parser" },
