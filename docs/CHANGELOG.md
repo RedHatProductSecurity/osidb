@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## [5.16.4] - 2026-08-19
 ### Changed
 - Migrate LDAP from legacy Red Hat LDAP (`dc=redhat,dc=com`) to IPA LDAP
   (`dc=ipa,dc=redhat,dc=com`) and upgrade django-kaminarimon to 0.3.0, which
