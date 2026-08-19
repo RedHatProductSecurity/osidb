@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+from djangoql.exceptions import DjangoQLSchemaError
 from djangoql.schema import (
     BoolField,
     DateTimeField,
@@ -113,8 +114,23 @@ class FlawQLSchema(DjangoQLSchema):
             return RelativeDateTimeQLField
         return super().get_field_cls(field)
 
+    def resolve_name(self, name):
+        """
+        Allow dotted access to FlawLabel fields that aren't reachable through
+        the flat "labels" relation otherwise: "name"/"type" live on the base
+        FlawLabel, and "contributor"/"state"/"relevant" only exist on some
+        subclasses. Anything else on the FlawLabel relation graph stays
+        unknown (whitelist via FLAW_LABEL_PROPERTY_FIELDS).
+        """
+        if len(name.parts) == 2 and name.parts[0] == "labels":
+            field = FLAW_LABEL_PROPERTY_FIELDS.get(name.parts[1])
+            if field:
+                return field
+
+        return super().resolve_name(name)
+
     def get_fields(self, model):
-        fields = super(FlawQLSchema, self).get_fields(model)
+        fields = super().get_fields(model)
         exclude = ["acl_read", "acl_write"]
         if model == Flaw:
             exclude += ["snippets", "local_updated_dt"]
@@ -136,7 +152,7 @@ class FlawComponentField(StrField):
     suggest_options = True
 
     def get_options(self, search):
-        options = super(FlawComponentField, self).get_options(search)
+        options = super().get_options(search)
         flat_list = []
         for option in options:
             flat_list += option
@@ -226,22 +242,156 @@ class FlawLabelsField(StrField):
             labels not in ("label_a", "label_b") - flaws without label_a OR without label_b
         """
 
-        if operator == "=":
-            return Q(labels__name=value)
-        elif operator == "!=":
-            return ~Q(labels__name=value)
+        if operator in ("in", "not in"):
+            # Dedupe repeated operands (e.g. labels in ("a", "a")), otherwise
+            # num_labels overcounts and the AND semantics below never match.
+            unique_values = set(value)
+            num_labels = len(unique_values)
 
-        num_labels = len(value)
+            flaw_ids = (
+                FlawLabel.objects.filter(name__in=unique_values)
+                .values("flaw_id")
+                .annotate(label_count=models.Count("name", distinct=True))
+                .filter(label_count=num_labels)
+                .values_list("flaw_id", flat=True)
+            )
 
-        flaw_ids = (
-            FlawLabel.objects.filter(name__in=value)
-            .values("flaw_id")
-            .annotate(label_count=models.Count("name", distinct=True))
-            .filter(label_count=num_labels)
-            .values_list("flaw_id", flat=True)
-        )
+            if operator == "in":
+                return Q(uuid__in=flaw_ids)
+            return ~Q(uuid__in=flaw_ids)
 
-        if operator == "in":
-            return Q(uuid__in=list(flaw_ids))
-        elif operator == "not in":
-            return ~Q(uuid__in=list(flaw_ids))
+        op, invert = self.get_operator(operator)
+        q = Q(**{f"labels__name{op}": value})
+        return ~q if invert else q
+
+
+class FlawLabelPropertyField:
+    """
+    Mixin for fields that only exist on FlawLabel subclasses, reachable via
+    dotted access on the flat "labels" field, e.g. "labels.contributor".
+
+    Plain mixin (not a DjangoQLField subclass) so the concrete field's own
+    base (StrField/BoolField) decides its "type" for value validation.
+    """
+
+    model = FlawLabel
+    subclasses = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.subclasses:
+            # Fail loudly at import time rather than silently matching
+            # everything (positive comparison) or nothing (negated) below.
+            raise ValueError(
+                f"{type(self).__name__} has no FlawLabel subclasses defining "
+                f"{self.name!r}; check the field name."
+            )
+
+    def get_lookup(self, path, operator, value):
+        op, invert = self.get_operator(operator)
+        lookup_value = self.get_lookup_value(value)
+        q = Q()
+        for subclass in self.subclasses:
+            search = "__".join(path + [subclass, self.name])
+            q |= Q(**{f"{search}{op}": lookup_value})
+        return ~q if invert else q
+
+
+def _label_subclasses_with_field(field_name):
+    """
+    Related-model accessor names (e.g. "collaboratorlabel") of FlawLabel
+    subclasses that define field_name, derived from FlawLabel.TYPE_TO_MODEL
+    instead of hard-coding the list, so new/changed label types stay in sync.
+    """
+    return tuple(
+        model._meta.model_name
+        for model in FlawLabel.TYPE_TO_MODEL.values()
+        if field_name in {f.name for f in model._meta.get_fields()}
+    )
+
+
+class FlawLabelContributorField(FlawLabelPropertyField, StrField):
+    name = "contributor"
+    subclasses = _label_subclasses_with_field("contributor")
+
+
+class FlawLabelStateField(FlawLabelPropertyField, StrField):
+    name = "state"
+    subclasses = _label_subclasses_with_field("state")
+
+
+class FlawLabelRelevantField(FlawLabelPropertyField, BoolField):
+    name = "relevant"
+    subclasses = _label_subclasses_with_field("relevant")
+
+
+class FlawLabelUuidField(StrField):
+    """
+    "uuid" identifies a single label row, unlike "name" it has no
+    AND-across-multiple-labels semantics, so it doesn't need FlawLabelsField's
+    special "in"/"not in" handling - the plain generic operator lookup is
+    enough. Whitelisted explicitly so "labels.uuid" doesn't silently fall
+    back to matching Flaw's own "uuid" field via resolve_name()'s default
+    (non-relation) dotted-access resolution.
+    """
+
+    model = FlawLabel
+    name = "uuid"
+
+    def get_lookup(self, path, operator, value):
+        op, invert = self.get_operator(operator)
+        q = Q(**{f"labels__uuid{op}": value})
+        return ~q if invert else q
+
+
+class FlawLabelTypeField(StrField):
+    """
+    "type" isn't a real column: django-polymorphic tracks the concrete
+    subclass via the "polymorphic_ctype" relation, not a plain field. Map
+    the LabelType enum value (e.g. "context_based") to the corresponding
+    subclass's content type "model" name (e.g. "collaboratorlabel") instead.
+    """
+
+    model = FlawLabel
+    name = "type"
+    suggest_options = True
+
+    def get_options(self, search):
+        return list(FlawLabel.LabelType.values)
+
+    def validate(self, value):
+        super().validate(value)
+        if value is not None and value not in FlawLabel.LabelType.values:
+            raise DjangoQLSchemaError(
+                'Field "type" can be compared to one of %s, but not to %r'
+                % (list(FlawLabel.LabelType.values), value)
+            )
+
+    def _model_name(self, value):
+        return FlawLabel.TYPE_TO_MODEL[FlawLabel.LabelType(value)]._meta.model_name
+
+    def get_lookup(self, path, operator, value):
+        search = "__".join(path + ["polymorphic_ctype__model"])
+
+        if operator in ("in", "not in"):
+            model_names = [self._model_name(v) for v in value]
+            q = Q(**{f"{search}__in": model_names})
+            return q if operator == "in" else ~q
+
+        op, invert = self.get_operator(operator)
+        if op != "":
+            raise DjangoQLSchemaError(
+                'Field "type" only supports "=", "!=", "in" and "not in"'
+            )
+        q = Q(**{search: self._model_name(value)})
+        return ~q if invert else q
+
+
+FLAW_LABEL_PROPERTY_FIELDS = {
+    "name": FlawLabelsField(),
+    "uuid": FlawLabelUuidField(),
+    "type": FlawLabelTypeField(),
+    "contributor": FlawLabelContributorField(),
+    "state": FlawLabelStateField(),
+    "relevant": FlawLabelRelevantField(),
+}
