@@ -15,7 +15,7 @@ from django.db import models
 from osidb.acls import ACL
 from osidb.helpers import deprecate_field
 
-from .constants import WORKFLOW_DIR
+from .constants import WORKFLOW_DIR, WORKFLOW_RECLASSIFICATION_START_DATE
 from .exceptions import WorkflowDefinitionError
 from .helpers import singleton
 from .models import Workflow
@@ -233,6 +233,19 @@ class WorkflowModel(models.Model):
         # Only classify if there is a task associated, otherwise workflow fields
         # should remain empty
         if not self.task_key:
+            return
+
+        # Do not re-classify old flaws that are already DONE.
+        # They were closed under different DONE criteria.
+        #
+        # An unset cutoff date means no time restriction.
+        created_dt = getattr(self, "created_dt", None)
+        if (
+            WORKFLOW_RECLASSIFICATION_START_DATE is not None
+            and self.workflow_state == "DONE"
+            and created_dt is not None
+            and created_dt < WORKFLOW_RECLASSIFICATION_START_DATE
+        ):
             return
 
         # Store old classification before computing new one
