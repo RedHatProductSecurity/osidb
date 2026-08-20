@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- exclude pre-Argus and already done flaws from workflow re-classification (OSIDB-5406)
 
 ## [5.17.0] - 2026-08-26
 ### Added

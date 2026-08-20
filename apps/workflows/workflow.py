@@ -218,6 +218,13 @@ class WorkflowModel(models.Model):
             "state": self.workflow_state,
         }
 
+    def _skip_reclassification(self):
+        """
+        hook allowing concrete models to veto re-classification
+        the base workflow model never skips; concrete models may override this
+        """
+        return False
+
     def adjust_classification(self, save=True):
         """
         this method will identify and adjust to the higher state the instance can be
@@ -233,6 +240,10 @@ class WorkflowModel(models.Model):
         # Only classify if there is a task associated, otherwise workflow fields
         # should remain empty
         if not self.task_key:
+            return
+
+        # Concrete models may veto re-classification based on their own fields.
+        if self._skip_reclassification():
             return
 
         # Store old classification before computing new one
