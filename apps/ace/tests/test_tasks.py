@@ -510,6 +510,207 @@ def test_sync_returns_marked_notaffected_count(
     }
 
 
+# ── NO_VERSION fallback tests ──────────────────────────────────────────────────
+
+
+def test_sync_container_purl_extracts_dep_version(
+    monkeypatch, ace_enabled, mock_querier, upstream_purls_openssl_rpm, result
+):
+    """
+    Container/OCI PURLs carry no package version — the real dependency version
+    lives in sources[].dependencies[].  ACE must extract it and compare against
+    the OSV range.  openssl 3.5.1 is outside "< 3.0.9" → NOTAFFECTED.
+    """
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+
+    dep = SimpleNamespace(
+        version="3.5.1-7.el9_7.x86_64", name="openssl", ecosystem="rpm"
+    )
+    src = SimpleNamespace(dependencies=[dep])
+    results = [
+        result(
+            "hummingbird-1",
+            "pkg:oci/openssl-container?repository_url=registry.redhat.io/openssl",
+            sources=[src],
+        ),
+    ]
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"openssl": results})
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["marked_notaffected"] == 1
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.NOTAFFECTED
+    assert affect.assist_meta["osv_status"] == "not_affected"
+    assert affect.assist_meta["osv_version_checked"] == "3.5.1-7.el9_7"
+
+
+def test_sync_container_purl_dep_version_in_range_affected(
+    monkeypatch, ace_enabled, mock_querier, upstream_purls_openssl_rpm, result
+):
+    """
+    Container PURL with dependency version inside the range → AFFECTED.
+    openssl 3.0.7 is inside "< 3.0.9".
+    """
+    PsUpdateStreamFactory(name="hummingbird-1")
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+
+    dep = SimpleNamespace(version="3.0.7-18.el9_2", name="openssl", ecosystem="rpm")
+    src = SimpleNamespace(dependencies=[dep])
+    results = [
+        result(
+            "hummingbird-1",
+            "pkg:oci/openssl-container?repository_url=registry.redhat.io/openssl",
+            sources=[src],
+        ),
+    ]
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"openssl": results})
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["marked_notaffected"] == 0
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+    assert affect.assist_meta["osv_status"] == "affected"
+
+
+def test_sync_build_nvr_fallback_version_extraction(
+    monkeypatch, ace_enabled, mock_querier, upstream_purls_openssl_rpm, result
+):
+    """
+    When neither PURL version nor sources.dependencies are available, fall back
+    to build_nvr for version extraction.
+    """
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+
+    results = [
+        result(
+            "hummingbird-1",
+            "pkg:oci/openssl-container?repository_url=registry.redhat.io/openssl",
+            build_nvr="openssl-3.5.1-7.el9_7",
+            build_name="openssl",
+        ),
+    ]
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"openssl": results})
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["marked_notaffected"] == 1
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.NOTAFFECTED
+    assert affect.assist_meta["osv_version_checked"] == "3.5.1-7.el9_7"
+
+
+def test_sync_no_version_creates_new_affect(
+    monkeypatch, ace_enabled, mock_querier, upstream_purls_openssl_rpm, result
+):
+    """
+    When no version can be extracted at all (no PURL version, no dependencies,
+    no build_nvr), the affect must be created as NEW — not AFFECTED/DELEGATED.
+    This prevents false-positive trackers for components outside the range.
+    """
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+
+    results = [
+        result(
+            "hummingbird-1",
+            "pkg:oci/openssl-container?repository_url=registry.redhat.io/openssl",
+        ),
+    ]
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"openssl": results})
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["created"] == 1
+    assert stats["marked_notaffected"] == 0
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.NEW
+    assert affect.resolution == Affect.AffectResolution.NOVALUE
+    assert affect.assist_meta["osv_status"] == "no_version"
+
+
+def test_sync_no_version_applies_manual_triage_label(
+    monkeypatch, ace_enabled, mock_querier, upstream_purls_openssl_rpm, result
+):
+    """
+    When an affect is created as NEW due to NO_VERSION, the manual-triage
+    label must be applied so analysts can pick up the flaw.
+    """
+    from osidb.models.flaw.label import WorkflowLabel
+
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+
+    results = [
+        result(
+            "hummingbird-1",
+            "pkg:oci/openssl-container?repository_url=registry.redhat.io/openssl",
+        ),
+    ]
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"openssl": results})
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert WorkflowLabel.objects.filter(flaw=flaw, name=LABEL_MANUAL_TRIAGE).exists()
+
+
+def test_sync_unrelated_build_nvr_returns_no_version(
+    monkeypatch, ace_enabled, mock_querier, upstream_purls_openssl_rpm, result
+):
+    """
+    When build_name does not match the queried component, build_nvr must
+    not be used for version extraction — the affect should be NEW, not
+    NOTAFFECTED with the container build's version.
+    """
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+
+    results = [
+        result(
+            "hummingbird-1",
+            "pkg:oci/openssl-container?repository_url=registry.redhat.io/openssl",
+            build_nvr="python-cryptography-container-42.0.8-1.hum1",
+            build_name="python-cryptography-container",
+        ),
+    ]
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"openssl": results})
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["created"] == 1
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.NEW
+    assert affect.assist_meta["osv_status"] == "no_version"
+
+
 # ── Ecosystem scoping tests ────────────────────────────────────────────────────
 
 
