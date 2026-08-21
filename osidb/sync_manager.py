@@ -8,8 +8,9 @@ import pghistory
 from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.db import models, transaction
+from django.db import connection, models, transaction
 from django.db.models import F, Q
+from django.db.utils import OperationalError
 from django.utils import timezone
 from rhubarb.tasks import LockableTaskWithArgs
 
@@ -72,6 +73,11 @@ class SyncManager(models.Model):
     FAIL_RESCHEDULE_DELAY = timedelta(minutes=5)
     MODE = SyncManagerMode.DEFAULT
     COUNTDOWN = 60  # Default countdown for exclusive mode
+
+    # Heuristic bound on schedule()'s row-lock wait (see below),
+    # not measured against prod lock-wait times - tighten/loosen if those
+    # show it's off.
+    LOCK_WAIT_TIMEOUT = "5s"
 
     name = models.CharField(max_length=None)
     sync_id = models.CharField(max_length=None)
@@ -141,6 +147,41 @@ class SyncManager(models.Model):
         raise NotImplementedError("Conflicting sync managers check not implemented.")
 
     @classmethod
+    @contextmanager
+    def _lock_wait_timeout(cls):
+        """
+        Bounds how long the next select_for_update() query in the current
+        transaction can block waiting for the SyncManager row lock,
+        instead of the caller - a web request thread in schedule(), or
+        check_for_reschedules()'s sweep over every sync_id in
+        reschedule() - hanging indefinitely if whoever else holds the
+        lock takes too long.
+
+        Resets lock_timeout back to DEFAULT once the query succeeds: SET
+        LOCAL only reverts at the end of the *outer* transaction (or on
+        rollback), not when this method's own atomic() savepoint is
+        released, so leaving it set would leak into whatever else runs in
+        the caller's transaction afterwards (e.g. schedule() called from
+        inside Flaw.save() under ATOMIC_REQUESTS). No reset is needed on
+        the timeout/error path: the savepoint is already aborted there,
+        so any further query would itself fail, and transaction.atomic()
+        rolling it back undoes the SET LOCAL along with everything else.
+        """
+        with connection.cursor() as cursor:
+            cursor.execute("SET LOCAL lock_timeout = %s", [cls.LOCK_WAIT_TIMEOUT])
+        try:
+            yield
+        except OperationalError:
+            logger.warning(
+                f"{cls.__name__}: Timed out waiting for a sync manager row "
+                f"lock after {cls.LOCK_WAIT_TIMEOUT}"
+            )
+            raise
+        else:
+            with connection.cursor() as cursor:
+                cursor.execute("SET LOCAL lock_timeout = DEFAULT")
+
+    @classmethod
     def schedule(cls, sync_id, *args, schedule_options=None, **kwargs):
         """
         Schedule sync_task to Celery queue.
@@ -152,27 +193,73 @@ class SyncManager(models.Model):
         if schedule_options is None:
             schedule_options = {}
 
-        _, created = SyncManager.objects.update_or_create(
-            name=cls.__name__,
-            sync_id=sync_id,
-            defaults={"last_scheduled_dt": timezone.now()},
-        )
+        if cls.MODE != cls.SyncManagerMode.EXCLUSIVE:
+            # No dedup decision to make, no need for locking.
+            SyncManager.objects.get_or_create(name=cls.__name__, sync_id=sync_id)
+            cls._enqueue(sync_id, *args, schedule_options=schedule_options, **kwargs)
+            return
 
-        if not created and cls.MODE == cls.SyncManagerMode.EXCLUSIVE:
-            # Check if the task needs to be rescheduled
-            if not cls.is_scheduled(sync_id):
-                logger.info(
-                    f"{cls.__name__} {sync_id}: Task already in progress"
-                    f", postponing for {schedule_options.get('countdown', cls.COUNTDOWN)} seconds"
+        # select_for_update() serializes concurrent schedule() calls for the
+        # same sync_id: without it, two callers could both pass the
+        # is_scheduled()/is_in_progress() checks below before either's
+        # write lands, and both end up enqueuing a duplicate task. The row
+        # lock is released on commit of the outermost transaction, not on
+        # return from this atomic() block: this method can run inside
+        # Flaw.tasksync()'s transaction.atomic(), and ATOMIC_REQUESTS wraps
+        # the whole request in an outer transaction too, so the lock stays
+        # held (and other schedule() calls for the same sync_id stay
+        # blocked) until that outermost transaction commits, well after
+        # _enqueue()/reschedule() return.
+        with transaction.atomic():
+            with cls._lock_wait_timeout():
+                _, created = SyncManager.objects.select_for_update().get_or_create(
+                    name=cls.__name__, sync_id=sync_id
                 )
-                if "countdown" not in schedule_options:
-                    schedule_options["countdown"] = cls.COUNTDOWN
-                cls.reschedule(
-                    sync_id,
-                    "Task already in progress",
-                    schedule_options=schedule_options,
-                )
-                return
+
+            if not created:
+                if cls.is_scheduled(sync_id):
+                    # A fresh schedule or a pending reschedule already
+                    # exists (e.g. a previous call already deferred a
+                    # retry) - queuing another one here would just be a
+                    # duplicate task.
+                    logger.info(
+                        f"{cls.__name__} {sync_id}: Already scheduled, skipping"
+                    )
+                    return
+
+                if cls.is_in_progress(sync_id):
+                    countdown = schedule_options.get("countdown", cls.COUNTDOWN)
+                    logger.info(
+                        f"{cls.__name__} {sync_id}: Task already in progress"
+                        f", postponing for {countdown} seconds"
+                    )
+                    # Copy so we don't mutate the caller's dict.
+                    reschedule_options = {**schedule_options, "countdown": countdown}
+                    cls.reschedule(
+                        sync_id,
+                        "Task already in progress",
+                        *args,
+                        schedule_options=reschedule_options,
+                        **kwargs,
+                    )
+                    return
+
+            cls._enqueue(sync_id, *args, schedule_options=schedule_options, **kwargs)
+
+    @classmethod
+    def _enqueue(cls, sync_id, *args, schedule_options=None, **kwargs):
+        """
+        Record the schedule timestamp and actually put sync_task on the
+        Celery queue, bypassing the EXCLUSIVE-mode dedup checks in
+        schedule(). Used both for genuinely new schedules and by
+        reschedule(), which has already decided a new run is warranted.
+        """
+        if schedule_options is None:
+            schedule_options = {}
+
+        SyncManager.objects.filter(name=cls.__name__, sync_id=sync_id).update(
+            last_scheduled_dt=timezone.now()
+        )
 
         # Create model linkage if possible to make checking for conflicting
         # sync managers possible
@@ -312,15 +399,40 @@ class SyncManager(models.Model):
         :param schedule_options: Dictionary of options to pass to apply_async
         """
 
-        manager = SyncManager.objects.get(name=cls.__name__, sync_id=sync_id)
-        updated_last_consecutive_reschedules = manager.last_consecutive_reschedules + 1
+        # Hold the same manager-row lock schedule() uses. reschedule() is
+        # also called standalone from check_for_reschedules() (the
+        # periodic safety net), outside of schedule()'s lock, so without
+        # this the read-modify-write below could race a concurrent
+        # schedule()/reschedule() call for the same sync_id (lost update
+        # on last_consecutive_reschedules, or both deciding to enqueue).
+        # Re-entering this lock from within schedule()'s own atomic()
+        # block (the is_in_progress() path) is a no-op: it's the same
+        # transaction already holding it.
+        with transaction.atomic():
+            with cls._lock_wait_timeout():
+                manager = SyncManager.objects.select_for_update().get(
+                    name=cls.__name__, sync_id=sync_id
+                )
+            updated_last_consecutive_reschedules = (
+                manager.last_consecutive_reschedules + 1
+            )
 
-        SyncManager.objects.filter(name=cls.__name__, sync_id=sync_id).update(
-            last_rescheduled_dt=timezone.now(),
-            last_rescheduled_reason=reason,
-            last_consecutive_reschedules=updated_last_consecutive_reschedules,
-        )
-        cls.schedule(sync_id, *args, **kwargs)
+            SyncManager.objects.filter(name=cls.__name__, sync_id=sync_id).update(
+                last_rescheduled_dt=timezone.now(),
+                last_rescheduled_reason=reason,
+                last_consecutive_reschedules=updated_last_consecutive_reschedules,
+            )
+            if cls.MODE == cls.SyncManagerMode.EXCLUSIVE:
+                # Bypass schedule()'s EXCLUSIVE dedup check: we've just
+                # recorded the reschedule above, so this must actually
+                # enqueue the task.
+                cls._enqueue(sync_id, *args, **kwargs)
+            else:
+                # Non-EXCLUSIVE managers may override schedule() with their
+                # own policy (e.g. BZSyncManager's duplicate-schedule window
+                # and mandatory countdown=20) that a bare _enqueue() would
+                # skip.
+                cls.schedule(sync_id, *args, **kwargs)
         logger.info(f"{cls.__name__} {sync_id}: Sync re-scheduled ({reason})")
 
     @classmethod
@@ -755,6 +867,15 @@ class JiraTaskSyncManager(SyncManager):
 
     class Meta:
         proxy = True
+
+    # Multiple flaw saves in quick succession (e.g. creation immediately
+    # followed by field autofill) each call schedule() for the same flaw.
+    # The task always re-fetches the flaw's current state and uses the
+    # service account token, so a schedule while one is already running
+    # carries no extra payload - collapse it into a single reschedule
+    # instead of queuing a redundant duplicate (mirrors
+    # JiraTaskTransitionManager).
+    MODE = SyncManager.SyncManagerMode.EXCLUSIVE
 
     def __str__(self):
         from osidb.models import Flaw
