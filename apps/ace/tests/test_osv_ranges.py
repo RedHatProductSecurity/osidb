@@ -335,3 +335,348 @@ def test_entry_to_package_info_purl_less():
     assert info.purl == ""
     assert info.introduced == "0"
     assert info.fixed == "6.0.0"
+
+
+# ── Disjoint range support (OSIDB-5343) ──────────────────────────────────────
+
+
+def test_entry_disjoint_ranges_within_single_entry():
+    """
+    A single upstream_purls entry with multiple introduced/fixed pairs
+    in its events list must produce OR groups.
+
+    jackson-core example: events=[introduced:2.15.0, fixed:2.18.6,
+    introduced:2.19.0, fixed:2.21.1] → ">= 2.15.0, < 2.18.6 || >= 2.19.0, < 2.21.1"
+    """
+    entry = {
+        "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core",
+        "name": "jackson-core",
+        "ecosystem": "Maven",
+        "ranges": [
+            {
+                "type": "ECOSYSTEM",
+                "events": [
+                    {"introduced": "2.15.0"},
+                    {"fixed": "2.18.6"},
+                    {"introduced": "2.19.0"},
+                    {"fixed": "2.21.1"},
+                ],
+            }
+        ],
+        "versions": [],
+    }
+    info = osv_entry_to_package_info(entry)
+    assert info.affected_range() == ">= 2.15.0, < 2.18.6 || >= 2.19.0, < 2.21.1"
+
+
+def test_entry_single_range_no_or_groups():
+    """A single introduced/fixed pair should not produce OR groups."""
+    entry = {
+        "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core",
+        "name": "jackson-core",
+        "ecosystem": "Maven",
+        "ranges": [
+            {
+                "type": "ECOSYSTEM",
+                "events": [{"introduced": "0"}, {"fixed": "2.18.6"}],
+            }
+        ],
+        "versions": [],
+    }
+    info = osv_entry_to_package_info(entry)
+    assert len(info.range_groups) == 1
+    assert info.affected_range() == "< 2.18.6"
+
+
+def test_match_merges_disjoint_entries():
+    """
+    When multiple upstream_purls entries match the same component name,
+    their ranges must be merged with OR groups.
+
+    This is the jackson-core CVE-2026-18401 scenario: three separate
+    affected[] blocks produce three upstream_purls entries.
+    """
+    upstream_purls = [
+        {
+            "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core",
+            "name": "jackson-core",
+            "ecosystem": "Maven",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "2.15.0"}, {"fixed": "2.18.6"}],
+                }
+            ],
+            "versions": [],
+        },
+        {
+            "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core",
+            "name": "jackson-core",
+            "ecosystem": "Maven",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "2.19.0"}, {"fixed": "2.21.1"}],
+                }
+            ],
+            "versions": [],
+        },
+        {
+            "purl": "pkg:maven/tools.jackson.core/jackson-core",
+            "name": "jackson-core",
+            "ecosystem": "Maven",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "3.0.0"}, {"fixed": "3.1.0"}],
+                }
+            ],
+            "versions": [],
+        },
+    ]
+    result = match_component_to_upstream("jackson-core", upstream_purls)
+    assert result is not None
+    range_str = result.affected_range()
+    assert ">= 2.15.0, < 2.18.6" in range_str
+    assert ">= 2.19.0, < 2.21.1" in range_str
+    assert ">= 3.0.0, < 3.1.0" in range_str
+    assert "||" in range_str
+
+
+def test_match_disjoint_version_outside_all_ranges():
+    """
+    A version outside all disjoint ranges must be NOT_AFFECTED.
+
+    jackson-core 2.21.4 is above the fix for the second range (2.21.1)
+    and below the third range's start (3.0.0) → not affected.
+    """
+    from apps.ace.version import (
+        OsvStatus,
+        determine_status,
+        parse_version_range_or,
+    )
+
+    upstream_purls = [
+        {
+            "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core",
+            "name": "jackson-core",
+            "ecosystem": "Maven",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "2.15.0"}, {"fixed": "2.18.6"}],
+                }
+            ],
+            "versions": [],
+        },
+        {
+            "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-core",
+            "name": "jackson-core",
+            "ecosystem": "Maven",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "2.19.0"}, {"fixed": "2.21.1"}],
+                }
+            ],
+            "versions": [],
+        },
+    ]
+    info = match_component_to_upstream("jackson-core", upstream_purls)
+    range_str = info.affected_range()
+    constraints = parse_version_range_or(range_str, "maven")
+
+    # 2.21.4 is above 2.21.1 fix → not affected
+    assert determine_status("2.21.4", constraints) == OsvStatus.NOT_AFFECTED
+    # 2.18.6 is at the fix boundary → not affected
+    assert determine_status("2.18.6", constraints) == OsvStatus.NOT_AFFECTED
+    # 2.17.0 is inside first range → affected
+    assert determine_status("2.17.0", constraints) == OsvStatus.AFFECTED
+    # 2.20.0 is inside second range → affected
+    assert determine_status("2.20.0", constraints) == OsvStatus.AFFECTED
+    # 2.14.0 is below first range's start → not affected
+    assert determine_status("2.14.0", constraints) == OsvStatus.NOT_AFFECTED
+
+
+def test_entry_introduced_only_no_fix():
+    """
+    An entry with only 'introduced' and no 'fixed' or 'last_affected' represents
+    an open-ended range (no fix released yet).  It must produce '>= introduced'
+    and not be silently dropped.
+    """
+    entry = {
+        "purl": "pkg:pypi/some-lib",
+        "name": "some-lib",
+        "ecosystem": "PyPI",
+        "ranges": [
+            {
+                "type": "ECOSYSTEM",
+                "events": [{"introduced": "2.15.0"}],
+            }
+        ],
+        "versions": [],
+    }
+    info = osv_entry_to_package_info(entry)
+    assert info.affected_range() == ">= 2.15.0"
+
+
+def test_match_merges_introduced_only_entry():
+    """
+    When merging multiple matching entries, an entry with only 'introduced'
+    (no fix released) must be included in the merged range groups.
+    """
+    from apps.ace.version import (
+        OsvStatus,
+        determine_status,
+        parse_version_range_or,
+    )
+
+    upstream_purls = [
+        {
+            "purl": "pkg:maven/com.example/mylib",
+            "name": "mylib",
+            "ecosystem": "Maven",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "1.0.0"}, {"fixed": "1.2.0"}],
+                }
+            ],
+            "versions": [],
+        },
+        {
+            "purl": "pkg:maven/com.example/mylib",
+            "name": "mylib",
+            "ecosystem": "Maven",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "2.0.0"}],
+                }
+            ],
+            "versions": [],
+        },
+    ]
+    info = match_component_to_upstream("mylib", upstream_purls)
+    assert info is not None
+    range_str = info.affected_range()
+    assert ">= 1.0.0, < 1.2.0" in range_str
+    assert ">= 2.0.0" in range_str
+    assert "||" in range_str
+
+    constraints = parse_version_range_or(range_str, "maven")
+    assert determine_status("1.1.0", constraints) == OsvStatus.AFFECTED
+    assert determine_status("2.5.0", constraints) == OsvStatus.AFFECTED
+    assert determine_status("1.3.0", constraints) == OsvStatus.NOT_AFFECTED
+
+
+def test_unbounded_range_group_not_filtered():
+    """
+    An entry with introduced=0 and no fixed/last_affected represents
+    'all versions affected'.  to_expr() must return '>= 0' (not None)
+    so that affected_range() does not silently drop it.
+    """
+    entry = {
+        "purl": "pkg:pypi/vuln-lib",
+        "name": "vuln-lib",
+        "ecosystem": "PyPI",
+        "ranges": [
+            {
+                "type": "ECOSYSTEM",
+                "events": [{"introduced": "0"}],
+            }
+        ],
+        "versions": [],
+    }
+    info = osv_entry_to_package_info(entry)
+    assert info.affected_range() == ">= 0"
+
+
+def test_merge_unbounded_with_bounded_range():
+    """
+    When merging an unbounded entry (introduced=0, no fix) with a bounded
+    entry, versions below the bounded interval must still be AFFECTED
+    because the unbounded range covers all versions.
+    """
+    from apps.ace.version import (
+        OsvStatus,
+        determine_status,
+        parse_version_range_or,
+    )
+
+    upstream_purls = [
+        {
+            "purl": "pkg:pypi/vuln-lib",
+            "name": "vuln-lib",
+            "ecosystem": "PyPI",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}],
+                }
+            ],
+            "versions": [],
+        },
+        {
+            "purl": "pkg:pypi/vuln-lib",
+            "name": "vuln-lib",
+            "ecosystem": "PyPI",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "2.0.0"}, {"fixed": "2.5.0"}],
+                }
+            ],
+            "versions": [],
+        },
+    ]
+    info = match_component_to_upstream("vuln-lib", upstream_purls)
+    assert info is not None
+    range_str = info.affected_range()
+    assert ">= 0" in range_str
+    assert ">= 2.0.0, < 2.5.0" in range_str
+
+    constraints = parse_version_range_or(range_str, "pypi")
+    # 0.5.0 is below the bounded range but inside the unbounded one → AFFECTED
+    assert determine_status("0.5.0", constraints) == OsvStatus.AFFECTED
+    # 2.3.0 is inside the bounded range → AFFECTED
+    assert determine_status("2.3.0", constraints) == OsvStatus.AFFECTED
+
+
+def test_match_mixed_ecosystems_not_merged():
+    """
+    When ecosystem is not specified, same-name entries from different ecosystems
+    must not be merged together — only entries matching the first match's
+    ecosystem are included, so version comparison uses the correct algorithm.
+    """
+    upstream_purls = [
+        {
+            "purl": "pkg:maven/com.example/demo",
+            "name": "demo",
+            "ecosystem": "Maven",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "3.0"}, {"fixed": "4.0"}],
+                }
+            ],
+            "versions": [],
+        },
+        {
+            "purl": "pkg:npm/demo",
+            "name": "demo",
+            "ecosystem": "npm",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "1.0"}],
+                }
+            ],
+            "versions": [],
+        },
+    ]
+    info = match_component_to_upstream("demo", upstream_purls)
+    assert info is not None
+    # Only the first ecosystem (Maven) entries should be included
+    assert info.ecosystem == "maven"
+    assert "||" not in (info.affected_range() or "")
