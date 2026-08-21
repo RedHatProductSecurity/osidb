@@ -157,17 +157,25 @@ class SyncManager(models.Model):
         reschedule() - hanging indefinitely if whoever else holds the
         lock takes too long.
 
-        Resets lock_timeout back to DEFAULT once the query succeeds: SET
-        LOCAL only reverts at the end of the *outer* transaction (or on
-        rollback), not when this method's own atomic() savepoint is
-        released, so leaving it set would leak into whatever else runs in
-        the caller's transaction afterwards (e.g. schedule() called from
-        inside Flaw.save() under ATOMIC_REQUESTS). No reset is needed on
-        the timeout/error path: the savepoint is already aborted there,
-        so any further query would itself fail, and transaction.atomic()
+        Restores the connection's own lock_timeout (as it was before this
+        method ran) once the query succeeds: SET LOCAL only reverts at
+        the end of the *outer* transaction (or on rollback), not when
+        this method's own atomic() savepoint is released, so leaving it
+        set would leak into whatever else runs in the caller's
+        transaction afterwards (e.g. schedule() called from inside
+        Flaw.save() under ATOMIC_REQUESTS). Restoring the captured value
+        rather than resetting to DEFAULT matters because DEFAULT means
+        the server's configured default, not the caller's own
+        session-level lock_timeout (e.g. a Celery worker that sets one
+        for all its queries) - resetting to DEFAULT would silently drop
+        that setting instead of restoring it. No reset is needed on the
+        timeout/error path: the savepoint is already aborted there, so
+        any further query would itself fail, and transaction.atomic()
         rolling it back undoes the SET LOCAL along with everything else.
         """
         with connection.cursor() as cursor:
+            cursor.execute("SHOW lock_timeout")
+            (previous_lock_timeout,) = cursor.fetchone()
             cursor.execute("SET LOCAL lock_timeout = %s", [cls.LOCK_WAIT_TIMEOUT])
         try:
             yield
@@ -179,7 +187,7 @@ class SyncManager(models.Model):
             raise
         else:
             with connection.cursor() as cursor:
-                cursor.execute("SET LOCAL lock_timeout = DEFAULT")
+                cursor.execute("SET LOCAL lock_timeout = %s", [previous_lock_timeout])
 
     @classmethod
     def schedule(cls, sync_id, *args, schedule_options=None, **kwargs):
@@ -253,6 +261,11 @@ class SyncManager(models.Model):
         Celery queue, bypassing the EXCLUSIVE-mode dedup checks in
         schedule(). Used both for genuinely new schedules and by
         reschedule(), which has already decided a new run is warranted.
+
+        Requires a SyncManager row for (cls.__name__, sync_id) to already
+        exist - the update()/get() below don't create one. Callers must
+        get_or_create() or select_for_update().get_or_create() it first,
+        as schedule() and reschedule() do.
         """
         if schedule_options is None:
             schedule_options = {}
@@ -451,7 +464,14 @@ class SyncManager(models.Model):
                     continue
 
                 reason = msg_fn(sm) if msg_fn is not None else msg
-                cls.reschedule(sync_id, reason)
+                try:
+                    cls.reschedule(sync_id, reason)
+                except OperationalError:
+                    # One stuck row's lock-wait timeout (see
+                    # _lock_wait_timeout) shouldn't abort the whole sweep -
+                    # move on and let the next periodic run retry this
+                    # sync_id.
+                    continue
                 processed.add(sync_id)
 
         # TODO: Find a cause and remove this workaround OSIDB-3131
@@ -470,23 +490,37 @@ class SyncManager(models.Model):
 
         # SCHEDULED, DID NOT START
         # 1) Scheduled at least once before
-        # 2) Scheduled for more than MAX_SCHEDULE_DELAY
+        # 2) Scheduled for more than the delay below
         # 3) Not started after scheduled (or ever)
         #
-        #      |       MAX_SCHEDULE_DELAY      |
-        #      |-------------------------------|---//-------?
-        #  Scheduled                          NOW        Started
+        #      |        delay        |
+        #      |----------------------|---//-------?
+        #  Scheduled                 NOW        Started
         #
+        # For EXCLUSIVE-mode managers this bucket also catches runs whose
+        # lock-rejected duplicate (LockableTaskWithArgs drops contended
+        # runs outright, no Celery retry) bumped last_scheduled_dt past
+        # last_started_dt while the original run was genuinely stuck
+        # (crashed holding the lock): that pushes the row out of the
+        # STARTED, DID NOT FINISH bucket below and into this one. Recover
+        # those on the MAX_RUN_LENGTH timescale already used to declare a
+        # run stuck, instead of the full MAX_SCHEDULE_DELAY meant for
+        # plain broker-delivery backlogs.
+        schedule_not_started_delay = (
+            cls.MAX_RUN_LENGTH
+            if cls.MODE == cls.SyncManagerMode.EXCLUSIVE
+            else cls.MAX_SCHEDULE_DELAY
+        )
         scheduled_not_started = sync_managers.filter(
             Q(last_started_dt__isnull=True)
             | Q(last_started_dt__lt=F("last_scheduled_dt")),
             last_scheduled_dt__isnull=False,
-            last_scheduled_dt__lt=timezone.now() - cls.MAX_SCHEDULE_DELAY,
+            last_scheduled_dt__lt=timezone.now() - schedule_not_started_delay,
         ).values("sync_id")
 
         reschedule(
             scheduled_not_started,
-            "Sync did not start after MAX_SCHEDULE_DELAY",
+            "Sync did not start after the schedule delay",
         )
 
         # STARTED, DID NOT FINISH
@@ -888,7 +922,25 @@ class JiraTaskSyncManager(SyncManager):
         return result
 
     @staticmethod
-    @app.task(name="sync_manager.jira_task_sync", bind=True)
+    @app.task(
+        base=LockableTaskWithArgs,
+        name="sync_manager.jira_task_sync",
+        bind=True,
+        # Must last at least MAX_RUN_LENGTH - the same threshold
+        # is_in_progress()/check_for_reschedules() use to decide a run is
+        # stuck - or the Redis lock could expire while a still-legitimate
+        # run is in flight, letting a concurrent duplicate through.
+        #
+        # Contention is dropped, not retried: LockableTaskWithArgs rejects
+        # outright (Reject, no requeue) rather than retrying, since a
+        # bounded Celery-retry-on-lock-contention policy re-enqueued into
+        # the fifo.* queues faster than the concurrency-1 workers could
+        # drain them (OSIDB-5189 revert). Recovery for a dropped run is
+        # left to check_for_reschedules()'s periodic sweep, on the
+        # MAX_RUN_LENGTH timescale (see the scheduled_not_started bucket
+        # there), not the longer MAX_SCHEDULE_DELAY.
+        lock_ttl=int(SyncManager.MAX_RUN_LENGTH.total_seconds()),
+    )
     def sync_task(task, flaw_id, **kwargs):
         """
         perform the sync of the task of the given flaw to Jira
