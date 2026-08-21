@@ -486,6 +486,10 @@ class SyncManager(models.Model):
                 manager.last_finished_dt is None
                 or manager.last_scheduled_dt > manager.last_finished_dt
             )
+            and (
+                manager.last_failed_dt is None
+                or manager.last_scheduled_dt > manager.last_failed_dt
+            )
             or (
                 manager.last_rescheduled_dt is not None
                 and manager.last_consecutive_reschedules > 0
