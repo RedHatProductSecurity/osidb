@@ -152,27 +152,58 @@ class SyncManager(models.Model):
         if schedule_options is None:
             schedule_options = {}
 
-        _, created = SyncManager.objects.update_or_create(
-            name=cls.__name__,
-            sync_id=sync_id,
-            defaults={"last_scheduled_dt": timezone.now()},
+        if cls.MODE != cls.SyncManagerMode.EXCLUSIVE:
+            # No dedup decision to make, no need for locking.
+            SyncManager.objects.get_or_create(name=cls.__name__, sync_id=sync_id)
+            cls._enqueue(sync_id, *args, schedule_options=schedule_options, **kwargs)
+            return
+
+        _, created = SyncManager.objects.get_or_create(
+            name=cls.__name__, sync_id=sync_id
         )
 
-        if not created and cls.MODE == cls.SyncManagerMode.EXCLUSIVE:
-            # Check if the task needs to be rescheduled
-            if not cls.is_scheduled(sync_id):
+        if not created:
+            if cls.is_scheduled(sync_id):
+                # A fresh schedule or a pending reschedule already
+                # exists (e.g. a previous call already deferred a
+                # retry) - queuing another one here would just be a
+                # duplicate task.
+                logger.info(f"{cls.__name__} {sync_id}: Already scheduled, skipping")
+                return
+
+            if cls.is_in_progress(sync_id):
+                countdown = schedule_options.get("countdown", cls.COUNTDOWN)
                 logger.info(
                     f"{cls.__name__} {sync_id}: Task already in progress"
-                    f", postponing for {schedule_options.get('countdown', cls.COUNTDOWN)} seconds"
+                    f", postponing for {countdown} seconds"
                 )
-                if "countdown" not in schedule_options:
-                    schedule_options["countdown"] = cls.COUNTDOWN
+                # Copy so we don't mutate the caller's dict.
+                reschedule_options = {**schedule_options, "countdown": countdown}
                 cls.reschedule(
                     sync_id,
                     "Task already in progress",
-                    schedule_options=schedule_options,
+                    *args,
+                    schedule_options=reschedule_options,
+                    **kwargs,
                 )
                 return
+
+        cls._enqueue(sync_id, *args, schedule_options=schedule_options, **kwargs)
+
+    @classmethod
+    def _enqueue(cls, sync_id, *args, schedule_options=None, **kwargs):
+        """
+        Record the schedule timestamp and actually put sync_task on the
+        Celery queue, bypassing the EXCLUSIVE-mode dedup checks in
+        schedule(). Used both for genuinely new schedules and by
+        reschedule(), which has already decided a new run is warranted.
+        """
+        if schedule_options is None:
+            schedule_options = {}
+
+        SyncManager.objects.filter(name=cls.__name__, sync_id=sync_id).update(
+            last_scheduled_dt=timezone.now()
+        )
 
         # Create model linkage if possible to make checking for conflicting
         # sync managers possible
@@ -320,7 +351,17 @@ class SyncManager(models.Model):
             last_rescheduled_reason=reason,
             last_consecutive_reschedules=updated_last_consecutive_reschedules,
         )
-        cls.schedule(sync_id, *args, **kwargs)
+        if cls.MODE == cls.SyncManagerMode.EXCLUSIVE:
+            # Bypass schedule()'s EXCLUSIVE dedup check: we've just
+            # recorded the reschedule above, so this must actually
+            # enqueue the task.
+            cls._enqueue(sync_id, *args, **kwargs)
+        else:
+            # Non-EXCLUSIVE managers may override schedule() with their
+            # own policy (e.g. BZSyncManager's duplicate-schedule window
+            # and mandatory countdown=20) that a bare _enqueue() would
+            # skip.
+            cls.schedule(sync_id, *args, **kwargs)
         logger.info(f"{cls.__name__} {sync_id}: Sync re-scheduled ({reason})")
 
     @classmethod
@@ -755,6 +796,15 @@ class JiraTaskSyncManager(SyncManager):
 
     class Meta:
         proxy = True
+
+    # Multiple flaw saves in quick succession (e.g. creation immediately
+    # followed by field autofill) each call schedule() for the same flaw.
+    # The task always re-fetches the flaw's current state and uses the
+    # service account token, so a schedule while one is already running
+    # carries no extra payload - collapse it into a single reschedule
+    # instead of queuing a redundant duplicate (mirrors
+    # JiraTaskTransitionManager).
+    MODE = SyncManager.SyncManagerMode.EXCLUSIVE
 
     def __str__(self):
         from osidb.models import Flaw
