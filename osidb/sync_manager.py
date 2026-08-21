@@ -1,7 +1,8 @@
 import json
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import timedelta
-from typing import Any, Iterator, Optional, Type
+from typing import Any
 
 import pghistory
 from celery.exceptions import Ignore
@@ -132,7 +133,7 @@ class SyncManager(models.Model):
 
     @classmethod
     def check_conflicting_sync_managers(
-        cls, sync_id, celery_task, related_managers: list[Type["SyncManager"]]
+        cls, sync_id, celery_task, related_managers: list[type["SyncManager"]]
     ):
         """
         Override this method to check for conflicting sync managers.
@@ -200,7 +201,7 @@ class SyncManager(models.Model):
         cls,
         sync_id,
         celery_task,
-        related_managers: Optional[list[Type["SyncManager"]]] = None,
+        related_managers: list[type["SyncManager"]] | None = None,
     ):
         """
         This method has to be called at the beginning of the sync_task.
@@ -587,14 +588,16 @@ class BZTrackerDownloadManager(SyncManager):
         # Prevent eventual duplicates
         affects = list(set(affects))
 
-        with transaction.atomic():
-            with pghistory_context(
+        with (
+            transaction.atomic(),
+            pghistory_context(
                 action="link_tracker_with_affects",
                 celery_task_id=getattr(getattr(task, "request", None), "id", None),
-            ):
-                tracker.affects.clear()
-                tracker.affects.add(*affects)
-                tracker.save(raise_validation_error=False, auto_timestamps=False)
+            ),
+        ):
+            tracker.affects.clear()
+            tracker.affects.add(*affects)
+            tracker.save(raise_validation_error=False, auto_timestamps=False)
 
         return affects, failed_flaws, failed_affects
 

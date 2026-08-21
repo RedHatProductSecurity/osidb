@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from django.test import TestCase
@@ -26,15 +26,13 @@ class TestSyncManager(TestCase):
         sync_manager = SyncManager.objects.create(
             name=SyncManager.__name__, sync_id=flaw.uuid
         )
-        sync_manager.last_scheduled_dt = datetime.now(timezone.utc)
-        sync_manager.last_started_dt = datetime.now(timezone.utc)
+        sync_manager.last_scheduled_dt = datetime.now(UTC)
+        sync_manager.last_started_dt = datetime.now(UTC)
         sync_manager.save()
 
         assert sync_manager.is_in_progress(flaw.uuid)
 
-        sync_manager.last_finished_dt = datetime.now(timezone.utc) + timedelta(
-            seconds=5
-        )
+        sync_manager.last_finished_dt = datetime.now(UTC) + timedelta(seconds=5)
         sync_manager.save()
 
         assert not sync_manager.is_in_progress(flaw.uuid)
@@ -46,44 +44,32 @@ class TestSyncManager(TestCase):
         sync_manager = SyncManager.objects.create(
             name=SyncManager.__name__, sync_id=flaw.uuid
         )
-        sync_manager.last_scheduled_dt = datetime.now(timezone.utc)
+        sync_manager.last_scheduled_dt = datetime.now(UTC)
         sync_manager.save()
 
         assert sync_manager.is_scheduled(flaw.uuid)
 
-        sync_manager.last_started_dt = datetime.now(timezone.utc)
+        sync_manager.last_started_dt = datetime.now(UTC)
         sync_manager.save()
 
         assert not sync_manager.is_scheduled(flaw.uuid)
 
-        sync_manager.last_rescheduled_dt = datetime.now(timezone.utc) + timedelta(
-            seconds=5
-        )
+        sync_manager.last_rescheduled_dt = datetime.now(UTC) + timedelta(seconds=5)
         sync_manager.save()
 
         assert sync_manager.is_scheduled(flaw.uuid)
 
-        sync_manager.last_finished_dt = datetime.now(timezone.utc) + timedelta(
-            seconds=6
-        )
-        sync_manager.last_scheduled_dt = datetime.now(timezone.utc) + timedelta(
-            seconds=10
-        )
+        sync_manager.last_finished_dt = datetime.now(UTC) + timedelta(seconds=6)
+        sync_manager.last_scheduled_dt = datetime.now(UTC) + timedelta(seconds=10)
         sync_manager.save()
 
         assert sync_manager.is_scheduled(flaw.uuid)
 
-        sync_manager.last_scheduled_dt = datetime.now(timezone.utc) + timedelta(
-            seconds=1
-        )
-        sync_manager.last_rescheduled_dt = datetime.now(timezone.utc) + timedelta(
-            seconds=1
-        )
+        sync_manager.last_scheduled_dt = datetime.now(UTC) + timedelta(seconds=1)
+        sync_manager.last_rescheduled_dt = datetime.now(UTC) + timedelta(seconds=1)
         sync_manager.last_consecutive_reschedules = 1
-        sync_manager.last_started_dt = datetime.now(timezone.utc) + timedelta(seconds=2)
-        sync_manager.last_finished_dt = datetime.now(timezone.utc) + timedelta(
-            seconds=3
-        )
+        sync_manager.last_started_dt = datetime.now(UTC) + timedelta(seconds=2)
+        sync_manager.last_finished_dt = datetime.now(UTC) + timedelta(seconds=3)
         sync_manager.save()
 
         assert sync_manager.is_scheduled(flaw.uuid)
@@ -97,10 +83,8 @@ class TestSyncManager(TestCase):
         )
 
         # simulate schedule call
-        transition_manager.last_scheduled_dt = datetime.now(timezone.utc)
-        transition_manager.last_started_dt = datetime.now(timezone.utc) + timedelta(
-            seconds=1
-        )
+        transition_manager.last_scheduled_dt = datetime.now(UTC)
+        transition_manager.last_started_dt = datetime.now(UTC) + timedelta(seconds=1)
         transition_manager.save()
 
         # schedule second call
