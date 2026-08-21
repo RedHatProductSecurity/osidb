@@ -1530,6 +1530,10 @@ def _prepare_affect_for_bulk(instance, flaw, ps_update_stream_map):
     if instance.affectedness != Affect.AffectAffectedness.NOTAFFECTED:
         instance.not_affected_justification = ""
 
+    # --- pre_save signal: clear_stale_affectedness_explanation ---
+    if not getattr(instance, "_auto_resolved", False):
+        instance.affectedness_explanation = ""
+
     # --- pre_save signal: update_denormalized_labels_on_affect_change ---
     instance.update_denormalized_labels()
 

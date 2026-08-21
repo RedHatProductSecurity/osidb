@@ -237,6 +237,59 @@ def remove_not_affected_justification(sender, instance, **kwargs):
         instance.not_affected_justification = ""
 
 
+@receiver(pre_save, sender=Affect)
+def clear_stale_affectedness_explanation(sender, instance, **kwargs):
+    """
+    Clear the affectedness_explanation when affectedness or resolution is changed
+    outside of auto_resolve (i.e., by a user or any non-automated path).
+
+    If the instance was populated by auto_resolve() or the ACE manual path,
+    the _auto_resolved flag will be set and the explanation is preserved.
+
+    If a human manually edited the explanation to something different, it is
+    preserved even if affectedness/resolution changed.
+    """
+    if getattr(instance, "_auto_resolved", False):
+        # Explanation was just set by auto_resolve or the ACE engine; keep it.
+        # The flag will be cleared in post_save to allow future manual changes.
+        return
+
+    if instance._state.adding:
+        # New instance not from auto_resolve; clear any explanation (should already be empty).
+        instance.affectedness_explanation = ""
+        return
+
+    try:
+        old = Affect.objects.get(uuid=instance.uuid)
+    except Affect.DoesNotExist:
+        return
+
+    # If status didn't change, nothing to do
+    if (
+        old.affectedness == instance.affectedness
+        and old.resolution == instance.resolution
+    ):
+        return
+
+    # Status changed - check if human manually changed the explanation
+    if old.affectedness_explanation == instance.affectedness_explanation:
+        # Explanation unchanged, so clear it since status changed
+        instance.affectedness_explanation = ""
+    # else: human edited the explanation, preserve it
+
+
+@receiver(post_save, sender=Affect)
+def clear_auto_resolved_flag(sender, instance, **kwargs):
+    """
+    Clear the _auto_resolved flag after save completes.
+
+    This ensures that subsequent manual changes to affectedness/resolution
+    will properly clear stale explanations, even after an auto_resolve() + save().
+    """
+    if hasattr(instance, "_auto_resolved"):
+        delattr(instance, "_auto_resolved")
+
+
 @receiver(pre_save, sender=Flaw)
 def update_last_impact_increase_dt_flaw(sender, instance, **kwargs):
     if not instance._state.adding and Impact(instance.impact) > Impact(

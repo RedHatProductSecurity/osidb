@@ -785,6 +785,11 @@ def _sync_affects_from_results(
                 affect.not_affected_justification = (
                     NotAffectedJustification.VULN_CODE_NOT_PRESENT
                 )
+                affect.affectedness_explanation = (
+                    "OSV data indicates the vulnerable code is not present in this version. "
+                    "Affectedness set to NOTAFFECTED with justification 'Vulnerable Code not Present'."
+                )
+                affect._auto_resolved = True
                 marked_notaffected += 1
             elif osv_status is OsvStatus.NO_VERSION:
                 affect.affectedness = Affect.AffectAffectedness.NEW

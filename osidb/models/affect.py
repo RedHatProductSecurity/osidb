@@ -211,6 +211,11 @@ class Affect(
         choices=NotAffectedJustification.choices, max_length=100, blank=True
     )
 
+    # Human-readable explanation for the affectedness/resolution decision.
+    # Set by auto_resolve() or the ACE auto-creation path; cleared when
+    # affectedness or resolution is changed by any other path (unless manually edited).
+    affectedness_explanation = models.TextField(blank=True, default="")
+
     resolved_dt = models.DateTimeField(null=True, blank=True)
 
     # non operational meta data
@@ -858,12 +863,22 @@ class Affect(
         except PsUpdateStream.DoesNotExist:
             self.affectedness = self.AffectAffectedness.NEW
             self.resolution = self.AffectResolution.NOVALUE
+            self.affectedness_explanation = (
+                f"PS update stream '{self.ps_update_stream}' was not found in product definitions. "  # noqa: S608
+                "Affectedness set to NEW pending manual review."
+            )
+            self._auto_resolved = True
             return
 
         ps_module_obj = ps_update_stream_obj.ps_module
         if ps_module_obj is None:
             self.affectedness = self.AffectAffectedness.NEW
             self.resolution = self.AffectResolution.NOVALUE
+            self.affectedness_explanation = (
+                f"PS update stream '{self.ps_update_stream}' has no associated PS module. "  # noqa: S608
+                "Affectedness set to NEW pending manual review."
+            )
+            self._auto_resolved = True
             return
 
         self.affectedness = self.AffectAffectedness.AFFECTED
@@ -880,6 +895,12 @@ class Affect(
                 is_full_support = ps_update_stream_obj.is_moderate
             if not is_full_support:
                 self.resolution = self.AffectResolution.OOSS
+                self.affectedness_explanation = (
+                    f"Impact is {impact.value} and stream '{self.ps_update_stream}' is not in "
+                    "full support scope (not a moderate-priority stream and/or is a community stream). "
+                    "Resolution set to Out of Support Scope (OOSS)."
+                )
+                self._auto_resolved = True
                 return
 
         # AFFECTED/WONTFIX — no tracker streams defined for this impact level
@@ -896,6 +917,12 @@ class Affect(
 
         if tracker_streams is not None and not tracker_streams.exists():
             self.resolution = self.AffectResolution.WONTFIX
+            self.affectedness_explanation = (
+                f"No tracker streams are defined for {impact.value} impact on module "
+                f"'{ps_module_obj.name}' (stream '{self.ps_update_stream}'). "
+                "Resolution set to WONTFIX."
+            )
+            self._auto_resolved = True
             return
 
         # AFFECTED/DEFER — low severity or moderate without high CVSS (non-community)
@@ -903,6 +930,8 @@ class Affect(
         if not is_community and not self.is_hummingbird() and not self.is_ubi():
             if impact == Impact.LOW:
                 self.resolution = self.AffectResolution.DEFER
+                self.affectedness_explanation = "Impact is LOW. Resolution set to DEFER as we do not file trackers for LOW severity."
+                self._auto_resolved = True
                 return
             has_high_cvss = (
                 flaw_has_high_cvss_score
@@ -911,10 +940,36 @@ class Affect(
             )
             if impact == Impact.MODERATE and not has_high_cvss:
                 self.resolution = self.AffectResolution.DEFER
+                self.affectedness_explanation = (
+                    "Impact is MODERATE with CVSS score below 7.0. Resolution set to DEFER as we do not "
+                    "file trackers for MODERATE severity without high CVSS."
+                )
+                self._auto_resolved = True
                 return
 
         # AFFECTED/DELEGATED — fallback
         self.resolution = self.AffectResolution.DELEGATED
+
+        # Build explanation with special case context
+        is_ubi = self.is_ubi()
+        is_hummingbird = self.is_hummingbird()
+
+        if is_hummingbird:
+            self.affectedness_explanation = (
+                "Hummingbird module: trackers are always filed regardless of impact and/or CVSS score. "
+                "Resolution set to DELEGATED; a tracker should be filed."
+            )
+        elif is_ubi:
+            self.affectedness_explanation = (
+                "UBI component: trackers are always filed regardless of impact and/or CVSS score. "
+                "Resolution set to DELEGATED; a tracker should be filed."
+            )
+        else:
+            self.affectedness_explanation = (
+                "Resolution set to DELEGATED; a tracker should be filed."
+            )
+
+        self._auto_resolved = True
 
     def is_hummingbird(self) -> bool:
         """
