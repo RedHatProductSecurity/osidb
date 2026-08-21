@@ -460,6 +460,33 @@ class TestWorkflowLabel:
         WorkflowLabel.objects.filter(flaw=flaw, name="approved").delete()
         assert not WorkflowLabel.objects.filter(flaw=flaw, name="approved").exists()
 
+    def test_workflow_label_with_reason(self):
+        """Test creating workflow label with reason"""
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw)
+
+        label = WorkflowLabel.objects.create(
+            flaw=flaw,
+            name="potential-rejection",
+            reason="The 'test-component' component is not in the strict package list, low confidence, results could contain false positives.",
+        )
+
+        assert (
+            label.reason
+            == "The 'test-component' component is not in the strict package list, low confidence, results could contain false positives."
+        )
+        retrieved = WorkflowLabel.objects.get(flaw=flaw, name="potential-rejection")
+        assert retrieved.reason == label.reason
+
+    def test_workflow_label_default_reason(self):
+        """Test that workflow label defaults to empty string for reason"""
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw)
+
+        label = WorkflowLabel.objects.create(flaw=flaw, name="approved")
+
+        assert label.reason == ""
+
 
 @pytest.mark.usefixtures("label_definitions")
 class TestBULabel:

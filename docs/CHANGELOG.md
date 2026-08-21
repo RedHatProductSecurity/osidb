@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   instead of Target Release when the Jira project uses a non-default custom
   field ID (OSIDB-5318)
 
+### Added
+- Certain workflow labels now provide a `reason` attribute which can provide
+  insights as to why it was applied (OSIDB-5318)
+
 ## [5.16.3] - 2026-08-13
 ### Fixed
 - fix disabled automatic timestamp update on task creation/update (OSIDB-5387)
