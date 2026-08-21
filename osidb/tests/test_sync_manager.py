@@ -75,6 +75,37 @@ class TestSyncManager(TestCase):
         assert sync_manager.is_scheduled(flaw.uuid)
 
     @freeze_time(datetime(2025, 6, 24))
+    def test_is_scheduled_after_failure(self):
+        """
+        is_scheduled() must treat last_failed_dt as a completion marker,
+        the same way it already treats last_finished_dt: a schedule that
+        predates the failure must not count as "still scheduled" (or a
+        failed run would leave the manager permanently scheduled/looping),
+        and a schedule made after the failure must.
+        """
+        flaw = FlawFactory(embargoed=False)
+
+        sync_manager = SyncManager.objects.create(
+            name=SyncManager.__name__, sync_id=flaw.uuid
+        )
+        sync_manager.last_scheduled_dt = datetime.now(UTC)
+        sync_manager.last_started_dt = datetime.now(UTC) + timedelta(seconds=1)
+        sync_manager.save()
+
+        # the run fails without ever finishing
+        sync_manager.last_failed_dt = datetime.now(UTC) + timedelta(seconds=5)
+        sync_manager.save()
+
+        # the schedule predates the failure: must not look "still scheduled"
+        assert not sync_manager.is_scheduled(flaw.uuid)
+
+        # a schedule() call after the failure must count as freshly scheduled
+        sync_manager.last_scheduled_dt = datetime.now(UTC) + timedelta(seconds=10)
+        sync_manager.save()
+
+        assert sync_manager.is_scheduled(flaw.uuid)
+
+    @freeze_time(datetime(2025, 6, 24))
     def test_jira_task_transition_manager_reschedule(self):
         flaw = FlawFactory(embargoed=False)
 
