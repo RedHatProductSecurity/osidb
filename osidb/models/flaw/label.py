@@ -317,8 +317,6 @@ class WorkflowLabel(FlawLabel):
 
     These labels don't require pre-registration and represent binary flags.
     Presence of the label(s) navigates the workflow classification.
-
-    No additional fields needed.
     """
 
     flawlabel_ptr = models.OneToOneField(
@@ -331,6 +329,12 @@ class WorkflowLabel(FlawLabel):
     )
 
     type = FlawLabel.LabelType.WORKFLOW
+
+    reason = models.TextField(
+        blank=True,
+        default="",
+        help_text="Explanation for why this workflow label was applied (set by automation).",
+    )
 
     class Meta:
         verbose_name = "Workflow Label"

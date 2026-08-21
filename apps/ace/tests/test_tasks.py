@@ -643,7 +643,8 @@ def test_pre_filter_blocklist_skips():
 
     assert result.action is PreFilterAction.SKIP
     assert result.label == LABEL_AUTO_REJECTED
-    assert "Blocked" in result.reason
+    assert "auto-rejected" in result.reason
+    assert "Not shipped by Red Hat" in result.reason
 
 
 @pytest.mark.django_db
@@ -875,7 +876,8 @@ def test_pre_filter_unverified_mapping_manual_triage():
 
     assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_MANUAL_TRIAGE
-    assert "not verified" in result.reason
+    assert "no verified source component mapping" in result.reason
+    assert "SomeGoLib" in result.reason
 
 
 @pytest.mark.django_db
@@ -1016,7 +1018,8 @@ def test_pre_filter_non_strict_potential_rejection():
 
     assert result.action is PreFilterAction.SEARCH
     assert result.label == LABEL_POTENTIAL_REJECTION
-    assert "Low confidence" in result.reason
+    assert "not in the strict package list" in result.reason
+    assert "low confidence" in result.reason
 
 
 def test_sync_does_not_set_impact_on_created_affects(
@@ -1648,3 +1651,33 @@ def test_signal_enqueues_on_workflow_transition_partial_save(
     flaw.save(update_fields=["workflow_name", "workflow_state"])
 
     assert len(calls) == 1
+
+
+def test_apply_label_persists_reason():
+    """Test that _apply_label persists the reason field."""
+    from apps.ace.tasks import _apply_label
+    from osidb.models.flaw.label import WorkflowLabel
+
+    flaw = FlawFactory()
+
+    _apply_label(flaw, "manual-triage", reason="Test reason for manual triage")
+
+    label = WorkflowLabel.objects.get(flaw=flaw, name="manual-triage")
+    assert label.reason == "Test reason for manual triage"
+
+
+def test_apply_label_does_not_overwrite_reason():
+    """Test that _apply_label does not overwrite existing reason."""
+    from apps.ace.tasks import _apply_label
+    from osidb.models.flaw.label import WorkflowLabel
+
+    flaw = FlawFactory()
+
+    # First call creates with reason1
+    _apply_label(flaw, "manual-triage", reason="First reason")
+
+    # Second call should not overwrite
+    _apply_label(flaw, "manual-triage", reason="Second reason")
+
+    label = WorkflowLabel.objects.get(flaw=flaw, name="manual-triage")
+    assert label.reason == "First reason"

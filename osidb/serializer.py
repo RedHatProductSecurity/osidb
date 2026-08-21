@@ -2108,7 +2108,7 @@ class FlawLabelSerializer(TrackingMixinSerializer):
     Flaw label serializer with type-specific fields
     """
 
-    _OPTIONAL_FIELDS = ("state", "contributor", "relevant")
+    _OPTIONAL_FIELDS = ("state", "contributor", "relevant", "reason")
 
     flaw = serializers.UUIDField(write_only=True, source="flaw_id")
     name = serializers.CharField(max_length=255)
@@ -2124,6 +2124,7 @@ class FlawLabelSerializer(TrackingMixinSerializer):
         required=False, allow_blank=True, max_length=255
     )
     relevant = serializers.BooleanField(required=False)
+    reason = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = FlawLabel
@@ -2135,6 +2136,7 @@ class FlawLabelSerializer(TrackingMixinSerializer):
             "state",
             "contributor",
             "relevant",
+            "reason",
         ]
         validators = []
 
