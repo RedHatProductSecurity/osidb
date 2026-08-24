@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Fixed
+- Skip over closed, non-unembargoing trackers instead of stopping the
+  update loop early, so later trackers are still updated (OSIDB-5435)
 
 ## [5.16.4] - 2026-08-19
 ### Changed
