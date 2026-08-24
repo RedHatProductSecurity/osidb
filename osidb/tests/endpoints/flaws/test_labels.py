@@ -996,9 +996,87 @@ class TestFlawLabelsV2ResponseShape:
         )
 
         data = response.json()
-        assert self._label_keys(data) == {"uuid", "name", "type"}
+        assert self._label_keys(data) == {"uuid", "name", "type", "reason"}
         assert data["type"] == "workflow"
+        assert data["reason"] == ""
         assert "state" not in data
+
+    def test_workflow_label_with_reason(self, auth_client, test_api_v2_uri):
+        label = WorkflowLabel.objects.create(
+            flaw=self.flaw,
+            name="potential-rejection",
+            reason="The 'test' component is not in the strict package list, low confidence, results could contain false positives.",
+        )
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/flaws/{self.flaw.uuid}/labels/{label.uuid}"
+        )
+
+        data = response.json()
+        assert data["type"] == "workflow"
+        assert data["name"] == "potential-rejection"
+        assert (
+            data["reason"]
+            == "The 'test' component is not in the strict package list, low confidence, results could contain false positives."
+        )
+
+    def test_create_workflow_label_with_reason_via_api(
+        self, auth_client, test_api_v2_uri
+    ):
+        response = auth_client().post(
+            f"{test_api_v2_uri}/flaws/{self.flaw.uuid}/labels",
+            data={
+                "name": "manual-triage",
+                "type": "workflow",
+                "reason": "Flaws affecting 'kernel' are configured for manual triage.",
+            },
+            format="json",
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["name"] == "manual-triage"
+        assert data["type"] == "workflow"
+        assert (
+            data["reason"]
+            == "Flaws affecting 'kernel' are configured for manual triage."
+        )
+
+        # Verify it was actually saved
+        label = WorkflowLabel.objects.get(flaw=self.flaw, name="manual-triage")
+        assert (
+            label.reason == "Flaws affecting 'kernel' are configured for manual triage."
+        )
+
+    def test_update_workflow_label_preserves_reason_when_omitted(
+        self, auth_client, test_api_v2_uri
+    ):
+        """Test that PUT without reason field preserves existing reason"""
+        label = WorkflowLabel.objects.create(
+            flaw=self.flaw,
+            name="potential-rejection",
+            reason="Original reason from automation",
+        )
+
+        # Update without providing reason field
+        response = auth_client().put(
+            f"{test_api_v2_uri}/flaws/{self.flaw.uuid}/labels/{label.uuid}",
+            data={
+                "name": "potential-rejection",
+                "type": "workflow",
+                # reason intentionally omitted
+            },
+            format="json",
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        # Reason should be preserved, not overwritten with empty string
+        assert data["reason"] == "Original reason from automation"
+
+        # Verify in database
+        label.refresh_from_db()
+        assert label.reason == "Original reason from automation"
 
     def test_collaborator_label_full_fields(self, auth_client, test_api_v2_uri):
         CollaboratorLabelDefinition.objects.create(name="collab")

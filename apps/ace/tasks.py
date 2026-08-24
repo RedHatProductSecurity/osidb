@@ -156,10 +156,12 @@ def _is_manual_triage_component(resolved: list[str], ecosystem: str) -> bool:
     return False
 
 
-def _apply_label(flaw: Flaw, label: str) -> None:
+def _apply_label(flaw: Flaw, label: str, reason: str = "") -> None:
     if not label:
         return
-    WorkflowLabel.objects.get_or_create(flaw=flaw, name=label)
+    WorkflowLabel.objects.get_or_create(
+        flaw=flaw, name=label, defaults={"reason": reason}
+    )
 
 
 def _pre_filter_component(
@@ -189,7 +191,7 @@ def _pre_filter_component(
         return PreFilterResult(
             action=PreFilterAction.SKIP,
             label=LABEL_AUTO_REJECTED,
-            reason=f"Blocked: {block.reason}",
+            reason=f"Flaws affected by {component} are configured to be auto-rejected: {block.reason}",
         )
 
     # Go stdlib check: the handler runs per stdlib subcomponent path.
@@ -198,7 +200,7 @@ def _pre_filter_component(
         if component_lower == "golang":
             return PreFilterResult(
                 action=PreFilterAction.MANUAL,
-                reason="Go stdlib CVE: golang component handled by go stdlib workflow",
+                reason="Flaws affecting the Go programming language require manual processing.",
             )
         return PreFilterResult(
             action=PreFilterAction.SPECIAL,
@@ -224,7 +226,7 @@ def _pre_filter_component(
             action=PreFilterAction.MANUAL,
             label=LABEL_MANUAL_TRIAGE,
             resolved_names=resolved,
-            reason=f"Component '{component}' is configured for manual triage",
+            reason=f"Flaws affecting '{component}' are configured for manual triage.",
         )
 
     # Verified mapping guard
@@ -233,7 +235,7 @@ def _pre_filter_component(
             action=PreFilterAction.MANUAL,
             label=LABEL_MANUAL_TRIAGE,
             resolved_names=resolved,
-            reason=f"Mapping '{component}' is not verified",
+            reason=f"The component '{component}' has no verified source component mapping, requiring manual triage.",
         )
 
     # Cross-ecosystem guard
@@ -244,8 +246,8 @@ def _pre_filter_component(
             label=LABEL_MANUAL_TRIAGE,
             resolved_names=resolved,
             reason=(
-                f"'{component}' exists in ecosystems: {cross_eco.ecosystems}. "
-                "Ecosystem must be specified to proceed."
+                f"The '{component}' component exists in ecosystems: {cross_eco.ecosystems}. "
+                "Ecosystem could not be automatically determined in order to narrow down query, requiring manual triage."
             ),
         )
 
@@ -262,7 +264,7 @@ def _pre_filter_component(
                 action=PreFilterAction.MANUAL,
                 label=LABEL_MANUAL_TRIAGE,
                 resolved_names=resolved,
-                reason=f"'{component}' has ambiguous SBOM matches requiring review",
+                reason=f"The '{component}' component has ambiguous SBOM matches, requiring manual triage.",
             )
         resolved = [pick]
 
@@ -279,7 +281,7 @@ def _pre_filter_component(
             action=PreFilterAction.SEARCH,
             label=LABEL_POTENTIAL_REJECTION,
             resolved_names=resolved,
-            reason="Low confidence, component not in strict package lists",
+            reason=f"The '{component}' component is not in the strict package list, low confidence, results could contain false positives.",
         )
 
     # Continue with auto-affects process
@@ -872,7 +874,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
         None,
     )
     if skip_result:
-        _apply_label(flaw, skip_result.label)
+        _apply_label(flaw, skip_result.label, reason=skip_result.reason)
         logger.info(
             "Pre-filter skip for flaw=%s: %s",
             flaw_id,
@@ -882,7 +884,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
         return totals
 
     for flaw_component, ecosystem, pre_filter in pre_filter_results:
-        _apply_label(flaw, pre_filter.label)
+        _apply_label(flaw, pre_filter.label, reason=pre_filter.reason)
 
         if pre_filter.action is PreFilterAction.SPECIAL:
             # Special workflow handling

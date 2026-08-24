@@ -16162,6 +16162,8 @@ components:
           maxLength: 255
         relevant:
           type: boolean
+        reason:
+          type: string
       required:
       - name
       - uuid
@@ -16180,6 +16182,8 @@ components:
         contributor:
           type: string
           maxLength: 255
+        reason:
+          type: string
       required:
       - name
       - type
@@ -16200,6 +16204,8 @@ components:
           maxLength: 255
         relevant:
           type: boolean
+        reason:
+          type: string
       required:
       - name
     FlawLabelRequest:
@@ -16223,6 +16229,8 @@ components:
           maxLength: 255
         relevant:
           type: boolean
+        reason:
+          type: string
       required:
       - flaw
       - name
