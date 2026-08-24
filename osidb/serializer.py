@@ -2562,7 +2562,7 @@ class FlawSerializer(
             # unless unembargoing a closed tracker
             is_unembargoing = old_flaw.is_embargoed and not new_flaw.is_embargoed
             if tracker.is_closed and not is_unembargoing:
-                return
+                continue
 
             if (
                 tracker.meta_attr.get("jira_issuetype") != "Vulnerability"

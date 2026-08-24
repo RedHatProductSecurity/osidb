@@ -1,7 +1,8 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import pytest
+from django.utils import timezone as django_timezone
 from rest_framework import status
 
 from apps.bbsync.save import BugzillaSaver
@@ -116,6 +117,77 @@ class TestEndpointsFlawsUpdateTrackers:
             assert [tracker1.uuid] == [
                 args[0][0].uuid for args in mock_save.call_args_list
             ]
+
+    def test_closed_tracker_does_not_skip_later_open_trackers(
+        self, auth_client, test_api_uri
+    ):
+        """
+        A closed tracker encountered while iterating a flaw's affects must not
+        stop later (open) trackers from being updated. Regression test: the
+        update_trackers loop used to `return` instead of `continue` on a
+        closed, non-unembargoing tracker.
+        """
+        flaw = FlawFactory(impact="LOW")
+        ps_module = PsModuleFactory()
+
+        # affects.all() is ordered by (created_dt, uuid); pin created_dt
+        # explicitly so the closed tracker is deterministically iterated
+        # before the open one regardless of uuid tie-breaking
+        now = django_timezone.now()
+
+        # closed tracker, created first so it is iterated before the open one
+        ps_update_stream1 = PsUpdateStreamFactory(ps_module=ps_module)
+        affect_closed = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream1.name,
+            created_dt=now,
+        )
+        TrackerFactory(
+            affects=[affect_closed],
+            embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream1.name,
+            status="CLOSED",
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        # open tracker, created after the closed one
+        ps_update_stream2 = PsUpdateStreamFactory(ps_module=ps_module)
+        affect_open = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream2.name,
+            created_dt=now + timedelta(seconds=1),
+        )
+        tracker_open = TrackerFactory(
+            affects=[affect_open],
+            embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream2.name,
+            status="NEW",
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        flaw_data = {
+            "comment_zero": flaw.comment_zero,
+            "embargoed": flaw.embargoed,
+            "impact": "MODERATE",  # tracker update trigger
+            "title": flaw.title,
+            "updated_dt": flaw.updated_dt,
+        }
+
+        with patch.object(Tracker, "save", autospec=True) as mock_save:
+            response = auth_client().put(
+                f"{test_api_uri}/flaws/{flaw.uuid}",
+                flaw_data,
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+            assert response.status_code == status.HTTP_200_OK
+            saved_uuids = [args[0][0].uuid for args in mock_save.call_args_list]
+            assert tracker_open.uuid in saved_uuids
 
     # Nested pytest necessary despite the performance drawback because the relevant logic
     # has nested complex conditions.
