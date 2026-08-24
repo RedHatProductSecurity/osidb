@@ -446,7 +446,7 @@ def _handle_go_stdlib(
         "marked_notaffected": 0,
     }
 
-    def _run_phase(phase_description, results):
+    def _run_phase(phase_description, results, query_name=""):
         stats = _sync_affects_from_results(
             flaw,
             results,
@@ -454,6 +454,7 @@ def _handle_go_stdlib(
             ps_modules,
             ecosystem="golang",
             upstream_purls=upstream_purls,
+            resolved_name=query_name or component,
         )
         for key in stats:
             totals[key] += stats[key]
@@ -472,7 +473,7 @@ def _handle_go_stdlib(
             builds_only=True,
             no_community=True,
         )
-        _run_phase("Phase 1 (golang builds)", results)
+        _run_phase("Phase 1 (golang builds)", results, query_name="golang")
     except Exception as exc:
         logger.warning("Go stdlib Phase 1 failed for flaw=%s: %s", flaw.uuid, exc)
 
@@ -593,9 +594,70 @@ def _ace_tool_name() -> str:
         return f"osidb {osidb_version}"
 
 
+def _extract_version_from_result(
+    purl_str: str, result, query_component: str = ""
+) -> str | None:
+    """Extract a meaningful package version from a lib_newtopia result.
+
+    Priority:
+      1. PURL version — used for every PURL type that carries an explicit version
+         (rpm, npm, pypi, maven, generic, github, etc.).  Only OCI PURLs are
+         expected to lack a meaningful package version.
+      2. ``sources[].dependencies[].version`` — for container/OCI PURLs where the
+         real dependency version lives inside the build manifest.  When
+         *query_component* is given, only the dependency whose name matches is
+         used (prevents picking an unrelated dependency's version).
+      3. ``build_nvr`` minus ``build_name`` prefix — last-resort heuristic
+
+    Returns ``None`` when no version can be determined.
+    """
+    try:
+        purl_obj = PackageURL.from_string(purl_str)
+        purl_type = purl_obj.type
+        purl_version = purl_obj.version
+    except Exception:
+        return None
+
+    if purl_version and purl_type != "oci":
+        return purl_version
+
+    # Container/build PURLs — recover version from sources.dependencies
+    _arch_suffixes = (".x86_64", ".aarch64", ".ppc64le", ".s390x", ".noarch", ".i686")
+    needle = query_component.strip().lower()
+    sources = getattr(result, "sources", None) or []
+    for src in sources:
+        for dep in getattr(src, "dependencies", None) or []:
+            # When we know the query component, only match that dependency
+            if needle:
+                dep_name = (getattr(dep, "name", "") or "").strip().lower()
+                if dep_name != needle:
+                    continue
+            raw_ver = getattr(dep, "version", "") or ""
+            if not raw_ver:
+                continue
+            for suf in _arch_suffixes:
+                if raw_ver.endswith(suf):
+                    raw_ver = raw_ver[: -len(suf)]
+                    break
+            return raw_ver
+
+    # Fallback: build_nvr minus build_name prefix.
+    # Only trust build_nvr when the build describes the queried component,
+    # otherwise the version belongs to an unrelated container build.
+    build_name = getattr(result, "build_name", "") or ""
+    build_nvr = getattr(result, "build_nvr", "") or ""
+    if build_nvr and build_name and build_nvr.startswith(build_name + "-"):
+        if not needle or build_name.strip().lower() == needle:
+            return build_nvr[len(build_name) + 1 :]
+
+    return None
+
+
 def _osv_version_status(
     purl_str: str,
     pkg_info: OsvPackageInfo | None,
+    result=None,
+    query_component: str = "",
 ) -> tuple[OsvStatus, str | None, str | None]:
     """
     Determine the OSV affectedness status for a single lib_newtopia result purl.
@@ -614,12 +676,10 @@ def _osv_version_status(
     if range_str is None:
         return OsvStatus.NO_RANGE, None, None
 
-    try:
-        purl_version = PackageURL.from_string(purl_str).version
-    except Exception:
-        purl_version = None
-
-    upstream_version = extract_upstream_version(purl_version, pkg_info.ecosystem)
+    version_str = _extract_version_from_result(
+        purl_str, result, query_component=query_component
+    )
+    upstream_version = extract_upstream_version(version_str, pkg_info.ecosystem)
     if upstream_version is None:
         return OsvStatus.NO_VERSION, range_str, None
 
@@ -636,6 +696,7 @@ def _sync_affects_from_results(
     ps_modules: list[str] | None = None,
     ecosystem: str = "",
     upstream_purls: list[dict] | None = None,
+    resolved_name: str = "",
 ) -> dict[str, int]:
     """Create affects on ``flaw`` for each entry in ``results``.
 
@@ -685,7 +746,10 @@ def _sync_affects_from_results(
                 continue
 
             osv_status, range_str, version_checked = _osv_version_status(
-                purl_str, pkg_info
+                purl_str,
+                pkg_info,
+                result=result,
+                query_component=resolved_name or flaw_component,
             )
 
             affect = Affect(
@@ -720,6 +784,10 @@ def _sync_affects_from_results(
                     NotAffectedJustification.VULN_CODE_NOT_PRESENT
                 )
                 marked_notaffected += 1
+            elif osv_status is OsvStatus.NO_VERSION:
+                affect.affectedness = Affect.AffectAffectedness.NEW
+                affect.resolution = Affect.AffectResolution.NOVALUE
+                _apply_label(flaw, LABEL_MANUAL_TRIAGE)
             else:
                 affect.auto_resolve(flaw_has_high_cvss_score=flaw_has_high_cvss_score)
 
@@ -853,6 +921,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
                 ps_modules,
                 ecosystem=ecosystem,
                 upstream_purls=upstream_purls,
+                resolved_name=resolved_name,
             )
             for key in stats:
                 totals[key] += stats[key]

@@ -8,12 +8,21 @@ import pytest
 from osidb.tests.factories import PsUpdateStreamFactory
 
 
-def _result(ps_update_stream: str, purl: str) -> SimpleNamespace:
+def _result(
+    ps_update_stream: str,
+    purl: str,
+    *,
+    sources=None,
+    build_nvr=None,
+    build_name=None,
+) -> SimpleNamespace:
     """Minimal stand-in for NewcliBuildResult / NewcliDepResult."""
     return SimpleNamespace(
         ps_update_stream=ps_update_stream,
         purls=[purl],
-        build_nvr=None,
+        sources=sources,
+        build_nvr=build_nvr,
+        build_name=build_name,
     )
 
 
