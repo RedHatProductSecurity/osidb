@@ -19732,9 +19732,9 @@ components:
         Serializer for manually creating SRP Reports.
 
         Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
-        view's perform_create. evidence, srp_reference_id, and srp_reference_url
-        are required for manual create. timer_started_at is read-only and remains
-        null until the report transitions to REQUIRED.
+        view's perform_create. evidence is required for manual create.
+        srp_reference_id and srp_reference_url are optional. timer_started_at is
+        read-only and remains null until the report transitions to REQUIRED.
       properties:
         uuid:
           type: string
@@ -19814,8 +19814,6 @@ components:
       - flaw_id
       - milestones
       - reportable_event_type
-      - srp_reference_id
-      - srp_reference_url
       - status
       - timer_started_at
       - updated_dt
@@ -19826,9 +19824,9 @@ components:
         Serializer for manually creating SRP Reports.
 
         Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
-        view's perform_create. evidence, srp_reference_id, and srp_reference_url
-        are required for manual create. timer_started_at is read-only and remains
-        null until the report transitions to REQUIRED.
+        view's perform_create. evidence is required for manual create.
+        srp_reference_id and srp_reference_url are optional. timer_started_at is
+        read-only and remains null until the report transitions to REQUIRED.
       properties:
         flaw_id:
           type: string
@@ -19852,12 +19850,10 @@ components:
           minLength: 1
         srp_reference_id:
           type: string
-          minLength: 1
           maxLength: 255
         srp_reference_url:
           type: string
           format: uri
-          minLength: 1
           maxLength: 200
         member_states_available:
           type: array
@@ -19878,8 +19874,6 @@ components:
       - evidence
       - flaw_id
       - reportable_event_type
-      - srp_reference_id
-      - srp_reference_url
     SRPReportMilestone:
       type: object
       description: |-

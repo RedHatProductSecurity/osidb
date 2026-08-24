@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Remove additional information from report type
+- Make reference id and url optional (OSIDB-5436).
 
 ## [5.17.1] - 2026-08-31
 ### Added
