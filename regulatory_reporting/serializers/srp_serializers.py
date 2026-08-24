@@ -207,9 +207,9 @@ class SRPReportCreateSerializer(SRPReportSerializer):
     Serializer for manually creating SRP Reports.
 
     Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
-    view's perform_create. evidence, srp_reference_id, and srp_reference_url
-    are required for manual create. timer_started_at is read-only and remains
-    null until the report transitions to REQUIRED.
+    view's perform_create. evidence is required for manual create.
+    srp_reference_id and srp_reference_url are optional. timer_started_at is
+    read-only and remains null until the report transitions to REQUIRED.
     """
 
     flaw_id = serializers.PrimaryKeyRelatedField(
@@ -224,11 +224,16 @@ class SRPReportCreateSerializer(SRPReportSerializer):
     )
     evidence = serializers.CharField(allow_blank=False, trim_whitespace=True)
     srp_reference_id = serializers.CharField(
-        allow_blank=False,
+        required=False,
+        allow_blank=True,
         trim_whitespace=True,
         max_length=255,
     )
-    srp_reference_url = serializers.URLField(allow_blank=False, max_length=200)
+    srp_reference_url = serializers.URLField(
+        required=False,
+        allow_blank=True,
+        max_length=200,
+    )
     status = serializers.ChoiceField(
         choices=SRPReport.SRPReportStatus.choices,
         read_only=True,
@@ -258,9 +263,6 @@ class SRPReportCreateSerializer(SRPReportSerializer):
         return value.strip()
 
     def validate_evidence(self, value):
-        return self._require_nonblank(value)
-
-    def validate_srp_reference_id(self, value):
         return self._require_nonblank(value)
 
     def _validate_acl_write(self, flaw):
