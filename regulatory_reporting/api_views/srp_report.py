@@ -13,6 +13,7 @@ from osidb.api_views import get_valid_http_methods
 from regulatory_reporting.constants import UUID_PATH_REGEX
 from regulatory_reporting.filters import SRPReportFilter
 from regulatory_reporting.models import SRPReport
+from regulatory_reporting.models.abstracts import SRPReportBase
 from regulatory_reporting.serializers import (
     SRPReportCreateSerializer,
     SRPReportSerializer,
@@ -53,11 +54,11 @@ class SRPReportViewSet(ModelViewSet):
         flaw = serializer.validated_data["flaw"]
         with transaction.atomic():
             srp_report = serializer.save(
-                status=SRPReport.SRPReportStatus.PRE_REQUIRED,
+                status=SRPReport.SRPReportStatus.EMPTY,
                 acl_read=flaw.acl_read,
                 acl_write=flaw.acl_write,
             )
             create_srp_report_milestones(
                 srp_report,
-                status=SRPReport.SRPReportStatus.PRE_REQUIRED,
+                status=SRPReportBase.SRPReportStatus.PRE_REQUIRED,
             )
