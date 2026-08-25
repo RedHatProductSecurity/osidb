@@ -31,12 +31,11 @@ class SRPReportFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence", nb_words=4)
     responsibility_scope = SRPReport.ResponsibilityScope.MANUFACTURER
     reportable_event_type = SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
-    status = SRPReport.SRPReportStatus.REQUIRED
-    # PRE_REQUIRED reports require non-blank evidence at the model layer
+    status = SRPReport.SRPReportStatus.EMPTY
     evidence = factory.LazyAttribute(
         lambda o: (
             "Manual create justification."
-            if o.status == SRPReport.SRPReportStatus.PRE_REQUIRED
+            if o.status == SRPReport.SRPReportStatus.EMPTY
             else ""
         )
     )
