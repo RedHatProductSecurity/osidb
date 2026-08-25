@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make reference id and url optional (OSIDB-5436)
 - Remove Flaw signal to create report (OSIDB-5462)
 - Change srp report status choices (OSIDB-5442)
+- Change srp milestones status choices (OSIDB-5441)
 
 ## [5.17.0] - 2026-08-26
 ### Added

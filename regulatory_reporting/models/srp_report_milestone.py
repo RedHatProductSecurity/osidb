@@ -48,7 +48,6 @@ class SRPReportMilestone(SRPReportBase):
         """Status of the SRP report milestone"""
 
         # Required (default), In progress, In review, Submitted, Obsolete
-        PRE_REQUIRED = "pre_required", "Pre Required"
         REQUIRED = "required", "Required"
         IN_PROGRESS = "in_progress", "In Progress"
         IN_REVIEW = "in_review", "In Review"

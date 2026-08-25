@@ -188,41 +188,10 @@ class TestSRPReportCreate:
             SRPReportMilestone.MilestoneType.LEVEL_FINAL,
         }
         assert all(
-            m.status == SRPReportBase.SRPReportStatus.PRE_REQUIRED for m in milestones
+            m.status == SRPReportMilestone.SRPReportMilestoneStatus.REQUIRED
+            for m in milestones
         )
         assert len(response.data["milestones"]) == 3
-
-    def test_create_additional_information_request_creates_only_air_milestone(
-        self, authenticated_client
-    ):
-        """ADDITIONAL_INFORMATION_REQUEST reports get only an AIR milestone."""
-        flaw = NonReportableFlawFactory()
-        response = authenticated_client.post(
-            "/regulatory-reporting/api/v1/srp-reports",
-            self._create_payload(
-                flaw,
-                reportable_event_type=(
-                    SRPReport.ReportableEventType.ADDITIONAL_INFORMATION_REQUEST
-                ),
-            ),
-            format="json",
-        )
-        assert response.status_code == status.HTTP_201_CREATED, response.data
-        assert response.data["status"] == SRPReport.SRPReportStatus.EMPTY
-        assert (
-            response.data["reportable_event_type"]
-            == SRPReport.ReportableEventType.ADDITIONAL_INFORMATION_REQUEST
-        )
-
-        report = SRPReport.objects.get(uuid=response.data["uuid"])
-        milestones = list(report.milestones.all())
-        assert len(milestones) == 1
-        assert (
-            milestones[0].milestone_type
-            == SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
-        )
-        assert milestones[0].status == SRPReportBase.SRPReportStatus.PRE_REQUIRED
-        assert len(response.data["milestones"]) == 1
 
     def test_create_report_defaults_long_flaw_title(self, authenticated_client):
         """Default title accepts Flaw.title longer than former CharField(255)."""

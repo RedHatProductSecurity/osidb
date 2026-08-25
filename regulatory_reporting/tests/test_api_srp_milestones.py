@@ -172,7 +172,7 @@ class TestSRPMilestoneUpdate:
         response = api_client.put(
             f"/regulatory-reporting/api/v1/srp-reports/{report.uuid}/milestones/{milestone.uuid}",
             {
-                "status": SRPReportMilestone.SRPReportStatus.PREPARED,
+                "status": SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW,
                 "updated_dt": milestone.updated_dt,
             },
             format="json",
@@ -190,11 +190,11 @@ class TestSRPMilestoneUpdate:
             authenticated_client,
             milestones_report,
             milestone,
-            status=SRPReportMilestone.SRPReportStatus.PREPARED,
+            status=SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW,
         )
         assert response.status_code == status.HTTP_200_OK
         milestone.refresh_from_db()
-        assert milestone.status == SRPReportMilestone.SRPReportStatus.PREPARED
+        assert milestone.status == SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW
 
     def test_update_multiple_fields(self, authenticated_client, create_flaw_report):
         """Can update multiple fields at once."""
@@ -207,13 +207,13 @@ class TestSRPMilestoneUpdate:
             authenticated_client,
             milestones_report,
             milestone,
-            status=SRPReportMilestone.SRPReportStatus.PREPARED,
+            status=SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW,
             request_source="ENISA Portal",
             request_text="Additional information requested",
         )
         assert response.status_code == status.HTTP_200_OK
         milestone.refresh_from_db()
-        assert milestone.status == SRPReportMilestone.SRPReportStatus.PREPARED
+        assert milestone.status == SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW
         assert milestone.request_source == "ENISA Portal"
         assert milestone.request_text == "Additional information requested"
 
@@ -251,13 +251,13 @@ class TestSRPMilestoneUpdate:
             milestone,
             acl_read=["00000000-0000-0000-0000-000000000001"],
             acl_write=["00000000-0000-0000-0000-000000000002"],
-            status=SRPReportMilestone.SRPReportStatus.PREPARED,
+            status=SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW,
         )
         assert response.status_code == status.HTTP_200_OK
         milestone.refresh_from_db()
         assert list(milestone.acl_read) == original_acl_read
         assert list(milestone.acl_write) == original_acl_write
-        assert milestone.status == SRPReportMilestone.SRPReportStatus.PREPARED
+        assert milestone.status == SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW
 
     def test_full_update_milestone(self, authenticated_client, create_flaw_report):
         """Can perform full update with PUT."""
@@ -269,13 +269,13 @@ class TestSRPMilestoneUpdate:
             authenticated_client,
             milestones_report,
             milestone,
-            status=SRPReportMilestone.SRPReportStatus.SUBMITTED,
+            status=SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED,
             request_source="ENISA Portal",
             request_text="Additional information requested",
         )
         assert response.status_code == status.HTTP_200_OK
         milestone.refresh_from_db()
-        assert milestone.status == SRPReportMilestone.SRPReportStatus.SUBMITTED
+        assert milestone.status == SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
         assert milestone.request_source == "ENISA Portal"
         assert milestone.request_text == "Additional information requested"
         assert milestone.meta_attr.get("payload_snapshot")
@@ -294,7 +294,7 @@ class TestSRPMilestoneFiltering:
         first_milestone = milestones_report.milestones.get(
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
         )
-        first_milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+        first_milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
         first_milestone.save()
 
         response = api_client.get(
@@ -304,7 +304,7 @@ class TestSRPMilestoneFiltering:
         assert len(response.data["results"]) == 1
         assert (
             response.data["results"][0]["status"]
-            == SRPReportMilestone.SRPReportStatus.SUBMITTED
+            == SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
         )
 
     def test_filter_by_milestone_type(self, api_client, create_flaw_report):

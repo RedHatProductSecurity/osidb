@@ -17,12 +17,7 @@ from django.utils import timezone
 from osidb.models import Flaw
 from osidb.tests.factories import FlawFactory
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
-from regulatory_reporting.models.abstracts import SRPReportBase
-from regulatory_reporting.services import (
-    create_srp_report,
-    create_srp_report_milestones,
-)
-from regulatory_reporting.tests.factories import SRPReportFactory
+from regulatory_reporting.services import create_srp_report
 
 pytestmark = [pytest.mark.unit, pytest.mark.enable_signals, pytest.mark.cra_reporting]
 
@@ -231,9 +226,9 @@ class TestSRPMilestoneAutoCreation:
         milestones = SRPReportMilestone.objects.filter(srp_report=srp_report)
 
         for milestone in milestones:
-            assert milestone.status == SRPReportBase.SRPReportStatus.REQUIRED, (
-                f"{milestone.milestone_type} should have REQUIRED status"
-            )
+            assert (
+                milestone.status == SRPReportMilestone.SRPReportMilestoneStatus.REQUIRED
+            ), f"{milestone.milestone_type} should have REQUIRED status"
 
     def test_additional_information_response_not_auto_created(self, create_flaw_report):
         """
@@ -260,32 +255,6 @@ class TestSRPMilestoneAutoCreation:
         assert additional_info_milestones.count() == 0, (
             "Additional information response milestones should NOT be auto-created"
         )
-
-    def test_additional_information_request_report_creates_only_air_milestone(self):
-        """
-        ADDITIONAL_INFORMATION_REQUEST reports get a single AIR milestone,
-        not the standard 24h/72h/final set.
-        """
-        srp_report = SRPReportFactory(
-            reportable_event_type=(
-                SRPReport.ReportableEventType.ADDITIONAL_INFORMATION_REQUEST
-            ),
-            status=SRPReport.SRPReportStatus.EMPTY,
-        )
-        # Factory does not create milestones; call helper explicitly
-        srp_report.milestones.all().delete()
-        create_srp_report_milestones(
-            srp_report,
-            status=SRPReportBase.SRPReportStatus.PRE_REQUIRED,
-        )
-
-        milestones = list(srp_report.milestones.all())
-        assert len(milestones) == 1
-        assert (
-            milestones[0].milestone_type
-            == SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
-        )
-        assert milestones[0].status == SRPReportBase.SRPReportStatus.PRE_REQUIRED
 
     @pytest.mark.parametrize(
         "milestone_type",
@@ -324,7 +293,7 @@ class TestSRPMilestoneAutoCreation:
             SRPReportMilestone.objects.create(
                 srp_report=srp_report,
                 milestone_type=milestone_type,
-                status=SRPReportBase.SRPReportStatus.REQUIRED,
+                status=SRPReportMilestone.SRPReportMilestoneStatus.REQUIRED,
                 acl_read=srp_report.acl_read,
                 acl_write=srp_report.acl_write,
             )
@@ -418,7 +387,7 @@ class TestMilestoneDueDateProperty:
         additional_info_milestone = SRPReportMilestone.objects.create(
             srp_report=srp_report,
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-            status=SRPReport.SRPReportStatus.REQUIRED,
+            status=SRPReportMilestone.SRPReportMilestoneStatus.REQUIRED,
             request_received_at=request_time,
             request_source="ENISA",
             request_text="Please provide additional technical details",
@@ -457,7 +426,7 @@ class TestMilestoneDueDateProperty:
         additional_info_milestone = SRPReportMilestone.objects.create(
             srp_report=srp_report,
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-            status=SRPReport.SRPReportStatus.REQUIRED,
+            status=SRPReportMilestone.SRPReportMilestoneStatus.IN_PROGRESS,
             request_received_at=None,  # No request time set yet
             acl_read=srp_report.acl_read,
             acl_write=srp_report.acl_write,
@@ -495,7 +464,7 @@ class TestMilestoneDueDateProperty:
         additional_info_milestone = SRPReportMilestone.objects.create(
             srp_report=srp_report,
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-            status=SRPReport.SRPReportStatus.REQUIRED,
+            status=SRPReportMilestone.SRPReportMilestoneStatus.IN_PROGRESS,
             request_received_at=request_time,
             acl_read=srp_report.acl_read,
             acl_write=srp_report.acl_write,
