@@ -44,6 +44,17 @@ class SRPReportMilestone(SRPReportBase):
     final report) for an SRP report, each with their own ENISA template and payload.
     """
 
+    class SRPReportMilestoneStatus(models.TextChoices):
+        """Status of the SRP report milestone"""
+
+        # Required (default), In progress, In review, Submitted, Obsolete
+        PRE_REQUIRED = "pre_required", "Pre Required"
+        REQUIRED = "required", "Required"
+        IN_PROGRESS = "in_progress", "In Progress"
+        IN_REVIEW = "in_review", "In Review"
+        SUBMITTED = "submitted", "Submitted"
+        OBSOLETE = "obsolete", "Obsolete"
+
     class MilestoneType(models.TextChoices):
         """Milestone type level for this milestone"""
 
@@ -93,9 +104,9 @@ class SRPReportMilestone(SRPReportBase):
     )
 
     status = models.CharField(
-        choices=SRPReportBase.SRPReportStatus.choices,
+        choices=SRPReportMilestoneStatus.choices,
         max_length=20,
-        default=SRPReportBase.SRPReportStatus.REQUIRED,
+        default=SRPReportMilestoneStatus.REQUIRED,
         help_text="Current status of the milestone",
     )
 
@@ -190,8 +201,8 @@ class SRPReportMilestone(SRPReportBase):
         super().save(*args, **kwargs)
 
         should_prepare = (
-            self.status == self.SRPReportStatus.SUBMITTED
-            and previous_status != self.SRPReportStatus.SUBMITTED
+            self.status == self.SRPReportMilestoneStatus.SUBMITTED
+            and previous_status != self.SRPReportMilestoneStatus.SUBMITTED
             and self.milestone_type
             in {
                 self.MilestoneType.LEVEL_24H,
@@ -226,7 +237,7 @@ class SRPReportMilestone(SRPReportBase):
         Exceptions:
         - LEVEL_ADDITIONAL_INFORMATION_RESPONSE can have None due_at if
           request_received_at is not yet set.
-        - PRE_REQUIRED milestones can have None due_at until the parent
+        - REQUIRED milestones can have None due_at until the parent
           report's SLA timer starts.
         """
         if (
@@ -236,7 +247,7 @@ class SRPReportMilestone(SRPReportBase):
                 SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
                 SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
             }
-            and self.status != SRPReportBase.SRPReportStatus.PRE_REQUIRED
+            and self.status != self.SRPReportMilestoneStatus.REQUIRED
         ):
             raise ValidationError("Invalid reportable event type")
 
@@ -249,6 +260,6 @@ class SRPReportMilestone(SRPReportBase):
             ):
                 return  # Valid state - waiting for request
             # Allow None while manually created reports wait for timer start
-            if self.status == SRPReportBase.SRPReportStatus.PRE_REQUIRED:
+            if self.status == self.SRPReportMilestoneStatus.REQUIRED:
                 return
             raise ValidationError("due_at must be set for all milestones")
