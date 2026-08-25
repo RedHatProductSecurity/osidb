@@ -206,10 +206,10 @@ class SRPReportCreateSerializer(SRPReportSerializer):
     """
     Serializer for manually creating SRP Reports.
 
-    Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
+    Status is always EMPTY. ACLs are inherited from the flaw in the
     view's perform_create. evidence is required for manual create.
     srp_reference_id and srp_reference_url are optional. timer_started_at is
-    read-only and remains null until the report transitions to REQUIRED.
+    read-only and remains null until the report transitions to IN_PROGRESS.
     """
 
     flaw_id = serializers.PrimaryKeyRelatedField(

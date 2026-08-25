@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('regulatory_reporting', '0011_remove_srpreport_update_update_and_more'),
+        ('regulatory_reporting', '0012_alter_srpreport_reportable_event_type_and_more'),
     ]
 
     operations = [

@@ -870,7 +870,7 @@ class TestPreparePayloadOnSubmitted:
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         assert milestone.meta_attr.get("payload_snapshot") is None
 
-        milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+        milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
         milestone.save()
 
         milestone.refresh_from_db()
@@ -881,7 +881,7 @@ class TestPreparePayloadOnSubmitted:
     def test_does_not_reprepare_when_already_submitted(self):
         report = _create_vulnerability_report()
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
-        milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+        milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
         milestone.save()
         first_prepared_at = milestone.meta_attr["prepared_at"]
 
@@ -893,7 +893,7 @@ class TestPreparePayloadOnSubmitted:
     def test_does_not_prepare_for_prepared_status(self):
         report = _create_vulnerability_report()
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
-        milestone.status = SRPReportMilestone.SRPReportStatus.PREPARED
+        milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW
         milestone.save()
         milestone.refresh_from_db()
         assert milestone.meta_attr.get("payload_snapshot") is None
@@ -902,9 +902,9 @@ class TestPreparePayloadOnSubmitted:
         milestone = SRPReportMilestoneFactory(
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
             srp_report__flaw__major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
-            status=SRPReportMilestone.SRPReportStatus.REQUIRED,
+            status=SRPReportMilestone.SRPReportMilestoneStatus.REQUIRED,
         )
-        milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+        milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
         milestone.save()
         milestone.refresh_from_db()
         assert milestone.meta_attr.get("payload_snapshot") is None

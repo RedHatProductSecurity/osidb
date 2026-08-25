@@ -193,7 +193,7 @@ class SRPReport(SRPReportBase):
 
     @validator
     def _validate_timer_started_required(self, **kwargs):
-        """Timer must be set when status transitions to REQUIRED or beyond"""
+        """Timer must be set when status is IN_PROGRESS or SUBMITTED."""
         if (
             self.status
             in [
@@ -203,7 +203,7 @@ class SRPReport(SRPReportBase):
             and not self.timer_started_at
         ):
             raise ValidationError(
-                "timer_started_at must be set when status is REQUIRED, PREPARED, or SUBMITTED"
+                "timer_started_at must be set when status is IN_PROGRESS or SUBMITTED"
             )
 
     @validator

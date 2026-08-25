@@ -31,7 +31,7 @@ class SRPReportViewSet(ModelViewSet):
     - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
     Reports are also auto-created by signals when Critter criteria are met.
-    Manual POST creates the report in PRE_REQUIRED status with milestones.
+    Manual POST creates the report in EMPTY status with milestones.
     DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
     """
 
