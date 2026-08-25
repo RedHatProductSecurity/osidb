@@ -11,6 +11,7 @@ from freezegun import freeze_time
 from rest_framework import status
 
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
+from regulatory_reporting.models.abstracts import SRPReportBase
 from regulatory_reporting.tests.factories import (
     NonReportableFlawFactory,
     SRPReportFactory,
@@ -157,7 +158,7 @@ class TestSRPReportCreate:
             format="json",
         )
         assert response.status_code == status.HTTP_201_CREATED, response.data
-        assert response.data["status"] == SRPReport.SRPReportStatus.PRE_REQUIRED
+        assert response.data["status"] == SRPReport.SRPReportStatus.EMPTY
         assert response.data["flaw_id"] == flaw.uuid
         assert (
             response.data["evidence"]
@@ -187,9 +188,41 @@ class TestSRPReportCreate:
             SRPReportMilestone.MilestoneType.LEVEL_FINAL,
         }
         assert all(
-            m.status == SRPReport.SRPReportStatus.PRE_REQUIRED for m in milestones
+            m.status == SRPReportBase.SRPReportStatus.PRE_REQUIRED for m in milestones
         )
         assert len(response.data["milestones"]) == 3
+
+    def test_create_additional_information_request_creates_only_air_milestone(
+        self, authenticated_client
+    ):
+        """ADDITIONAL_INFORMATION_REQUEST reports get only an AIR milestone."""
+        flaw = NonReportableFlawFactory()
+        response = authenticated_client.post(
+            "/regulatory-reporting/api/v1/srp-reports",
+            self._create_payload(
+                flaw,
+                reportable_event_type=(
+                    SRPReport.ReportableEventType.ADDITIONAL_INFORMATION_REQUEST
+                ),
+            ),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        assert response.data["status"] == SRPReport.SRPReportStatus.EMPTY
+        assert (
+            response.data["reportable_event_type"]
+            == SRPReport.ReportableEventType.ADDITIONAL_INFORMATION_REQUEST
+        )
+
+        report = SRPReport.objects.get(uuid=response.data["uuid"])
+        milestones = list(report.milestones.all())
+        assert len(milestones) == 1
+        assert (
+            milestones[0].milestone_type
+            == SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
+        )
+        assert milestones[0].status == SRPReportBase.SRPReportStatus.PRE_REQUIRED
+        assert len(response.data["milestones"]) == 1
 
     def test_create_report_defaults_long_flaw_title(self, authenticated_client):
         """Default title accepts Flaw.title longer than former CharField(255)."""
@@ -204,7 +237,7 @@ class TestSRPReportCreate:
         assert response.data["title"] == long_title
 
     def test_create_report_ignores_timer_started_at(self, authenticated_client):
-        """timer_started_at is read-only on create and stays null for PRE_REQUIRED."""
+        """timer_started_at is read-only on create and stays null for EMPTY."""
         flaw = NonReportableFlawFactory()
         backdated = timezone.now() - timezone.timedelta(days=3)
         response = authenticated_client.post(
@@ -374,11 +407,11 @@ class TestSRPReportUpdate:
         response = self._put_report(
             authenticated_client,
             report,
-            status=SRPReport.SRPReportStatus.DEFERRED,
+            status=SRPReport.SRPReportStatus.IN_PROGRESS,
         )
         assert response.status_code == status.HTTP_200_OK
         report.refresh_from_db()
-        assert report.status == SRPReport.SRPReportStatus.DEFERRED
+        assert report.status == SRPReport.SRPReportStatus.IN_PROGRESS
 
     def test_update_multiple_fields(self, authenticated_client, create_flaw_report):
         """Can update multiple fields at once."""
@@ -442,15 +475,16 @@ class TestSRPReportFiltering:
     def test_filter_by_status(self, api_client):
         """Can filter reports by status."""
 
-        SRPReportFactory(status=SRPReport.SRPReportStatus.REQUIRED)
-        SRPReportFactory(status=SRPReport.SRPReportStatus.PREPARED)
+        SRPReportFactory(status=SRPReport.SRPReportStatus.IN_PROGRESS)
+        SRPReportFactory(status=SRPReport.SRPReportStatus.EMPTY)
         response = api_client.get(
-            f"/regulatory-reporting/api/v1/srp-reports?status={SRPReport.SRPReportStatus.REQUIRED}"
+            f"/regulatory-reporting/api/v1/srp-reports?status={SRPReport.SRPReportStatus.IN_PROGRESS}"
         )
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["results"]) == 1
         assert (
-            response.data["results"][0]["status"] == SRPReport.SRPReportStatus.REQUIRED
+            response.data["results"][0]["status"]
+            == SRPReport.SRPReportStatus.IN_PROGRESS
         )
 
     def test_filter_by_reportable_event_type(self, api_client):

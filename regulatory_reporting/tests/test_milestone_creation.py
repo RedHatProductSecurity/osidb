@@ -261,6 +261,32 @@ class TestSRPMilestoneAutoCreation:
             "Additional information response milestones should NOT be auto-created"
         )
 
+    def test_additional_information_request_report_creates_only_air_milestone(self):
+        """
+        ADDITIONAL_INFORMATION_REQUEST reports get a single AIR milestone,
+        not the standard 24h/72h/final set.
+        """
+        srp_report = SRPReportFactory(
+            reportable_event_type=(
+                SRPReport.ReportableEventType.ADDITIONAL_INFORMATION_REQUEST
+            ),
+            status=SRPReport.SRPReportStatus.EMPTY,
+        )
+        # Factory does not create milestones; call helper explicitly
+        srp_report.milestones.all().delete()
+        create_srp_report_milestones(
+            srp_report,
+            status=SRPReportBase.SRPReportStatus.PRE_REQUIRED,
+        )
+
+        milestones = list(srp_report.milestones.all())
+        assert len(milestones) == 1
+        assert (
+            milestones[0].milestone_type
+            == SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
+        )
+        assert milestones[0].status == SRPReportBase.SRPReportStatus.PRE_REQUIRED
+
     @pytest.mark.parametrize(
         "milestone_type",
         [
