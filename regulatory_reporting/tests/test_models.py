@@ -71,10 +71,13 @@ class TestSRPReport:
 
     @pytest.mark.parametrize(
         "status",
-        [SRPReport.SRPReportStatus.IN_PROGRESS, SRPReport.SRPReportStatus.IN_PROGRESS],
+        [SRPReport.SRPReportStatus.IN_PROGRESS, SRPReport.SRPReportStatus.SUBMITTED],
     )
     def test_timer_started_required(self, status):
-        report = SRPReport(**_report_kwargs(status=status, timer_started_at=None))
+        kwargs = {"status": status, "timer_started_at": None}
+        if status == SRPReport.SRPReportStatus.SUBMITTED:
+            kwargs["srp_reference_id"] = "SRP-123"
+        report = SRPReport(**_report_kwargs(**kwargs))
 
         with pytest.raises(
             ValidationError,
@@ -149,7 +152,7 @@ class TestSRPReportMilestone:
         milestone = SRPReportMilestoneFactory()
 
         assert milestone.uuid is not None
-        assert milestone.status == SRPReport.SRPReportStatus.REQUIRED
+        assert milestone.status == SRPReportMilestone.SRPReportMilestoneStatus.REQUIRED
         assert milestone.due_at is not None
 
     def test_str(self):

@@ -153,7 +153,7 @@ class TestSRPReportMilestoneSerializer:
         original_acl_write = list(milestone.acl_write)
 
         payload = {
-            "status": SRPReportMilestone.SRPReportStatus.PREPARED,
+            "status": SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW,
             "updated_dt": milestone.updated_dt,
         }
         serializer = SRPReportMilestoneSerializer(
@@ -169,7 +169,7 @@ class TestSRPReportMilestoneSerializer:
         assert updated.is_embargoed
         assert list(updated.acl_read) == original_acl_read
         assert list(updated.acl_write) == original_acl_write
-        assert updated.status == SRPReportMilestone.SRPReportStatus.PREPARED
+        assert updated.status == SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW
 
 
 class TestSRPReportSerializer:
@@ -251,4 +251,4 @@ class TestSRPReportSerializer:
         assert updated.is_embargoed
         assert list(updated.acl_read) == original_acl_read
         assert list(updated.acl_write) == original_acl_write
-        assert updated.status == SRPReportMilestone.SRPReportMilestoneStatus.IN_PROGRESS
+        assert updated.status == SRPReport.SRPReportStatus.IN_PROGRESS

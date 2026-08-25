@@ -14776,7 +14776,7 @@ paths:
         - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
         Reports are also auto-created by signals when Critter criteria are met.
-        Manual POST creates the report in PRE_REQUIRED status with milestones.
+        Manual POST creates the report in EMPTY status with milestones.
         DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
       parameters:
       - in: query
@@ -14887,7 +14887,7 @@ paths:
         - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
         Reports are also auto-created by signals when Critter criteria are met.
-        Manual POST creates the report in PRE_REQUIRED status with milestones.
+        Manual POST creates the report in EMPTY status with milestones.
         DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
       tags:
       - regulatory-reporting
@@ -15200,7 +15200,7 @@ paths:
         - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
         Reports are also auto-created by signals when Critter criteria are met.
-        Manual POST creates the report in PRE_REQUIRED status with milestones.
+        Manual POST creates the report in EMPTY status with milestones.
         DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
       parameters:
       - in: path
@@ -15245,7 +15245,7 @@ paths:
         - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
 
         Reports are also auto-created by signals when Critter criteria are met.
-        Manual POST creates the report in PRE_REQUIRED status with milestones.
+        Manual POST creates the report in EMPTY status with milestones.
         DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
       parameters:
       - in: path
@@ -19662,7 +19662,7 @@ components:
           description: Type of event being reported to ENISA
         status:
           allOf:
-          - $ref: '#/components/schemas/StatusEefEnum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the SRP report
         evidence:
           type: string
@@ -19731,10 +19731,10 @@ components:
       description: |-
         Serializer for manually creating SRP Reports.
 
-        Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
+        Status is always EMPTY. ACLs are inherited from the flaw in the
         view's perform_create. evidence is required for manual create.
         srp_reference_id and srp_reference_url are optional. timer_started_at is
-        read-only and remains null until the report transitions to REQUIRED.
+        read-only and remains null until the report transitions to IN_PROGRESS.
       properties:
         uuid:
           type: string
@@ -19758,7 +19758,7 @@ components:
           description: Type of event being reported to ENISA
         status:
           allOf:
-          - $ref: '#/components/schemas/StatusEefEnum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           readOnly: true
         evidence:
           type: string
@@ -19823,10 +19823,10 @@ components:
       description: |-
         Serializer for manually creating SRP Reports.
 
-        Status is always PRE_REQUIRED. ACLs are inherited from the flaw in the
+        Status is always EMPTY. ACLs are inherited from the flaw in the
         view's perform_create. evidence is required for manual create.
         srp_reference_id and srp_reference_url are optional. timer_started_at is
-        read-only and remains null until the report transitions to REQUIRED.
+        read-only and remains null until the report transitions to IN_PROGRESS.
       properties:
         flaw_id:
           type: string
@@ -19897,7 +19897,7 @@ components:
           description: Type of milestone (24h, 72h, final, etc.)
         status:
           allOf:
-          - $ref: '#/components/schemas/SRPReportStatusEnum'
+          - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
           description: Current status of the milestone
         request_received_at:
           type:
@@ -19994,7 +19994,7 @@ components:
           description: Type of milestone (24h, 72h, final, etc.)
         status:
           allOf:
-          - $ref: '#/components/schemas/SRPReportStatusEnum'
+          - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
           description: Current status of the milestone
         request_received_at:
           type:
@@ -20076,7 +20076,7 @@ components:
       properties:
         status:
           allOf:
-          - $ref: '#/components/schemas/SRPReportStatusEnum'
+          - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
           description: Current status of the milestone
         request_received_at:
           type:
@@ -20100,7 +20100,7 @@ components:
       properties:
         status:
           allOf:
-          - $ref: '#/components/schemas/SRPReportStatusEnum'
+          - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
           description: Current status of the milestone
         request_received_at:
           type:
@@ -20122,6 +20122,14 @@ components:
             it is used to detect mit-air collisions.
       required:
       - updated_dt
+    SRPReportMilestoneStatusEnum:
+      enum:
+      - required
+      - in_progress
+      - in_review
+      - submitted
+      - obsolete
+      type: string
     SRPReportRequest:
       type: object
       description: |-
@@ -20147,7 +20155,7 @@ components:
           description: Type of event being reported to ENISA
         status:
           allOf:
-          - $ref: '#/components/schemas/StatusEefEnum'
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
           description: Current status of the SRP report
         evidence:
           type: string
@@ -20195,15 +20203,9 @@ components:
       - updated_dt
     SRPReportStatusEnum:
       enum:
-      - not_applicable
-      - not_required
-      - pre_required
-      - required
-      - prepared
+      - empty
+      - in_progress
       - submitted
-      - deferred
-      - blocked
-      - failed
       type: string
     SpecialHandlingEnum:
       enum:
@@ -20221,12 +20223,6 @@ components:
       - REQ
       - SKIP
       - DONE
-      type: string
-    StatusEefEnum:
-      enum:
-      - empty
-      - required
-      - submitted
       type: string
     StreamComponent:
       type: object
