@@ -18,7 +18,7 @@ REDHAT_IDENTIFIED_SOURCES = {FlawSource.REDHAT}
 
 def create_srp_report_milestones(
     srp_report: SRPReport,
-    status: str = SRPReport.SRPReportStatus.REQUIRED,
+    status: str = SRPReportMilestone.SRPReportMilestoneStatus.REQUIRED,
 ):
     """
     Create the required SRP milestones for a new SRP Report.
