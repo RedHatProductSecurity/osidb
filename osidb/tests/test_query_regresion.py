@@ -49,7 +49,7 @@ class TestQuerySetRegression:
         for _ in range(3):
             flaw = FlawFactory(
                 embargoed=embargoed,
-                impact=Impact.LOW,
+                impact=Impact.MODERATE,
                 major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             )
             AffectFactory.create_batch(
@@ -73,7 +73,7 @@ class TestQuerySetRegression:
         for _ in range(3):
             flaw = FlawFactory(
                 embargoed=embargoed,
-                impact=Impact.LOW,
+                impact=Impact.MODERATE,
                 major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
             )
             AffectFactory.create_batch(
@@ -107,7 +107,7 @@ class TestQuerySetRegression:
     ):
         flaw = FlawFactory(
             embargoed=embargoed,
-            impact=Impact.LOW,
+            impact=Impact.MODERATE,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
         AffectFactory.create_batch(
@@ -128,7 +128,7 @@ class TestQuerySetRegression:
     ):
         flaw = FlawFactory(
             embargoed=embargoed,
-            impact=Impact.LOW,
+            impact=Impact.MODERATE,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
         AffectFactory.create_batch(
@@ -151,7 +151,7 @@ class TestQuerySetRegression:
     ):
         flaw = FlawFactory(
             embargoed=embargoed,
-            impact=Impact.LOW,
+            impact=Impact.MODERATE,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
         AffectFactory.create_batch(
@@ -185,7 +185,7 @@ class TestQuerySetRegression:
     ):
         flaw = FlawFactory(
             embargoed=embargoed,
-            impact=Impact.LOW,
+            impact=Impact.MODERATE,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
         AffectFactory.create_batch(
@@ -223,7 +223,7 @@ class TestQuerySetRegression:
     ):
         flaw = FlawFactory(
             embargoed=embargoed,
-            impact=Impact.LOW,
+            impact=Impact.MODERATE,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
         for _ in range(3):
@@ -331,7 +331,7 @@ class TestQuerySetRegression:
         """
         flaw = FlawFactory(
             embargoed=False,
-            impact=Impact.LOW,
+            impact=Impact.MODERATE,
             major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
         )
         AffectFactory.create_batch(

@@ -1513,7 +1513,7 @@ class TestEndpointsAffectsUpdateTrackers:
         """
         test that the tracker update is triggered when expected only
         """
-        flaw = FlawFactory(impact="LOW")
+        flaw = FlawFactory(impact="MODERATE")
         ps_product1 = PsProductFactory(business_unit="Corporate")
         ps_module1 = PsModuleFactory(ps_product=ps_product1)
         ps_update_stream11 = PsUpdateStreamFactory(ps_module=ps_module1)
@@ -1640,7 +1640,7 @@ class TestEndpointsAffectsUpdateTrackers:
         """
         test that the tracker update is triggered when expected only
         """
-        flaw = FlawFactory(impact="LOW")
+        flaw = FlawFactory(impact="IMPORTANT")
         ps_module = PsModuleFactory()
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
@@ -1687,7 +1687,7 @@ class TestEndpointsAffectsUpdateTrackers:
         """
         test that the tracker update is triggered when an affect-flaw link is modified
         """
-        flaw1 = FlawFactory()
+        flaw1 = FlawFactory(impact="MODERATE")
         ps_module = PsModuleFactory()
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         affect = AffectFactory(
@@ -1703,7 +1703,7 @@ class TestEndpointsAffectsUpdateTrackers:
             type=Tracker.BTS2TYPE[ps_module.bts_name],
         )
 
-        flaw2 = FlawFactory(embargoed=flaw1.embargoed)
+        flaw2 = FlawFactory(embargoed=flaw1.embargoed, impact="MODERATE")
         affect_data = {
             "embargoed": flaw2.embargoed,
             "flaw": flaw2.uuid,  # re-link the affect

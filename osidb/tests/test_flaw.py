@@ -321,6 +321,7 @@ class TestFlaw:
             resolution=Affect.AffectResolution.DELEGATED,
             ps_update_stream=ps_update_stream.name,
             flaw__embargoed=False,
+            flaw__impact=Impact.MODERATE,
             # prevent LOW special handling
             impact=Impact.MODERATE,
         )
@@ -795,6 +796,86 @@ class TestImpact:
         test that the maximum is correctly identified
         """
         assert Impact(maximum) == max(Impact(impact) for impact in impacts)
+
+
+class TestAffectImpactValidation:
+    """
+    test that an Affect's impact override can never exceed its Flaw's impact
+    (the Flaw impact is never raised automatically as a side effect)
+    """
+
+    def test_affect_override_above_flaw_is_rejected(self):
+        """
+        test that creating an affect with an impact override higher than the
+        flaw's impact is rejected
+        """
+        flaw = FlawFactory(impact=Impact.LOW)
+
+        with pytest.raises(
+            ValidationError,
+            match="cannot be higher than the flaw impact",
+        ):
+            AffectFactory(flaw=flaw, impact=Impact.CRITICAL)
+
+    def test_affect_override_equal_to_flaw_is_allowed(self):
+        """
+        test that an affect impact override equal to the flaw's impact is allowed
+        """
+        flaw = FlawFactory(impact=Impact.IMPORTANT)
+        affect = AffectFactory(flaw=flaw, impact=Impact.IMPORTANT)
+
+        assert affect.impact == Impact.IMPORTANT
+
+    def test_affect_override_below_flaw_is_allowed(self):
+        """
+        test that an affect impact override below the flaw's impact is allowed
+        """
+        flaw = FlawFactory(impact=Impact.IMPORTANT)
+        affect = AffectFactory(flaw=flaw, impact=Impact.LOW)
+
+        assert affect.impact == Impact.LOW
+
+    def test_blank_affect_impact_is_allowed(self):
+        """
+        test that a blank affect impact override (which inherits the flaw's
+        impact) is always allowed
+        """
+        flaw = FlawFactory(impact=Impact.LOW)
+        affect = AffectFactory(flaw=flaw, impact=Impact.NOVALUE)
+
+        assert affect.impact == Impact.NOVALUE
+
+    def test_raising_affect_override_above_flaw_is_rejected(self):
+        """
+        test that raising an existing affect's impact override above the flaw's
+        impact is rejected
+        """
+        flaw = FlawFactory(impact=Impact.LOW)
+        affect = AffectFactory(flaw=flaw, impact=Impact.LOW)
+
+        affect.impact = Impact.IMPORTANT
+        with pytest.raises(
+            ValidationError,
+            match="cannot be higher than the flaw impact",
+        ):
+            affect.save()
+
+    def test_affect_override_after_raising_flaw_is_allowed(self):
+        """
+        test the intended workflow: raise the flaw impact first, then the affect
+        override can be raised to match
+        """
+        flaw = FlawFactory(impact=Impact.LOW)
+        affect = AffectFactory(flaw=flaw, impact=Impact.LOW)
+
+        flaw.impact = Impact.IMPORTANT
+        flaw.save()
+
+        affect.impact = Impact.IMPORTANT
+        affect.save()
+
+        affect.refresh_from_db()
+        assert affect.impact == Impact.IMPORTANT
 
 
 class TestFlawValidators:
@@ -1847,6 +1928,7 @@ class TestFlawValidators:
                 flaw=flaw,
                 ps_update_stream=ps_update_stream.name,
                 affectedness=Affect.AffectAffectedness.NEW,
+                impact=Impact.NOVALUE,
             )
             TrackerFactory(
                 embargoed=False,
@@ -1861,6 +1943,64 @@ class TestFlawValidators:
         assert should_raise == bool(
             flaw.valid_alerts.filter(name="unsupported_impact_change").exists()
         )
+
+    def test_validate_impact_not_below_affects_raises(self):
+        """
+        test that lowering a flaw's impact below an affect's explicit impact
+        override is rejected
+        """
+        flaw = FlawFactory(impact=Impact.IMPORTANT)
+        AffectFactory(flaw=flaw, impact=Impact.IMPORTANT)
+
+        flaw.impact = Impact.LOW
+        with pytest.raises(
+            ValidationError,
+            match="cannot be lower than the impact of its affects",
+        ):
+            flaw.save()
+
+    def test_validate_impact_not_below_affects_allows_equal(self):
+        """
+        test that lowering a flaw's impact to exactly the highest affect impact
+        override is allowed
+        """
+        flaw = FlawFactory(impact=Impact.CRITICAL)
+        AffectFactory(flaw=flaw, impact=Impact.IMPORTANT)
+
+        flaw.impact = Impact.IMPORTANT
+        flaw.save()
+
+        flaw.refresh_from_db()
+        assert flaw.impact == Impact.IMPORTANT
+
+    def test_validate_impact_not_below_affects_ignores_blank_affects(self):
+        """
+        test that affects without an explicit impact override (which inherit the
+        flaw's impact) never block lowering the flaw's impact
+        """
+        flaw = FlawFactory(impact=Impact.IMPORTANT)
+        AffectFactory(flaw=flaw, impact=Impact.NOVALUE)
+
+        flaw.impact = Impact.LOW
+        flaw.save()
+
+        flaw.refresh_from_db()
+        assert flaw.impact == Impact.LOW
+
+    def test_validate_impact_not_below_affects_alerts_on_internal_save(self):
+        """
+        test that an internal save (raise_validation_error=False) records an
+        error alert instead of raising
+        """
+        flaw = FlawFactory(impact=Impact.IMPORTANT)
+        AffectFactory(flaw=flaw, impact=Impact.IMPORTANT)
+
+        flaw.impact = Impact.LOW
+        flaw.save(raise_validation_error=False)
+
+        assert flaw.valid_alerts.filter(
+            name="_validate_impact_not_below_affects"
+        ).exists()
 
     @pytest.mark.parametrize(
         "was_major,is_major,tracker_statuses,should_raise",

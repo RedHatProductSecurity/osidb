@@ -272,13 +272,9 @@ class AffectFactory(BaseFactory):
         yes_declaration="",
         no_declaration=factory.Sequence(lambda n: f"ps-component-{n}"),
     )
-    impact = factory.Faker(
-        "random_element",
-        elements=(
-            filter(lambda i: i != "LOW", list(Impact))
-            if resolution == "DEFER"
-            else list(Impact)
-        ),
+    # an affect impact override must never exceed its flaw's impact
+    impact = factory.LazyAttribute(
+        lambda a: choice([i for i in Impact if Impact(i) <= Impact(a.flaw.impact)])
     )
 
     created_dt = factory.Faker("date_time", tzinfo=UTC)

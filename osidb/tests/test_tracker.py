@@ -24,8 +24,8 @@ class TestTracker:
     @pytest.mark.parametrize(
         "flaw1_impact,flaw2_impact,affect1_impact,affect2_impact,expected_impact",
         [
-            ("LOW", "MODERATE", "IMPORTANT", "CRITICAL", "CRITICAL"),
-            ("LOW", "IMPORTANT", "MODERATE", "MODERATE", "MODERATE"),
+            ("IMPORTANT", "CRITICAL", "IMPORTANT", "CRITICAL", "CRITICAL"),
+            ("MODERATE", "IMPORTANT", "MODERATE", "MODERATE", "MODERATE"),
             ("LOW", "IMPORTANT", "", "", "IMPORTANT"),
             ("LOW", "LOW", "", "LOW", "LOW"),
         ],
@@ -77,8 +77,10 @@ class TestTracker:
         """
         ps_module = PsModuleFactory()
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
-        flaw1 = FlawFactory(embargoed=False)
-        flaw2 = FlawFactory(embargoed=flaw1.embargoed)
+        # pin the flaw impacts so the affect overrides can later be raised to
+        # MODERATE without exceeding their flaw impact
+        flaw1 = FlawFactory(embargoed=False, impact="MODERATE")
+        flaw2 = FlawFactory(embargoed=flaw1.embargoed, impact="MODERATE")
         affect1 = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             flaw=flaw1,

@@ -78,8 +78,8 @@ class TestOldTrackerJiraQueryBuilder:
             (Impact.CRITICAL, Impact.NOVALUE, JiraPriority.CRITICAL),
             (Impact.CRITICAL, Impact.LOW, JiraPriority.MINOR),
             (Impact.LOW, Impact.LOW, JiraPriority.MINOR),
-            (Impact.LOW, Impact.MODERATE, JiraPriority.NORMAL),
-            (Impact.LOW, Impact.CRITICAL, JiraPriority.CRITICAL),
+            (Impact.MODERATE, Impact.MODERATE, JiraPriority.NORMAL),
+            (Impact.CRITICAL, Impact.CRITICAL, JiraPriority.CRITICAL),
         ],
     )
     def test_generate_query(self, flaw_impact, affect_impact, expected_impact):
@@ -1349,8 +1349,8 @@ class TestTrackerJiraQueryBuilder:
             (Impact.CRITICAL, Impact.NOVALUE, JiraSeverity.CRITICAL),
             (Impact.CRITICAL, Impact.LOW, JiraSeverity.LOW),
             (Impact.LOW, Impact.LOW, JiraSeverity.LOW),
-            (Impact.LOW, Impact.MODERATE, JiraSeverity.MODERATE),
-            (Impact.LOW, Impact.CRITICAL, JiraSeverity.CRITICAL),
+            (Impact.MODERATE, Impact.MODERATE, JiraSeverity.MODERATE),
+            (Impact.CRITICAL, Impact.CRITICAL, JiraSeverity.CRITICAL),
         ],
     )
     def test_generate_query(self, flaw_impact, affect_impact, expected_severity):
@@ -1539,12 +1539,12 @@ class TestTrackerJiraQueryBuilder:
         "missing,wrong,flaw_impact,affect_impact,expected_severity",
         [
             (False, False, Impact.LOW, Impact.LOW, JiraSeverity.LOW),
-            (False, False, Impact.LOW, Impact.MODERATE, JiraSeverity.MODERATE),
-            (False, False, Impact.LOW, Impact.IMPORTANT, JiraSeverity.IMPORTANT),
-            (False, False, Impact.LOW, Impact.CRITICAL, JiraSeverity.CRITICAL),
+            (False, False, Impact.MODERATE, Impact.MODERATE, JiraSeverity.MODERATE),
+            (False, False, Impact.IMPORTANT, Impact.IMPORTANT, JiraSeverity.IMPORTANT),
+            (False, False, Impact.CRITICAL, Impact.CRITICAL, JiraSeverity.CRITICAL),
             (False, False, Impact.NOVALUE, Impact.NOVALUE, None),
-            (True, False, Impact.LOW, Impact.CRITICAL, None),
-            (False, True, Impact.LOW, Impact.CRITICAL, None),
+            (True, False, Impact.CRITICAL, Impact.CRITICAL, None),
+            (False, True, Impact.CRITICAL, Impact.CRITICAL, None),
         ],
     )
     def test_severity_field(

@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- make sure that the flaw impact is always at or above any affect override (OSIDB-5389)
+
 ### Changed
 - exclude pre-Argus and already done flaws from workflow re-classification (OSIDB-5406)
 

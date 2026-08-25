@@ -765,6 +765,31 @@ class Flaw(
             )
 
     @validator
+    def _validate_impact_not_below_affects(self, **kwargs):
+        """
+        Check that the flaw's impact is always at or above any affect impact override
+        """
+        if self._state.adding:
+            return
+
+        highest = max(
+            (
+                Impact(impact)
+                for impact in self.affects.exclude(impact="").values_list(
+                    "impact", flat=True
+                )
+            ),
+            default=Impact.NOVALUE,
+        )
+        if highest > Impact(self.impact):
+            raise ValidationError(
+                f"Flaw impact ({self.impact or 'NOVALUE'}) cannot be lower than the "
+                f"impact of its affects. The highest affect impact override is "
+                f"{highest.value}. Raise the flaw impact to at least "
+                f"{highest.value}, or lower the affect impact overrides."
+            )
+
+    @validator
     def _validate_no_placeholder(self, **kwargs):
         """
         restrict any write operations on placeholder flaws
