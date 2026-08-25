@@ -31,7 +31,7 @@ def _report_kwargs(**overrides):
         "responsibility_scope": SRPReport.ResponsibilityScope.MANUFACTURER,
         "reportable_event_type": (SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED),
         "timer_started_at": timezone.now(),
-        "status": SRPReport.SRPReportStatus.REQUIRED,
+        "status": SRPReport.SRPReportStatus.IN_PROGRESS,
         "acl_read": flaw.acl_read,
         "acl_write": flaw.acl_write,
     }
@@ -55,7 +55,7 @@ class TestSRPReport:
         report = SRPReportFactory()
 
         assert report.uuid is not None
-        assert report.status == SRPReport.SRPReportStatus.REQUIRED
+        assert report.status == SRPReport.SRPReportStatus.EMPTY
         assert report.timer_started_at is not None
 
     def test_str(self):
@@ -71,7 +71,7 @@ class TestSRPReport:
 
     @pytest.mark.parametrize(
         "status",
-        [SRPReport.SRPReportStatus.REQUIRED, SRPReport.SRPReportStatus.PREPARED],
+        [SRPReport.SRPReportStatus.IN_PROGRESS, SRPReport.SRPReportStatus.IN_PROGRESS],
     )
     def test_timer_started_required(self, status):
         report = SRPReport(**_report_kwargs(status=status, timer_started_at=None))
@@ -82,19 +82,10 @@ class TestSRPReport:
         ):
             report.save()
 
-    @pytest.mark.parametrize(
-        "status",
-        [
-            SRPReport.SRPReportStatus.NOT_REQUIRED,
-            SRPReport.SRPReportStatus.NOT_APPLICABLE,
-            SRPReport.SRPReportStatus.PRE_REQUIRED,
-            SRPReport.SRPReportStatus.DEFERRED,
-            SRPReport.SRPReportStatus.BLOCKED,
-        ],
-    )
-    def test_timer_started_not_required_for_other_statuses(self, status):
-        report = SRPReportFactory(status=status, timer_started_at=None)
-
+    def test_timer_started_not_required_for_empty_status(self):
+        report = SRPReportFactory(
+            status=SRPReport.SRPReportStatus.EMPTY, timer_started_at=None
+        )
         assert report.timer_started_at is None
 
     def test_srp_reference_required_when_submitted(self):
@@ -114,7 +105,7 @@ class TestSRPReport:
 
     def test_srp_reference_not_required_when_prepared(self):
         report = SRPReportFactory(
-            status=SRPReport.SRPReportStatus.PREPARED,
+            status=SRPReport.SRPReportStatus.EMPTY,
             timer_started_at=timezone.now(),
             srp_reference_id="",
         )
@@ -122,10 +113,10 @@ class TestSRPReport:
         assert report.srp_reference_id == ""
 
     @pytest.mark.parametrize("evidence", ["", "   "])
-    def test_evidence_required_when_pre_required(self, evidence):
+    def test_evidence_required_when_status_is_empty(self, evidence):
         report = SRPReport(
             **_report_kwargs(
-                status=SRPReport.SRPReportStatus.PRE_REQUIRED,
+                status=SRPReport.SRPReportStatus.EMPTY,
                 timer_started_at=None,
                 evidence=evidence,
             )
@@ -133,13 +124,13 @@ class TestSRPReport:
 
         with pytest.raises(
             ValidationError,
-            match="evidence must be set when status is PRE_REQUIRED",
+            match="evidence must be set when status is EMPTY",
         ):
             report.save()
 
     def test_evidence_not_required_when_required(self):
         report = SRPReportFactory(
-            status=SRPReport.SRPReportStatus.REQUIRED,
+            status=SRPReport.SRPReportStatus.IN_PROGRESS,
             evidence="",
         )
 
