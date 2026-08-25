@@ -22,22 +22,6 @@ class SRPReportBase(
 ):
     """Base model for SRP report or milestone"""
 
-    class SRPReportStatus(models.TextChoices):
-        """Status of the SRP report or milestone"""
-
-        # NOTE: when moving or renaming this enum, please check and modify
-        # config/settings.py::SPECTACULAR_SETTINGS::ENUM_NAME_OVERRIDES accordingly
-
-        NOT_APPLICABLE = "not_applicable", "Not Applicable"
-        NOT_REQUIRED = "not_required", "Not Required"
-        PRE_REQUIRED = "pre_required", "Pre Required"
-        REQUIRED = "required", "Required"
-        PREPARED = "prepared", "Prepared"
-        SUBMITTED = "submitted", "Submitted"
-        DEFERRED = "deferred", "Deferred"
-        BLOCKED = "blocked", "Blocked"
-        FAILED = "failed", "Failed"
-
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     missing_required_fields = models.TextField(
