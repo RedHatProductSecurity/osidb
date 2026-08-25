@@ -19662,7 +19662,7 @@ components:
           description: Type of event being reported to ENISA
         status:
           allOf:
-          - $ref: '#/components/schemas/SRPReportStatusEnum'
+          - $ref: '#/components/schemas/StatusEefEnum'
           description: Current status of the SRP report
         evidence:
           type: string
@@ -19758,7 +19758,7 @@ components:
           description: Type of event being reported to ENISA
         status:
           allOf:
-          - $ref: '#/components/schemas/SRPReportStatusEnum'
+          - $ref: '#/components/schemas/StatusEefEnum'
           readOnly: true
         evidence:
           type: string
@@ -20147,7 +20147,7 @@ components:
           description: Type of event being reported to ENISA
         status:
           allOf:
-          - $ref: '#/components/schemas/SRPReportStatusEnum'
+          - $ref: '#/components/schemas/StatusEefEnum'
           description: Current status of the SRP report
         evidence:
           type: string
@@ -20221,6 +20221,12 @@ components:
       - REQ
       - SKIP
       - DONE
+      type: string
+    StatusEefEnum:
+      enum:
+      - empty
+      - required
+      - submitted
       type: string
     StreamComponent:
       type: object

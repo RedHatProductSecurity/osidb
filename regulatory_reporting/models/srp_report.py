@@ -44,6 +44,13 @@ class SRPReport(SRPReportBase):
     stewarded projects.
     """
 
+    class SRPReportStatus(models.TextChoices):
+        """Status of the SRP report"""
+
+        EMPTY = "empty", "Empty"
+        IN_PROGRESS = "in_progress", "In Progress"
+        SUBMITTED = "submitted", "Submitted"
+
     class ResponsibilityScope(models.TextChoices):
         """Red Hat's responsibility scope for the report"""
 
@@ -103,9 +110,9 @@ class SRPReport(SRPReportBase):
 
     # Report lifecycle status
     status = models.CharField(
-        choices=SRPReportBase.SRPReportStatus.choices,
+        choices=SRPReportStatus.choices,
         max_length=20,
-        default=SRPReportBase.SRPReportStatus.REQUIRED,
+        default=SRPReportStatus.EMPTY,
         help_text="Current status of the SRP report",
     )
 
@@ -190,9 +197,8 @@ class SRPReport(SRPReportBase):
         if (
             self.status
             in [
-                SRPReportBase.SRPReportStatus.REQUIRED,
-                SRPReportBase.SRPReportStatus.PREPARED,
-                SRPReportBase.SRPReportStatus.SUBMITTED,
+                SRPReport.SRPReportStatus.IN_PROGRESS,
+                SRPReport.SRPReportStatus.SUBMITTED,
             ]
             and not self.timer_started_at
         ):
@@ -202,17 +208,17 @@ class SRPReport(SRPReportBase):
 
     @validator
     def _validate_evidence_required(self, **kwargs):
-        """Evidence is required for manually created (PRE_REQUIRED) reports"""
-        if self.status == SRPReportBase.SRPReportStatus.PRE_REQUIRED and (
+        """Evidence is required for manually created (EMPTY) reports"""
+        if self.status == SRPReport.SRPReportStatus.EMPTY and (
             not self.evidence or not self.evidence.strip()
         ):
-            raise ValidationError("evidence must be set when status is PRE_REQUIRED")
+            raise ValidationError("evidence must be set when status is EMPTY")
 
     @validator
     def _validate_srp_reference_required(self, **kwargs):
         """SRP reference ID must be set when status is SUBMITTED"""
         if (
-            self.status == SRPReportBase.SRPReportStatus.SUBMITTED
+            self.status == SRPReport.SRPReportStatus.SUBMITTED
             and not self.srp_reference_id
         ):
             raise ValidationError(
