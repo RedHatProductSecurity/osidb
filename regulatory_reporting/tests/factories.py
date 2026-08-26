@@ -82,3 +82,23 @@ class FlawUpstreamMappingFactory(factory.django.DjangoModelFactory):
 
     flaw = factory.SubFactory(NonReportableFlawFactory)
     upstream_project = factory.SubFactory(UpstreamProjectFactory)
+
+
+class SRPReportWithMilestonesFactory(SRPReportFactory):
+    """SRP report plus the three basic milestones (24h, 72h, final)."""
+
+    milestone_24h = factory.RelatedFactory(
+        SRPReportMilestoneFactory,
+        factory_related_name="srp_report",
+        milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H,
+    )
+    milestone_72h = factory.RelatedFactory(
+        SRPReportMilestoneFactory,
+        factory_related_name="srp_report",
+        milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H,
+    )
+    milestone_final = factory.RelatedFactory(
+        SRPReportMilestoneFactory,
+        factory_related_name="srp_report",
+        milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+    )

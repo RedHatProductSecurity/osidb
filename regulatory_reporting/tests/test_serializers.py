@@ -6,10 +6,7 @@ from datetime import timedelta
 from types import SimpleNamespace
 
 import pytest
-from django.utils import timezone
 
-from osidb.models import Flaw
-from osidb.tests.factories import FlawFactory
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 from regulatory_reporting.serializers import (
     FlawUpstreamMappingSerializer,
@@ -20,6 +17,7 @@ from regulatory_reporting.serializers import (
 )
 from regulatory_reporting.tests.factories import (
     FlawUpstreamMappingFactory,
+    SRPReportWithMilestonesFactory,
     UpstreamNotificationFactory,
     UpstreamProjectFactory,
 )
@@ -93,13 +91,7 @@ class TestSRPReportMilestoneSerializer:
         Test that milestone serializer includes all basic fields.
         """
         # Arrange
-        start_time = timezone.now()
-        flaw = FlawFactory(
-            cve_id="CVE-2024-1234",
-            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-            major_incident_start_dt=start_time,
-        )
-        srp_report = SRPReport.objects.get(flaw=flaw)
+        srp_report = SRPReportWithMilestonesFactory()
         milestone = srp_report.milestones.get(
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
         )
@@ -125,12 +117,7 @@ class TestSRPReportMilestoneSerializer:
         (due_at, hours_remaining, is_overdue).
         """
         # Arrange
-        start_time = timezone.now()
-        flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-            major_incident_start_dt=start_time,
-        )
-        srp_report = SRPReport.objects.get(flaw=flaw)
+        srp_report = SRPReportWithMilestonesFactory()
         milestone = srp_report.milestones.get(
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
         )
@@ -157,12 +144,8 @@ class TestSRPReportMilestoneSerializer:
         ACLMixinSerializer.update() reads request.data.get("embargoed") directly;
         omitting it would otherwise resolve as public.
         """
-        flaw = FlawFactory(
-            embargoed=True,
-            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-            major_incident_start_dt=timezone.now(),
-        )
-        milestone = flaw.srp_reports.get().milestones.get(
+        srp_report = SRPReportWithMilestonesFactory(flaw__embargoed=True)
+        milestone = srp_report.milestones.get(
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
         )
         assert milestone.is_embargoed
@@ -192,7 +175,6 @@ class TestSRPReportMilestoneSerializer:
 class TestSRPReportSerializer:
     """Test SRPReport serializer"""
 
-    @pytest.mark.enable_signals
     def test_srp_report_serialization_severe_incident(self):
         """
         Test serialization of a Severe Incident report.
@@ -200,13 +182,9 @@ class TestSRPReportSerializer:
         Verifies reportable_event_type, milestone count, and final milestone deadline.
         """
         # Arrange
-        start_time = timezone.now()
-        flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
-            major_incident_start_dt=start_time,
+        srp_report = SRPReportWithMilestonesFactory(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
         )
-        srp_report = SRPReport.objects.get(flaw=flaw)
-
         # Act
         serializer = SRPReportSerializer(srp_report)
         data = serializer.data
@@ -250,12 +228,8 @@ class TestSRPReportSerializer:
         SRPReportSerializer inherits ACLMixinSerializer.update() but does not
         expose embargoed; omitting it would otherwise resolve as public.
         """
-        flaw = FlawFactory(
-            embargoed=True,
-            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-            major_incident_start_dt=timezone.now(),
-        )
-        report = flaw.srp_reports.get()
+        report = SRPReportWithMilestonesFactory(flaw__embargoed=True)
+
         assert report.is_embargoed
         original_acl_read = list(report.acl_read)
         original_acl_write = list(report.acl_write)
