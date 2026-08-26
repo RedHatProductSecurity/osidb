@@ -2,7 +2,7 @@ import pytest
 from django.apps import apps
 from django.conf import settings
 from django.db import connections, transaction
-from django.db.utils import ProgrammingError
+from django.db.utils import InternalError, ProgrammingError
 
 from osidb.core import set_user_acls
 from regulatory_reporting.models import (
@@ -123,17 +123,21 @@ class TestSRPReportMilestoneRLS:
         ],
     )
     def test_create(self, embargoed, acls):
+        """
+        Keep read ACLs so Django can resolve the parent SRPReport FK; omit the
+        write group so the milestone INSERT still violates RLS.
+        """
+        set_user_acls(acls)
+        report = SRPReportFactory(flaw__embargoed=embargoed)
+
+        set_user_acls(acls[:1])
         with transaction.atomic():
             with pytest.raises(
                 ProgrammingError, match="violates row-level security policy"
             ):
-                SRPReportMilestoneFactory(
-                    srp_report__flaw__embargoed=embargoed,
-                )
+                SRPReportMilestoneFactory(srp_report=report)
         set_user_acls(acls)
-        assert SRPReportMilestoneFactory(
-            srp_report__flaw__embargoed=embargoed,
-        )
+        assert SRPReportMilestoneFactory(srp_report=report)
 
     @pytest.mark.parametrize(
         "embargoed,acls",
@@ -310,16 +314,23 @@ class TestUpstreamNotificationRLS:
 
 class TestAuditTablesRLS:
     """
-    The pghistory-generated audit tables (regulatory_reporting_srpreportaudit,
-    regulatory_reporting_srpreportmilestoneaudit) only have SELECT and INSERT
-    RLS policies (see migration 0007). With no UPDATE/DELETE policy defined,
-    Postgres RLS denies those operations unconditionally - even for a session
-    holding every ACL group - which is what makes these tables append-only.
-
-    The `pgh_obj` foreign key is also configured with `on_delete=DO_NOTHING`
-    and `db_constraint=False` (see settings.PGHISTORY_OBJ_FIELD), so deleting
-    the tracked parent row must succeed and leave the audit trail behind.
+    Audit tables have only SELECT/INSERT RLS policies (migration 0007) and
+    a pghistory append_only BEFORE trigger. When RLS is enforced, UPDATE
+    and DELETE affect 0 rows. When the DB role bypasses RLS, the trigger
+    raises InternalError instead. Deleting the parent must leave the audit
+    trail (pgh_obj uses on_delete=DO_NOTHING, db_constraint=False).
     """
+
+    @staticmethod
+    def _assert_mutation_blocked(queryset, **update_kwargs):
+        try:
+            with transaction.atomic():
+                if update_kwargs:
+                    assert queryset.update(**update_kwargs) == 0
+                else:
+                    assert queryset.delete() == (0, {})
+        except InternalError as exc:
+            assert "Cannot update or delete rows from" in str(exc)
 
     def test_srp_report_audit_is_append_only(self):
         SRPReportAudit = apps.get_model("regulatory_reporting", "SRPReportAudit")
@@ -330,8 +341,8 @@ class TestAuditTablesRLS:
         events = SRPReportAudit.objects.filter(pgh_obj=report_pk)
         assert events.filter(pgh_label="insert").count() == 1
 
-        assert events.update(title="tampered") == 0
-        assert events.delete() == (0, {})
+        self._assert_mutation_blocked(events, title="tampered")
+        self._assert_mutation_blocked(events)
         assert not events.filter(title="tampered").exists()
 
         assert report.delete()
@@ -351,8 +362,8 @@ class TestAuditTablesRLS:
         events = SRPReportMilestoneAudit.objects.filter(pgh_obj=milestone_pk)
         assert events.filter(pgh_label="insert").count() == 1
 
-        assert events.update(request_source="tampered") == 0
-        assert events.delete() == (0, {})
+        self._assert_mutation_blocked(events, request_source="tampered")
+        self._assert_mutation_blocked(events)
         assert not events.filter(request_source="tampered").exists()
 
         assert milestone.delete()
