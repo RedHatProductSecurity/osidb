@@ -19,7 +19,6 @@ from regulatory_reporting.tests.factories import (
 
 pytestmark = [
     pytest.mark.unit,
-    pytest.mark.no_cra_reporting,
     pytest.mark.no_cra_notifications,
 ]
 
