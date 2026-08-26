@@ -20,8 +20,3 @@ class RegulatoryReportingConfig(AppConfig):
 
             post_save.connect(check_upstream_notifiable, sender=Flaw)
             post_save.connect(link_mapping_to_notification, sender=FlawUpstreamMapping)
-
-        if settings.CRA_REPORTING_ENABLED:
-            from .signals import create_srp_report
-
-            post_save.connect(create_srp_report, sender=Flaw)
