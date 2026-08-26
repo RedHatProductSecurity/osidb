@@ -29,8 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add manual POST create for SRP reports with PRE_REQUIRED status and evidence field (OSIDB-5284)
 
 ### Changed
-- Remove additional information from report type
-- Make reference id and url optional (OSIDB-5436).
+- Remove additional information from report type (OSIDB-5437)
+- Make reference id and url optional (OSIDB-5436)
+- Remove Flaw signal to create report (OSIDB-5462)
 
 ## [5.17.1] - 2026-08-31
 ### Added

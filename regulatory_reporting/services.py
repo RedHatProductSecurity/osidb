@@ -1,6 +1,7 @@
 import json
 import logging
 
+from django.db import transaction
 from django.template.loader import render_to_string
 from django.utils import timezone
 
@@ -66,6 +67,64 @@ def update_srp_report_milestones(srp_report: SRPReport):
             f"Updated {milestone.milestone_type} milestone for SRP Report {srp_report.uuid} "
             f"for Flaw {srp_report.flaw.uuid}, created at {milestone.created_dt}, due at {milestone.due_at}"
         )
+
+
+def create_srp_report(flaw_instance: Flaw, incident_state: Flaw.FlawMajorIncident):
+    """
+    create SRP Report and milestones when Flaw is marked as KEV or Major Incident approved.
+
+    Triggers on:
+    - EXPLOITS_KEV_APPROVED → Creates report with that reportable_event_type
+    - MAJOR_INCIDENT_APPROVED → Creates report with that reportable_event_type
+
+    reportable_event_type matches Flaw.major_incident_state directly.
+    Uses Flaw.major_incident_start_dt as the SLA timer start.
+    """
+    if incident_state not in (
+        Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+        Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+    ):
+        raise ValueError(
+            f"Unsupported incident_state {incident_state!r}; "
+            "SRP reports can only be created for EXPLOITS_KEV_APPROVED "
+            "or MAJOR_INCIDENT_APPROVED"
+        )
+
+    event_type = incident_state
+
+    with transaction.atomic():
+        srp_report, report_created = SRPReport.objects.get_or_create(
+            flaw=flaw_instance,
+            reportable_event_type=event_type,
+            defaults={
+                "title": flaw_instance.title or f"SRP Report for {flaw_instance.uuid}",
+                "status": SRPReport.SRPReportStatus.REQUIRED,
+                "responsibility_scope": SRPReport.ResponsibilityScope.MANUFACTURER,
+                "timer_started_at": flaw_instance.major_incident_start_dt,
+                "acl_read": flaw_instance.acl_read,
+                "acl_write": flaw_instance.acl_write,
+            },
+        )
+
+        if not report_created:
+            srp_report.title = (
+                flaw_instance.title or f"SRP Report for {flaw_instance.uuid}"
+            )
+            srp_report.acl_read = flaw_instance.acl_read
+            srp_report.acl_write = flaw_instance.acl_write
+            srp_report.timer_started_at = flaw_instance.major_incident_start_dt
+            srp_report.save()
+            update_srp_report_milestones(srp_report)
+            logger.info(
+                f"Updated SRP Report {srp_report.uuid} for Flaw {flaw_instance.uuid} "
+            )
+        else:
+            create_srp_report_milestones(srp_report)
+            logger.info(
+                f"Created SRP Report {srp_report.uuid} for Flaw {flaw_instance.uuid}, "
+                f"event type {event_type}"
+            )
+        return srp_report
 
 
 def _is_public_feed_only(flaw: Flaw) -> bool:
