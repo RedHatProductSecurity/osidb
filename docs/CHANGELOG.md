@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [5.17.0] - 2026-08-26
+### Added
+- Certain workflow labels now provide a `reason` attribute which can provide
+  insights as to why it was applied (OSIDB-5346)
+
+### Fixed
+- ACE: extract dependency version from sources.dependencies and build_nvr for
+  container/OCI PURLs, and treat NO_VERSION as NEW instead of AFFECTED/DELEGATED
+  to prevent false-positive trackers (OSIDB-5400)
+- ACE: handle disjoint OSV version ranges correctly instead of collapsing
+  multiple affected[] blocks into a single range, preventing false-positive
+  AFFECTED entries (OSIDB-5343)
+
 ## [5.16.4] - 2026-08-19
 ### Changed
 - Migrate LDAP from legacy Red Hat LDAP (`dc=redhat,dc=com`) to IPA LDAP
@@ -18,16 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix tracker target_release value being written to Target Version field
   instead of Target Release when the Jira project uses a non-default custom
   field ID (OSIDB-5318)
-- ACE: extract dependency version from sources.dependencies and build_nvr for
-  container/OCI PURLs, and treat NO_VERSION as NEW instead of AFFECTED/DELEGATED
-  to prevent false-positive trackers (OSIDB-5400)
-- ACE: handle disjoint OSV version ranges correctly instead of collapsing
-  multiple affected[] blocks into a single range, preventing false-positive
-  AFFECTED entries (OSIDB-5343)
-
-### Added
-- Certain workflow labels now provide a `reason` attribute which can provide
-  insights as to why it was applied (OSIDB-5318)
 
 ## [5.16.3] - 2026-08-13
 ### Fixed
