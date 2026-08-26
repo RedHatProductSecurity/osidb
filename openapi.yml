@@ -19614,7 +19614,6 @@ components:
       enum:
       - EXPLOITS_KEV_APPROVED
       - MAJOR_INCIDENT_APPROVED
-      - ADDITIONAL_INFORMATION_REQUEST
       type: string
     ResolutionEnum:
       enum:

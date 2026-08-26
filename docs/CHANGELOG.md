@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add report payloads in milestones (OSIDB-5070)
 - Add manual POST create for SRP reports with PRE_REQUIRED status and evidence field (OSIDB-5284)
 
+### Changed
+- Remove additional information from report type
+
 ## [5.17.1] - 2026-08-31
 ### Added
 - make sure that the flaw impact is always at or above any affect override (OSIDB-5389)
