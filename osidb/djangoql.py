@@ -109,7 +109,9 @@ class FlawQLSchema(DjangoQLSchema):
     }
 
     def get_field_cls(self, field):
-        """Override to use RelativeDateTimeQLField for DateTimeField instances."""
+        """Map GeneratedField to its output type; use relative datetimes."""
+        if isinstance(field, models.GeneratedField):
+            field = field.output_field
         if isinstance(field, models.DateTimeField):
             return RelativeDateTimeQLField
         return super().get_field_cls(field)
