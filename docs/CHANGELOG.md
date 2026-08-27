@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fix DjangoQL filter for `query=embargoed=True` (OSIDB-5465)
+- Fix UBI label incorrectly applied to older EUS/AUS RHEL streams — now only
+  applies to latest Z-stream and next Y-stream (e.g., rhel-9.8.z and rhel-9.9,
+  not rhel-9.2.z or rhel-9.10) (OSIDB-5459)
 
 ## [5.17.0] - 2026-08-26
 ### Added

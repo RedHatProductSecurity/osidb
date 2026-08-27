@@ -6,11 +6,23 @@ a PS module. This migration finds the correct module from
 product definitions and updates the affects.
 """
 
+import re
+
 from django.conf import settings
 from django.db import migrations
 
 from osidb.core import set_user_acls
-from osidb.helpers import ps_update_stream_natural_keys
+
+
+def ps_update_stream_natural_keys(values):
+    """Sort alphanumeric strings (natural/human sorting)"""
+    if not values:
+        return []
+
+    def atoi(text):
+        return int(text) if text.isdigit() else text
+
+    return [atoi(c) for c in re.split(r"(\d+)", values.name)]
 
 
 PS_MODULES_LIST = [

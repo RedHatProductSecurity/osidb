@@ -7,6 +7,7 @@ from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
+from django.db.models import CharField, Exists, F, OuterRef, Q, Subquery
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from psqlextra.fields import HStoreField
@@ -930,20 +931,50 @@ class Affect(
 
     def is_ubi(self) -> bool:
         """
-        check and return whether the given affect's component is a UBI package
-        for the matching ps_module (e.g. rhel-8, rhel-9, rhel-10)
+        Check whether this affect's component is a UBI package AND
+        the update stream is a current UBI stream (latest Z or next Y).
+
+        UBI images track the latest minor release of each RHEL major version:
+        - Latest Z-stream (e.g., rhel-9.8.z, not rhel-9.2.z)
+        - Next Y-stream only (e.g., rhel-9.9, not rhel-9.10)
+
+        Older EUS/AUS streams and future Y-streams do not get the UBI label.
 
         Looks the module up via ps_update_stream rather than the denormalized
         ps_module field, as ps_update_stream is a required field that is always set
         by the time this is called (even on an unsaved instance), whereas ps_module
         is only populated by save().
         """
-        return UbiPackage.objects.filter(
-            name=self.ps_component,
-            ps_module__in=PsUpdateStream.objects.filter(
-                name=self.ps_update_stream
-            ).values_list("ps_module__name", flat=True),
-        ).exists()
+        return (
+            PsUpdateStream.objects.filter(
+                name=self.ps_update_stream,
+            )
+            .annotate(
+                is_ubi_package=Exists(
+                    UbiPackage.objects.filter(
+                        name=self.ps_component,
+                        ps_module=OuterRef("ps_module__name"),
+                    )
+                ),
+                latest_z=Subquery(
+                    PsUpdateStream.objects.get_z_streams(OuterRef("ps_module")).values(
+                        "name"
+                    )[:1],
+                    output_field=CharField(),
+                ),
+                next_y=Subquery(
+                    PsUpdateStream.objects.get_y_streams(OuterRef("ps_module")).values(
+                        "name"
+                    )[:1],
+                    output_field=CharField(),
+                ),
+            )
+            .filter(
+                is_ubi_package=True,
+            )
+            .filter(Q(name=F("latest_z")) | Q(name=F("next_y")))
+            .exists()
+        )
 
     @property
     def is_notaffected(self) -> bool:
