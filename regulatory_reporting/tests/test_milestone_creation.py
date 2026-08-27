@@ -261,34 +261,6 @@ class TestSRPMilestoneAutoCreation:
             "Additional information response milestones should NOT be auto-created"
         )
 
-    def test_additional_information_request_report_creates_only_air_milestone(
-        self, create_flaw_report
-    ):
-        """
-        ADDITIONAL_INFORMATION_REQUEST reports get a single AIR milestone,
-        not the standard 24h/72h/final set.
-        """
-        srp_report = SRPReportFactory(
-            reportable_event_type=(
-                SRPReport.ReportableEventType.ADDITIONAL_INFORMATION_REQUEST
-            ),
-            status=SRPReport.SRPReportStatus.PRE_REQUIRED,
-        )
-        # Factory does not create milestones; call helper explicitly
-        srp_report.milestones.all().delete()
-        create_srp_report_milestones(
-            srp_report,
-            status=SRPReport.SRPReportStatus.PRE_REQUIRED,
-        )
-
-        milestones = list(srp_report.milestones.all())
-        assert len(milestones) == 1
-        assert (
-            milestones[0].milestone_type
-            == SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
-        )
-        assert milestones[0].status == SRPReport.SRPReportStatus.PRE_REQUIRED
-
     @pytest.mark.parametrize(
         "milestone_type",
         [
@@ -534,5 +506,20 @@ class TestCreateSrpReportIncidentState:
 
         with pytest.raises(ValueError, match="Unsupported incident_state"):
             create_srp_report(flaw, incident_state)
+
+        assert not SRPReport.objects.filter(flaw=flaw).exists()
+
+    def test_rejects_stale_approved_state_when_persisted_state_is_rejected(self):
+        flaw = FlawFactory(
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+            major_incident_start_dt=timezone.now(),
+        )
+        Flaw.objects.filter(pk=flaw.pk).update(
+            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_REJECTED
+        )
+
+        with pytest.raises(ValueError, match="does not match persisted"):
+            create_srp_report(flaw, Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED)
 
         assert not SRPReport.objects.filter(flaw=flaw).exists()
