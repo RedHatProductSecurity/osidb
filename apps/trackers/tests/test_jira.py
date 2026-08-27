@@ -1469,7 +1469,7 @@ class TestTrackerJiraQueryBuilder:
             title="some description",
             source="REDHAT",
         )
-        ps_product = PsProductFactory(business_unit="Core Middleware")
+        ps_product = PsProductFactory(team="middleware")
         ps_module = PsModuleFactory(
             name="foo-module",
             bts_name="jboss",

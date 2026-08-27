@@ -18,6 +18,9 @@ class PsProduct(models.Model):
     # the business unit to which the product belongs
     business_unit = models.CharField(max_length=50)
 
+    # the team responsible for the product
+    team = models.CharField(max_length=50, blank=True, default="")
+
     @property
     def is_community(self) -> bool:
         """
@@ -27,7 +30,7 @@ class PsProduct(models.Model):
 
     @property
     def is_middleware(self) -> bool:
-        return self.business_unit == "Core Middleware"
+        return self.team == "middleware"
 
     @property
     def is_service(self) -> bool:
