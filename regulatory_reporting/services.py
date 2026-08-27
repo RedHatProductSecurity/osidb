@@ -90,38 +90,43 @@ def create_srp_report(flaw_instance: Flaw, incident_state: Flaw.FlawMajorInciden
             "or MAJOR_INCIDENT_APPROVED"
         )
 
-    event_type = incident_state
-
     with transaction.atomic():
+        locked_flaw = Flaw.objects.select_for_update().get(pk=flaw_instance.pk)
+        if locked_flaw.major_incident_state != incident_state:
+            raise ValueError(
+                f"incident_state {incident_state!r} does not match persisted "
+                f"major_incident_state {locked_flaw.major_incident_state!r}"
+            )
+
+        event_type = locked_flaw.major_incident_state
+
         srp_report, report_created = SRPReport.objects.get_or_create(
-            flaw=flaw_instance,
+            flaw=locked_flaw,
             reportable_event_type=event_type,
             defaults={
-                "title": flaw_instance.title or f"SRP Report for {flaw_instance.uuid}",
+                "title": locked_flaw.title or f"SRP Report for {locked_flaw.uuid}",
                 "status": SRPReport.SRPReportStatus.REQUIRED,
                 "responsibility_scope": SRPReport.ResponsibilityScope.MANUFACTURER,
-                "timer_started_at": flaw_instance.major_incident_start_dt,
-                "acl_read": flaw_instance.acl_read,
-                "acl_write": flaw_instance.acl_write,
+                "timer_started_at": locked_flaw.major_incident_start_dt,
+                "acl_read": locked_flaw.acl_read,
+                "acl_write": locked_flaw.acl_write,
             },
         )
 
         if not report_created:
-            srp_report.title = (
-                flaw_instance.title or f"SRP Report for {flaw_instance.uuid}"
-            )
-            srp_report.acl_read = flaw_instance.acl_read
-            srp_report.acl_write = flaw_instance.acl_write
-            srp_report.timer_started_at = flaw_instance.major_incident_start_dt
+            srp_report.title = locked_flaw.title or f"SRP Report for {locked_flaw.uuid}"
+            srp_report.acl_read = locked_flaw.acl_read
+            srp_report.acl_write = locked_flaw.acl_write
+            srp_report.timer_started_at = locked_flaw.major_incident_start_dt
             srp_report.save()
             update_srp_report_milestones(srp_report)
             logger.info(
-                f"Updated SRP Report {srp_report.uuid} for Flaw {flaw_instance.uuid} "
+                f"Updated SRP Report {srp_report.uuid} for Flaw {locked_flaw.uuid} "
             )
         else:
             create_srp_report_milestones(srp_report)
             logger.info(
-                f"Created SRP Report {srp_report.uuid} for Flaw {flaw_instance.uuid}, "
+                f"Created SRP Report {srp_report.uuid} for Flaw {locked_flaw.uuid}, "
                 f"event type {event_type}"
             )
         return srp_report
