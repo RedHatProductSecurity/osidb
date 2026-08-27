@@ -199,14 +199,20 @@ def get_env_groups(key: str) -> list:
         return [value]
 
 
-def get_env_date(key: str, default: str) -> Union[datetime, None]:
-    """get a date environment variable of the ISO format (YYYY-MM-DD)"""
+def get_env_date(key: str, default: str = "") -> Union[datetime, None]:
+    """
+    get a date environment variable of the ISO format (YYYY-MM-DD)
+
+    returns None if neither the variable nor the default is set
+    """
     value = getenv(key, default)
     # consider empty string as empty value
     # as setting the value to non-existing env variable
     # in compose.yml results in an empty string
     if value == "":
         value = default
+    if not value:
+        return None
     return make_aware(datetime.fromisoformat(value))
 
 

@@ -96,6 +96,11 @@ CELERY_PVC_PATH="/home/output-files/"
 # To enable keywords check in the CVEorg collector
 KEYWORDS_CHECK_ENABLED=1
 
+# Flaws created before this date that are already DONE are excluded from
+# automatic workflow re-classification (they were closed under historically
+# different DONE criteria). Leave empty/unset to apply no time restriction.
+OSIDB_WORKFLOW_RECLASSIFICATION_START_DATE="2026-08-03"
+
 # Collector switches: set to 0 to turn each collector off, or 1 to turn it on (default)
 BZ_TRACKER_COLLECTOR_ENABLED=1
 BZ_METADATA_COLLECTOR_ENABLED=1

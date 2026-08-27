@@ -22,6 +22,7 @@ from apps.taskman.constants import (
     TRANSITION_REQUIRED_FIELDS,
 )
 from apps.taskman.mixins import JiraTaskSyncMixin
+from apps.workflows.constants import WORKFLOW_RECLASSIFICATION_START_DATE
 from apps.workflows.workflow import (
     WorkflowModel,
     WorkflowModelManager,
@@ -867,6 +868,20 @@ class Flaw(
         from osidb.models.flaw.label import WorkflowLabel
 
         return WorkflowLabel.objects.filter(flaw=self, name=label).exists()
+
+    def _skip_reclassification(self):
+        """
+        do not re-classify old flaws that are already DONE
+
+        they were closed under different DONE criteria, so leave them
+        untouched; an unset cutoff date means no time restriction
+        """
+        return (
+            WORKFLOW_RECLASSIFICATION_START_DATE is not None
+            and self.workflow_state == "DONE"
+            and self.created_dt is not None
+            and self.created_dt < WORKFLOW_RECLASSIFICATION_START_DATE
+        )
 
     @property
     def is_placeholder(self):

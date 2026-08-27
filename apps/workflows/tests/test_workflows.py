@@ -2,10 +2,14 @@
 workflow definitions validation tests
 """
 
+from datetime import datetime
+
 import pytest
+from django.utils.timezone import make_aware
 
 from apps.workflows.workflow import WorkflowFramework
 from osidb.models import Affect, Impact, WorkflowLabel
+from osidb.models.flaw import flaw as flaw_module
 from osidb.tests.factories import AffectFactory, FlawFactory, TrackerFactory
 
 pytestmark = pytest.mark.unit
@@ -495,3 +499,79 @@ class TestNoClassification:
 
         assert flaw.workflow_name == ""
         assert flaw.workflow_state == ""
+
+
+class TestReclassificationDateGuard:
+    """
+    Flaws created before the configured cutoff that are already DONE must not
+    be automatically re-classified (which would reopen them).
+    """
+
+    CUTOFF = make_aware(datetime(2026, 8, 3))
+
+    @pytest.mark.enable_signals
+    def test_old_done_flaw_not_reclassified(self, monkeypatch):
+        """a pre-cutoff DONE flaw keeps its DONE state on re-classification"""
+        monkeypatch.setattr(
+            flaw_module, "WORKFLOW_RECLASSIFICATION_START_DATE", self.CUTOFF
+        )
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-OLD-DONE",
+            created_dt=make_aware(datetime(2025, 1, 1)),
+        )
+        # force DONE despite the flaw not qualifying for it
+        flaw.classification = {"workflow": "DEFAULT", "state": "DONE"}
+
+        flaw.adjust_classification(save=False)
+
+        assert flaw.workflow_state == "DONE"
+
+    @pytest.mark.enable_signals
+    def test_recent_done_flaw_reclassified(self, monkeypatch):
+        """a post-cutoff DONE flaw is still re-classified normally"""
+        monkeypatch.setattr(
+            flaw_module, "WORKFLOW_RECLASSIFICATION_START_DATE", self.CUTOFF
+        )
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-NEW-DONE",
+            created_dt=make_aware(datetime(2026, 8, 10)),
+        )
+        flaw.classification = {"workflow": "DEFAULT", "state": "DONE"}
+
+        flaw.adjust_classification(save=False)
+
+        assert flaw.workflow_state != "DONE"
+
+    @pytest.mark.enable_signals
+    def test_no_restriction_when_cutoff_unset(self, monkeypatch):
+        """with no cutoff configured even old DONE flaws are re-classified"""
+        monkeypatch.setattr(flaw_module, "WORKFLOW_RECLASSIFICATION_START_DATE", None)
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-UNSET",
+            created_dt=make_aware(datetime(2020, 1, 1)),
+        )
+        flaw.classification = {"workflow": "DEFAULT", "state": "DONE"}
+
+        flaw.adjust_classification(save=False)
+
+        assert flaw.workflow_state != "DONE"
+
+    @pytest.mark.enable_signals
+    def test_old_non_done_flaw_reclassified(self, monkeypatch):
+        """the guard only protects DONE flaws, not other pre-cutoff states"""
+        monkeypatch.setattr(
+            flaw_module, "WORKFLOW_RECLASSIFICATION_START_DATE", self.CUTOFF
+        )
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-OLD-SA",
+            created_dt=make_aware(datetime(2025, 1, 1)),
+        )
+        flaw.classification = {"workflow": "DEFAULT", "state": "SECONDARY_ASSESSMENT"}
+
+        flaw.adjust_classification(save=False)
+
+        assert flaw.workflow_state != "SECONDARY_ASSESSMENT"
