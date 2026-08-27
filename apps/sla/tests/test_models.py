@@ -825,7 +825,7 @@ class TestSLOPolicy:
                 components=["dnf"],
                 embargoed=False,
                 major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
-                impact=Impact.LOW,
+                impact=Impact.MODERATE,
             )
             ps_product = PsProductFactory(business_unit="Community")
             ps_module = PsModuleFactory(ps_product=ps_product)
@@ -883,7 +883,7 @@ class TestSLOPolicy:
                 components=["dnf"],
                 embargoed=False,
                 major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
-                impact=Impact.LOW,
+                impact=Impact.MODERATE,
                 title="real flaw",
             )
             flaw2 = FlawFactory(
@@ -978,7 +978,7 @@ class TestSLOPolicy:
             }
             policy = SLOPolicy.create_from_description(policy_desc)
 
-            flaw = FlawFactory()
+            flaw = FlawFactory(impact=Impact.MODERATE)
             ps_module = PsModuleFactory()
             ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
             affect = AffectFactory(
@@ -1040,7 +1040,7 @@ class TestSLOPolicy:
             ps_product = PsProductFactory(short_name="valid", name=valid_case)
             ps_module = PsModuleFactory(bts_name="bugzilla", ps_product=ps_product)
             ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
-            flaw = FlawFactory(embargoed=False)
+            flaw = FlawFactory(embargoed=False, impact=Impact.MODERATE)
 
             # Test 1: Affect that SHOULD match the policy (Magic on RHEL)
             valid_affect = AffectFactory(
@@ -1080,7 +1080,7 @@ class TestSLOPolicy:
                 ps_module=invalid_ps_module
             )
 
-            invalid_flaw = FlawFactory(embargoed=False)
+            invalid_flaw = FlawFactory(embargoed=False, impact=Impact.MODERATE)
             invalid_affect = AffectFactory(
                 flaw=invalid_flaw,
                 affectedness=Affect.AffectAffectedness.AFFECTED,

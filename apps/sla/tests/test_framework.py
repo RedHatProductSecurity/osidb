@@ -776,6 +776,7 @@ slo:
                 (
                     {
                         "major_incident_state": Flaw.FlawMajorIncident.NOVALUE,
+                        "impact": Impact.CRITICAL,
                     },
                     {
                         "impact": Impact.CRITICAL,
@@ -795,6 +796,7 @@ slo:
                 (
                     {
                         "major_incident_state": Flaw.FlawMajorIncident.NOVALUE,
+                        "impact": Impact.IMPORTANT,
                     },
                     {
                         "impact": Impact.IMPORTANT,
@@ -814,6 +816,7 @@ slo:
                 (
                     {
                         "major_incident_state": Flaw.FlawMajorIncident.NOVALUE,
+                        "impact": Impact.MODERATE,
                     },
                     {
                         "impact": Impact.MODERATE,
@@ -833,6 +836,7 @@ slo:
                 (
                     {
                         "major_incident_state": Flaw.FlawMajorIncident.NOVALUE,
+                        "impact": Impact.LOW,
                     },
                     {
                         "impact": Impact.LOW,

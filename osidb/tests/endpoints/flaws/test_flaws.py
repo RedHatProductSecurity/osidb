@@ -1480,7 +1480,7 @@ class TestEndpointsFlaws:
         ps_update_stream = PsUpdateStreamFactory(
             name="rhel-7.0", active_to_ps_module=ps_module, ps_module=ps_module
         )
-        flaw = FlawFactory()
+        flaw = FlawFactory(impact=Impact.MODERATE)
         delegated_affect = AffectFactory(
             flaw=flaw,
             impact=Impact.MODERATE,
@@ -1823,6 +1823,9 @@ class TestEndpointsFlaws:
             embargoed=True,
             workflow_state="TRIAGE",
             reported_dt=datetime(2025, 1, 1, tzinfo=timezone.utc),
+            # pin the impact so the MODERATE affect override below never exceeds
+            # the (otherwise random) flaw impact
+            impact="MODERATE",
         )
 
         flaw.unembargo_dt = datetime(2024, 1, 1, tzinfo=timezone.utc)

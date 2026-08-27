@@ -60,7 +60,7 @@ class TestAffect:
         test resolve_dt is null when an affect is unresolved and is
         automatically updated when first entered in a resolved state
         """
-        flaw = FlawFactory()
+        flaw = FlawFactory(impact=Impact.MODERATE)
 
         # Check factory behavior
         affect = AffectFactory(

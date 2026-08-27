@@ -291,6 +291,7 @@ class TestEndpointsFlawsUpdateTrackers:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             ps_update_stream=ps_update_stream.name,
+            impact=Impact.NOVALUE,
         )
         TrackerFactory(
             affects=[affect],

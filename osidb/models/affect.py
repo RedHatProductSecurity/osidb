@@ -478,6 +478,21 @@ class Affect(
             )
 
     @validator
+    def _validate_impact_not_above_flaw(self, **kwargs):
+        """
+        Check that an affect's impact override is never higher than its flaw's impact.
+        """
+        if not self.flaw or not self.impact:
+            return
+
+        if Impact(self.impact) > Impact(self.flaw.impact):
+            raise ValidationError(
+                f"Affect impact ({self.impact}) cannot be higher than the flaw "
+                f"impact ({self.flaw.impact or 'NOVALUE'}). Raise the flaw "
+                f"impact first, then raise the affect impact override."
+            )
+
+    @validator
     def _validate_notaffected_open_tracker(self, **kwargs):
         """
         Check whether notaffected products have open trackers.

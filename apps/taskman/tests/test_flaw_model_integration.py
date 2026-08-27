@@ -170,7 +170,8 @@ class TestFlawModelIntegration(object):
         monkeypatch.setattr(JiraTaskmanQuerier, "transition_task", mock)
 
         flaw = FlawFactory(embargoed=False, impact=Impact.IMPORTANT)
-        AffectFactory(flaw=flaw)
+        # no impact override so the flaw impact can later be lowered freely
+        AffectFactory(flaw=flaw, impact=Impact.NOVALUE)
         flaw.task_key = "TASK-123"
         flaw.save()
         response = auth_client().get(f"{test_osidb_api_v2_uri}/flaws/{flaw.uuid}")
