@@ -1,7 +1,8 @@
 import json
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import timedelta
-from typing import Any, Iterator, Optional, Type
+from typing import Any
 
 import pghistory
 from celery.exceptions import Ignore
@@ -132,7 +133,7 @@ class SyncManager(models.Model):
 
     @classmethod
     def check_conflicting_sync_managers(
-        cls, sync_id, celery_task, related_managers: list[Type["SyncManager"]]
+        cls, sync_id, celery_task, related_managers: list[type["SyncManager"]]
     ):
         """
         Override this method to check for conflicting sync managers.
@@ -151,27 +152,62 @@ class SyncManager(models.Model):
         if schedule_options is None:
             schedule_options = {}
 
-        _, created = SyncManager.objects.update_or_create(
-            name=cls.__name__,
-            sync_id=sync_id,
-            defaults={"last_scheduled_dt": timezone.now()},
+        if cls.MODE != cls.SyncManagerMode.EXCLUSIVE:
+            # No dedup decision to make, no need for locking.
+            SyncManager.objects.get_or_create(name=cls.__name__, sync_id=sync_id)
+            cls._enqueue(sync_id, *args, schedule_options=schedule_options, **kwargs)
+            return
+
+        _, created = SyncManager.objects.get_or_create(
+            name=cls.__name__, sync_id=sync_id
         )
 
-        if not created and cls.MODE == cls.SyncManagerMode.EXCLUSIVE:
-            # Check if the task needs to be rescheduled
-            if not cls.is_scheduled(sync_id):
+        if not created:
+            if cls.is_scheduled(sync_id):
+                # A fresh schedule or a pending reschedule already
+                # exists (e.g. a previous call already deferred a
+                # retry) - queuing another one here would just be a
+                # duplicate task.
+                logger.info(f"{cls.__name__} {sync_id}: Already scheduled, skipping")
+                return
+
+            if cls.is_in_progress(sync_id):
+                countdown = schedule_options.get("countdown", cls.COUNTDOWN)
                 logger.info(
                     f"{cls.__name__} {sync_id}: Task already in progress"
-                    f", postponing for {schedule_options.get('countdown', cls.COUNTDOWN)} seconds"
+                    f", postponing for {countdown} seconds"
                 )
-                if "countdown" not in schedule_options:
-                    schedule_options["countdown"] = cls.COUNTDOWN
+                # Copy so we don't mutate the caller's dict.
+                reschedule_options = {**schedule_options, "countdown": countdown}
                 cls.reschedule(
                     sync_id,
                     "Task already in progress",
-                    schedule_options=schedule_options,
+                    *args,
+                    schedule_options=reschedule_options,
+                    **kwargs,
                 )
                 return
+
+        cls._enqueue(sync_id, *args, schedule_options=schedule_options, **kwargs)
+
+    @classmethod
+    def _enqueue(cls, sync_id, *args, schedule_options=None, **kwargs):
+        """
+        Record the schedule timestamp and actually put sync_task on the
+        Celery queue, bypassing the EXCLUSIVE-mode dedup checks in
+        schedule(). Used both for genuinely new schedules and by
+        reschedule(), which has already decided a new run is warranted.
+
+        Requires a SyncManager row for (cls.__name__, sync_id) to already
+        exist - the update()/get() below don't create one. Callers must
+        get_or_create() it first, as schedule() and reschedule() do.
+        """
+        if schedule_options is None:
+            schedule_options = {}
+
+        SyncManager.objects.filter(name=cls.__name__, sync_id=sync_id).update(
+            last_scheduled_dt=timezone.now()
+        )
 
         # Create model linkage if possible to make checking for conflicting
         # sync managers possible
@@ -200,7 +236,7 @@ class SyncManager(models.Model):
         cls,
         sync_id,
         celery_task,
-        related_managers: Optional[list[Type["SyncManager"]]] = None,
+        related_managers: list[type["SyncManager"]] | None = None,
     ):
         """
         This method has to be called at the beginning of the sync_task.
@@ -319,7 +355,17 @@ class SyncManager(models.Model):
             last_rescheduled_reason=reason,
             last_consecutive_reschedules=updated_last_consecutive_reschedules,
         )
-        cls.schedule(sync_id, *args, **kwargs)
+        if cls.MODE == cls.SyncManagerMode.EXCLUSIVE:
+            # Bypass schedule()'s EXCLUSIVE dedup check: we've just
+            # recorded the reschedule above, so this must actually
+            # enqueue the task.
+            cls._enqueue(sync_id, *args, **kwargs)
+        else:
+            # Non-EXCLUSIVE managers may override schedule() with their
+            # own policy (e.g. BZSyncManager's duplicate-schedule window
+            # and mandatory countdown=20) that a bare _enqueue() would
+            # skip.
+            cls.schedule(sync_id, *args, **kwargs)
         logger.info(f"{cls.__name__} {sync_id}: Sync re-scheduled ({reason})")
 
     @classmethod
@@ -357,23 +403,37 @@ class SyncManager(models.Model):
 
         # SCHEDULED, DID NOT START
         # 1) Scheduled at least once before
-        # 2) Scheduled for more than MAX_SCHEDULE_DELAY
+        # 2) Scheduled for more than the delay below
         # 3) Not started after scheduled (or ever)
         #
-        #      |       MAX_SCHEDULE_DELAY      |
-        #      |-------------------------------|---//-------?
-        #  Scheduled                          NOW        Started
+        #      |        delay        |
+        #      |----------------------|---//-------?
+        #  Scheduled                 NOW        Started
         #
+        # For EXCLUSIVE-mode managers this bucket also catches runs whose
+        # lock-rejected duplicate (LockableTaskWithArgs drops contended
+        # runs outright, no Celery retry) bumped last_scheduled_dt past
+        # last_started_dt while the original run was genuinely stuck
+        # (crashed holding the lock): that pushes the row out of the
+        # STARTED, DID NOT FINISH bucket below and into this one. Recover
+        # those on the MAX_RUN_LENGTH timescale already used to declare a
+        # run stuck, instead of the full MAX_SCHEDULE_DELAY meant for
+        # plain broker-delivery backlogs.
+        schedule_not_started_delay = (
+            cls.MAX_RUN_LENGTH
+            if cls.MODE == cls.SyncManagerMode.EXCLUSIVE
+            else cls.MAX_SCHEDULE_DELAY
+        )
         scheduled_not_started = sync_managers.filter(
             Q(last_started_dt__isnull=True)
             | Q(last_started_dt__lt=F("last_scheduled_dt")),
             last_scheduled_dt__isnull=False,
-            last_scheduled_dt__lt=timezone.now() - cls.MAX_SCHEDULE_DELAY,
+            last_scheduled_dt__lt=timezone.now() - schedule_not_started_delay,
         ).values("sync_id")
 
         reschedule(
             scheduled_not_started,
-            "Sync did not start after MAX_SCHEDULE_DELAY",
+            "Sync did not start after the schedule delay",
         )
 
         # STARTED, DID NOT FINISH
@@ -485,6 +545,10 @@ class SyncManager(models.Model):
                 manager.last_finished_dt is None
                 or manager.last_scheduled_dt > manager.last_finished_dt
             )
+            and (
+                manager.last_failed_dt is None
+                or manager.last_scheduled_dt > manager.last_failed_dt
+            )
             or (
                 manager.last_rescheduled_dt is not None
                 and manager.last_consecutive_reschedules > 0
@@ -587,14 +651,16 @@ class BZTrackerDownloadManager(SyncManager):
         # Prevent eventual duplicates
         affects = list(set(affects))
 
-        with transaction.atomic():
-            with pghistory_context(
+        with (
+            transaction.atomic(),
+            pghistory_context(
                 action="link_tracker_with_affects",
                 celery_task_id=getattr(getattr(task, "request", None), "id", None),
-            ):
-                tracker.affects.clear()
-                tracker.affects.add(*affects)
-                tracker.save(raise_validation_error=False, auto_timestamps=False)
+            ),
+        ):
+            tracker.affects.clear()
+            tracker.affects.add(*affects)
+            tracker.save(raise_validation_error=False, auto_timestamps=False)
 
         return affects, failed_flaws, failed_affects
 
@@ -749,6 +815,15 @@ class JiraTaskSyncManager(SyncManager):
     class Meta:
         proxy = True
 
+    # Multiple flaw saves in quick succession (e.g. creation immediately
+    # followed by field autofill) each call schedule() for the same flaw.
+    # The task always re-fetches the flaw's current state and uses the
+    # service account token, so a schedule while one is already running
+    # carries no extra payload - collapse it into a single reschedule
+    # instead of queuing a redundant duplicate (mirrors
+    # JiraTaskTransitionManager).
+    MODE = SyncManager.SyncManagerMode.EXCLUSIVE
+
     def __str__(self):
         from osidb.models import Flaw
 
@@ -760,7 +835,25 @@ class JiraTaskSyncManager(SyncManager):
         return result
 
     @staticmethod
-    @app.task(name="sync_manager.jira_task_sync", bind=True)
+    @app.task(
+        base=LockableTaskWithArgs,
+        name="sync_manager.jira_task_sync",
+        bind=True,
+        # Must last at least MAX_RUN_LENGTH - the same threshold
+        # is_in_progress()/check_for_reschedules() use to decide a run is
+        # stuck - or the Redis lock could expire while a still-legitimate
+        # run is in flight, letting a concurrent duplicate through.
+        #
+        # Contention is dropped, not retried: LockableTaskWithArgs rejects
+        # outright (Reject, no requeue) rather than retrying, since a
+        # bounded Celery-retry-on-lock-contention policy re-enqueued into
+        # the fifo.* queues faster than the concurrency-1 workers could
+        # drain them (OSIDB-5189 revert). Recovery for a dropped run is
+        # left to check_for_reschedules()'s periodic sweep, on the
+        # MAX_RUN_LENGTH timescale (see the scheduled_not_started bucket
+        # there), not the longer MAX_SCHEDULE_DELAY.
+        lock_ttl=int(SyncManager.MAX_RUN_LENGTH.total_seconds()),
+    )
     def sync_task(task, flaw_id, **kwargs):
         """
         perform the sync of the task of the given flaw to Jira
