@@ -206,7 +206,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             tracker_instance = TrackerSaver(self, bz_api_key=bz_api_key).save()
 
             # skip alerts as the tracker has already being validated on first creation save
-            # skip timestamp generation as it should be updated soon with external timestamp
+            # skip auto timestamps so BTS created/updated values from the saver are kept
             tracker_instance.save(no_alerts=True, auto_timestamps=False)
 
         # check Jira conditions are met
@@ -236,7 +236,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             ).save()
 
             # skip alerts as the tracker has already being validated on first creation save
-            # skip timestamp generation as it should be updated soon with external timestamp
+            # skip auto timestamps so BTS created/updated values from the saver are kept
             tracker_instance.save(no_alerts=True, auto_timestamps=False)
 
         # regular save otherwise

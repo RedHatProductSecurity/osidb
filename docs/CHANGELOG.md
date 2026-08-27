@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - base middleware recognition on better covering team attribute (OSIDB-5392)
 
 ### Fixed
+- Copy tracker created/updated timestamps from Jira and Bugzilla on create so OSIM does not display Unix epoch (OSIDB-5468)
 - Fix DjangoQL filter for `query=embargoed=True` (OSIDB-5465)
 
 ## [5.17.0] - 2026-08-26
