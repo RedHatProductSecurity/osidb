@@ -8,7 +8,9 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import pytest
+from bugzilla.exceptions import BugzillaError
 from django.utils import timezone
+from freezegun import freeze_time
 from jira import JIRAError
 
 from apps.bbsync.save import BugzillaSaver
@@ -568,7 +570,7 @@ class TestTrackerCreateTimestamps:
         tracker.created_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
         tracker.updated_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
 
-        saver = TrackerBugzillaSaver(tracker, bz_api_key="SECRET")
+        saver = TrackerBugzillaSaver(tracker)
 
         def fake_bz_create(self):
             """
@@ -594,6 +596,83 @@ class TestTrackerCreateTimestamps:
             "999888", include_fields=["creation_time", "last_change_time"]
         )
         assert result.bz_id == "999888"
-        tz = timezone.get_current_timezone()
-        assert result.created_dt == datetime(2026, 8, 21, 15, 15, 21, tzinfo=tz)
-        assert result.updated_dt == datetime(2026, 8, 21, 15, 16, 9, tzinfo=tz)
+        assert result.created_dt == datetime(
+            2026, 8, 21, 15, 15, 21, tzinfo=dt_timezone.utc
+        )
+        assert result.updated_dt == datetime(
+            2026, 8, 21, 15, 16, 9, tzinfo=dt_timezone.utc
+        )
+
+    def test_bugzilla_create_timestamps_stay_utc_in_non_utc_timezone(self):
+        """
+        treat Bugzilla Z timestamps as UTC rather than the active Django timezone
+        """
+        tracker = self._tracker(
+            "bugzilla", Tracker.TrackerType.BUGZILLA, external_system_id=""
+        )
+        tracker.created_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+        tracker.updated_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+
+        saver = TrackerBugzillaSaver(tracker)
+
+        def fake_bz_create(self):
+            """
+            stub Bugzilla create to only assign an external bug id
+            """
+            self.instance.bz_id = "999888"
+            return self.instance
+
+        with (
+            timezone.override("America/New_York"),
+            patch("apps.trackers.bugzilla.save.BugzillaSaver.create", fake_bz_create),
+            patch.object(
+                saver,
+                "get_bug_data",
+                return_value={
+                    "creation_time": "2026-08-21T15:15:21Z",
+                    "last_change_time": "2026-08-21T15:16:09Z",
+                },
+            ),
+        ):
+            result = saver.create()
+
+        created_utc = datetime(2026, 8, 21, 15, 15, 21, tzinfo=dt_timezone.utc)
+        updated_utc = datetime(2026, 8, 21, 15, 16, 9, tzinfo=dt_timezone.utc)
+        assert result.created_dt == created_utc
+        assert result.updated_dt == updated_utc
+        assert result.created_dt.utctimetuple() == created_utc.utctimetuple()
+        assert result.updated_dt.utctimetuple() == updated_utc.utctimetuple()
+
+    @freeze_time("2026-08-27T18:00:00Z")
+    def test_bugzilla_create_falls_back_when_get_bug_data_fails(self):
+        """
+        keep bz_id and use current time when Bugzilla timestamp fetch fails
+        """
+        tracker = self._tracker(
+            "bugzilla", Tracker.TrackerType.BUGZILLA, external_system_id=""
+        )
+        tracker.created_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+        tracker.updated_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+
+        saver = TrackerBugzillaSaver(tracker)
+
+        def fake_bz_create(self):
+            """
+            stub Bugzilla create to only assign an external bug id
+            """
+            self.instance.bz_id = "999888"
+            return self.instance
+
+        with (
+            patch("apps.trackers.bugzilla.save.BugzillaSaver.create", fake_bz_create),
+            patch.object(
+                saver,
+                "get_bug_data",
+                side_effect=BugzillaError({}),
+            ),
+        ):
+            result = saver.create()
+
+        assert result.bz_id == "999888"
+        assert result.created_dt == timezone.now()
+        assert result.updated_dt == timezone.now()

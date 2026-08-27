@@ -3,9 +3,11 @@ Bugzilla tracker funtionality module
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone as dt_timezone
 
+from bugzilla.exceptions import BugzillaError
 from django.utils import timezone
+from requests.exceptions import RequestException
 
 from apps.bbsync.save import BugzillaSaver
 from osidb.constants import DATETIME_FMT
@@ -57,13 +59,19 @@ class TrackerBugzillaSaver(BugzillaSaver):
             )
             created_dt = datetime.strptime(
                 bug_data["creation_time"], DATETIME_FMT
-            ).replace(tzinfo=timezone.get_current_timezone())
+            ).replace(tzinfo=dt_timezone.utc)
             updated_dt = datetime.strptime(
                 bug_data["last_change_time"], DATETIME_FMT
-            ).replace(tzinfo=timezone.get_current_timezone())
+            ).replace(tzinfo=dt_timezone.utc)
             instance.created_dt = created_dt
             instance.updated_dt = updated_dt
-        except (KeyError, TypeError, ValueError):
+        except (
+            BugzillaError,
+            KeyError,
+            RequestException,
+            TypeError,
+            ValueError,
+        ):
             logger.warning(
                 "Unable to copy Bugzilla timestamps for tracker %s (bz_id=%s)",
                 getattr(instance, "uuid", None),
