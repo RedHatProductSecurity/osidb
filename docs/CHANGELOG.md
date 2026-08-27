@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - exclude pre-Argus and already done flaws from workflow re-classification (OSIDB-5406)
+- base middleware recognition on better covering team attribute (OSIDB-5392)
 
 ### Fixed
 - Fix DjangoQL filter for `query=embargoed=True` (OSIDB-5465)
