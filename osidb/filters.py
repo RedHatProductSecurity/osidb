@@ -800,6 +800,7 @@ class FlawFilter(
             + LTE_GTE_LOOKUP_EXPRS
             + DATE_LOOKUP_EXPRS,
             "nist_cvss_validation": ["exact"],
+            "embargoed": ["exact"],
             # Workflow fields
             "workflow_name": ["exact"],
             "workflow_state": ["exact"],

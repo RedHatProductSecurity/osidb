@@ -208,3 +208,39 @@ class TestQL(object):
             str(test_data["flaw4"].uuid),
         }
         assert returned_uuids == expected_uuids
+
+    def test_query_embargoed_true(self, auth_client, test_api_uri):
+        """DjangoQL must treat embargoed as a bool (GeneratedField)."""
+        FlawFactory(embargoed=False)
+        embargoed = FlawFactory(embargoed=True)
+
+        response = auth_client().get(f"{test_api_uri}/flaws?query=embargoed=True")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["uuid"] == str(embargoed.uuid)
+
+    def test_query_embargoed_false(self, auth_client, test_api_uri):
+        public = FlawFactory(embargoed=False)
+        FlawFactory(embargoed=True)
+
+        response = auth_client().get(f"{test_api_uri}/flaws?query=embargoed=False")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["uuid"] == str(public.uuid)
+
+    def test_query_visibility_embargoed(self, auth_client, test_api_uri):
+        FlawFactory(embargoed=False)
+        embargoed = FlawFactory(embargoed=True)
+
+        response = auth_client().get(
+            f'{test_api_uri}/flaws?query=visibility="EMBARGOED"'
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 1
+        assert body["results"][0]["uuid"] == str(embargoed.uuid)

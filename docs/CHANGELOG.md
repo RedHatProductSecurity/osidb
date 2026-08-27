@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - exclude pre-Argus and already done flaws from workflow re-classification (OSIDB-5406)
 
+### Fixed
+- Fix DjangoQL filter for `query=embargoed=True` (OSIDB-5465)
+
 ## [5.17.0] - 2026-08-26
 ### Added
 - Certain workflow labels now provide a `reason` attribute which can provide
