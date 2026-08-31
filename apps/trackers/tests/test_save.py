@@ -522,7 +522,9 @@ class TestTrackerCreateTimestamps:
         """
         copy created/updated timestamps from the Jira create response
         """
-        tracker = self._tracker("jboss", Tracker.TrackerType.JIRA, external_system_id="")
+        tracker = self._tracker(
+            "jboss", Tracker.TrackerType.JIRA, external_system_id=""
+        )
         tracker.created_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
         tracker.updated_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
 
