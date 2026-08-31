@@ -11,6 +11,7 @@ import pghistory
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 from psqlextra.fields import HStoreField
 
 from osidb.mixins import (
@@ -102,6 +103,17 @@ class SRPReportMilestone(SRPReportBase):
         help_text="Text of the request",
     )
 
+    submitted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this milestone was submitted",
+    )
+    owner = models.CharField(
+        max_length=60,
+        blank=True,
+        help_text="Owner of this milestone",
+    )
+
     status = models.CharField(
         choices=SRPReportMilestoneStatus.choices,
         max_length=20,
@@ -123,6 +135,8 @@ class SRPReportMilestone(SRPReportBase):
             models.Index(fields=["srp_report"]),
             models.Index(fields=["milestone_type"]),
             models.Index(fields=["status"]),
+            models.Index(fields=["owner"]),
+            models.Index(fields=["submitted_at"]),
             GinIndex(fields=["acl_read"]),
         ]
 
@@ -187,6 +201,12 @@ class SRPReportMilestone(SRPReportBase):
         """
         if getattr(self, "_preparing_payload", False):
             return super().save(*args, **kwargs)
+
+        if self.status == self.SRPReportStatus.SUBMITTED and not self.submitted_at:
+            self.submitted_at = timezone.now()
+            update_fields = kwargs.get("update_fields")
+            if update_fields is not None:
+                kwargs["update_fields"] = list(update_fields) + ["submitted_at"]
 
         previous_status = None
         if self.pk:

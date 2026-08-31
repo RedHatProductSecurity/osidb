@@ -1,8 +1,11 @@
+from datetime import timedelta
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
 from django.utils import timezone
+from freezegun import freeze_time
 
 from osidb.tests.factories import FlawFactory
 from regulatory_reporting.models import (
@@ -212,6 +215,89 @@ class TestSRPReportMilestone:
 
         assert not SRPReport.objects.filter(uuid=report_uuid).exists()
         assert not SRPReportMilestone.objects.filter(uuid=milestone_uuid).exists()
+
+    def test_owner_defaults_to_empty(self):
+        milestone = SRPReportMilestoneFactory()
+
+        assert milestone.owner == ""
+
+    def test_owner_can_be_set(self):
+        milestone = SRPReportMilestoneFactory()
+        milestone.owner = "analyst@redhat.com"
+        milestone.save()
+        milestone.refresh_from_db()
+
+        assert milestone.owner == "analyst@redhat.com"
+
+    def test_submitted_at_defaults_to_none(self):
+        milestone = SRPReportMilestoneFactory()
+
+        assert milestone.submitted_at is None
+
+    def test_submitted_at_set_on_first_submitted_transition(self):
+        milestone = SRPReportMilestoneFactory()
+        submitted_time = timezone.now()
+
+        with freeze_time(submitted_time):
+            milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+            milestone.save()
+
+        milestone.refresh_from_db()
+        assert milestone.submitted_at == submitted_time
+
+    def test_submitted_at_not_overwritten_on_later_save(self):
+        milestone = SRPReportMilestoneFactory()
+        first_time = timezone.now()
+
+        with freeze_time(first_time):
+            milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+            milestone.save()
+        milestone.refresh_from_db()
+
+        later = first_time + timedelta(hours=1)
+        with freeze_time(later):
+            milestone.request_source = "ENISA Portal"
+            milestone.save()
+        milestone.refresh_from_db()
+
+        assert milestone.submitted_at == first_time
+
+    def test_submitted_at_writable_for_corrections(self):
+        milestone = SRPReportMilestoneFactory()
+        milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+        milestone.save()
+        milestone.refresh_from_db()
+        original = milestone.submitted_at
+        assert original is not None
+
+        correction = original - timedelta(hours=3)
+        milestone.submitted_at = correction
+        milestone.save()
+        milestone.refresh_from_db()
+
+        assert milestone.submitted_at == correction
+
+    def test_submitted_at_preserved_when_status_leaves_submitted(self):
+        milestone = SRPReportMilestoneFactory()
+        milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+        milestone.save()
+        milestone.refresh_from_db()
+        stamped = milestone.submitted_at
+
+        milestone.status = SRPReportMilestone.SRPReportStatus.PREPARED
+        milestone.save()
+        milestone.refresh_from_db()
+
+        assert milestone.submitted_at == stamped
+
+    def test_submitted_at_explicit_value_kept_on_submit(self):
+        explicit = timezone.now() - timedelta(days=1)
+        milestone = SRPReportMilestoneFactory(
+            status=SRPReportMilestone.SRPReportStatus.SUBMITTED,
+            submitted_at=explicit,
+        )
+
+        assert milestone.submitted_at == explicit
 
 
 class TestUpstreamProject(TestCase):
