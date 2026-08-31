@@ -21,6 +21,7 @@ from regulatory_reporting.services import (
 )
 from regulatory_reporting.tests.factories import (
     SRPReportMilestoneFactory,
+    SRPReportWithMilestonesFactory,
 )
 
 pytestmark = [
@@ -35,27 +36,20 @@ pytestmark = [
 # milestones, just like production.
 
 
-def _create_vulnerability_report(report_attrs=None, **flaw_kwargs):
-    """Create a Flaw that triggers a vulnerability SRP report via signal."""
+def _create_vulnerability_report(
+    report_attrs=None,
+    reportable_event_type=SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
+    **flaw_kwargs,
+):
+    """Create a Flaw."""
     flaw_kwargs["major_incident_state"] = Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED
     flaw_kwargs.setdefault("embargoed", False)
     flaw_kwargs.setdefault("major_incident_start_dt", timezone.now())
     flaw = FlawFactory(**flaw_kwargs)
-    report = SRPReport.objects.get(flaw=flaw)
-    if report_attrs:
-        for k, v in report_attrs.items():
-            setattr(report, k, v)
-        report.save()
-    return report
-
-
-def _create_incident_report(report_attrs=None, **flaw_kwargs):
-    """Create a Flaw that triggers an incident SRP report via signal."""
-    flaw_kwargs["major_incident_state"] = Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
-    flaw_kwargs.setdefault("embargoed", False)
-    flaw_kwargs.setdefault("major_incident_start_dt", timezone.now())
-    flaw = FlawFactory(**flaw_kwargs)
-    report = SRPReport.objects.get(flaw=flaw)
+    report = SRPReportWithMilestonesFactory(
+        flaw=flaw,
+        reportable_event_type=reportable_event_type,
+    )
     if report_attrs:
         for k, v in report_attrs.items():
             setattr(report, k, v)
@@ -134,7 +128,9 @@ class TestPrepare24hPayloadCommonFields:
         assert payload["notification_level"] == "24h"
 
     def test_report_title_matches_flaw_title(self):
-        report = _create_vulnerability_report(title="CVE-2026-99999 kernel: overflow")
+        report = _create_vulnerability_report(
+            report_attrs={"title": "CVE-2026-99999 kernel: overflow"}
+        )
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         prepare_24h_payload(milestone)
         payload = json.loads(milestone.meta_attr["payload_snapshot"])
@@ -254,21 +250,31 @@ class TestPrepare24hPayloadVulnerability:
 
 class TestPrepare24hPayloadIncident:
     def test_incident_fields_present(self):
-        report = _create_incident_report()
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+            report_attrs={
+                "incident_state": Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+            },
+        )
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         prepare_24h_payload(milestone)
         payload = json.loads(milestone.meta_attr["payload_snapshot"])
         assert payload["suspected_unlawful_or_malicious_acts"] == ""
 
     def test_no_cve_id_field_for_incident(self):
-        report = _create_incident_report()
+        report = _create_vulnerability_report(
+            report_attrs={"cve_id": ""},
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+        )
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         prepare_24h_payload(milestone)
         payload = json.loads(milestone.meta_attr["payload_snapshot"])
         assert "cve_id" not in payload
 
     def test_notification_type_is_severe_incident(self):
-        report = _create_incident_report()
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
+        )
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         prepare_24h_payload(milestone)
         payload = json.loads(milestone.meta_attr["payload_snapshot"])
@@ -310,7 +316,9 @@ class TestPrepare24hPayloadMissingFields:
         assert "cve_id" not in missing
 
     def test_incident_missing_malicious_acts(self):
-        report = _create_incident_report()
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
+        )
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         prepare_24h_payload(milestone)
         missing = json.loads(milestone.missing_required_fields)
@@ -499,7 +507,9 @@ class TestPrepare72hPayloadVulnerability:
 
 class TestPrepare72hPayloadIncident:
     def test_incident_fields_present(self):
-        report = _create_incident_report()
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
+        )
         m72 = _prepare_chain_up_to_72h(report)
         prepare_72h_payload(m72)
         payload = json.loads(m72.meta_attr["payload_snapshot"])
@@ -510,7 +520,9 @@ class TestPrepare72hPayloadIncident:
         assert "initial_incident_assessment" in payload
 
     def test_incident_timestamps_are_empty(self):
-        report = _create_incident_report()
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
+        )
         m72 = _prepare_chain_up_to_72h(report)
         prepare_72h_payload(m72)
         payload = json.loads(m72.meta_attr["payload_snapshot"])
@@ -518,14 +530,19 @@ class TestPrepare72hPayloadIncident:
         assert payload["incident_occurred_at"] == ""
 
     def test_initial_assessment_from_comment_zero(self):
-        report = _create_incident_report(comment_zero="Initial analysis shows...")
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+            comment_zero="Initial analysis shows...",
+        )
         m72 = _prepare_chain_up_to_72h(report)
         prepare_72h_payload(m72)
         payload = json.loads(m72.meta_attr["payload_snapshot"])
         assert "Initial analysis shows" in payload["initial_incident_assessment"]
 
     def test_no_cve_id_for_incident(self):
-        report = _create_incident_report()
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
+        )
         m72 = _prepare_chain_up_to_72h(report)
         prepare_72h_payload(m72)
         payload = json.loads(m72.meta_attr["payload_snapshot"])
@@ -556,7 +573,9 @@ class TestPrepare72hPayloadMissingFields:
         assert "general_nature_of_exploit" in missing
 
     def test_incident_timestamps_always_missing(self):
-        report = _create_incident_report()
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
+        )
         m72 = _prepare_chain_up_to_72h(report)
         prepare_72h_payload(m72)
         missing = json.loads(m72.missing_required_fields)
@@ -719,7 +738,9 @@ class TestPrepareFinalPayloadVulnerability:
 
 class TestPrepareFinalPayloadIncident:
     def test_incident_fields_present(self):
-        report = _create_incident_report()
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
+        )
         mfinal = _prepare_chain_up_to_final(report)
         prepare_final_payload(mfinal)
         payload = json.loads(mfinal.meta_attr["payload_snapshot"])
@@ -730,21 +751,30 @@ class TestPrepareFinalPayloadIncident:
         assert "applied_and_ongoing_mitigation_measures" in payload
 
     def test_incident_severity_from_impact(self):
-        report = _create_incident_report(impact="MODERATE")
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+            impact="MODERATE",
+        )
         mfinal = _prepare_chain_up_to_final(report)
         prepare_final_payload(mfinal)
         payload = json.loads(mfinal.meta_attr["payload_snapshot"])
         assert "MODERATE" in payload["incident_severity"]
 
     def test_likely_threat_from_cwe(self):
-        report = _create_incident_report(cwe_id="CWE-502")
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+            cwe_id="CWE-502",
+        )
         mfinal = _prepare_chain_up_to_final(report)
         prepare_final_payload(mfinal)
         payload = json.loads(mfinal.meta_attr["payload_snapshot"])
         assert payload["likely_threat_or_root_cause"] == "CWE-502"
 
     def test_likely_threat_empty_when_no_cwe(self):
-        report = _create_incident_report(cwe_id="")
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+            cwe_id="",
+        )
         mfinal = _prepare_chain_up_to_final(report)
         prepare_final_payload(mfinal)
         payload = json.loads(mfinal.meta_attr["payload_snapshot"])
@@ -775,7 +805,10 @@ class TestPrepareFinalPayloadMissingFields:
         assert "security_update_or_corrective_measure_details" in missing
 
     def test_missing_incident_fields(self):
-        report = _create_incident_report(cwe_id="")
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+            cwe_id="",
+        )
         mfinal = _prepare_chain_up_to_final(report)
         prepare_final_payload(mfinal)
         missing = json.loads(mfinal.missing_required_fields)

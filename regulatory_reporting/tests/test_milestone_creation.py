@@ -18,7 +18,10 @@ from osidb.models import Flaw
 from osidb.tests.factories import FlawFactory
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 from regulatory_reporting.models.abstracts import SRPReportBase
-from regulatory_reporting.services import create_srp_report_milestones
+from regulatory_reporting.services import (
+    create_srp_report,
+    create_srp_report_milestones,
+)
 from regulatory_reporting.tests.factories import SRPReportFactory
 
 pytestmark = [pytest.mark.unit, pytest.mark.enable_signals, pytest.mark.cra_reporting]
@@ -27,7 +30,7 @@ pytestmark = [pytest.mark.unit, pytest.mark.enable_signals, pytest.mark.cra_repo
 class TestSRPMilestoneAutoCreation:
     """Test automatic SRP Milestone creation when SRP Report is created"""
 
-    def test_milestones_created_for_kev_report(self):
+    def test_milestones_created_for_kev_report(self, create_flaw_report):
         """
         When SRP Report is created for KEV, create 24h, 72h, and final milestones
         with correct due dates (14 days for final).
@@ -39,7 +42,9 @@ class TestSRPMilestoneAutoCreation:
             major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
             major_incident_start_dt=start_time,
         )
-        srp_report = SRPReport.objects.get(flaw=flaw)
+        srp_report = create_flaw_report(
+            flaw=flaw, incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED
+        )
         assert (
             srp_report.reportable_event_type
             == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
@@ -63,7 +68,7 @@ class TestSRPMilestoneAutoCreation:
             not in milestone_types
         )
 
-    def test_milestones_created_for_severe_incident_report(self):
+    def test_milestones_created_for_severe_incident_report(self, create_flaw_report):
         """
         When SRP Report is created for Severe Incident, create 24h, 72h, and final milestones.
         """
@@ -76,7 +81,9 @@ class TestSRPMilestoneAutoCreation:
         )
 
         # Assert - SRP Report was created
-        srp_report = SRPReport.objects.get(flaw=flaw)
+        srp_report = create_flaw_report(
+            flaw=flaw, incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+        )
         assert (
             srp_report.reportable_event_type
             == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
@@ -92,7 +99,7 @@ class TestSRPMilestoneAutoCreation:
         assert SRPReportMilestone.MilestoneType.LEVEL_72H in milestone_types
         assert SRPReportMilestone.MilestoneType.LEVEL_FINAL in milestone_types
 
-    def test_milestone_due_dates_for_kev(self):
+    def test_milestone_due_dates_for_kev(self, create_flaw_report):
         """
         Verify correct due dates for KEV milestones:
         - 24h milestone: start_time + 24 hours
@@ -107,7 +114,9 @@ class TestSRPMilestoneAutoCreation:
         )
 
         # Assert
-        srp_report = SRPReport.objects.get(flaw=flaw)
+        srp_report = create_flaw_report(
+            flaw=flaw, incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED
+        )
         milestones = SRPReportMilestone.objects.filter(srp_report=srp_report)
 
         # Check 24h milestone
@@ -137,7 +146,7 @@ class TestSRPMilestoneAutoCreation:
             "Final milestone for KEV should be due 14 days after start"
         )
 
-    def test_milestone_due_dates_for_severe_incident(self):
+    def test_milestone_due_dates_for_severe_incident(self, create_flaw_report):
         """
         Verify correct due dates for Severe Incident milestones:
         - 24h milestone: start_time + 24 hours
@@ -152,7 +161,9 @@ class TestSRPMilestoneAutoCreation:
         )
 
         # Assert
-        srp_report = SRPReport.objects.get(flaw=flaw)
+        srp_report = create_flaw_report(
+            flaw=flaw, incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+        )
         milestones = SRPReportMilestone.objects.filter(srp_report=srp_report)
 
         # Check 24h milestone
@@ -178,7 +189,7 @@ class TestSRPMilestoneAutoCreation:
             "Final milestone for Severe Incident should be due 30 days after start"
         )
 
-    def test_milestones_inherit_acl_from_srp_report(self):
+    def test_milestones_inherit_acl_from_srp_report(self, create_flaw_report):
         """
         All milestones should inherit ACL permissions from their parent SRP Report.
         """
@@ -190,7 +201,9 @@ class TestSRPMilestoneAutoCreation:
         )
 
         # Assert
-        srp_report = SRPReport.objects.get(flaw=flaw)
+        srp_report = create_flaw_report(
+            flaw=flaw, incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED
+        )
         milestones = SRPReportMilestone.objects.filter(srp_report=srp_report)
 
         for milestone in milestones:
@@ -201,7 +214,7 @@ class TestSRPMilestoneAutoCreation:
                 f"{milestone.milestone_type} should inherit acl_write"
             )
 
-    def test_milestone_status_defaults_to_required(self):
+    def test_milestone_status_defaults_to_required(self, create_flaw_report):
         """
         All auto-created milestones should have status = REQUIRED by default.
         """
@@ -212,7 +225,9 @@ class TestSRPMilestoneAutoCreation:
             major_incident_start_dt=start_time,
         )
 
-        srp_report = SRPReport.objects.get(flaw=flaw)
+        srp_report = create_flaw_report(
+            flaw=flaw, incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED
+        )
         milestones = SRPReportMilestone.objects.filter(srp_report=srp_report)
 
         for milestone in milestones:
@@ -220,50 +235,7 @@ class TestSRPMilestoneAutoCreation:
                 f"{milestone.milestone_type} should have REQUIRED status"
             )
 
-    def test_milestones_refreshed_in_place_on_flaw_resave(
-        self,
-        internal_read_groups,
-        internal_write_groups,
-        public_read_groups,
-        public_write_groups,
-    ):
-        """
-        Re-saving a flaw with the same major-incident state should refresh existing
-        milestones in place rather than creating duplicates.
-        """
-
-        start_time = timezone.now()
-        flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-            major_incident_start_dt=start_time,
-            embargoed=False,
-            acl_read=internal_read_groups,
-            acl_write=internal_write_groups,
-        )
-
-        srp_report = SRPReport.objects.get(flaw=flaw)
-        initial_uuids = set(
-            SRPReportMilestone.objects.filter(srp_report=srp_report).values_list(
-                "uuid", flat=True
-            )
-        )
-        assert len(initial_uuids) == 3
-
-        flaw.acl_read = public_read_groups
-        flaw.acl_write = public_write_groups
-        flaw.save()
-
-        refreshed = SRPReportMilestone.objects.filter(srp_report=srp_report)
-        assert refreshed.count() == 3
-        assert set(refreshed.values_list("uuid", flat=True)) == initial_uuids, (
-            "Should update existing milestones in place, not create duplicates"
-        )
-
-        for milestone in refreshed:
-            assert milestone.acl_read == public_read_groups
-            assert milestone.acl_write == public_write_groups
-
-    def test_additional_information_response_not_auto_created(self):
+    def test_additional_information_response_not_auto_created(self, create_flaw_report):
         """
         For KEV / severe-incident reports, LEVEL_ADDITIONAL_INFORMATION_RESPONSE
         should NOT be created automatically with the standard 24h/72h/final set.
@@ -276,7 +248,9 @@ class TestSRPMilestoneAutoCreation:
             major_incident_start_dt=start_time,
         )
 
-        srp_report = SRPReport.objects.get(flaw=flaw)
+        srp_report = create_flaw_report(
+            flaw=flaw, incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED
+        )
 
         # Should have no additional_information_response milestones
         additional_info_milestones = SRPReportMilestone.objects.filter(
@@ -287,63 +261,6 @@ class TestSRPMilestoneAutoCreation:
             "Additional information response milestones should NOT be auto-created"
         )
 
-    def test_milestones_created_for_both_event_types_on_state_transition(self):
-        """
-        If a flaw transitions from MAJOR_INCIDENT_APPROVED to EXPLOITS_KEV_APPROVED,
-        both SRP Reports should get their own sets of milestones.
-        """
-        start_time = timezone.now()
-        flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
-            major_incident_start_dt=start_time,
-        )
-
-        # Verify first report and milestones created
-        severe_report = SRPReport.objects.get(
-            flaw=flaw,
-            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
-        )
-        severe_milestones = SRPReportMilestone.objects.filter(srp_report=severe_report)
-        assert severe_milestones.count() == 3
-
-        # Act - transition to KEV approved
-        flaw.major_incident_state = Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED
-        flaw.save()
-
-        # KEV report created with its own milestones
-        kev_report = SRPReport.objects.get(
-            flaw=flaw,
-            reportable_event_type=SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
-        )
-        kev_milestones = SRPReportMilestone.objects.filter(srp_report=kev_report)
-        assert kev_milestones.count() == 3, (
-            "KEV report should have its own 3 milestones"
-        )
-
-        # both sets of milestones exist
-        total_milestones = SRPReportMilestone.objects.filter(srp_report__flaw=flaw)
-        assert total_milestones.count() == 6, (
-            "Should have 6 total milestones (3 per report)"
-        )
-
-    def test_milestone_creation_on_flaw_creation_with_approved_state(self):
-        """
-        If a flaw is created with major_incident_state already set to an approved state,
-        milestones should be created immediately.
-        """
-        start_time = timezone.now()
-        flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-            major_incident_start_dt=start_time,
-        )
-
-        # Assert - milestones created
-        srp_report = SRPReport.objects.get(flaw=flaw)
-        milestones = SRPReportMilestone.objects.filter(srp_report=srp_report)
-        assert milestones.count() == 3, (
-            "Milestones should be created even on initial flaw creation"
-        )
-
     @pytest.mark.parametrize(
         "milestone_type",
         [
@@ -352,7 +269,7 @@ class TestSRPMilestoneAutoCreation:
             SRPReportMilestone.MilestoneType.LEVEL_FINAL,
         ],
     )
-    def test_milestone_uniqueness_constraint(self, milestone_type):
+    def test_milestone_uniqueness_constraint(self, milestone_type, create_flaw_report):
         """
         Each SRP Report should only have ONE milestone of each type (24h, 72h, final).
         The uniqueness constraint should prevent duplicates.
@@ -364,7 +281,9 @@ class TestSRPMilestoneAutoCreation:
             major_incident_start_dt=start_time,
         )
 
-        srp_report = SRPReport.objects.get(flaw=flaw)
+        srp_report = create_flaw_report(
+            flaw=flaw, incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED
+        )
 
         assert (
             SRPReportMilestone.objects.filter(
@@ -384,7 +303,7 @@ class TestSRPMilestoneAutoCreation:
                 acl_write=srp_report.acl_write,
             )
 
-    def test_milestone_relationships_to_srp_report(self):
+    def test_milestone_relationships_to_srp_report(self, create_flaw_report):
         """
         Verify the relationship between milestones and their parent SRP Report works correctly.
         """
@@ -395,7 +314,9 @@ class TestSRPMilestoneAutoCreation:
             major_incident_start_dt=start_time,
         )
 
-        srp_report = SRPReport.objects.get(flaw=flaw)
+        srp_report = create_flaw_report(
+            flaw=flaw, incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED
+        )
 
         # Test forward relationship (milestones -> report)
         milestones = SRPReportMilestone.objects.filter(srp_report=srp_report)
@@ -413,19 +334,6 @@ class TestSRPMilestoneAutoCreation:
             SRPReportMilestone.MilestoneType.LEVEL_FINAL in milestone_types_via_reverse
         )
 
-    def test_milestones_not_created_for_non_approved_states(self):
-        """
-        Milestones should only be created when major_incident_state is APPROVED.
-        Not for REQUESTED or REJECTED states.
-        """
-        flaw = FlawFactory(
-            major_incident_state="EXPLOITS_KEV_REQUESTED",  # Not approved yet
-            major_incident_start_dt=timezone.now(),
-        )
-        assert SRPReport.objects.filter(flaw=flaw).count() == 0
-        assert SRPReportMilestone.objects.filter(srp_report__flaw=flaw).count() == 0
-
-    @pytest.mark.no_cra_reporting
     def test_milestones_not_created_when_cra_reporting_is_disabled(self):
         """
         Milestones should not be created when CRA reporting is disabled.
@@ -446,41 +354,19 @@ class TestSRPMilestoneAutoCreation:
 class TestMilestoneDueDateProperty:
     """Test the due_at property calculation for different milestone types"""
 
-    def test_due_at_calculation_uses_timer_started_at(self):
-        """
-        The due_at property should calculate from srp_report.timer_started_at,
-        which comes from flaw.major_incident_start_dt.
-        """
-
-        start_time = timezone.now()
-        flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-            major_incident_start_dt=start_time,
-        )
-
-        srp_report = SRPReport.objects.get(flaw=flaw)
-        assert srp_report.timer_started_at == start_time
+    def test_due_at_calculation_uses_timer_started_at(self, create_flaw_report):
+        srp_report = create_flaw_report()
+        assert srp_report.timer_started_at == srp_report.flaw.major_incident_start_dt
 
         milestones = SRPReportMilestone.objects.filter(srp_report=srp_report)
         for milestone in milestones:
             # All due dates should be calculated from the same start time
-            assert milestone.due_at > start_time, (
+            assert milestone.due_at > srp_report.flaw.major_incident_start_dt, (
                 f"{milestone.milestone_type} due_at should be after start time"
             )
 
-    def test_milestone_string_representation(self):
-        """
-        Test the __str__ method of milestones includes milestone type and CVE ID.
-        """
-
-        start_time = timezone.now()
-        flaw = FlawFactory(
-            cve_id="CVE-2024-9999",
-            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-            major_incident_start_dt=start_time,
-        )
-
-        srp_report = SRPReport.objects.get(flaw=flaw)
+    def test_milestone_string_representation(self, create_flaw_report):
+        srp_report = create_flaw_report()
         milestone_24h = SRPReportMilestone.objects.get(
             srp_report=srp_report,
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H,
@@ -488,20 +374,16 @@ class TestMilestoneDueDateProperty:
 
         milestone_str = str(milestone_24h)
         assert "24h" in milestone_str
-        assert "CVE-2024-9999" in milestone_str
+        assert srp_report.flaw.cve_id in milestone_str
 
-    def test_additional_information_response_due_at_uses_request_received_at(self):
+    def test_additional_information_response_due_at_uses_request_received_at(
+        self, create_flaw_report
+    ):
         """
         LEVEL_ADDITIONAL_INFORMATION_RESPONSE milestones should calculate due_at
         from request_received_at (not timer_started_at) and use 30 days duration.
         """
-        # Arrange - create SRP Report
-        start_time = timezone.now()
-        flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-            major_incident_start_dt=start_time,
-        )
-        srp_report = SRPReport.objects.get(flaw=flaw)
+        srp_report = create_flaw_report()
 
         # Act - manually create additional information response milestone
         request_time = timezone.now() + timedelta(
@@ -525,13 +407,14 @@ class TestMilestoneDueDateProperty:
         )
 
         # Verify it's NOT calculated from timer_started_at
-        wrong_due_at = start_time + timedelta(days=30)
+        wrong_due_at = srp_report.flaw.major_incident_start_dt + timedelta(days=30)
         assert additional_info_milestone.due_at != wrong_due_at, (
             "Should NOT use timer_started_at for additional info milestones"
         )
 
     def test_additional_information_response_due_at_returns_none_without_request_time(
         self,
+        create_flaw_report,
     ):
         """
         LEVEL_ADDITIONAL_INFORMATION_RESPONSE milestone with no request_received_at
@@ -543,8 +426,7 @@ class TestMilestoneDueDateProperty:
             major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
             major_incident_start_dt=start_time,
         )
-        srp_report = SRPReport.objects.get(flaw=flaw)
-
+        srp_report = create_flaw_report(flaw=flaw)
         # Act - create additional info milestone WITHOUT request_received_at
         additional_info_milestone = SRPReportMilestone.objects.create(
             srp_report=srp_report,
@@ -560,7 +442,9 @@ class TestMilestoneDueDateProperty:
             "due_at should be None when request_received_at is not set"
         )
 
-    def test_additional_information_response_milestone_for_severe_incident(self):
+    def test_additional_information_response_milestone_for_severe_incident(
+        self, create_flaw_report
+    ):
         """
         LEVEL_ADDITIONAL_INFORMATION_RESPONSE should work the same for
         Severe Incident reports (30 days from request, not affected by
@@ -572,7 +456,9 @@ class TestMilestoneDueDateProperty:
             major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
             major_incident_start_dt=start_time,
         )
-        srp_report = SRPReport.objects.get(flaw=flaw)
+        srp_report = create_flaw_report(
+            flaw=flaw, incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+        )
         assert (
             srp_report.reportable_event_type
             == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
@@ -595,3 +481,45 @@ class TestMilestoneDueDateProperty:
             "Additional info response should always be 30 days from request, "
             "regardless of parent report type"
         )
+
+
+class TestCreateSrpReportIncidentState:
+    @pytest.mark.parametrize(
+        "incident_state",
+        [
+            Flaw.FlawMajorIncident.NOVALUE,
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_REQUESTED,
+            Flaw.FlawMajorIncident.MAJOR_INCIDENT_REJECTED,
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_REQUESTED,
+            Flaw.FlawMajorIncident.EXPLOITS_KEV_REJECTED,
+            Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED,
+        ],
+    )
+    def test_rejects_unsupported_incident_state_before_creating_report(
+        self, incident_state
+    ):
+        flaw = FlawFactory(
+            embargoed=False,
+            major_incident_state=incident_state,
+            major_incident_start_dt=timezone.now(),
+        )
+
+        with pytest.raises(ValueError, match="Unsupported incident_state"):
+            create_srp_report(flaw, incident_state)
+
+        assert not SRPReport.objects.filter(flaw=flaw).exists()
+
+    def test_rejects_stale_approved_state_when_persisted_state_is_rejected(self):
+        flaw = FlawFactory(
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+            major_incident_start_dt=timezone.now(),
+        )
+        Flaw.objects.filter(pk=flaw.pk).update(
+            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_REJECTED
+        )
+
+        with pytest.raises(ValueError, match="does not match persisted"):
+            create_srp_report(flaw, Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED)
+
+        assert not SRPReport.objects.filter(flaw=flaw).exists()

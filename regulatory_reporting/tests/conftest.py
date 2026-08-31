@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 from osidb.models import Flaw
 from osidb.tests.factories import FlawFactory
 from regulatory_reporting.models import SRPReport
+from regulatory_reporting.services import create_srp_report
 
 
 @pytest.fixture(autouse=True)
@@ -34,22 +35,15 @@ def pytest_configure(config):
 
 
 @pytest.fixture(autouse=True)
-def cra_reporting_signals(request, settings):
+def cra_reporting_enabled(request, settings):
+    """Enable CRA reporting API unless the test opts out with no_cra_reporting."""
     if request.node.get_closest_marker("no_cra_reporting"):
         settings.CRA_REPORTING_ENABLED = False
         yield
         return
 
     settings.CRA_REPORTING_ENABLED = True
-
-    from django.db.models.signals import post_save
-
-    from osidb.models import Flaw
-    from regulatory_reporting.signals import create_srp_report
-
-    post_save.connect(create_srp_report, sender=Flaw)
     yield
-    post_save.disconnect(create_srp_report, sender=Flaw)
 
 
 @pytest.fixture(autouse=True)
@@ -94,31 +88,47 @@ def authenticated_client(api_client, django_user_model):
     return api_client
 
 
-@pytest.fixture
+def _set_report_attrs(report, report_attrs):
+    if report_attrs:
+        for k, v in report_attrs.items():
+            setattr(report, k, v)
+        report.save()
+
+
+def _set_milestone_attrs(milestones, milestone_attrs):
+    if milestone_attrs:
+        for milestone in milestones:
+            for k, v in milestone_attrs.items():
+                setattr(milestone, k, v)
+            milestone.save()
+
+
+@pytest.fixture(autouse=True)
 def create_flaw_report() -> Callable[
     [Optional[Flaw], Flaw.FlawMajorIncident], SRPReport
 ]:
     def _create_report(
         flaw=None,
         incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+        report_attrs=None,
+        milestone_attrs=None,
     ) -> SRPReport:
-        existing_uuids: set = set()
         if flaw:
-            existing_uuids = set(flaw.srp_reports.values_list("uuid", flat=True))
             flaw.major_incident_state = incident_state
             flaw.save()
+            report = create_srp_report(flaw, incident_state)
+            _set_report_attrs(report, report_attrs)
+            _set_milestone_attrs(report.milestones.all(), milestone_attrs)
+            return report
         else:
             flaw = FlawFactory(
                 embargoed=False,
                 major_incident_state=incident_state,
                 major_incident_start_dt=timezone.now(),
             )
-
-        created = flaw.srp_reports.exclude(uuid__in=existing_uuids)
-        if created.exists():
-            return created.get()
-
-        # Signal used get_or_create; return the report for this event type.
-        return flaw.srp_reports.get(reportable_event_type=incident_state)
+            report = create_srp_report(flaw, incident_state)
+            _set_report_attrs(report, report_attrs)
+            _set_milestone_attrs(report.milestones.all(), milestone_attrs)
+            return report
 
     return _create_report
