@@ -15008,6 +15008,10 @@ paths:
         description: The initial index from which to return the results.
         schema:
           type: integer
+      - in: query
+        name: owner
+        schema:
+          type: string
       - in: path
         name: report_uuid
         schema:
@@ -15031,6 +15035,16 @@ paths:
         name: status
         schema:
           type: string
+      - in: query
+        name: submitted_at__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: submitted_at__lte
+        schema:
+          type: string
+          format: date-time
       - in: query
         name: uuid
         schema:

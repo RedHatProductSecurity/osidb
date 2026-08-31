@@ -202,7 +202,10 @@ class SRPReportMilestone(SRPReportBase):
         if getattr(self, "_preparing_payload", False):
             return super().save(*args, **kwargs)
 
-        if self.status == self.SRPReportStatus.SUBMITTED and not self.submitted_at:
+        if (
+            self.status == self.SRPReportMilestoneStatus.SUBMITTED
+            and not self.submitted_at
+        ):
             self.submitted_at = timezone.now()
             update_fields = kwargs.get("update_fields")
             if update_fields is not None:

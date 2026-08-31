@@ -239,7 +239,7 @@ class TestSRPReportMilestone:
         submitted_time = timezone.now()
 
         with freeze_time(submitted_time):
-            milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+            milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
             milestone.save()
 
         milestone.refresh_from_db()
@@ -250,7 +250,7 @@ class TestSRPReportMilestone:
         first_time = timezone.now()
 
         with freeze_time(first_time):
-            milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+            milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
             milestone.save()
         milestone.refresh_from_db()
 
@@ -264,7 +264,7 @@ class TestSRPReportMilestone:
 
     def test_submitted_at_writable_for_corrections(self):
         milestone = SRPReportMilestoneFactory()
-        milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+        milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
         milestone.save()
         milestone.refresh_from_db()
         original = milestone.submitted_at
@@ -279,12 +279,12 @@ class TestSRPReportMilestone:
 
     def test_submitted_at_preserved_when_status_leaves_submitted(self):
         milestone = SRPReportMilestoneFactory()
-        milestone.status = SRPReportMilestone.SRPReportStatus.SUBMITTED
+        milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
         milestone.save()
         milestone.refresh_from_db()
         stamped = milestone.submitted_at
 
-        milestone.status = SRPReportMilestone.SRPReportStatus.PREPARED
+        milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW
         milestone.save()
         milestone.refresh_from_db()
 
@@ -293,7 +293,7 @@ class TestSRPReportMilestone:
     def test_submitted_at_explicit_value_kept_on_submit(self):
         explicit = timezone.now() - timedelta(days=1)
         milestone = SRPReportMilestoneFactory(
-            status=SRPReportMilestone.SRPReportStatus.SUBMITTED,
+            status=SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED,
             submitted_at=explicit,
         )
 
