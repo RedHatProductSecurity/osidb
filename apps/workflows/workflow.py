@@ -271,6 +271,17 @@ class WorkflowModel(models.Model):
         self.classification = classification
         self.adjust_acls()  # possibly adjust ACLs too
 
+        # Notify listeners that classification changed (e.g. ACE).
+        # Import here to avoid circular import: signals.py imports WorkflowModel.
+        from apps.workflows.signals import classification_changed
+
+        classification_changed.send(
+            sender=type(self),
+            instance=self,
+            old_classification=old_classification,
+            new_classification=classification,
+        )
+
         if not save:
             return
 

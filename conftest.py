@@ -15,6 +15,7 @@ from dotenv import dotenv_values
 from rest_framework.test import APIClient
 
 from apps.trackers.models import JiraBugIssuetype, JiraProjectFields
+from apps.workflows.signals import classification_changed
 from osidb.constants import OSIDB_API_VERSION
 from osidb.core import generate_acls, set_user_acls
 from osidb.exceptions import InvalidTestEnvironmentException
@@ -218,7 +219,14 @@ def mute_signals(request):
     if "enable_signals" in request.keywords:
         return
 
-    signals = [pre_save, post_save, pre_delete, post_delete, m2m_changed]
+    signals = [
+        pre_save,
+        post_save,
+        pre_delete,
+        post_delete,
+        m2m_changed,
+        classification_changed,
+    ]
     restore = {}
     for signal in signals:
         # Temporally remove the signal's receivers (a.k.a attached functions)
