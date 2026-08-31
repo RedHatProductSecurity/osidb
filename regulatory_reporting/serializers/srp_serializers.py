@@ -65,6 +65,8 @@ class SRPReportMilestoneSerializer(
                 "request_received_at",
                 "request_source",
                 "request_text",
+                "submitted_at",
+                "owner",
                 # Tracking fields
                 "created_dt",
                 "updated_dt",
