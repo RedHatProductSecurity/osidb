@@ -67,10 +67,6 @@ class SRPReport(SRPReportBase):
             Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
             "Severe Incident",
         )
-        ADDITIONAL_INFORMATION_REQUEST = (
-            "ADDITIONAL_INFORMATION_REQUEST",
-            "Additional Information Request",
-        )
 
         @classmethod
         def enisa_notification_type(cls, value: str) -> str:
