@@ -19908,6 +19908,16 @@ components:
         request_text:
           type: string
           description: Text of the request
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When this milestone was submitted
+        owner:
+          type: string
+          description: Owner of this milestone
+          maxLength: 60
         created_dt:
           type: string
           format: date-time
@@ -20005,6 +20015,16 @@ components:
         request_text:
           type: string
           description: Text of the request
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When this milestone was submitted
+        owner:
+          type: string
+          description: Owner of this milestone
+          maxLength: 60
         created_dt:
           type: string
           format: date-time
@@ -20087,6 +20107,16 @@ components:
         request_text:
           type: string
           description: Text of the request
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When this milestone was submitted
+        owner:
+          type: string
+          description: Owner of this milestone
+          maxLength: 60
     SRPReportMilestoneRequest:
       type: object
       description: |-
@@ -20111,6 +20141,16 @@ components:
         request_text:
           type: string
           description: Text of the request
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When this milestone was submitted
+        owner:
+          type: string
+          description: Owner of this milestone
+          maxLength: 60
         updated_dt:
           type: string
           format: date-time
