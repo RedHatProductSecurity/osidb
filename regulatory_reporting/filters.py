@@ -116,6 +116,9 @@ class SRPReportMilestoneFilter(FilterSet):
     status = CharFilter(field_name="status", lookup_expr="exact")
     created_dt__gte = DateTimeFilter(field_name="created_dt", lookup_expr="gte")
     created_dt__lte = DateTimeFilter(field_name="created_dt", lookup_expr="lte")
+    submitted_at__gte = DateTimeFilter(field_name="submitted_at", lookup_expr="gte")
+    submitted_at__lte = DateTimeFilter(field_name="submitted_at", lookup_expr="lte")
+    owner = CharFilter(field_name="owner", lookup_expr="exact")
     request_source = CharFilter(field_name="request_source", lookup_expr="icontains")
     request_text = CharFilter(field_name="request_text", lookup_expr="icontains")
 
@@ -128,6 +131,9 @@ class SRPReportMilestoneFilter(FilterSet):
             "status",
             "created_dt__gte",
             "created_dt__lte",
+            "submitted_at__gte",
+            "submitted_at__lte",
+            "owner",
             "request_source",
             "request_text",
         ]

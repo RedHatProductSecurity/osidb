@@ -109,6 +109,10 @@ class TestSRPReportMilestoneSerializer:
         assert data["status"] == "required"
         assert "created_dt" in data
         assert "updated_dt" in data
+        assert "owner" in data
+        assert data["owner"] == ""
+        assert "submitted_at" in data
+        assert data["submitted_at"] is None
 
     @pytest.mark.enable_signals
     def test_milestone_serialization_computed_fields(self):
