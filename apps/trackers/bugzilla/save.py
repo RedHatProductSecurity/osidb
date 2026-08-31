@@ -3,7 +3,8 @@ Bugzilla tracker funtionality module
 """
 
 import logging
-from datetime import datetime, timezone as dt_timezone
+from datetime import datetime
+from datetime import timezone as dt_timezone
 
 from bugzilla.exceptions import BugzillaError
 from django.utils import timezone
