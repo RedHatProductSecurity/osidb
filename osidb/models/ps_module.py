@@ -6,7 +6,6 @@ from django.db import models
 from django.utils import timezone
 
 from apps.bbsync.constants import RHSCL_BTS_KEY
-from osidb.helpers import ps_update_stream_natural_keys
 from osidb.mixins import NullStrFieldsMixin, ValidateMixin
 
 from .ps_product import PsProduct
@@ -96,18 +95,16 @@ class PsModule(NullStrFieldsMixin, ValidateMixin):
     @property
     def y_streams(self):
         """Current Y-stream(s) - it can be more of them"""
+        from .ps_update_stream import PsUpdateStream
 
-        return list(self.active_ps_update_streams.exclude(name__endswith="z"))
+        return list(PsUpdateStream.objects.get_y_streams(self))
 
     @property
     def z_stream(self):
         """Current Z-stream"""
-        z_streams = self.active_ps_update_streams.filter(name__endswith="z")
-        return (
-            max(list(z_streams), key=ps_update_stream_natural_keys)
-            if z_streams
-            else None
-        )
+        from .ps_update_stream import PsUpdateStream
+
+        return PsUpdateStream.objects.get_z_streams(self).first()
 
     def subcomponent(self, component) -> Union[str, None]:
         """
