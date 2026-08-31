@@ -127,7 +127,7 @@ services:
       #   retries: 3
 
     osidb-data:
-      image: mirror.gcr.io/library/postgres:15
+      image: mirror.gcr.io/library/postgres:16
       shm_size: 1gb  # Needed for more consecutive connections
       hostname: osidb-data
       container_name: osidb-data
