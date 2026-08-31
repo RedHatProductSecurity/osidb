@@ -4,8 +4,11 @@ Tests for top-level SRP Milestone API endpoints (nested under reports).
 Tests list, retrieve, update operations for milestones.
 """
 
+from datetime import timedelta
+
 import pytest
 from django.utils import timezone
+from freezegun import freeze_time
 from rest_framework import status
 
 from osidb.models import Flaw
@@ -142,6 +145,8 @@ class TestSRPMilestoneRetrieve:
         assert "request_text" in data
         assert "created_dt" in data
         assert "updated_dt" in data
+        assert "owner" in data
+        assert "submitted_at" in data
         assert "due_at" in data
         assert "hours_remaining" in data
         assert "days_remaining" in data
@@ -280,6 +285,57 @@ class TestSRPMilestoneUpdate:
         assert milestone.request_text == "Additional information requested"
         assert milestone.meta_attr.get("payload_snapshot")
         assert "prepared_at" in milestone.meta_attr
+        assert milestone.submitted_at is not None
+        assert response.data["submitted_at"] is not None
+
+    def test_update_owner(self, authenticated_client, create_flaw_report):
+        """Can assign a milestone owner."""
+        milestones_report = create_flaw_report()
+        milestone = milestones_report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+
+        response = self._put_milestone(
+            authenticated_client,
+            milestones_report,
+            milestone,
+            owner="analyst@redhat.com",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        milestone.refresh_from_db()
+        assert milestone.owner == "analyst@redhat.com"
+        assert response.data["owner"] == "analyst@redhat.com"
+
+    def test_update_submitted_at_correction(
+        self, authenticated_client, create_flaw_report
+    ):
+        """submitted_at can be corrected after auto-stamp on submit."""
+        milestones_report = create_flaw_report()
+        milestone = milestones_report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+
+        response = self._put_milestone(
+            authenticated_client,
+            milestones_report,
+            milestone,
+            status=SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED,
+        )
+        assert response.status_code == status.HTTP_200_OK
+        milestone.refresh_from_db()
+        auto_stamped = milestone.submitted_at
+        assert auto_stamped is not None
+
+        correction = (auto_stamped - timedelta(hours=2)).replace(microsecond=0)
+        response = self._put_milestone(
+            authenticated_client,
+            milestones_report,
+            milestone,
+            submitted_at=correction.isoformat(),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        milestone.refresh_from_db()
+        assert milestone.submitted_at == correction
 
 
 @pytest.mark.django_db
@@ -320,6 +376,79 @@ class TestSRPMilestoneFiltering:
             response.data["results"][0]["milestone_type"]
             == SRPReportMilestone.MilestoneType.LEVEL_24H
         )
+
+    def test_filter_by_owner(self, api_client, create_flaw_report):
+        """Can filter milestones by owner."""
+        milestones_report = create_flaw_report()
+        owned = milestones_report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+        owned.owner = "analyst@redhat.com"
+        owned.save()
+
+        response = api_client.get(
+            f"/regulatory-reporting/api/v1/srp-reports/{milestones_report.uuid}/milestones?owner=analyst@redhat.com"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["owner"] == "analyst@redhat.com"
+
+    def test_filter_by_created_date_range(self, api_client, create_flaw_report):
+        """Can filter milestones by created_dt range."""
+        old_date = timezone.now() - timedelta(days=10)
+        recent_date = timezone.now() - timedelta(days=2)
+
+        with freeze_time(old_date):
+            milestones_report = create_flaw_report()
+
+        with freeze_time(recent_date):
+            recent_milestone = SRPReportMilestoneFactory(
+                srp_report=milestones_report,
+                milestone_type=(
+                    SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
+                ),
+            )
+
+        cutoff = timezone.now() - timedelta(days=5)
+        response = api_client.get(
+            f"/regulatory-reporting/api/v1/srp-reports/{milestones_report.uuid}/milestones",
+            {"created_dt__gte": cutoff.isoformat()},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["uuid"] == str(recent_milestone.uuid)
+
+    def test_filter_by_submitted_at_range(self, api_client, create_flaw_report):
+        """Can filter milestones by submitted_at range."""
+        milestones_report = create_flaw_report()
+        old_milestone = milestones_report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+        recent_milestone = milestones_report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H
+        )
+
+        old_date = timezone.now() - timedelta(days=10)
+        recent_date = timezone.now() - timedelta(days=2)
+        with freeze_time(old_date):
+            old_milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
+            old_milestone.save()
+        with freeze_time(recent_date):
+            recent_milestone.status = (
+                SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
+            )
+            recent_milestone.save()
+
+        cutoff = timezone.now() - timedelta(days=5)
+        response = api_client.get(
+            f"/regulatory-reporting/api/v1/srp-reports/{milestones_report.uuid}/milestones",
+            {"submitted_at__gte": cutoff.isoformat()},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["uuid"] == str(recent_milestone.uuid)
 
 
 @pytest.mark.django_db
