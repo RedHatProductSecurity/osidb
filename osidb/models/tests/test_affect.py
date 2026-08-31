@@ -335,6 +335,8 @@ class TestAutoResolve:
         affect.auto_resolve()
         assert affect.affectedness == Affect.AffectAffectedness.NEW
         assert affect.resolution == Affect.AffectResolution.NOVALUE
+        assert "not found in product definitions" in affect.affectedness_explanation
+        assert "does-not-exist" in affect.affectedness_explanation
 
     def test_stream_without_module_sets_new_novalue(self, ps_update_stream_no_module):
         flaw = FlawFactory(impact=Impact.IMPORTANT)
@@ -346,6 +348,7 @@ class TestAutoResolve:
         affect.auto_resolve()
         assert affect.affectedness == Affect.AffectAffectedness.NEW
         assert affect.resolution == Affect.AffectResolution.NOVALUE
+        assert "has no associated PS module" in affect.affectedness_explanation
 
     # ── AFFECTED/OOSS ────────────────────────────────────────────────────────
 
@@ -361,6 +364,8 @@ class TestAutoResolve:
         affect.auto_resolve()
         assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
         assert affect.resolution == Affect.AffectResolution.OOSS
+        assert "not in full support scope" in affect.affectedness_explanation
+        assert "Out of Support Scope" in affect.affectedness_explanation
 
     @pytest.mark.parametrize("impact", [Impact.IMPORTANT, Impact.CRITICAL])
     def test_no_ooss_for_high_impact(self, impact, ps_stream_with_default):
@@ -410,6 +415,8 @@ class TestAutoResolve:
         affect.auto_resolve()
         assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
         assert affect.resolution == Affect.AffectResolution.WONTFIX
+        assert "No tracker streams are defined" in affect.affectedness_explanation
+        assert "WONTFIX" in affect.affectedness_explanation
 
     def test_wontfix_low_impact_no_moderate_or_unacked_streams(
         self, ps_stream_moderate_no_tracker_streams
@@ -445,6 +452,10 @@ class TestAutoResolve:
         affect.auto_resolve()
         assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
         assert affect.resolution == Affect.AffectResolution.DEFER
+        assert "Impact is LOW" in affect.affectedness_explanation
+        assert (
+            "do not file trackers for LOW severity" in affect.affectedness_explanation
+        )
 
     @pytest.mark.parametrize(
         "cvss_vector",
@@ -465,6 +476,8 @@ class TestAutoResolve:
         affect.auto_resolve()
         assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
         assert affect.resolution == Affect.AffectResolution.DEFER
+        assert "Impact is MODERATE" in affect.affectedness_explanation
+        assert "below 7.0" in affect.affectedness_explanation
 
     def test_no_defer_moderate_impact_high_cvss(
         self, ps_stream_with_moderate_tracker, flaw_with_cvss
@@ -507,6 +520,8 @@ class TestAutoResolve:
         affect.auto_resolve()
         assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
         assert affect.resolution == Affect.AffectResolution.DELEGATED
+        assert "DELEGATED" in affect.affectedness_explanation
+        assert "tracker should be filed" in affect.affectedness_explanation
 
     def test_delegated_moderate_impact_high_cvss(
         self, ps_stream_with_moderate_tracker, flaw_with_cvss
@@ -550,6 +565,11 @@ class TestAutoResolve:
         affect.auto_resolve()
         assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
         assert affect.resolution == Affect.AffectResolution.DELEGATED
+        assert "Hummingbird module" in affect.affectedness_explanation
+        assert (
+            "trackers are always filed regardless of impact and/or CVSS score"
+            in affect.affectedness_explanation
+        )
 
     def test_hummingbird_moderate_low_cvss_skips_defer(
         self, hummingbird_ps_stream_with_moderate_tracker, flaw_with_cvss
@@ -608,6 +628,11 @@ class TestAutoResolve:
         affect.auto_resolve()
         assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
         assert affect.resolution == Affect.AffectResolution.DELEGATED
+        assert "UBI component" in affect.affectedness_explanation
+        assert (
+            "trackers are always filed regardless of impact and/or CVSS score"
+            in affect.affectedness_explanation
+        )
 
     def test_ubi_moderate_low_cvss_skips_defer(
         self, ubi_ps_stream_with_moderate_tracker, flaw_with_cvss
@@ -627,6 +652,11 @@ class TestAutoResolve:
         affect.auto_resolve()
         assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
         assert affect.resolution == Affect.AffectResolution.DELEGATED
+        assert "UBI component" in affect.affectedness_explanation
+        assert (
+            "trackers are always filed regardless of impact and/or CVSS score"
+            in affect.affectedness_explanation
+        )
 
     def test_ubi_moderate_low_cvss_skips_defer_when_ps_module_not_denormalized(
         self, ubi_ps_stream_with_moderate_tracker, flaw_with_cvss
@@ -877,3 +907,127 @@ class TestAffectIsUbi:
 
         assert affect_9_9.is_ubi() is True
         assert affect_9_10.is_ubi() is False
+
+
+@pytest.mark.enable_signals
+class TestAffectednessExplanationClearing:
+    """Tests for the affectedness_explanation clearing signal."""
+
+    @pytest.mark.django_db
+    def test_explanation_cleared_on_manual_affectedness_change(self):
+        """When a user changes affectedness, the explanation is cleared."""
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        affect.affectedness_explanation = "Auto-resolved explanation"
+        affect.save()
+
+        # Change affectedness manually (no _auto_resolved flag)
+        affect.affectedness = Affect.AffectAffectedness.NEW
+        affect.resolution = Affect.AffectResolution.NOVALUE
+        affect.save()
+
+        affect.refresh_from_db()
+        assert affect.affectedness_explanation == ""
+
+    @pytest.mark.django_db
+    def test_explanation_cleared_on_manual_resolution_change(self):
+        """When a user changes resolution, the explanation is cleared."""
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DEFER,
+        )
+        affect.affectedness_explanation = "Auto-resolved to DEFER"
+        affect.save()
+
+        # Change resolution manually
+        affect.resolution = Affect.AffectResolution.WONTFIX
+        affect.save()
+
+        affect.refresh_from_db()
+        assert affect.affectedness_explanation == ""
+
+    @pytest.mark.django_db
+    def test_explanation_preserved_when_auto_resolved(self, ps_stream_with_default):
+        """auto_resolve sets _auto_resolved flag, so explanation survives save."""
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.IMPORTANT),
+            ps_update_stream=ps_stream_with_default.name,
+            ps_component="kernel",
+            purl="pkg:rpm/redhat/kernel",
+            impact=Impact.IMPORTANT,
+        )
+        affect.auto_resolve()
+        explanation = affect.affectedness_explanation
+        assert explanation != ""
+
+        affect.save()
+
+        affect.refresh_from_db()
+        assert affect.affectedness_explanation == explanation
+
+    @pytest.mark.enable_signals
+    @pytest.mark.django_db
+    def test_explanation_cleared_after_auto_resolve_then_manual_change(
+        self, ps_stream_with_default
+    ):
+        """After auto_resolve + save, a manual status change should clear the explanation."""
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.IMPORTANT),
+            ps_update_stream=ps_stream_with_default.name,
+            ps_component="kernel",
+            purl="pkg:rpm/redhat/kernel",
+            impact=Impact.IMPORTANT,
+        )
+        affect.auto_resolve()
+        explanation = affect.affectedness_explanation
+        assert explanation != ""
+
+        # First save preserves auto_resolved explanation
+        affect.save()
+        affect.refresh_from_db()
+        assert affect.affectedness_explanation == explanation
+
+        # Manual status change should clear the explanation
+        affect.resolution = Affect.AffectResolution.WONTFIX
+        affect.save()
+
+        affect.refresh_from_db()
+        assert affect.affectedness_explanation == ""
+
+    @pytest.mark.django_db
+    def test_explanation_preserved_when_manually_edited(self):
+        """If a human manually edits the explanation, it's preserved even if status changes."""
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        affect.affectedness_explanation = "Original explanation"
+        affect.save()
+
+        # User manually edits the explanation AND changes status
+        affect.affectedness_explanation = "Human-edited explanation"
+        affect.resolution = Affect.AffectResolution.WONTFIX
+        affect.save()
+
+        affect.refresh_from_db()
+        assert affect.affectedness_explanation == "Human-edited explanation"
+
+    @pytest.mark.django_db
+    def test_explanation_preserved_when_non_status_fields_change(self):
+        """Changing impact or ps_component should not clear explanation."""
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=Impact.LOW,
+        )
+        affect.affectedness_explanation = "Explanation to preserve"
+        affect.save()
+
+        # Change impact but keep affectedness/resolution the same
+        affect.impact = Impact.MODERATE
+        affect.save()
+
+        affect.refresh_from_db()
+        assert affect.affectedness_explanation == "Explanation to preserve"

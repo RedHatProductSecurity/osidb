@@ -1163,6 +1163,7 @@ class AffectSerializer(
         choices=NotAffectedJustification,
         read_only=True,
     )
+    affectedness_explanation = serializers.CharField(read_only=True)
     labels = serializers.ListField(child=serializers.CharField(), read_only=True)
 
     @extend_schema_field(
@@ -1217,6 +1218,7 @@ class AffectSerializer(
                 "subpackage_purls",
                 "not_affected_justification",
                 "delegated_not_affected_justification",
+                "affectedness_explanation",
                 "resolved_dt",
                 "labels",
                 "created_by",

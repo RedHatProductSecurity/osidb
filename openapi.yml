@@ -14448,6 +14448,9 @@ components:
           oneOf:
           - $ref: '#/components/schemas/DelegatedNotAffectedJustificationEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        affectedness_explanation:
+          type: string
+          readOnly: true
         resolved_dt:
           type:
           - string
@@ -14494,6 +14497,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - affectedness_explanation
       - alerts
       - created_by
       - created_dt

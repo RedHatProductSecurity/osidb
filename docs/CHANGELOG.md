@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - make sure that the flaw impact is always at or above any affect override (OSIDB-5389)
+- Provide insights into chosen affectedness/resolution by automation (OSIDB-5345)
 
 ### Changed
 - exclude pre-Argus and already done flaws from workflow re-classification (OSIDB-5406)
