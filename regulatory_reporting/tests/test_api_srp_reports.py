@@ -243,10 +243,10 @@ class TestSRPReportCreate:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "evidence" in response.data
 
-    def test_create_report_missing_srp_reference_fields_fails(
+    def test_create_report_missing_srp_reference_fields_succeeds(
         self, authenticated_client
     ):
-        """srp_reference_id and srp_reference_url are required for manual create."""
+        """srp_reference_id and srp_reference_url are optional for manual create."""
         flaw = NonReportableFlawFactory()
         payload = self._create_payload(flaw)
         del payload["srp_reference_id"]
@@ -256,31 +256,31 @@ class TestSRPReportCreate:
             payload,
             format="json",
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "srp_reference_id" in response.data
-        assert "srp_reference_url" in response.data
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        assert response.data["srp_reference_id"] == ""
+        assert response.data["srp_reference_url"] == ""
 
-    def test_create_report_blank_srp_reference_id_fails(self, authenticated_client):
-        """Blank srp_reference_id is rejected."""
+    def test_create_report_blank_srp_reference_id_succeeds(self, authenticated_client):
+        """Blank srp_reference_id is accepted on create."""
         flaw = NonReportableFlawFactory()
         response = authenticated_client.post(
             "/regulatory-reporting/api/v1/srp-reports",
             self._create_payload(flaw, srp_reference_id="   "),
             format="json",
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "srp_reference_id" in response.data
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        assert response.data["srp_reference_id"] == ""
 
-    def test_create_report_blank_srp_reference_url_fails(self, authenticated_client):
-        """Blank srp_reference_url is rejected."""
+    def test_create_report_blank_srp_reference_url_succeeds(self, authenticated_client):
+        """Blank srp_reference_url is accepted on create."""
         flaw = NonReportableFlawFactory()
         response = authenticated_client.post(
             "/regulatory-reporting/api/v1/srp-reports",
             self._create_payload(flaw, srp_reference_url="   "),
             format="json",
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "srp_reference_url" in response.data
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        assert response.data["srp_reference_url"] == ""
 
     def test_create_report_srp_reference_url_too_long_fails(self, authenticated_client):
         """srp_reference_url longer than 200 characters is rejected."""
