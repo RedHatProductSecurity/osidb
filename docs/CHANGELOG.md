@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### Unreleased
+### Fixed
+- Fixed unembargo deadlocks by locking related affects and trackers before applying
+  flaw updates that cascade visibility changes. (OSIDB-5456)
+
 ## [5.17.1] - 2026-08-31
 ### Added
 - make sure that the flaw impact is always at or above any affect override (OSIDB-5389)

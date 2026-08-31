@@ -11,6 +11,7 @@ import pghistory
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import BadRequest, ValidationError
+from django.db import connection
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
@@ -2468,6 +2469,10 @@ class FlawSerializer(
         # 1) pre-update actions #
         #########################
 
+        if self._needs_related_update_lock(new_flaw, validated_data):
+            if self._lock_related_update_rows(new_flaw):
+                new_flaw.refresh_from_db()
+
         # store the old flaw for the later comparison
         old_flaw = Flaw.objects.get(uuid=new_flaw.uuid)
 
@@ -2507,30 +2512,79 @@ class FlawSerializer(
 
         return new_flaw
 
+    def _needs_related_update_lock(self, flaw, validated_data):
+        """
+        Check whether the flaw update can cascade into affect or tracker saves.
+        """
+        if validated_data.get("embargoed") is False and flaw.is_embargoed:
+            return True
+
+        return bool(
+            validated_data.keys()
+            & {
+                "components",
+                "cve_id",
+                "impact",
+                "major_incident_state",
+                "unembargo_dt",
+            }
+        )
+
+    def _major_incident_update_affects_trackers(self, old_state, new_state):
+        """
+        Check whether the MI transition affects tracker update behavior.
+        """
+        return old_state != new_state and bool(
+            {old_state, new_state}
+            & {
+                Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
+                Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+                # Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED is not included as it
+                # has no engineering impact.
+            }
+        )
+
+    def _lock_related_update_rows(self, flaw):
+        """
+        Serialize flaw updates which may save related affects and trackers later.
+        """
+        if not connection.in_atomic_block:
+            return False
+
+        list(
+            Affect.objects.select_for_update()
+            .filter(flaw=flaw)
+            .order_by("uuid")
+            .values_list("uuid", flat=True)
+        )
+
+        tracker_ids = Affect.objects.filter(
+            flaw=flaw,
+            tracker__isnull=False,
+        ).values_list("tracker_id", flat=True)
+
+        list(
+            Tracker.objects.select_for_update()
+            .filter(uuid__in=tracker_ids)
+            .order_by("uuid")
+            .values_list("uuid", flat=True)
+        )
+        return True
+
     def update_trackers(self, old_flaw, new_flaw):
         """
         update the related trackers if needed
         """
 
-        def mi_differ(flaw1, flaw2):
-            """
-            boolean check whether the given flaws
-            differ in MI value in an important way
-            """
-            if not differ(flaw1, flaw2, ["major_incident_state"]):
-                return False
-
-            # we only care for a change from or to some of the approved states
-            return bool(
-                {flaw1.major_incident_state, flaw2.major_incident_state}.intersection(
-                    [
-                        Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
-                        Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-                        # Flaw.FlawMajorIncident.MINOR_INCIDENT_APPROVED is not
-                        # included as it has no engineering impact
-                    ]
-                )
-            )
+        component_fields_changed = differ(old_flaw, new_flaw, ("components",))
+        general_fields_changed = differ(
+            old_flaw, new_flaw, ("cve_id", "is_embargoed", "unembargo_dt")
+        )
+        mi_changed = self._major_incident_update_affects_trackers(
+            old_flaw.major_incident_state,
+            new_flaw.major_incident_state,
+        )
+        impact_changed = Impact(old_flaw.impact) != Impact(new_flaw.impact)
 
         # we only need to sync the trackers when crucial attributes change
         # plus in the case of the MI we care for specific changes only
@@ -2541,14 +2595,11 @@ class FlawSerializer(
         # changes the tracker aggregated impact (in cases of multi-flaw trackers)
         # but that drastically increases the code complexity and brings only a little
         # value - would prevent a rare extra update attempt without any real effect
-        if (
-            not differ(
-                old_flaw,
-                new_flaw,
-                ["components", "cve_id", "is_embargoed", "unembargo_dt"],
-            )
-            and not mi_differ(old_flaw, new_flaw)
-            and Impact(old_flaw.impact) == Impact(new_flaw.impact)
+        if not (
+            component_fields_changed
+            or general_fields_changed
+            or mi_changed
+            or impact_changed
         ):
             return
 
@@ -2571,13 +2622,7 @@ class FlawSerializer(
             if (
                 tracker.meta_attr.get("jira_issuetype") != "Vulnerability"
                 or tracker.type != Tracker.TrackerType.JIRA
-            ) and (
-                not differ(
-                    old_flaw, new_flaw, ["cve_id", "is_embargoed", "unembargo_dt"]
-                )
-                and not mi_differ(old_flaw, new_flaw)
-                and Impact(old_flaw.impact) == Impact(new_flaw.impact)
-            ):
+            ) and not (general_fields_changed or mi_changed or impact_changed):
                 # If the non-components attributes are unchanged, a tracker update is
                 # necessary only for Vulnerability issuetype Jira trackers because only
                 # those contain components. And this tracker is not Vuln. issuetype.
