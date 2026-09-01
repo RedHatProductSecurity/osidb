@@ -17,7 +17,7 @@ jobs:
       image: registry.access.redhat.com/ubi9/ubi:9.6
     services:
       postgres:
-        image: mirror.gcr.io/library/postgres:15
+        image: mirror.gcr.io/library/postgres:16
         env:
           POSTGRES_PASSWORD: test
         options: >-
