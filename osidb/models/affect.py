@@ -1,5 +1,4 @@
 import logging
-import re
 import uuid
 
 import pghistory
@@ -788,9 +787,8 @@ class Affect(
         ):
             return None
 
-        # exclude the trackers closed as duplicate or migrated from Bugzilla
-        trackers_regex = re.compile(r"(duplicate|migrated)", re.IGNORECASE)
-        if not self.tracker or trackers_regex.match(self.tracker.resolution):
+        # exclude the trackers closed as duplicates
+        if not self.tracker or self.tracker.is_duplicate:
             return Affect.AffectFix.AFFECTED
 
         tracker_status = self.tracker.fix_state
@@ -1162,12 +1160,9 @@ class AffectV1(AffectExploitExtensionMixin):
         ):
             return None
 
-        # exclude the trackers closed as duplicate or migrated from Bugzilla
-        trackers_regex = re.compile(r"(duplicate|migrated)", re.IGNORECASE)
+        # exclude the trackers closed as duplicates
         trackers = [
-            tracker
-            for tracker in self.trackers.all()
-            if not trackers_regex.match(tracker.resolution)
+            tracker for tracker in self.trackers.all() if not tracker.is_duplicate
         ]
         if not trackers:
             return Affect.AffectFix.AFFECTED

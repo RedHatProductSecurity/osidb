@@ -1,4 +1,5 @@
 import logging
+import re
 import uuid
 
 import pghistory
@@ -28,6 +29,11 @@ from .ps_module import PsModule
 from .ps_update_stream import PsUpdateStream
 
 logger = logging.getLogger(__name__)
+
+# resolutions marking a tracker as a duplicate - besides the plain duplicate also
+# the historical migrated resolution which flagged a Bugzilla tracker superseded
+# by its Jira counterpart during the one-time Bugzilla-to-Jira migration
+DUPLICATE_RESOLUTION_RE = re.compile(r"(duplicate|migrated)", re.IGNORECASE)
 
 
 class TrackerManager(TrackingMixinManager):
@@ -513,6 +519,46 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         while before it is pretty much impossible to unify anything
         """
         return self.status.upper() == "CLOSED"
+
+    @property
+    def is_duplicate(self):
+        """
+        whether the tracker is effectively a duplicate
+        """
+        return bool(self.resolution and DUPLICATE_RESOLUTION_RE.match(self.resolution))
+
+    def relink_affects(self, target_affects):
+        """
+        reconcile this tracker's affect links to the given target affects
+
+        the reconciliation prefers relevant trackers over duplicate ones:
+        when a target affect is already linked to a different tracker and exactly
+        one of the two is a duplicate, the relevant one is kept
+
+        when none or both are duplicates no special handling is applied and the newly
+        synced tracker wins as before - this is a situation for humans to resolve
+
+        an affect with no tracker linked is always linked even by a duplicate
+        tracker as showing a duplicate is better than showing nothing
+        """
+        target = set(target_affects)
+        current = set(self.affects.all())
+
+        to_link = set()
+        for affect in target:
+            existing = affect.tracker
+            if self.is_duplicate and existing is not None and not existing.is_duplicate:
+                # keep the relevant tracker already linked; do not steal the
+                # affect with this duplicate tracker
+                continue
+
+            # this tracker is relevant while the linked one is a duplicate,
+            # or none/both are - the newly synced tracker wins
+            to_link.add(affect)
+
+        # unlink the affects this tracker no longer covers
+        self.affects.remove(*(current - to_link))
+        self.affects.add(*to_link)
 
     @property
     def is_acked(self):

@@ -464,3 +464,196 @@ class TestTrackerValidators:
                 resolution=TaskResolution.NOT_A_BUG,
                 not_affected_justification="",
             )
+
+
+class TestTrackerRelinkAffects:
+    """
+    tests for the duplicate-aware affect (re)linking - see
+    Tracker.relink_affects and Tracker.is_duplicate
+    """
+
+    @pytest.mark.parametrize(
+        "resolution,expected",
+        [
+            ("DUPLICATE", True),  # Bugzilla convention
+            ("Duplicate", True),  # Jira convention
+            ("migrated to JIRA", True),  # historical Bugzilla-to-Jira migration
+            ("Done", False),
+            ("Won't Do", False),
+            ("", False),
+        ],
+    )
+    def test_is_duplicate(self, resolution, expected):
+        # pure property - no need to persist the tracker
+        tracker = TrackerFactory.build(resolution=resolution)
+        assert tracker.is_duplicate is expected
+
+    def _stream(self):
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        return ps_module, ps_update_stream
+
+    def _affect(self, ps_update_stream, ps_component="component"):
+        return AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            flaw=FlawFactory(embargoed=False),
+            ps_update_stream=ps_update_stream.name,
+            ps_component=ps_component,
+        )
+
+    def _tracker(self, ps_module, ps_update_stream, resolution, affects=()):
+        affects = list(affects)
+        if affects:
+            return TrackerFactory(
+                affects=affects,
+                embargoed=False,
+                ps_update_stream=ps_update_stream.name,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+                resolution=resolution,
+            )
+        # a freshly synced tracker has no affects linked yet (they get linked
+        # afterwards); the factory would reject that on its post-save validation
+        # so mirror what the collectors do and save without raising instead
+        tracker = TrackerFactory.build(
+            embargoed=False,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+            resolution=resolution,
+        )
+        tracker.save(raise_validation_error=False, auto_timestamps=False)
+        return tracker
+
+    def test_incoming_duplicate_does_not_steal_from_relevant(self):
+        """
+        a newly synced duplicate tracker must not unlink an affect already
+        linked to a relevant tracker
+        """
+        ps_module, ps_update_stream = self._stream()
+        affect = self._affect(ps_update_stream)
+        relevant = self._tracker(ps_module, ps_update_stream, "Done", affects=[affect])
+        duplicate = self._tracker(ps_module, ps_update_stream, "Duplicate")
+
+        duplicate.relink_affects([affect])
+
+        affect.refresh_from_db()
+        assert affect.tracker == relevant
+        assert duplicate.affects.count() == 0
+
+    def test_relevant_incoming_steals_from_duplicate(self):
+        """
+        a newly synced relevant tracker takes over an affect linked to a
+        duplicate one
+        """
+        ps_module, ps_update_stream = self._stream()
+        affect = self._affect(ps_update_stream)
+        duplicate = self._tracker(
+            ps_module, ps_update_stream, "Duplicate", affects=[affect]
+        )
+        relevant = self._tracker(ps_module, ps_update_stream, "Done")
+
+        relevant.relink_affects([affect])
+
+        affect.refresh_from_db()
+        assert affect.tracker == relevant
+        assert duplicate.affects.count() == 0
+
+    def test_both_duplicate_last_synced_wins(self):
+        """
+        no special handling when both trackers are duplicates - the newly
+        synced one wins as before
+        """
+        ps_module, ps_update_stream = self._stream()
+        affect = self._affect(ps_update_stream)
+        self._tracker(ps_module, ps_update_stream, "Duplicate", affects=[affect])
+        incoming = self._tracker(ps_module, ps_update_stream, "Duplicate")
+
+        incoming.relink_affects([affect])
+
+        affect.refresh_from_db()
+        assert affect.tracker == incoming
+
+    def test_both_relevant_last_synced_wins(self):
+        """
+        no special handling when neither tracker is a duplicate - the newly
+        synced one wins as before
+        """
+        ps_module, ps_update_stream = self._stream()
+        affect = self._affect(ps_update_stream)
+        self._tracker(ps_module, ps_update_stream, "Done", affects=[affect])
+        incoming = self._tracker(ps_module, ps_update_stream, "Won't Do")
+
+        incoming.relink_affects([affect])
+
+        affect.refresh_from_db()
+        assert affect.tracker == incoming
+
+    def test_unlinked_affect_linked_even_by_duplicate(self):
+        """
+        a duplicate tracker still links to an affect that has no tracker at all
+        - better a duplicate than nothing
+        """
+        ps_module, ps_update_stream = self._stream()
+        affect = self._affect(ps_update_stream)
+        duplicate = self._tracker(ps_module, ps_update_stream, "Duplicate")
+
+        duplicate.relink_affects([affect])
+
+        affect.refresh_from_db()
+        assert affect.tracker == duplicate
+
+    def test_incoming_migrated_does_not_steal_from_relevant(self):
+        """
+        migrated trackers are deprioritized just like duplicates - their newer
+        relevant counterpart is preferred
+        """
+        ps_module, ps_update_stream = self._stream()
+        affect = self._affect(ps_update_stream)
+        relevant = self._tracker(ps_module, ps_update_stream, "Done", affects=[affect])
+        migrated = self._tracker(ps_module, ps_update_stream, "migrated to JIRA")
+
+        migrated.relink_affects([affect])
+
+        affect.refresh_from_db()
+        assert affect.tracker == relevant
+        assert migrated.affects.count() == 0
+
+    def test_affects_no_longer_covered_are_unlinked(self):
+        """
+        affects previously covered by the tracker but no longer in the target
+        set are unlinked as before
+        """
+        ps_module, ps_update_stream = self._stream()
+        kept = self._affect(ps_update_stream, ps_component="component")
+        dropped = self._affect(ps_update_stream, ps_component="component")
+        tracker = self._tracker(
+            ps_module, ps_update_stream, "Done", affects=[kept, dropped]
+        )
+
+        tracker.relink_affects([kept])
+
+        kept.refresh_from_db()
+        dropped.refresh_from_db()
+        assert kept.tracker == tracker
+        assert dropped.tracker is None
+
+    def test_multi_flaw_handled_per_affect(self):
+        """
+        for a multi-flaw tracker the preference is evaluated per affect: a
+        duplicate incoming tracker keeps its hands off an affect already on a
+        relevant tracker while still linking an unlinked one
+        """
+        ps_module, ps_update_stream = self._stream()
+        on_relevant = self._affect(ps_update_stream, ps_component="component")
+        unlinked = self._affect(ps_update_stream, ps_component="component")
+        relevant = self._tracker(
+            ps_module, ps_update_stream, "Done", affects=[on_relevant]
+        )
+        duplicate = self._tracker(ps_module, ps_update_stream, "Duplicate")
+
+        duplicate.relink_affects([on_relevant, unlinked])
+
+        on_relevant.refresh_from_db()
+        unlinked.refresh_from_db()
+        assert on_relevant.tracker == relevant
+        assert unlinked.tracker == duplicate
