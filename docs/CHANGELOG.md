@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - make sure that the flaw impact is always at or above any affect override (OSIDB-5389)
 - Provide insights into chosen affectedness/resolution by automation (OSIDB-5345)
+- Support `labels.any.<field>` / `labels.all.<field>` DjangoQL quantifiers for
+  `contributor`, `state` and `relevant` label properties (OSIDB-5212)
 
 ### Changed
 - exclude pre-Argus and already done flaws from workflow re-classification (OSIDB-5406)
