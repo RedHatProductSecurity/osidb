@@ -27,6 +27,7 @@ from apps.ace.tasks import (
     _resolve_component,
     sync_flaw_affects_from_newcli,
 )
+from osidb.models import Flaw
 from osidb.models.affect import Affect
 from osidb.tests.factories import (
     FlawFactory,
@@ -1689,13 +1690,19 @@ def test_signal_enqueues_on_triage_promotion_with_existing_components(
     monkeypatch, signal_ace_enabled
 ):
     """Promoting a flaw from NEW to TRIAGE must enqueue ACE even if components didn't change."""
+    from apps.workflows.signals import classification_changed
+
     flaw = FlawFactory(
-        components=["openssl"], workflow_name="DEFAULT", workflow_state="NEW"
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
     )
     calls = _count_enqueues(monkeypatch)
 
-    flaw.workflow_state = "TRIAGE"
-    flaw.save()
+    classification_changed.send(
+        sender=Flaw,
+        instance=flaw,
+        old_classification={"workflow": "DEFAULT", "state": "NEW"},
+        new_classification={"workflow": "DEFAULT", "state": "TRIAGE"},
+    )
 
     assert len(calls) == 1
 
@@ -1705,11 +1712,17 @@ def test_signal_does_not_enqueue_on_triage_promotion_without_components(
     monkeypatch, signal_ace_enabled
 ):
     """Promoting to TRIAGE with no components must not enqueue ACE."""
-    flaw = FlawFactory(components=[], workflow_name="DEFAULT", workflow_state="NEW")
+    from apps.workflows.signals import classification_changed
+
+    flaw = FlawFactory(components=[], workflow_name="DEFAULT", workflow_state="TRIAGE")
     calls = _count_enqueues(monkeypatch)
 
-    flaw.workflow_state = "TRIAGE"
-    flaw.save()
+    classification_changed.send(
+        sender=Flaw,
+        instance=flaw,
+        old_classification={"workflow": "DEFAULT", "state": "NEW"},
+        new_classification={"workflow": "DEFAULT", "state": "TRIAGE"},
+    )
 
     assert len(calls) == 0
 
@@ -1761,13 +1774,19 @@ def test_signal_does_not_enqueue_for_done_state(monkeypatch, signal_ace_enabled)
 @pytest.mark.enable_signals
 def test_signal_enqueues_on_empty_to_triage_promotion(monkeypatch, signal_ace_enabled):
     """Legacy flaw (empty workflow) promoted straight to TRIAGE must enqueue ACE."""
+    from apps.workflows.signals import classification_changed
+
     flaw = FlawFactory(
-        components=["openssl"], workflow_name="DEFAULT", workflow_state=""
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
     )
     calls = _count_enqueues(monkeypatch)
 
-    flaw.workflow_state = "TRIAGE"
-    flaw.save()
+    classification_changed.send(
+        sender=Flaw,
+        instance=flaw,
+        old_classification={"workflow": "DEFAULT", "state": ""},
+        new_classification={"workflow": "DEFAULT", "state": "TRIAGE"},
+    )
 
     assert len(calls) == 1
 
@@ -1777,13 +1796,19 @@ def test_signal_does_not_enqueue_on_empty_to_new_transition(
     monkeypatch, signal_ace_enabled
 ):
     """Transitioning from empty to NEW must not enqueue ACE — NEW is still a blocked state."""
+    from apps.workflows.signals import classification_changed
+
     flaw = FlawFactory(
-        components=["openssl"], workflow_name="DEFAULT", workflow_state=""
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="NEW"
     )
     calls = _count_enqueues(monkeypatch)
 
-    flaw.workflow_state = "NEW"
-    flaw.save()
+    classification_changed.send(
+        sender=Flaw,
+        instance=flaw,
+        old_classification={"workflow": "DEFAULT", "state": ""},
+        new_classification={"workflow": "DEFAULT", "state": "NEW"},
+    )
 
     assert len(calls) == 0
 
@@ -1793,13 +1818,19 @@ def test_signal_does_not_enqueue_on_new_to_done_transition(
     monkeypatch, signal_ace_enabled
 ):
     """Transitioning from NEW to DONE (skipping triage) must not enqueue ACE."""
+    from apps.workflows.signals import classification_changed
+
     flaw = FlawFactory(
-        components=["openssl"], workflow_name="DEFAULT", workflow_state="NEW"
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="DONE"
     )
     calls = _count_enqueues(monkeypatch)
 
-    flaw.workflow_state = "DONE"
-    flaw.save()
+    classification_changed.send(
+        sender=Flaw,
+        instance=flaw,
+        old_classification={"workflow": "DEFAULT", "state": "NEW"},
+        new_classification={"workflow": "DEFAULT", "state": "DONE"},
+    )
 
     assert len(calls) == 0
 
@@ -1809,13 +1840,19 @@ def test_signal_does_not_enqueue_on_within_eligible_state_change(
     monkeypatch, signal_ace_enabled
 ):
     """Moving between eligible states (TRIAGE→ANALYSIS) without component changes must not re-enqueue ACE."""
+    from apps.workflows.signals import classification_changed
+
     flaw = FlawFactory(
-        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="ANALYSIS"
     )
     calls = _count_enqueues(monkeypatch)
 
-    flaw.workflow_state = "ANALYSIS"
-    flaw.save()
+    classification_changed.send(
+        sender=Flaw,
+        instance=flaw,
+        old_classification={"workflow": "DEFAULT", "state": "TRIAGE"},
+        new_classification={"workflow": "DEFAULT", "state": "ANALYSIS"},
+    )
 
     assert len(calls) == 0
 
@@ -1825,14 +1862,19 @@ def test_signal_enqueues_on_workflow_transition_to_default(
     monkeypatch, signal_ace_enabled
 ):
     """Transitioning from REJECTED/DONE to DEFAULT/TRIAGE must enqueue ACE."""
+    from apps.workflows.signals import classification_changed
+
     flaw = FlawFactory(
-        components=["openssl"], workflow_name="REJECTED", workflow_state="DONE"
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
     )
     calls = _count_enqueues(monkeypatch)
 
-    flaw.workflow_name = "DEFAULT"
-    flaw.workflow_state = "TRIAGE"
-    flaw.save()
+    classification_changed.send(
+        sender=Flaw,
+        instance=flaw,
+        old_classification={"workflow": "REJECTED", "state": "DONE"},
+        new_classification={"workflow": "DEFAULT", "state": "TRIAGE"},
+    )
 
     assert len(calls) == 1
 
@@ -1841,17 +1883,59 @@ def test_signal_enqueues_on_workflow_transition_to_default(
 def test_signal_enqueues_on_workflow_transition_partial_save(
     monkeypatch, signal_ace_enabled
 ):
-    """Partial save updating only workflow_name and workflow_state must still enqueue ACE."""
+    """Classification change signal fires regardless of partial save semantics."""
+    from apps.workflows.signals import classification_changed
+
     flaw = FlawFactory(
-        components=["openssl"], workflow_name="REJECTED", workflow_state="DONE"
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
     )
     calls = _count_enqueues(monkeypatch)
 
-    flaw.workflow_name = "DEFAULT"
-    flaw.workflow_state = "TRIAGE"
-    flaw.save(update_fields=["workflow_name", "workflow_state"])
+    classification_changed.send(
+        sender=Flaw,
+        instance=flaw,
+        old_classification={"workflow": "REJECTED", "state": "DONE"},
+        new_classification={"workflow": "DEFAULT", "state": "TRIAGE"},
+    )
 
     assert len(calls) == 1
+
+
+@pytest.mark.enable_signals
+def test_ace_triggers_when_workflow_changes_on_same_save(
+    monkeypatch, signal_ace_enabled
+):
+    """
+    Regression test for CVE-2026-47850: when components are set and workflow
+    transitions to TRIAGE in the same save (e.g. AEGIS submission), ACE must
+    trigger regardless of pre_save signal execution order.
+
+    Previously, ACE used a pre_save handler that could fire before the workflow
+    pre_save handler updated workflow_state, causing ACE to see the old state
+    ("NEW") and skip.
+    """
+    flaw = FlawFactory(
+        components=["openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="NEW",
+        task_key="OSIM-12345",  # Required for adjust_classification to run
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    # Mock classify() to return TRIAGE so adjust_classification detects a change
+    def mock_classify(self):
+        return {"workflow": "DEFAULT", "state": "TRIAGE"}
+
+    monkeypatch.setattr("apps.workflows.workflow.WorkflowModel.classify", mock_classify)
+
+    # Simulate what happens during a save: components change
+    flaw.components = ["org.springframework.data/spring-data-rest-webmvc"]
+    flaw.save()
+
+    assert len(calls) == 1, (
+        "ACE must be triggered when workflow transitions to TRIAGE "
+        "in the same save as a component change"
+    )
 
 
 def test_apply_label_persists_reason():

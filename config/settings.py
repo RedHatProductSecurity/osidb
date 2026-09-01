@@ -37,45 +37,56 @@ BLACKLISTED_HTTP_METHODS = ("patch",)
 READONLY_MODE: bool = get_env("OSIDB_READONLY_MODE", default="False", is_bool=True)
 
 # Application definition
+# WARNING: Do not sort alphabetically — this list is ordered by dependency.
+# Apps are loaded and their ready() methods called in this order, which
+# determines signal registration order and migration execution order.
+# When adding a new app, place it after all apps it depends on.
 INSTALLED_APPS = [
-    "apps.ace",
+    # --- Django core ---
+    "django.contrib.contenttypes",
+    "django.contrib.auth",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.postgres",
+    "django.contrib.staticfiles",
+    # --- Third-party ---
+    "corsheaders",
+    "django_extensions",
+    "django_filters",
+    "djangoql",
+    "drf_spectacular",
+    "psqlextra",
+    "pgtrigger",
+    "pghistory",
+    "polymorphic",
+    "rest_framework",
+    "rest_framework_simplejwt",
+    # --- Foundation ---
+    "osidb",
+    # --- Business logic (no cross-app deps beyond osidb) ---
+    "apps.workflows",
     "apps.bbsync",
     "apps.exploits",
     "apps.sla",
+    # --- Business logic (depends on tier above) ---
     "apps.trackers",
-    "apps.workflows",
-    "collectors.bzimport",
+    "apps.ace",
+    # --- Collector infrastructure ---
+    "collectors.framework",
     "collectors.component_mapping",
+    # --- Collectors ---
+    "collectors.bzimport",
     "collectors.cveorg",
     "collectors.epss",
     "collectors.exploits_cisa",
     "collectors.exploits_exploitdb",
     "collectors.exploits_metasploit",
     "collectors.flaw_labels",
-    "collectors.framework",
     "collectors.jiraffe",
     "collectors.nvd",
     "collectors.osv",
     "collectors.product_definitions",
     "collectors.ps_constants",
-    "corsheaders",
-    "django_extensions",
-    "django_filters",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.messages",
-    "django.contrib.postgres",
-    "django.contrib.sessions",
-    "django.contrib.staticfiles",
-    "djangoql",
-    "drf_spectacular",
-    "osidb",
-    "pghistory",
-    "pgtrigger",
-    "polymorphic",
-    "psqlextra",
-    "rest_framework_simplejwt",
-    "rest_framework",
 ]
 
 MIDDLEWARE = [
