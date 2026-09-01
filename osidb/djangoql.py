@@ -1,5 +1,8 @@
+from functools import reduce
+from operator import and_, or_
+
 from django.db import models
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from djangoql.exceptions import DjangoQLSchemaError
 from djangoql.schema import (
@@ -129,6 +132,16 @@ class FlawQLSchema(DjangoQLSchema):
             if field:
                 return field
 
+        if (
+            len(name.parts) == 3
+            and name.parts[0] == "labels"
+            and name.parts[1] in ("any", "all")
+        ):
+            by_field = FLAW_LABEL_QUANTIFIED_FIELDS.get(name.parts[1], {})
+            field = by_field.get(name.parts[2])
+            if field:
+                return field
+
         return super().resolve_name(name)
 
     def get_fields(self, model):
@@ -189,8 +202,6 @@ class FlawNonCommunityAffectsNoTrackersField(BoolField):
     name = "flaw_has_no_non_community_affects_trackers"
 
     def get_lookup(self, path, operator, value):
-        from django.db.models import Exists, OuterRef
-
         from osidb.models import Affect
         from osidb.models.ps_module import PsModule
 
@@ -270,7 +281,10 @@ class FlawLabelsField(StrField):
 class FlawLabelPropertyField:
     """
     Mixin for fields that only exist on FlawLabel subclasses, reachable via
-    dotted access on the flat "labels" field, e.g. "labels.contributor".
+    dotted access on the flat "labels" field, e.g. "labels.contributor", or,
+    for the quantifier-parametrized instances registered in
+    FLAW_LABEL_QUANTIFIED_FIELDS, "labels.any.contributor" /
+    "labels.all.contributor".
 
     Plain mixin (not a DjangoQLField subclass) so the concrete field's own
     base (StrField/BoolField) decides its "type" for value validation.
@@ -279,8 +293,11 @@ class FlawLabelPropertyField:
     model = FlawLabel
     subclasses = ()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, quantifier=None, **kwargs):
         super().__init__(*args, **kwargs)
+        # None -> bare "labels.<field>" behavior (unchanged).
+        # "any"/"all" -> quantified behavior, see _get_quantified_lookup.
+        self.quantifier = quantifier
         if not self.subclasses:
             # Fail loudly at import time rather than silently matching
             # everything (positive comparison) or nothing (negated) below.
@@ -288,8 +305,20 @@ class FlawLabelPropertyField:
                 f"{type(self).__name__} has no FlawLabel subclasses defining "
                 f"{self.name!r}; check the field name."
             )
+        # self.subclasses and FlawLabel.TYPE_TO_MODEL are both fixed at
+        # import time and these field instances are module-level
+        # singletons, so resolve the actual model classes once here rather
+        # than on every _get_quantified_lookup call.
+        self.subclass_models = [
+            model
+            for model in FlawLabel.TYPE_TO_MODEL.values()
+            if model._meta.model_name in self.subclasses
+        ]
 
     def get_lookup(self, path, operator, value):
+        if self.quantifier is not None:
+            return self._get_quantified_lookup(operator, value)
+
         op, invert = self.get_operator(operator)
         lookup_value = self.get_lookup_value(value)
         q = Q()
@@ -297,6 +326,71 @@ class FlawLabelPropertyField:
             search = "__".join(path + [subclass, self.name])
             q |= Q(**{f"{search}{op}": lookup_value})
         return ~q if invert else q
+
+    def _get_quantified_lookup(self, operator, value):
+        """
+        ANY/ALL over the FlawLabel subclasses that define this property.
+        Built on the same Exists/OuterRef primitive as
+        FlawNonCommunityAffectsNoTrackersField above.
+
+        The "path" djangoql normally passes to get_lookup is deliberately
+        ignored here: djangoql.queryset.build_filter computes it directly
+        from the AST node (expr.left.parts[:-1]), so for
+        "labels.any.contributor" it would be ["labels", "any"] - not a valid
+        join string, since "any"/"all" aren't real relations. These fields
+        are only ever reached through FlawQLSchema.resolve_name's
+        "labels.any.<x>"/"labels.all.<x>" whitelist though, never nested any
+        deeper, so we don't need path at all: each subclass joins straight
+        back to Flaw via its own flawlabel_ptr__flaw parent link.
+        """
+        op, invert = self.get_operator(operator)
+        lookup_value = self.get_lookup_value(value)
+
+        # The user's predicate exactly as written (operator's natural sign
+        # folded in), used as-is for ANY and negated for ALL below.
+        predicate = Q(**{f"{self.name}{op}": lookup_value})
+        if invert:
+            predicate = ~predicate
+
+        if self.quantifier == "any":
+            return reduce(
+                or_,
+                (
+                    Exists(
+                        subclass.objects.filter(
+                            predicate, flawlabel_ptr__flaw=OuterRef("pk")
+                        )
+                    )
+                    for subclass in self.subclass_models
+                ),
+            )
+
+        # ALL: structurally, "no row violates the predicate" - the
+        # inversion here is part of ALL's own definition, independent of
+        # whether the user wrote =/in or !=/not in.
+        violates = ~predicate
+        no_violation = reduce(
+            and_,
+            (
+                ~Exists(
+                    subclass.objects.filter(
+                        violates, flawlabel_ptr__flaw=OuterRef("pk")
+                    )
+                )
+                for subclass in self.subclass_models
+            ),
+        )
+        # ALL over zero qualifying rows (e.g. a flaw with no labels, or
+        # only labels of a subclass that doesn't define this property at
+        # all) is intentionally False here, not vacuously True.
+        has_rows = reduce(
+            or_,
+            (
+                Exists(subclass.objects.filter(flawlabel_ptr__flaw=OuterRef("pk")))
+                for subclass in self.subclass_models
+            ),
+        )
+        return no_violation & has_rows
 
 
 def _label_subclasses_with_field(field_name):
@@ -325,6 +419,24 @@ class FlawLabelStateField(FlawLabelPropertyField, StrField):
 class FlawLabelRelevantField(FlawLabelPropertyField, BoolField):
     name = "relevant"
     subclasses = _label_subclasses_with_field("relevant")
+
+
+# labels.any.<field> / labels.all.<field> - same three classes above,
+# reused with a quantifier instead of one bespoke subclass per
+# (quantifier, property) pair. See resolve_name() and
+# FlawLabelPropertyField._get_quantified_lookup().
+FLAW_LABEL_QUANTIFIED_FIELDS = {
+    "any": {
+        "contributor": FlawLabelContributorField(quantifier="any"),
+        "state": FlawLabelStateField(quantifier="any"),
+        "relevant": FlawLabelRelevantField(quantifier="any"),
+    },
+    "all": {
+        "contributor": FlawLabelContributorField(quantifier="all"),
+        "state": FlawLabelStateField(quantifier="all"),
+        "relevant": FlawLabelRelevantField(quantifier="all"),
+    },
+}
 
 
 class FlawLabelUuidField(StrField):

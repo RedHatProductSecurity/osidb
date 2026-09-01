@@ -12,6 +12,7 @@ from osidb.models import (
     FlawSource,
     Impact,
     ProductFamilyLabel,
+    WorkflowLabel,
 )
 
 from .factories import AffectFactory, FlawFactory
@@ -20,6 +21,17 @@ pytestmark = pytest.mark.unit
 
 
 class TestSearch:
+    def _assert_query_results(self, auth_client, test_api_uri, cases):
+        for query, expected_cve_ids in cases:
+            response = auth_client().get(f"{test_api_uri}/flaws?query={query}")
+            assert response.status_code == 200, (query, response.json())
+            body = response.json()
+            assert {flaw["cve_id"] for flaw in body["results"]} == expected_cve_ids, (
+                query,
+                body,
+            )
+            assert body["count"] == len(expected_cve_ids), (query, body)
+
     def test_search_flaws_on_create(self, auth_client, test_api_uri):
         """Test Flaw text-search vectors for each text field are created when Flaw is inserted"""
         response = auth_client().get(f"{test_api_uri}/flaws")
@@ -543,14 +555,7 @@ class TestSearch:
             ('labels.type != "alias"', {flaw1.cve_id}),
             (f'labels.uuid = "{alias_label.uuid}"', {flaw2.cve_id}),
         ]
-        for query, expected_cve_ids in cases:
-            response = auth_client().get(f"{test_api_uri}/flaws?query={query}")
-            assert response.status_code == 200, (query, response.json())
-            body = response.json()
-            assert {flaw["cve_id"] for flaw in body["results"]} == expected_cve_ids, (
-                query,
-                body,
-            )
+        self._assert_query_results(auth_client, test_api_uri, cases)
 
         # Values outside the LabelType enum are rejected rather than
         # silently matching nothing.
@@ -591,14 +596,7 @@ class TestSearch:
             ('labels endswith "fix"', {flaw1.cve_id}),
             ('labels not endswith "fix"', {flaw2.cve_id}),
         ]
-        for query, expected_cve_ids in cases:
-            response = auth_client().get(f"{test_api_uri}/flaws?query={query}")
-            assert response.status_code == 200, (query, response.json())
-            body = response.json()
-            assert {flaw["cve_id"] for flaw in body["results"]} == expected_cve_ids, (
-                query,
-                body,
-            )
+        self._assert_query_results(auth_client, test_api_uri, cases)
 
     def test_search_flaws_by_label_properties(self, auth_client, test_api_uri):
         """
@@ -679,17 +677,534 @@ class TestSearch:
             ('labels.state != "DONE"', {flaw1.cve_id, flaw3.cve_id}),
             ("labels.relevant != True", {flaw2.cve_id}),
         ]
-        for query, expected_cve_ids in cases:
-            response = auth_client().get(f"{test_api_uri}/flaws?query={query}")
-            assert response.status_code == 200, (query, response.json())
-            body = response.json()
-            assert {flaw["cve_id"] for flaw in body["results"]} == expected_cve_ids, (
-                query,
-                body,
-            )
-            # flaw1 has two matching labels for some of these queries; make
-            # sure the fan-out join is deduplicated before pagination.
-            assert body["count"] == len(expected_cve_ids), (query, body)
+        # flaw1 has two matching labels for some of these queries; make
+        # sure the fan-out join is deduplicated before pagination.
+        self._assert_query_results(auth_client, test_api_uri, cases)
+
+    def test_search_flaws_by_label_any_parity(self, auth_client, test_api_uri):
+        """
+        "labels.any.<field>" and "labels.all.<field>" are new dotted-name
+        quantifiers for the FlawLabelPropertyField family (contributor,
+        state, relevant only - name/uuid/type stay bare-only). Unlike the
+        bare 2-part "labels.<field>" form (which ORs matching rows and then
+        negates the whole OR for "!="), the quantifiers evaluate the
+        operator literally per row:
+
+            labels.any.<field> <op> <value> - True if at least one
+                qualifying label row satisfies the condition as written.
+            labels.all.<field> <op> <value> - True only if every qualifying
+                label row satisfies the condition as written, and False (not
+                vacuously True) when there are zero qualifying rows.
+
+        Each scenario in this test group uses its own isolated flaw
+        fixtures: a query like "labels.all.contributor != <value>" is
+        legitimately true for any flaw whose labels never contain that
+        value, so sharing fixtures across scenarios would let unrelated
+        flaws satisfy each other's assertions.
+
+        This one: labels.any.<field> behaves like bare labels.<field> for a
+        positive operator.
+        """
+        CollaboratorLabelDefinition.objects.create(name="solo")
+
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw)
+        CollaboratorLabel.objects.create(
+            flaw=flaw,
+            name="solo",
+            contributor="alice-parity@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+
+        cases = [
+            ('labels.any.contributor = "alice-parity@example.com"', {flaw.cve_id}),
+            ('labels.contributor = "alice-parity@example.com"', {flaw.cve_id}),
+        ]
+        self._assert_query_results(auth_client, test_api_uri, cases)
+
+    def test_search_flaws_by_label_all_positive_operator(
+        self, auth_client, test_api_uri
+    ):
+        """
+        ALL with a positive operator: matches only when every qualifying
+        row satisfies it. Isolated fixtures - see
+        test_search_flaws_by_label_any_parity for why.
+        """
+        CollaboratorLabelDefinition.objects.create(name="collab-a")
+        CollaboratorLabelDefinition.objects.create(name="collab-b")
+
+        flaw_match = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_match)
+        CollaboratorLabel.objects.create(
+            flaw=flaw_match,
+            name="collab-a",
+            contributor="alice-allpos@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw_match,
+            name="collab-b",
+            contributor="alice-allpos@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+
+        flaw_nomatch = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_nomatch)
+        CollaboratorLabel.objects.create(
+            flaw=flaw_nomatch,
+            name="collab-a",
+            contributor="carol-allpos@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw_nomatch,
+            name="collab-b",
+            contributor="dave-allpos@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+
+        cases = [
+            (
+                'labels.all.contributor = "alice-allpos@example.com"',
+                {flaw_match.cve_id},
+            ),
+            ('labels.all.contributor = "carol-allpos@example.com"', set()),
+        ]
+        self._assert_query_results(auth_client, test_api_uri, cases)
+
+    def test_search_flaws_by_label_all_negative_operator(
+        self, auth_client, test_api_uri
+    ):
+        """
+        ALL with a negative operator. Isolated fixtures - see
+        test_search_flaws_by_label_any_parity for why.
+        """
+        CollaboratorLabelDefinition.objects.create(name="collab-a")
+        CollaboratorLabelDefinition.objects.create(name="collab-b")
+
+        flaw_match = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_match)
+        CollaboratorLabel.objects.create(
+            flaw=flaw_match,
+            name="collab-a",
+            contributor="eve-allneg@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw_match,
+            name="collab-b",
+            contributor="frank-allneg@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+
+        flaw_nomatch = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_nomatch)
+        CollaboratorLabel.objects.create(
+            flaw=flaw_nomatch,
+            name="collab-a",
+            contributor="zack-excluded@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw_nomatch,
+            name="collab-b",
+            contributor="yara-allneg@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+
+        cases = [
+            # Neither flaw has this exact contributor anywhere, so every row
+            # of both flaws satisfies "!= <value>" -> both match.
+            (
+                'labels.all.contributor != "analyst-does-not-exist@example.com"',
+                {flaw_match.cve_id, flaw_nomatch.cve_id},
+            ),
+            # flaw_nomatch has a row whose contributor *is*
+            # "zack-excluded@example.com", so that row violates "!= zack" ->
+            # only flaw_match, which has no such row, matches.
+            (
+                'labels.all.contributor != "zack-excluded@example.com"',
+                {flaw_match.cve_id},
+            ),
+        ]
+        self._assert_query_results(auth_client, test_api_uri, cases)
+
+    def test_search_flaws_by_label_any_all_zero_qualifying_rows(
+        self, auth_client, test_api_uri
+    ):
+        """
+        Zero qualifying rows: False for both ANY and ALL, regardless of
+        operator sign, on a label-less flaw and on a flaw whose only labels
+        (Workflow/Alias) don't define "contributor" at all. Isolated
+        fixtures - see test_search_flaws_by_label_any_parity for why (a
+        query like "contributor != x" for an "x" that appears nowhere would
+        otherwise also match any *other* flaw's qualifying rows sharing the
+        same test).
+        """
+        flaw_empty = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_empty)
+
+        flaw_no_contrib_subclass = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_no_contrib_subclass)
+        WorkflowLabel.objects.create(flaw=flaw_no_contrib_subclass, name="wf-a")
+        AliasLabel.objects.create(flaw=flaw_no_contrib_subclass, name="CVE-9999-ALIAS")
+
+        cases = [
+            ('labels.all.contributor = "x"', set()),
+            ('labels.all.contributor != "x"', set()),
+            ('labels.any.contributor = "x"', set()),
+            ('labels.any.contributor != "x"', set()),
+        ]
+        self._assert_query_results(auth_client, test_api_uri, cases)
+
+    def test_search_flaws_by_label_any_all_polymorphic_subclass_spread(
+        self, auth_client, test_api_uri
+    ):
+        """
+        .any/.all OR/AND across subclass tables (BULabel + CollaboratorLabel
+        both define "contributor"), not just within one. Isolated fixtures -
+        see test_search_flaws_by_label_any_parity for why.
+        """
+        CollaboratorLabelDefinition.objects.create(name="collab-a")
+        BULabelDefinition.objects.create(name="bu-a")
+
+        flaw_bu_only = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_bu_only)
+        BULabel.objects.create(
+            flaw=flaw_bu_only,
+            name="bu-a",
+            contributor="grace-poly@example.com",
+            state=BULabel.State.REQ,
+            relevant=True,
+        )
+
+        flaw_and_match = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_and_match)
+        BULabel.objects.create(
+            flaw=flaw_and_match,
+            name="bu-a",
+            contributor="henry-poly@example.com",
+            state=BULabel.State.NEW,
+            relevant=True,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw_and_match,
+            name="collab-a",
+            contributor="henry-poly@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+
+        flaw_and_nomatch = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_and_nomatch)
+        BULabel.objects.create(
+            flaw=flaw_and_nomatch,
+            name="bu-a",
+            contributor="ian-poly@example.com",
+            state=BULabel.State.NEW,
+            relevant=True,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw_and_nomatch,
+            name="collab-a",
+            contributor="jane-poly@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+
+        cases = [
+            (
+                'labels.any.contributor = "grace-poly@example.com"',
+                {flaw_bu_only.cve_id},
+            ),
+            (
+                'labels.all.contributor = "grace-poly@example.com"',
+                {flaw_bu_only.cve_id},
+            ),
+            (
+                'labels.all.contributor = "henry-poly@example.com"',
+                {flaw_and_match.cve_id},
+            ),
+            (
+                'labels.any.contributor = "ian-poly@example.com"',
+                {flaw_and_nomatch.cve_id},
+            ),
+            ('labels.all.contributor = "ian-poly@example.com"', set()),
+        ]
+        self._assert_query_results(auth_client, test_api_uri, cases)
+
+    def test_search_flaws_by_label_any_all_in_not_in_operator(
+        self, auth_client, test_api_uri
+    ):
+        """
+        Operator breadth: in/not in on contributor. Isolated fixtures - see
+        test_search_flaws_by_label_any_parity for why.
+        """
+        CollaboratorLabelDefinition.objects.create(name="collab-a")
+        CollaboratorLabelDefinition.objects.create(name="collab-b")
+
+        flaw_in_match = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_in_match)
+        CollaboratorLabel.objects.create(
+            flaw=flaw_in_match,
+            name="collab-a",
+            contributor="kevin-in@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw_in_match,
+            name="collab-b",
+            contributor="laura-in@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+
+        flaw_in_nomatch = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_in_nomatch)
+        CollaboratorLabel.objects.create(
+            flaw=flaw_in_nomatch,
+            name="collab-a",
+            contributor="kevin-in@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw_in_nomatch,
+            name="collab-b",
+            contributor="mia-in@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+
+        flaw_notin_match = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_notin_match)
+        CollaboratorLabel.objects.create(
+            flaw=flaw_notin_match,
+            name="collab-a",
+            contributor="nora-notin@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw_notin_match,
+            name="collab-b",
+            contributor="oscar-notin@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+
+        cases = [
+            (
+                'labels.any.contributor in ("kevin-in@example.com", "laura-in@example.com")',
+                {flaw_in_match.cve_id, flaw_in_nomatch.cve_id},
+            ),
+            (
+                'labels.all.contributor in ("kevin-in@example.com", "laura-in@example.com")',
+                {flaw_in_match.cve_id},
+            ),
+            (
+                'labels.any.contributor not in ("kevin-in@example.com", "laura-in@example.com")',
+                {flaw_in_nomatch.cve_id, flaw_notin_match.cve_id},
+            ),
+            (
+                'labels.all.contributor not in ("kevin-in@example.com", "laura-in@example.com")',
+                {flaw_notin_match.cve_id},
+            ),
+        ]
+        self._assert_query_results(auth_client, test_api_uri, cases)
+
+    def test_search_flaws_by_label_any_all_state(self, auth_client, test_api_uri):
+        """
+        .any.state / .all.state with =/!=. Isolated fixtures - see
+        test_search_flaws_by_label_any_parity for why.
+        """
+        CollaboratorLabelDefinition.objects.create(name="collab-a")
+        CollaboratorLabelDefinition.objects.create(name="collab-b")
+
+        flaw_mixed = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_mixed)
+        CollaboratorLabel.objects.create(
+            flaw=flaw_mixed,
+            name="collab-a",
+            contributor="p-state@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw_mixed,
+            name="collab-b",
+            contributor="q-state@example.com",
+            state=CollaboratorLabel.State.DONE,
+            relevant=True,
+        )
+
+        flaw_alldone = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_alldone)
+        CollaboratorLabel.objects.create(
+            flaw=flaw_alldone,
+            name="collab-a",
+            contributor="r-state@example.com",
+            state=CollaboratorLabel.State.DONE,
+            relevant=True,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw_alldone,
+            name="collab-b",
+            contributor="s-state@example.com",
+            state=CollaboratorLabel.State.DONE,
+            relevant=True,
+        )
+
+        cases = [
+            ('labels.any.state = "DONE"', {flaw_mixed.cve_id, flaw_alldone.cve_id}),
+            ('labels.all.state = "DONE"', {flaw_alldone.cve_id}),
+            ('labels.any.state != "DONE"', {flaw_mixed.cve_id}),
+            ('labels.all.state != "DONE"', set()),
+        ]
+        self._assert_query_results(auth_client, test_api_uri, cases)
+
+    def test_search_flaws_by_label_any_all_relevant(self, auth_client, test_api_uri):
+        """
+        .any.relevant / .all.relevant (BoolField) with =/!=. Isolated
+        fixtures - see test_search_flaws_by_label_any_parity for why.
+        """
+        CollaboratorLabelDefinition.objects.create(name="collab-a")
+        CollaboratorLabelDefinition.objects.create(name="collab-b")
+
+        flaw_mixed = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_mixed)
+        CollaboratorLabel.objects.create(
+            flaw=flaw_mixed,
+            name="collab-a",
+            contributor="t-rel@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw_mixed,
+            name="collab-b",
+            contributor="u-rel@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=False,
+        )
+
+        flaw_alltrue = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw_alltrue)
+        CollaboratorLabel.objects.create(
+            flaw=flaw_alltrue,
+            name="collab-a",
+            contributor="v-rel@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw_alltrue,
+            name="collab-b",
+            contributor="w-rel@example.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+
+        cases = [
+            (
+                "labels.any.relevant = True",
+                {flaw_mixed.cve_id, flaw_alltrue.cve_id},
+            ),
+            ("labels.all.relevant = True", {flaw_alltrue.cve_id}),
+            ("labels.any.relevant = False", {flaw_mixed.cve_id}),
+            ("labels.all.relevant = False", set()),
+            ("labels.any.relevant != True", {flaw_mixed.cve_id}),
+            ("labels.all.relevant != True", set()),
+        ]
+        self._assert_query_results(auth_client, test_api_uri, cases)
+
+    def test_search_flaws_by_label_any_all_validation(self, auth_client, test_api_uri):
+        """
+        Unknown quantifier segment, and quantifier applied to a field
+        outside the whitelisted three (contributor/state/relevant) both fall
+        through to the same "Unknown field" 400 as any other unresolvable
+        dotted name.
+        """
+        response = auth_client().get(
+            f'{test_api_uri}/flaws?query=labels.every.contributor = "x"'
+        )
+        assert response.status_code == 400
+        assert "Unknown field" in response.json()["detail"]
+
+        response = auth_client().get(
+            f'{test_api_uri}/flaws?query=labels.any.name = "x"'
+        )
+        assert response.status_code == 400
+        assert "Unknown field" in response.json()["detail"]
+
+    def test_search_flaws_by_label_contributor_bug_regression(
+        self, auth_client, test_api_uri
+    ):
+        """
+        Regression test for the original bug report: a team wants to find
+        flaws that have an "unclaimed" label of theirs (contributor not the
+        team's own address), but the bare 2-part "labels.contributor not in
+        (...)" form ORs across all matching rows and then negates the whole
+        thing, so it means "no row has this contributor" rather than "some
+        row lacks this contributor" - it can't express the latter. That's
+        exactly what "labels.any.contributor" is for.
+        """
+        CollaboratorLabelDefinition.objects.create(name="middleware_bu")
+        CollaboratorLabelDefinition.objects.create(name="openshift_bu")
+
+        flaw = FlawFactory(embargoed=False)
+        AffectFactory(flaw=flaw)
+        CollaboratorLabel.objects.create(
+            flaw=flaw,
+            name="middleware_bu",
+            contributor="analyst@redhat.com",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+        # "unclaimed" - no contributor set for this team's label.
+        CollaboratorLabel.objects.create(
+            flaw=flaw,
+            name="openshift_bu",
+            contributor="",
+            state=CollaboratorLabel.State.NEW,
+            relevant=True,
+        )
+
+        cases = [
+            # The bare "labels.contributor not in (...)" half is evaluated
+            # independently across all label rows (it means "no row has
+            # this contributor"), not correlated to the "middleware_bu" row
+            # matched by labels.name. Expected result is still empty here
+            # because analyst@redhat.com *is* a contributor on a label
+            # (middleware_bu) - pure regression guard, must stay green
+            # independently of the any/all work.
+            (
+                'labels.name = "middleware_bu" and labels.contributor not in ("analyst@redhat.com")',
+                set(),
+            ),
+            # New capability: "is any label unclaimed by this team" - the
+            # openshift_bu row (contributor "") satisfies it.
+            ('labels.any.contributor not in ("analyst@redhat.com")', {flaw.cve_id}),
+            # ALL requires every row to be unclaimed; middleware_bu violates
+            # it.
+            ('labels.all.contributor not in ("analyst@redhat.com")', set()),
+            # Same contrast with "!=": any is a new capability, bare is
+            # unaffected (means "no row equals this", which is false here
+            # since middleware_bu does).
+            ('labels.any.contributor != "analyst@redhat.com"', {flaw.cve_id}),
+            ('labels.contributor != "analyst@redhat.com"', set()),
+        ]
+        self._assert_query_results(auth_client, test_api_uri, cases)
 
     def test_search_websearch_exclusion(self, auth_client, test_api_uri):
         """websearch_to_tsquery supports -exclusion, verify it works after query refactor."""
