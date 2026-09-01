@@ -18,7 +18,7 @@ REDHAT_IDENTIFIED_SOURCES = {FlawSource.REDHAT}
 
 def create_srp_report_milestones(
     srp_report: SRPReport,
-    status: str = SRPReport.SRPReportStatus.REQUIRED,
+    status: str = SRPReportMilestone.SRPReportMilestoneStatus.REQUIRED,
 ):
     """
     Create the required SRP milestones for a new SRP Report.
@@ -105,7 +105,7 @@ def create_srp_report(flaw_instance: Flaw, incident_state: Flaw.FlawMajorInciden
             reportable_event_type=event_type,
             defaults={
                 "title": locked_flaw.title or f"SRP Report for {locked_flaw.uuid}",
-                "status": SRPReport.SRPReportStatus.REQUIRED,
+                "status": SRPReport.SRPReportStatus.IN_PROGRESS,
                 "responsibility_scope": SRPReport.ResponsibilityScope.MANUFACTURER,
                 "timer_started_at": locked_flaw.major_incident_start_dt,
                 "acl_read": locked_flaw.acl_read,
