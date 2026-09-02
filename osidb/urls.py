@@ -104,7 +104,6 @@ vnext_router.register(r"flaws", FlawView)
 vnext_router.register(r"affects", AffectView, basename="affectsv2")
 vnext_router.register(r"trackers", TrackerView)
 
-
 urlpatterns = [
     path("healthy", healthy),
     path("whoami", whoami),

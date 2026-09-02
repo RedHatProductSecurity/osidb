@@ -1,0 +1,352 @@
+from datetime import timedelta
+
+import pytest
+from django.core.exceptions import ValidationError
+from django.db.models.deletion import ProtectedError
+from django.test import TestCase
+from django.utils import timezone
+from freezegun import freeze_time
+
+from osidb.tests.factories import FlawFactory
+from regulatory_reporting.models import (
+    FlawUpstreamMapping,
+    SRPReport,
+    SRPReportMilestone,
+    UpstreamNotification,
+    UpstreamProject,
+)
+from regulatory_reporting.tests.factories import (
+    SRPReportFactory,
+    SRPReportMilestoneFactory,
+)
+
+pytestmark = [
+    pytest.mark.unit,
+    pytest.mark.no_cra_notifications,
+]
+
+
+def _report_kwargs(**overrides):
+    flaw = overrides.pop("flaw", None) or FlawFactory()
+    defaults = {
+        "flaw": flaw,
+        "title": "Test report",
+        "responsibility_scope": SRPReport.ResponsibilityScope.MANUFACTURER,
+        "reportable_event_type": (SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED),
+        "timer_started_at": timezone.now(),
+        "status": SRPReport.SRPReportStatus.IN_PROGRESS,
+        "acl_read": flaw.acl_read,
+        "acl_write": flaw.acl_write,
+    }
+    defaults.update(overrides)
+    return defaults
+
+
+def _milestone_kwargs(srp_report, **overrides):
+    defaults = {
+        "srp_report": srp_report,
+        "milestone_type": SRPReportMilestone.MilestoneType.LEVEL_24H,
+        "acl_read": srp_report.acl_read,
+        "acl_write": srp_report.acl_write,
+    }
+    defaults.update(overrides)
+    return defaults
+
+
+class TestSRPReport:
+    def test_create_and_save(self):
+        report = SRPReportFactory()
+
+        assert report.uuid is not None
+        assert report.status == SRPReport.SRPReportStatus.EMPTY
+        assert report.timer_started_at is not None
+
+    def test_str(self):
+        flaw = FlawFactory(cve_id="CVE-2024-1234")
+        report = SRPReportFactory(flaw=flaw)
+
+        assert str(report) == f"SRP Report {report.uuid} for CVE-2024-1234"
+
+    def test_flaw_reverse_relation(self):
+        report = SRPReportFactory()
+
+        assert list(report.flaw.srp_reports.all()) == [report]
+
+    @pytest.mark.parametrize(
+        "status",
+        [SRPReport.SRPReportStatus.IN_PROGRESS, SRPReport.SRPReportStatus.SUBMITTED],
+    )
+    def test_timer_started_required(self, status):
+        kwargs = {"status": status, "timer_started_at": None}
+        if status == SRPReport.SRPReportStatus.SUBMITTED:
+            kwargs["srp_reference_id"] = "SRP-123"
+        report = SRPReport(**_report_kwargs(**kwargs))
+
+        with pytest.raises(
+            ValidationError,
+            match="timer_started_at must be set",
+        ):
+            report.save()
+
+    def test_timer_started_not_required_for_empty_status(self):
+        report = SRPReportFactory(
+            status=SRPReport.SRPReportStatus.EMPTY, timer_started_at=None
+        )
+        assert report.timer_started_at is None
+
+    def test_srp_reference_required_when_submitted(self):
+        report = SRPReport(
+            **_report_kwargs(
+                status=SRPReport.SRPReportStatus.SUBMITTED,
+                timer_started_at=timezone.now(),
+                srp_reference_id="",
+            )
+        )
+
+        with pytest.raises(
+            ValidationError,
+            match="srp_reference_id must be set when status is SUBMITTED",
+        ):
+            report.save()
+
+    def test_srp_reference_not_required_when_prepared(self):
+        report = SRPReportFactory(
+            status=SRPReport.SRPReportStatus.EMPTY,
+            timer_started_at=timezone.now(),
+            srp_reference_id="",
+        )
+
+        assert report.srp_reference_id == ""
+
+    @pytest.mark.parametrize("evidence", ["", "   "])
+    def test_evidence_required_when_status_is_empty(self, evidence):
+        report = SRPReport(
+            **_report_kwargs(
+                status=SRPReport.SRPReportStatus.EMPTY,
+                timer_started_at=None,
+                evidence=evidence,
+            )
+        )
+
+        with pytest.raises(
+            ValidationError,
+            match="evidence must be set when status is EMPTY",
+        ):
+            report.save()
+
+    def test_evidence_not_required_when_required(self):
+        report = SRPReportFactory(
+            status=SRPReport.SRPReportStatus.IN_PROGRESS,
+            evidence="",
+        )
+
+        assert report.evidence == ""
+
+    def test_flaw_protect_on_delete(self):
+        flaw = FlawFactory()
+        SRPReportFactory(flaw=flaw)
+
+        with pytest.raises(ProtectedError):
+            flaw.delete()
+
+
+class TestSRPReportMilestone:
+    def test_create_and_save(self):
+        milestone = SRPReportMilestoneFactory()
+
+        assert milestone.uuid is not None
+        assert milestone.status == SRPReportMilestone.SRPReportMilestoneStatus.REQUIRED
+        assert milestone.due_at is not None
+
+    def test_str(self):
+        flaw = FlawFactory(cve_id="CVE-2024-5678")
+        report = SRPReportFactory(flaw=flaw)
+        milestone = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H,
+        )
+
+        assert str(milestone) == "24h - CVE-2024-5678"
+
+    def test_srp_report_reverse_relation(self):
+        milestone = SRPReportMilestoneFactory()
+
+        assert list(milestone.srp_report.milestones.all()) == [milestone]
+
+    def test_unique_milestone_type_level(self):
+        report = SRPReportFactory()
+        SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H,
+        )
+        duplicate = SRPReportMilestone(
+            **_milestone_kwargs(
+                report,
+                milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H,
+            )
+        )
+
+        with pytest.raises(
+            ValidationError,
+            match="unique_srp_report_milestone_type_level",
+        ):
+            duplicate.save()
+
+    def test_multiple_additional_information_response_allowed(self):
+        report = SRPReportFactory()
+        first = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
+        )
+        second = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
+        )
+
+        assert first.milestone_type == second.milestone_type
+        assert report.milestones.count() == 2
+
+    def test_cascade_delete_with_srp_report(self):
+        milestone = SRPReportMilestoneFactory()
+        report_uuid = milestone.srp_report.uuid
+        milestone_uuid = milestone.uuid
+
+        milestone.srp_report.delete()
+
+        assert not SRPReport.objects.filter(uuid=report_uuid).exists()
+        assert not SRPReportMilestone.objects.filter(uuid=milestone_uuid).exists()
+
+    def test_owner_defaults_to_empty(self):
+        milestone = SRPReportMilestoneFactory()
+
+        assert milestone.owner == ""
+
+    def test_owner_can_be_set(self):
+        milestone = SRPReportMilestoneFactory()
+        milestone.owner = "analyst@redhat.com"
+        milestone.save()
+        milestone.refresh_from_db()
+
+        assert milestone.owner == "analyst@redhat.com"
+
+    def test_submitted_at_defaults_to_none(self):
+        milestone = SRPReportMilestoneFactory()
+
+        assert milestone.submitted_at is None
+
+    def test_submitted_at_set_on_first_submitted_transition(self):
+        milestone = SRPReportMilestoneFactory()
+        submitted_time = timezone.now()
+
+        with freeze_time(submitted_time):
+            milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
+            milestone.save()
+
+        milestone.refresh_from_db()
+        assert milestone.submitted_at == submitted_time
+
+    def test_submitted_at_not_overwritten_on_later_save(self):
+        milestone = SRPReportMilestoneFactory()
+        first_time = timezone.now()
+
+        with freeze_time(first_time):
+            milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
+            milestone.save()
+        milestone.refresh_from_db()
+
+        later = first_time + timedelta(hours=1)
+        with freeze_time(later):
+            milestone.request_source = "ENISA Portal"
+            milestone.save()
+        milestone.refresh_from_db()
+
+        assert milestone.submitted_at == first_time
+
+    def test_submitted_at_writable_for_corrections(self):
+        milestone = SRPReportMilestoneFactory()
+        milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
+        milestone.save()
+        milestone.refresh_from_db()
+        original = milestone.submitted_at
+        assert original is not None
+
+        correction = original - timedelta(hours=3)
+        milestone.submitted_at = correction
+        milestone.save()
+        milestone.refresh_from_db()
+
+        assert milestone.submitted_at == correction
+
+    def test_submitted_at_preserved_when_status_leaves_submitted(self):
+        milestone = SRPReportMilestoneFactory()
+        milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
+        milestone.save()
+        milestone.refresh_from_db()
+        stamped = milestone.submitted_at
+
+        milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW
+        milestone.save()
+        milestone.refresh_from_db()
+
+        assert milestone.submitted_at == stamped
+
+    def test_submitted_at_explicit_value_kept_on_submit(self):
+        explicit = timezone.now() - timedelta(days=1)
+        milestone = SRPReportMilestoneFactory(
+            status=SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED,
+            submitted_at=explicit,
+        )
+
+        assert milestone.submitted_at == explicit
+
+
+class TestUpstreamProject(TestCase):
+    def test_create_upstream_project(self):
+        project = UpstreamProject.objects.create(
+            component_name="test-component",
+        )
+        assert project.component_name == "test-component"
+        assert project.uuid is not None
+
+
+class TestUpstreamNotification(TestCase):
+    def test_create_upstream_notification(self):
+        flaw = FlawFactory()
+        project = UpstreamProject.objects.create(
+            component_name="test-component",
+        )
+        notification = UpstreamNotification.objects.create(
+            flaw=flaw,
+            upstream_project=project,
+            acl_read=flaw.acl_read,
+            acl_write=flaw.acl_write,
+        )
+        assert notification.uuid is not None
+        assert notification.status == UpstreamNotification.NotificationStatus.REQUIRED
+        assert notification.flaw == flaw
+
+
+class TestFlawUpstreamMapping(TestCase):
+    def test_create_flaw_upstream_mapping(self):
+        flaw = FlawFactory()
+        project = UpstreamProject.objects.create(
+            component_name="test-component",
+        )
+        mapping = FlawUpstreamMapping.objects.create(
+            flaw=flaw,
+            upstream_project=project,
+        )
+        assert mapping.uuid is not None
+        assert mapping.flaw == flaw
+
+    def test_mapping_independent_of_affects(self):
+        flaw = FlawFactory()
+        project = UpstreamProject.objects.create(
+            component_name="test-component",
+        )
+        mapping = FlawUpstreamMapping.objects.create(
+            flaw=flaw,
+            upstream_project=project,
+        )
+        assert not hasattr(mapping, "affect")
+        assert not hasattr(mapping, "tracker")

@@ -1,0 +1,18 @@
+This notification is regarding a security vulnerability affecting your component.
+
+Identifier: {{ flaw_id }}
+
+Summary: {{ vulnerability_summary }}
+
+Affected component: {{ upstream_component }}
+
+Impact: {{ impact }}
+
+Corrective or mitigating measure: {{ corrective_measure }}
+
+Contact information: {{ contact_info }}
+{% if confidentiality_notice %}
+{{ confidentiality_notice }}
+{% endif %}
+
+Sent by Red Hat Product Security under applicable regulatory requirements.

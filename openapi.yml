@@ -14099,6 +14099,1423 @@ paths:
                     version:
                       type: string
           description: ''
+  /regulatory-reporting/api/v1/flaw-upstream-mappings/{mapping_uuid}:
+    put:
+      operationId: regulatory_reporting_api_v1_flaw_upstream_mappings_update
+      description: API endpoint for updating and deleting a single flaw-to-upstream
+        mapping.
+      parameters:
+      - in: path
+        name: mapping_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Flaw Upstream Mapping.
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawUpstreamMappingRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawUpstreamMappingRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawUpstreamMappingRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawUpstreamMapping'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    delete:
+      operationId: regulatory_reporting_api_v1_flaw_upstream_mappings_destroy
+      description: API endpoint for updating and deleting a single flaw-to-upstream
+        mapping.
+      parameters:
+      - in: path
+        name: mapping_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Flaw Upstream Mapping.
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+  /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports:
+    get:
+      operationId: regulatory_reporting_api_v1_flaws_srp_reports_list
+      description: |-
+        ViewSet for flaw SRP reports (read-only subresource).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports - List reports for a flaw
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{uuid} - Retrieve single report
+
+        Read-only convenience wrapper. Updates must use top-level endpoints.
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedSRPReportList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{report_uuid}/milestones:
+    get:
+      operationId: regulatory_reporting_api_v1_flaws_srp_reports_milestones_list
+      description: |-
+        ViewSet for flaw SRP report milestones (read-only subresource).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{report_uuid}/milestones - List milestones
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve milestone
+
+        Read-only convenience wrapper. Updates must use top-level endpoints.
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: path
+        name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedSRPReportMilestoneList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{report_uuid}/milestones/{uuid}:
+    get:
+      operationId: regulatory_reporting_api_v1_flaws_srp_reports_milestones_retrieve
+      description: |-
+        ViewSet for flaw SRP report milestones (read-only subresource).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{report_uuid}/milestones - List milestones
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve milestone
+
+        Read-only convenience wrapper. Updates must use top-level endpoints.
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: path
+        name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReportMilestone'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{uuid}:
+    get:
+      operationId: regulatory_reporting_api_v1_flaws_srp_reports_retrieve
+      description: |-
+        ViewSet for flaw SRP reports (read-only subresource).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports - List reports for a flaw
+        - GET /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports/{uuid} - Retrieve single report
+
+        Read-only convenience wrapper. Updates must use top-level endpoints.
+      parameters:
+      - in: path
+        name: flaw_id
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReport'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/flaws/{flaw_uuid}/upstream-mappings:
+    get:
+      operationId: regulatory_reporting_api_v1_flaws_upstream_mappings_list
+      description: API endpoint for listing and creating flaw-to-upstream mappings
+      parameters:
+      - in: path
+        name: flaw_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedFlawUpstreamMappingList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: regulatory_reporting_api_v1_flaws_upstream_mappings_create
+      description: API endpoint for listing and creating flaw-to-upstream mappings
+      parameters:
+      - in: path
+        name: flaw_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlawUpstreamMappingRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FlawUpstreamMappingRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FlawUpstreamMappingRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/FlawUpstreamMapping'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/notifications/upstream:
+    get:
+      operationId: regulatory_reporting_api_v1_notifications_upstream_list
+      description: API endpoint for listing, creating, retrieving, and updating upstream
+        maintainer notifications.
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: flaw
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: method
+        schema:
+          type: string
+          enum:
+          - email
+          - forgejo_issue
+          - github_issue
+          - gitlab_issue
+          - other_manual
+          - website_form
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: owner
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - blocked
+          - contact_needed
+          - deferred
+          - failed
+          - not_applicable
+          - not_required
+          - prepared
+          - queued
+          - required
+          - reviewed
+          - sent
+      - in: query
+        name: upstream_project
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedUpstreamNotificationList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/notifications/upstream/{notification_uuid}:
+    get:
+      operationId: regulatory_reporting_api_v1_notifications_upstream_retrieve
+      description: API endpoint for listing, creating, retrieving, and updating upstream
+        maintainer notifications.
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: path
+        name: notification_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Upstream Notification.
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/UpstreamNotification'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: regulatory_reporting_api_v1_notifications_upstream_update
+      description: API endpoint for listing, creating, retrieving, and updating upstream
+        maintainer notifications.
+      parameters:
+      - in: path
+        name: notification_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Upstream Notification.
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpstreamNotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UpstreamNotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpstreamNotificationRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/UpstreamNotification'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/notifications/upstream/{notification_uuid}/preview:
+    get:
+      operationId: regulatory_reporting_api_v1_notifications_upstream_preview_retrieve
+      description: Live render the maintainer notification preview without persisting
+        it.
+      parameters:
+      - in: path
+        name: notification_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Upstream Notification.
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/UpstreamNotificationPreview'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/notifications/upstream/{notification_uuid}/send-email:
+    post:
+      operationId: regulatory_reporting_api_v1_notifications_upstream_send_email_create
+      description: API endpoint for listing, creating, retrieving, and updating upstream
+        maintainer notifications.
+      parameters:
+      - in: path
+        name: notification_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Upstream Notification.
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/UpstreamNotification'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/srp-reports:
+    get:
+      operationId: regulatory_reporting_api_v1_srp_reports_list
+      description: |-
+        ViewSet for SRP Reports (top-level).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports - List all reports with filtering
+        - GET /regulatory-reporting/api/v1/srp-reports/{uuid} - Retrieve single report
+        - POST /regulatory-reporting/api/v1/srp-reports - Manually create a report
+        - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
+
+        Reports are also auto-created by signals when Critter criteria are met.
+        Manual POST creates the report in EMPTY status with milestones.
+        DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
+      parameters:
+      - in: query
+        name: created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: flaw_id
+        schema:
+          type: string
+          format: uuid
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: reportable_event_type
+        schema:
+          type: string
+      - in: query
+        name: responsibility_scope
+        schema:
+          type: string
+      - in: query
+        name: srp_reference_id
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: timer_started_at__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: timer_started_at__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: title
+        schema:
+          type: string
+      - in: query
+        name: updated_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: updated_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedSRPReportList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: regulatory_reporting_api_v1_srp_reports_create
+      description: |-
+        ViewSet for SRP Reports (top-level).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports - List all reports with filtering
+        - GET /regulatory-reporting/api/v1/srp-reports/{uuid} - Retrieve single report
+        - POST /regulatory-reporting/api/v1/srp-reports - Manually create a report
+        - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
+
+        Reports are also auto-created by signals when Critter criteria are met.
+        Manual POST creates the report in EMPTY status with milestones.
+        DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SRPReportCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SRPReportCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SRPReportCreateRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReportCreate'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones:
+    get:
+      operationId: regulatory_reporting_api_v1_srp_reports_milestones_list
+      description: |-
+        ViewSet for SRP Report Milestones (nested under reports).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - List milestones for a report
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve single milestone
+        - POST /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - Create additional_information_response milestone
+        - PUT /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Update
+
+        Standard milestones (24h, 72h, final) are auto-created by signals.
+        Only additional_information_response milestones can be created via POST.
+        PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
+      parameters:
+      - in: query
+        name: created_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: created_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: milestone_type
+        schema:
+          type: string
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: owner
+        schema:
+          type: string
+      - in: path
+        name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: query
+        name: request_source
+        schema:
+          type: string
+      - in: query
+        name: request_text
+        schema:
+          type: string
+      - in: query
+        name: srp_report
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: submitted_at__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: submitted_at__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedSRPReportMilestoneList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: regulatory_reporting_api_v1_srp_reports_milestones_create
+      description: |-
+        ViewSet for SRP Report Milestones (nested under reports).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - List milestones for a report
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve single milestone
+        - POST /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - Create additional_information_response milestone
+        - PUT /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Update
+
+        Standard milestones (24h, 72h, final) are auto-created by signals.
+        Only additional_information_response milestones can be created via POST.
+        PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
+      parameters:
+      - in: path
+        name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SRPReportMilestoneCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SRPReportMilestoneCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SRPReportMilestoneCreateRequest'
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReportMilestoneCreate'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid}:
+    get:
+      operationId: regulatory_reporting_api_v1_srp_reports_milestones_retrieve
+      description: |-
+        ViewSet for SRP Report Milestones (nested under reports).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - List milestones for a report
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve single milestone
+        - POST /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - Create additional_information_response milestone
+        - PUT /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Update
+
+        Standard milestones (24h, 72h, final) are auto-created by signals.
+        Only additional_information_response milestones can be created via POST.
+        PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
+      parameters:
+      - in: path
+        name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReportMilestone'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: regulatory_reporting_api_v1_srp_reports_milestones_update
+      description: |-
+        ViewSet for SRP Report Milestones (nested under reports).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - List milestones for a report
+        - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve single milestone
+        - POST /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - Create additional_information_response milestone
+        - PUT /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Update
+
+        Standard milestones (24h, 72h, final) are auto-created by signals.
+        Only additional_information_response milestones can be created via POST.
+        PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
+      parameters:
+      - in: path
+        name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SRPReportMilestoneRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SRPReportMilestoneRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SRPReportMilestoneRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReportMilestone'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/srp-reports/{uuid}:
+    get:
+      operationId: regulatory_reporting_api_v1_srp_reports_retrieve
+      description: |-
+        ViewSet for SRP Reports (top-level).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports - List all reports with filtering
+        - GET /regulatory-reporting/api/v1/srp-reports/{uuid} - Retrieve single report
+        - POST /regulatory-reporting/api/v1/srp-reports - Manually create a report
+        - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
+
+        Reports are also auto-created by signals when Critter criteria are met.
+        Manual POST creates the report in EMPTY status with milestones.
+        DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReport'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: regulatory_reporting_api_v1_srp_reports_update
+      description: |-
+        ViewSet for SRP Reports (top-level).
+
+        Supports:
+        - GET /regulatory-reporting/api/v1/srp-reports - List all reports with filtering
+        - GET /regulatory-reporting/api/v1/srp-reports/{uuid} - Retrieve single report
+        - POST /regulatory-reporting/api/v1/srp-reports - Manually create a report
+        - PUT /regulatory-reporting/api/v1/srp-reports/{uuid} - Update
+
+        Reports are also auto-created by signals when Critter criteria are met.
+        Manual POST creates the report in EMPTY status with milestones.
+        DELETE is not allowed. PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SRPReportRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SRPReportRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SRPReportRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/SRPReport'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/upstream-projects:
+    get:
+      operationId: regulatory_reporting_api_v1_upstream_projects_list
+      description: API endpoint for listing, creating, retrieving, and updating upstream
+        project.
+      parameters:
+      - in: query
+        name: component
+        schema:
+          type: string
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: purl
+        schema:
+          type: string
+      - in: query
+        name: repository_url
+        schema:
+          type: string
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PaginatedUpstreamProjectList'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    post:
+      operationId: regulatory_reporting_api_v1_upstream_projects_create
+      description: API endpoint for listing, creating, retrieving, and updating upstream
+        project.
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpstreamProjectPostRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UpstreamProjectPostRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpstreamProjectPostRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/UpstreamProjectPost'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+  /regulatory-reporting/api/v1/upstream-projects/{upstream_project_uuid}:
+    get:
+      operationId: regulatory_reporting_api_v1_upstream_projects_retrieve
+      description: API endpoint for listing, creating, retrieving, and updating upstream
+        project.
+      parameters:
+      - in: query
+        name: exclude_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Exclude specified fields from the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `exclude_fields=field,related_model_field.field`'
+      - in: query
+        name: include_fields
+        schema:
+          type: array
+          items:
+            type: string
+        description: 'Include only specified fields in the response. Multiple values
+          may be separated by commas. Dot notation can be used to filter on related
+          model fields. Example: `include_fields=field,related_model_field.field`'
+      - in: path
+        name: upstream_project_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Upstream Project.
+        required: true
+      tags:
+      - regulatory-reporting
+      security:
+      - OsidbTokenAuthentication: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/UpstreamProject'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
+    put:
+      operationId: regulatory_reporting_api_v1_upstream_projects_update
+      description: API endpoint for listing, creating, retrieving, and updating upstream
+        project.
+      parameters:
+      - in: path
+        name: upstream_project_uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Upstream Project.
+        required: true
+      tags:
+      - regulatory-reporting
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpstreamProjectRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UpstreamProjectRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpstreamProjectRequest'
+        required: true
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/UpstreamProject'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /trackers/api/v1/file:
     post:
       operationId: trackers_api_v1_file_create
@@ -15342,6 +16759,16 @@ components:
       required:
       - text
       - updated_dt
+    ContactMethodEnum:
+      enum:
+      - email
+      - github_issue
+      - gitlab_issue
+      - forgejo_issue
+      - website_form
+      - none_found
+      - other
+      type: string
     CvssVersionEnum:
       enum:
       - V2
@@ -16929,6 +18356,55 @@ components:
             format: uuid
       required:
       - flaw_uuids
+    FlawUpstreamMapping:
+      type: object
+      description: TrackingMixin class serializer
+      properties:
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        flaw_uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        upstream_project:
+          type: string
+          format: uuid
+        notes:
+          type: string
+      required:
+      - created_dt
+      - flaw_uuid
+      - updated_dt
+      - upstream_project
+      - uuid
+    FlawUpstreamMappingRequest:
+      type: object
+      description: TrackingMixin class serializer
+      properties:
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        upstream_project:
+          type: string
+          format: uuid
+        notes:
+          type: string
+      required:
+      - updated_dt
+      - upstream_project
     FlawV1:
       type: object
       description: Serializer for the flaw model adapted to affects v1
@@ -17302,6 +18778,22 @@ components:
       - 2
       - 3
       type: integer
+    MethodEnum:
+      enum:
+      - email
+      - github_issue
+      - gitlab_issue
+      - forgejo_issue
+      - website_form
+      - other_manual
+      type: string
+    MilestoneTypeEnum:
+      enum:
+      - 24h
+      - 72h
+      - final
+      - additional_information_response
+      type: string
     ModuleComponent:
       type: object
       properties:
@@ -17811,6 +19303,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FlawReportData'
+    PaginatedFlawUpstreamMappingList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlawUpstreamMapping'
     PaginatedFlawV1List:
       type: object
       required:
@@ -17880,6 +19395,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LabelDefinition'
+    PaginatedSRPReportList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SRPReport'
+    PaginatedSRPReportMilestoneList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SRPReportMilestone'
     PaginatedSupportedProductsList:
       type: object
       required:
@@ -17972,6 +19533,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TrackerV1'
+    PaginatedUpstreamNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpstreamNotification'
+    PaginatedUpstreamProjectList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpstreamProject'
     PatchedIntegrationTokenPatchRequest:
       type: object
       properties:
@@ -18011,6 +19618,17 @@ components:
       - eus
       - ps_update_stream
       - selected
+    ReportabilityReasonEnum:
+      enum:
+      - red_hat_identified
+      - jointly_identified
+      - manual_override
+      type: string
+    ReportableEventTypeEnum:
+      enum:
+      - EXPLOITS_KEV_APPROVED
+      - MAJOR_INCIDENT_APPROVED
+      type: string
     ResolutionEnum:
       enum:
       - FIX
@@ -18019,6 +19637,629 @@ components:
       - OOSS
       - DELEGATED
       - WONTREPORT
+      type: string
+    ResponsibilityScopeEnum:
+      enum:
+      - manufacturer
+      - steward
+      type: string
+    SRPReport:
+      type: object
+      description: |-
+        Serializer for SRP Reports.
+
+        Includes nested milestones. meta_attr is opt-in via include_meta_attr.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        flaw_id:
+          type: string
+          format: uuid
+          description: The flaw for which this SRP report is being created
+          readOnly: true
+        title:
+          type: string
+          description: Title of the SRP report
+        manufacturer_or_steward_name:
+          type: string
+          description: Name of the manufacturer or steward
+          maxLength: 255
+        responsibility_scope:
+          allOf:
+          - $ref: '#/components/schemas/ResponsibilityScopeEnum'
+          description: Whether Red Hat acts as manufacturer or steward
+        reportable_event_type:
+          allOf:
+          - $ref: '#/components/schemas/ReportableEventTypeEnum'
+          description: Type of event being reported to ENISA
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
+          description: Current status of the SRP report
+        evidence:
+          type: string
+          description: Justification for manually creating this SRP report when automatic
+            criteria were not met
+        timer_started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the SLA clock started for this report
+        srp_reference_id:
+          type: string
+          description: Reference ID returned by the SRP after submission
+          maxLength: 255
+        srp_reference_url:
+          type: string
+          format: uri
+          description: URL of the SRP reference
+          maxLength: 200
+        member_states_available:
+          type: array
+          items:
+            type: string
+            maxLength: 2
+          description: List of EU member state codes where product is available
+        designated_csirt_country:
+          type: string
+          description: Country code of the designated CSIRT coordinator
+          maxLength: 2
+        designated_csirt_source:
+          type: string
+          description: Source of the designated CSIRT coordinator
+          maxLength: 255
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        milestones:
+          type: array
+          items:
+            $ref: '#/components/schemas/SRPReportMilestone'
+          readOnly: true
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+      required:
+      - alerts
+      - created_dt
+      - flaw_id
+      - milestones
+      - reportable_event_type
+      - responsibility_scope
+      - title
+      - updated_dt
+      - uuid
+    SRPReportCreate:
+      type: object
+      description: |-
+        Serializer for manually creating SRP Reports.
+
+        Status is always EMPTY. ACLs are inherited from the flaw in the
+        view's perform_create. evidence is required for manual create.
+        srp_reference_id and srp_reference_url are optional. timer_started_at is
+        read-only and remains null until the report transitions to IN_PROGRESS.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        flaw_id:
+          type: string
+          format: uuid
+          description: UUID of the flaw to create an SRP report for
+        title:
+          type: string
+        manufacturer_or_steward_name:
+          type: string
+          description: Name of the manufacturer or steward
+          maxLength: 255
+        responsibility_scope:
+          $ref: '#/components/schemas/ResponsibilityScopeEnum'
+        reportable_event_type:
+          allOf:
+          - $ref: '#/components/schemas/ReportableEventTypeEnum'
+          description: Type of event being reported to ENISA
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
+          readOnly: true
+        evidence:
+          type: string
+        timer_started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          readOnly: true
+        srp_reference_id:
+          type: string
+          maxLength: 255
+        srp_reference_url:
+          type: string
+          format: uri
+          maxLength: 200
+        member_states_available:
+          type: array
+          items:
+            type: string
+            maxLength: 2
+          description: List of EU member state codes where product is available
+        designated_csirt_country:
+          type: string
+          description: Country code of the designated CSIRT coordinator
+          maxLength: 2
+        designated_csirt_source:
+          type: string
+          description: Source of the designated CSIRT coordinator
+          maxLength: 255
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        milestones:
+          type: array
+          items:
+            $ref: '#/components/schemas/SRPReportMilestone'
+          readOnly: true
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+      required:
+      - alerts
+      - created_dt
+      - evidence
+      - flaw_id
+      - milestones
+      - reportable_event_type
+      - status
+      - timer_started_at
+      - updated_dt
+      - uuid
+    SRPReportCreateRequest:
+      type: object
+      description: |-
+        Serializer for manually creating SRP Reports.
+
+        Status is always EMPTY. ACLs are inherited from the flaw in the
+        view's perform_create. evidence is required for manual create.
+        srp_reference_id and srp_reference_url are optional. timer_started_at is
+        read-only and remains null until the report transitions to IN_PROGRESS.
+      properties:
+        flaw_id:
+          type: string
+          format: uuid
+          description: UUID of the flaw to create an SRP report for
+        title:
+          type: string
+          minLength: 1
+        manufacturer_or_steward_name:
+          type: string
+          description: Name of the manufacturer or steward
+          maxLength: 255
+        responsibility_scope:
+          $ref: '#/components/schemas/ResponsibilityScopeEnum'
+        reportable_event_type:
+          allOf:
+          - $ref: '#/components/schemas/ReportableEventTypeEnum'
+          description: Type of event being reported to ENISA
+        evidence:
+          type: string
+          minLength: 1
+        srp_reference_id:
+          type: string
+          maxLength: 255
+        srp_reference_url:
+          type: string
+          format: uri
+          maxLength: 200
+        member_states_available:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2
+          description: List of EU member state codes where product is available
+        designated_csirt_country:
+          type: string
+          description: Country code of the designated CSIRT coordinator
+          maxLength: 2
+        designated_csirt_source:
+          type: string
+          description: Source of the designated CSIRT coordinator
+          maxLength: 255
+      required:
+      - evidence
+      - flaw_id
+      - reportable_event_type
+    SRPReportMilestone:
+      type: object
+      description: |-
+        Serializer for SRP Report Milestones.
+
+        Includes computed fields for deadline tracking and status.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        srp_report:
+          type: string
+          format: uuid
+          readOnly: true
+          description: The SRP report this milestone belongs to
+        milestone_type:
+          allOf:
+          - $ref: '#/components/schemas/MilestoneTypeEnum'
+          readOnly: true
+          description: Type of milestone (24h, 72h, final, etc.)
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
+          description: Current status of the milestone
+        request_received_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the request was received
+        request_source:
+          type: string
+          description: Source of the request
+          maxLength: 255
+        request_text:
+          type: string
+          description: Text of the request
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When this milestone was submitted
+        owner:
+          type: string
+          description: Owner of this milestone
+          maxLength: 60
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        due_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          readOnly: true
+        hours_remaining:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
+        days_remaining:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
+        is_overdue:
+          type: boolean
+          readOnly: true
+        embargoed:
+          type: boolean
+          readOnly: true
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+      required:
+      - alerts
+      - created_dt
+      - days_remaining
+      - due_at
+      - embargoed
+      - hours_remaining
+      - is_overdue
+      - milestone_type
+      - srp_report
+      - updated_dt
+      - uuid
+      - visibility
+    SRPReportMilestoneCreate:
+      type: object
+      description: |-
+        Serializer for creating SRP Report Milestones.
+
+        Only additional_information_response milestones can be created via the API;
+        all other milestone types are auto-created by signals.
+        ACLs are inherited from the parent report in the view's perform_create.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        srp_report:
+          type: string
+          format: uuid
+          readOnly: true
+          description: The SRP report this milestone belongs to
+        milestone_type:
+          allOf:
+          - $ref: '#/components/schemas/MilestoneTypeEnum'
+          readOnly: true
+          description: Type of milestone (24h, 72h, final, etc.)
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
+          description: Current status of the milestone
+        request_received_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the request was received
+        request_source:
+          type: string
+          description: Source of the request
+          maxLength: 255
+        request_text:
+          type: string
+          description: Text of the request
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When this milestone was submitted
+        owner:
+          type: string
+          description: Owner of this milestone
+          maxLength: 60
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        due_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          readOnly: true
+        hours_remaining:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
+        days_remaining:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
+        is_overdue:
+          type: boolean
+          readOnly: true
+        embargoed:
+          type: boolean
+          readOnly: true
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+      required:
+      - alerts
+      - created_dt
+      - days_remaining
+      - due_at
+      - embargoed
+      - hours_remaining
+      - is_overdue
+      - milestone_type
+      - srp_report
+      - updated_dt
+      - uuid
+      - visibility
+    SRPReportMilestoneCreateRequest:
+      type: object
+      description: |-
+        Serializer for creating SRP Report Milestones.
+
+        Only additional_information_response milestones can be created via the API;
+        all other milestone types are auto-created by signals.
+        ACLs are inherited from the parent report in the view's perform_create.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
+          description: Current status of the milestone
+        request_received_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the request was received
+        request_source:
+          type: string
+          description: Source of the request
+          maxLength: 255
+        request_text:
+          type: string
+          description: Text of the request
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When this milestone was submitted
+        owner:
+          type: string
+          description: Owner of this milestone
+          maxLength: 60
+    SRPReportMilestoneRequest:
+      type: object
+      description: |-
+        Serializer for SRP Report Milestones.
+
+        Includes computed fields for deadline tracking and status.
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
+          description: Current status of the milestone
+        request_received_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the request was received
+        request_source:
+          type: string
+          description: Source of the request
+          maxLength: 255
+        request_text:
+          type: string
+          description: Text of the request
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When this milestone was submitted
+        owner:
+          type: string
+          description: Owner of this milestone
+          maxLength: 60
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - updated_dt
+    SRPReportMilestoneStatusEnum:
+      enum:
+      - required
+      - in_progress
+      - in_review
+      - submitted
+      - obsolete
+      type: string
+    SRPReportRequest:
+      type: object
+      description: |-
+        Serializer for SRP Reports.
+
+        Includes nested milestones. meta_attr is opt-in via include_meta_attr.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          description: Title of the SRP report
+        manufacturer_or_steward_name:
+          type: string
+          description: Name of the manufacturer or steward
+          maxLength: 255
+        responsibility_scope:
+          allOf:
+          - $ref: '#/components/schemas/ResponsibilityScopeEnum'
+          description: Whether Red Hat acts as manufacturer or steward
+        reportable_event_type:
+          allOf:
+          - $ref: '#/components/schemas/ReportableEventTypeEnum'
+          description: Type of event being reported to ENISA
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SRPReportStatusEnum'
+          description: Current status of the SRP report
+        evidence:
+          type: string
+          description: Justification for manually creating this SRP report when automatic
+            criteria were not met
+        timer_started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the SLA clock started for this report
+        srp_reference_id:
+          type: string
+          description: Reference ID returned by the SRP after submission
+          maxLength: 255
+        srp_reference_url:
+          type: string
+          format: uri
+          description: URL of the SRP reference
+          maxLength: 200
+        member_states_available:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 2
+          description: List of EU member state codes where product is available
+        designated_csirt_country:
+          type: string
+          description: Country code of the designated CSIRT coordinator
+          maxLength: 2
+        designated_csirt_source:
+          type: string
+          description: Source of the designated CSIRT coordinator
+          maxLength: 255
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+      required:
+      - reportable_event_type
+      - responsibility_scope
+      - title
+      - updated_dt
+    SRPReportStatusEnum:
+      enum:
+      - empty
+      - in_progress
+      - submitted
       type: string
     SpecialHandlingEnum:
       enum:
@@ -18692,6 +20933,388 @@ components:
       - OSV
       - CVEORG
       type: string
+    UpstreamNotification:
+      type: object
+      description: |-
+        ACLMixin class serializer
+        translates embargoed boolean to ACLs
+      properties:
+        embargoed:
+          type: boolean
+          readOnly: true
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        flaw_uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        upstream_project:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        status:
+          $ref: '#/components/schemas/UpstreamNotificationStatusEnum'
+        reportability_reason:
+          oneOf:
+          - $ref: '#/components/schemas/ReportabilityReasonEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        method:
+          oneOf:
+          - $ref: '#/components/schemas/MethodEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        timer_started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        last_error:
+          type: string
+          readOnly: true
+      required:
+      - created_dt
+      - embargoed
+      - flaw_uuid
+      - last_error
+      - updated_dt
+      - uuid
+      - visibility
+    UpstreamNotificationPreview:
+      type: object
+      properties:
+        text_body:
+          type: string
+          readOnly: true
+        html_body:
+          type: string
+          readOnly: true
+      required:
+      - html_body
+      - text_body
+    UpstreamNotificationRequest:
+      type: object
+      description: |-
+        ACLMixin class serializer
+        translates embargoed boolean to ACLs
+      properties:
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        upstream_project:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        status:
+          $ref: '#/components/schemas/UpstreamNotificationStatusEnum'
+        reportability_reason:
+          oneOf:
+          - $ref: '#/components/schemas/ReportabilityReasonEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        method:
+          oneOf:
+          - $ref: '#/components/schemas/MethodEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        timer_started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      required:
+      - updated_dt
+    UpstreamNotificationStatusEnum:
+      enum:
+      - not_applicable
+      - not_required
+      - required
+      - contact_needed
+      - prepared
+      - reviewed
+      - queued
+      - sent
+      - deferred
+      - blocked
+      - failed
+      type: string
+    UpstreamProject:
+      type: object
+      description: TrackingMixin class serializer
+      properties:
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        component_name:
+          type: string
+          maxLength: 255
+        repository_url:
+          type: string
+          format: uri
+          maxLength: 200
+        security_contact:
+          type: string
+          maxLength: 255
+        contact_method:
+          oneOf:
+          - $ref: '#/components/schemas/ContactMethodEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        contact_url:
+          type: string
+          format: uri
+          maxLength: 200
+        source:
+          type: string
+          maxLength: 255
+        confidence:
+          type: string
+          maxLength: 50
+        verified_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        verified_by:
+          type: string
+          maxLength: 255
+        unsupported:
+          type: boolean
+        stewarded_awareness:
+          type: boolean
+        stewarded_awareness_reason:
+          type: string
+        stewarded_awareness_marked_by:
+          type: string
+          maxLength: 255
+        stewarded_awareness_marked_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        notes:
+          type: string
+        purl:
+          type: string
+      required:
+      - component_name
+      - created_dt
+      - updated_dt
+      - uuid
+    UpstreamProjectPost:
+      type: object
+      description: TrackingMixin class serializer
+      properties:
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        component_name:
+          type: string
+          maxLength: 255
+        repository_url:
+          type: string
+          format: uri
+          maxLength: 200
+        security_contact:
+          type: string
+          maxLength: 255
+        contact_method:
+          oneOf:
+          - $ref: '#/components/schemas/ContactMethodEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        contact_url:
+          type: string
+          format: uri
+          maxLength: 200
+        source:
+          type: string
+          maxLength: 255
+        confidence:
+          type: string
+          maxLength: 50
+        verified_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        verified_by:
+          type: string
+          maxLength: 255
+        unsupported:
+          type: boolean
+        stewarded_awareness:
+          type: boolean
+        stewarded_awareness_reason:
+          type: string
+        stewarded_awareness_marked_by:
+          type: string
+          maxLength: 255
+        stewarded_awareness_marked_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        notes:
+          type: string
+        purl:
+          type: string
+      required:
+      - component_name
+      - created_dt
+      - uuid
+    UpstreamProjectPostRequest:
+      type: object
+      description: TrackingMixin class serializer
+      properties:
+        component_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        repository_url:
+          type: string
+          format: uri
+          maxLength: 200
+        security_contact:
+          type: string
+          maxLength: 255
+        contact_method:
+          oneOf:
+          - $ref: '#/components/schemas/ContactMethodEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        contact_url:
+          type: string
+          format: uri
+          maxLength: 200
+        source:
+          type: string
+          maxLength: 255
+        confidence:
+          type: string
+          maxLength: 50
+        verified_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        verified_by:
+          type: string
+          maxLength: 255
+        unsupported:
+          type: boolean
+        stewarded_awareness:
+          type: boolean
+        stewarded_awareness_reason:
+          type: string
+        stewarded_awareness_marked_by:
+          type: string
+          maxLength: 255
+        stewarded_awareness_marked_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        notes:
+          type: string
+        purl:
+          type: string
+      required:
+      - component_name
+    UpstreamProjectRequest:
+      type: object
+      description: TrackingMixin class serializer
+      properties:
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
+        component_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        repository_url:
+          type: string
+          format: uri
+          maxLength: 200
+        security_contact:
+          type: string
+          maxLength: 255
+        contact_method:
+          oneOf:
+          - $ref: '#/components/schemas/ContactMethodEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        contact_url:
+          type: string
+          format: uri
+          maxLength: 200
+        source:
+          type: string
+          maxLength: 255
+        confidence:
+          type: string
+          maxLength: 50
+        verified_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        verified_by:
+          type: string
+          maxLength: 255
+        unsupported:
+          type: boolean
+        stewarded_awareness:
+          type: boolean
+        stewarded_awareness_reason:
+          type: string
+        stewarded_awareness_marked_by:
+          type: string
+          maxLength: 255
+        stewarded_awareness_marked_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        notes:
+          type: string
+        purl:
+          type: string
+      required:
+      - component_name
+      - updated_dt
     User:
       type: object
       properties:

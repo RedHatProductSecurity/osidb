@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+- Add new module "regulatory_reporting" (OSIDB-5127)
+- Add new Models SRPReport and SRPReportMilestone (OSIDB-5066)
+- Add `upstream maintainer` notification models (OSIDB-5076)
+- Add create SRP report when Flaw is EXPLOITS_KEV_APPROVED or MAJOR_INCIDENT (OSIDB-5067)
+- Automatic creation of upstream maintainer notification when criteria is met for flaw (OSIDB-5077)
+- Add serializers for upstream maintainer notification (OSIDB-5081)
+- Add signal to trigger upstream maintainer notification creation on FlawUpstreamMapping save (OSIDB-5078)
+- Add SRP report serializer (OSIDB-5072)
+- Add SRP report milestone creation (OSIDB-5068)
+- Add Upstream Maintainer Notification Subresource Endpoints (OSIDB-5083)
+- Add Upstream Maintainer Email Template (OSIDB-5086)
+- Add Upstream Maintainer Notification Payload Preparation Service (OSIDB-5087)
+- Add SRP report endpoints (OSIDB-5073)
+- Add Upstream Project Contact Endpoints (OSIDB-5084)
+- Add Flaw-to-Upstream Mapping Endpoints (OSIDB-5085)
+- Add Upstream Maintainer Send Email Action (OSIDB-5088)
+- Add RLS turned on for ACL in regulatory_reporting (OSIDB-5238)
+- Add Observability for Upstream Maintainer Email Actions (OSIDB-5104)
+- Add Upstream Maintainer Notifications Query (OSIDB-5103)
+- Add report payloads in milestones (OSIDB-5070)
+- Add manual POST create for SRP reports with PRE_REQUIRED status and evidence field (OSIDB-5284)
+- Add owner and submitted_at fields to SRP report milestones (OSIDB-5439)
+
+### Changed
+- Remove additional information from report type (OSIDB-5437)
+- Make reference id and url optional (OSIDB-5436)
+- Remove Flaw signal to create report (OSIDB-5462)
+- Change srp report status choices (OSIDB-5442)
+- Change srp milestones status choices (OSIDB-5441)
+
 ## [5.17.1] - 2026-08-31
 ### Added
 - make sure that the flaw impact is always at or above any affect override (OSIDB-5389)

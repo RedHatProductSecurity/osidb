@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     # --- Foundation ---
     "osidb",
     # --- Business logic (no cross-app deps beyond osidb) ---
+    "regulatory_reporting",
     "apps.workflows",
     "apps.bbsync",
     "apps.exploits",
@@ -101,6 +102,7 @@ MIDDLEWARE = [
     "osidb.middleware.OsidbHistoryMiddleware",  # adds request user to audit history context
     "django.middleware.gzip.GZipMiddleware",
     "osidb.middleware.PgCommon",
+    "regulatory_reporting.middleware.CRAReportingEnabledMiddleware",
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -236,6 +238,11 @@ LOGGING = {
             "handlers": ["console"],
         },
         "celery": {"handlers": ["celery"], "level": "INFO", "propagate": True},
+        "regulatory_reporting": {
+            "handlers": ["celery"],
+            "level": "INFO",
+            "propagate": False,
+        },
         "osidb": {"level": "WARNING", "handlers": ["console"], "propagate": False},
         "api_req": {"level": "INFO", "handlers": ["console"], "propagate": False},
         "django_auth_ldap": {"level": "WARNING", "handlers": ["console"]},
@@ -318,6 +325,10 @@ SPECTACULAR_SETTINGS = {
             ("workflow", "Workflow"),
         ],
         "UpstreamDataSource": "osidb.models.flaw.upstream.UpstreamData.Source",
+        "SRPReportStatusEnum": "regulatory_reporting.models.srp_report.SRPReport.SRPReportStatus",
+        "SRPReportMilestoneStatusEnum": (
+            "regulatory_reporting.models.srp_report_milestone.SRPReportMilestone.SRPReportMilestoneStatus"
+        ),
     },
     "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
     "COMPONENT_SPLIT_REQUEST": True,
@@ -331,6 +342,14 @@ CISA_COLLECTOR_CRONTAB = crontab(minute=0, hour=1)
 DEFAULT_REQUEST_TIMEOUT = get_env(
     "OSIDB_DEFAULT_REQUEST_TIMEOUT", default="30", is_int=True
 )
+
+# opt-in-flag for CRA upstream notification
+CRA_NOTIFICATIONS_ENABLED = get_env(
+    "CRA_NOTIFICATIONS_ENABLED", default="False", is_bool=True
+)
+
+# opt-in-flag for CRA upstream reporting
+CRA_REPORTING_ENABLED = get_env("CRA_REPORTING_ENABLED", default="False", is_bool=True)
 
 # sets the Access-Control-Allow-Origin response header - accepts regex
 # example value: [ r"^https://([^.]*\.)?\.example\.com$" ]
@@ -351,7 +370,7 @@ PGHISTORY_APPEND_ONLY = True
 PGHISTORY_BASE_MODEL = "osidb.models.audit_history.CustomHistoryBase"
 PGHISTORY_OBJ_FIELD = ObjForeignKey(related_name="events")
 
-
+UPSTREAM_NOTIFICATIONS_SENDER = "secalert@redhat.com"
 # Email configuration
 
 
