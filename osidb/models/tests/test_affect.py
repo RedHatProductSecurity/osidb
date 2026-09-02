@@ -1022,6 +1022,7 @@ class TestAffectednessExplanationClearing:
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
+            flaw__impact=Impact.MODERATE,
             impact=Impact.LOW,
             flaw=FlawFactory(impact=Impact.MODERATE),
         )
