@@ -19,6 +19,7 @@ from apps.ace.constants import (
     LABEL_AUTO_REJECTED,
     LABEL_MANUAL_TRIAGE,
     LABEL_POTENTIAL_REJECTION,
+    NEWTOPIA_ECOSYSTEMS,
 )
 from apps.ace.osv_ranges import OsvPackageInfo, match_component_to_upstream
 from apps.ace.version import (
@@ -53,6 +54,32 @@ try:
 except ImportError:
     NewtopiaQuerier = None  # type: ignore[assignment,misc]
     HAS_LIB_NEWTOPIA = False
+
+
+def _aegis_ecosystems(flaw: Flaw) -> list[str]:
+    """
+    Extract ecosystem suggestions from aegis_meta._ecosystems.
+
+    AEGIS populates this field early in the flaw lifecycle — typically before
+    OSV upstream_data is available — so it serves as a fallback when
+    component_ecosystems (derived from UpstreamData) is empty.
+
+    Multiple entries may exist (e.g. from different AEGIS runs); their values
+    are combined.
+    """
+    ecosystems = []
+    entries = (flaw.aegis_meta or {}).get("_ecosystems", [])
+    if not isinstance(entries, list):
+        return ecosystems
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        value = entry.get("value")
+        if isinstance(value, list):
+            ecosystems.extend(
+                v.strip().lower() for v in value if isinstance(v, str) and v.strip()
+            )
+    return ecosystems
 
 
 def _flaw_components(flaw: Flaw) -> list[str]:
@@ -864,12 +891,20 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
     osv_data = flaw.upstream_data.filter(source=UpstreamData.Source.OSV).first()
     upstream_purls: list[dict] = osv_data.upstream_purls if osv_data else []
     component_ecosystems = osv_data.component_ecosystems if osv_data else {}
+    aegis_ecosystems = _aegis_ecosystems(flaw)
 
     # Pre-filter all components first. If any component triggers a skip
     # (e.g. blocklist), the entire flaw is skipped — matching vulncli behavior.
     pre_filter_results: list[tuple[str, str, PreFilterResult]] = []
     for flaw_component in components:
-        ecosystems = component_ecosystems.get(flaw_component.strip().lower(), [""])
+        ecosystems = component_ecosystems.get(flaw_component.strip().lower())
+        if not ecosystems and aegis_ecosystems:
+            ecosystems = aegis_ecosystems
+        if not ecosystems:
+            ecosystems = [""]
+        ecosystems = list(
+            set(e if e in NEWTOPIA_ECOSYSTEMS else "" for e in ecosystems)
+        )
         for ecosystem in ecosystems:
             pf = _pre_filter_component(flaw, flaw_component, ecosystem)
             pre_filter_results.append((flaw_component, ecosystem, pf))
