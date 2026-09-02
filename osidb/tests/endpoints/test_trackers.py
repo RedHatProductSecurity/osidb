@@ -131,13 +131,9 @@ class TestEndpointsTrackers:
             assert tracker.affects.count() == 1
             assert tracker.affects.first().uuid == affect.uuid
 
-            if sync_to_bz is False:
-                # Flaw was not synced but affect was
-                assert len(shared_state["runs"]) == 3
-            else:
-                # Flaw was synced.
-                assert len(shared_state["runs"]) == 4
-                assert shared_state["runs"][-1] == (Flaw, {"success": True})
+            # Flaw is now always synced, regardless of sync_to_bz
+            assert len(shared_state["runs"]) == 4
+            assert shared_state["runs"][-1] == (Flaw, {"success": True})
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - prefer relevant trackers over duplicates (OSIDB-5449)
+### Fixed
+- Fix Bugzilla flaw bug not in sync with the flaw (OSIDB-5532)
 
 ## [5.17.1] - 2026-08-31
 ### Added
