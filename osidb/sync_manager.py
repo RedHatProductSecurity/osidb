@@ -658,8 +658,7 @@ class BZTrackerDownloadManager(SyncManager):
                 celery_task_id=getattr(getattr(task, "request", None), "id", None),
             ),
         ):
-            tracker.affects.clear()
-            tracker.affects.add(*affects)
+            tracker.relink_affects(affects)
             tracker.save(raise_validation_error=False, auto_timestamps=False)
 
         return affects, failed_flaws, failed_affects
@@ -1027,8 +1026,7 @@ class JiraTrackerDownloadManager(SyncManager):
             affects.append(affect)
 
         with transaction.atomic():
-            tracker.affects.clear()
-            tracker.affects.add(*affects)
+            tracker.relink_affects(affects)
             tracker.save(raise_validation_error=False, auto_timestamps=False)
 
         return affects, failed_flaws, failed_affects

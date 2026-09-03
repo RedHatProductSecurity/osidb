@@ -1017,10 +1017,13 @@ class TestAffectednessExplanationClearing:
     @pytest.mark.django_db
     def test_explanation_preserved_when_non_status_fields_change(self):
         """Changing impact or ps_component should not clear explanation."""
+        # pin the flaw impact so the affect override can later be raised to
+        # MODERATE without exceeding the flaw impact
         affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             impact=Impact.LOW,
+            flaw=FlawFactory(impact=Impact.MODERATE),
         )
         affect.affectedness_explanation = "Explanation to preserve"
         affect.save()
