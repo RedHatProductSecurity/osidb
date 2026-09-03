@@ -805,6 +805,10 @@ class FlawFilter(
             "workflow_name": ["exact"],
             "workflow_state": ["exact"],
             "owner": ["exact"],
+            "resolved_dt": ["exact"]
+            + LT_GT_LOOKUP_EXPRS
+            + LTE_GTE_LOOKUP_EXPRS
+            + DATE_LOOKUP_EXPRS,
             # Affect fields
             "affects__uuid": ["exact"],
             "affects__affectedness": ["exact"],
