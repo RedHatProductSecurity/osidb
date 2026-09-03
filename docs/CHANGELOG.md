@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   not rhel-9.2.z or rhel-9.10) (OSIDB-5459)
 - Fix a race condition which prevented ACE triggering (OSIDB-5473)
 
+### Added
+- Add relation-aware flaw audit history backed by concrete affect and tracker
+  audit tables, including deleted affect history (OSIDB-4999)
+
 ## [5.17.0] - 2026-08-26
 ### Added
 - Certain workflow labels now provide a `reason` attribute which can provide

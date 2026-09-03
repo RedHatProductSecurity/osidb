@@ -3,10 +3,19 @@ from datetime import datetime, timezone
 
 import pghistory
 import pytest
+from django.conf import settings
 from django.db import transaction
 
 from osidb.core import set_user_acls
-from osidb.models import Affect, Flaw, FlawCVSS, FlawSource, Impact, Tracker
+from osidb.models import (
+    Affect,
+    Flaw,
+    FlawCVSS,
+    FlawSource,
+    Impact,
+    Tracker,
+)
+from osidb.models.audit_history import audit_model_for_model
 from osidb.tests.factories import (
     AffectCVSSFactory,
     AffectFactory,
@@ -218,6 +227,91 @@ class TestAuditFlaw:
             assert pghistory.models.Events.objects.tracks(flaw_cvss).count() == 0
         with transaction.atomic():
             assert pghistory.models.Events.objects.tracks(affect_cvss).count() == 0
+
+    def test_affect_audit_acls_follow_flaw_release(
+        self,
+        public_read_groups,
+        public_write_groups,
+        embargoed_read_groups,
+        embargoed_write_groups,
+    ):
+        """Affect audit rows must be released with the parent flaw."""
+        flaw = FlawFactory(embargoed=True)
+        affect = AffectFactory(flaw=flaw)
+        affect_audit_model = audit_model_for_model(Affect)
+        affect_event = affect_audit_model.objects.get(
+            pgh_obj_id=affect.uuid,
+            pgh_label="insert",
+        )
+
+        assert affect_event.acl_read == embargoed_read_groups
+        assert affect_event.acl_write == embargoed_write_groups
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS + settings.PUBLIC_WRITE_GROUPS)
+        with transaction.atomic():
+            assert (
+                affect_audit_model.objects.filter(pgh_id=affect_event.pgh_id).count()
+                == 0
+            )
+
+        set_user_acls(settings.ALL_GROUPS)
+        flaw.unembargo_dt = datetime(2000, 1, 1, tzinfo=timezone.utc)
+        flaw.unembargo()
+
+        affect_event.refresh_from_db()
+        assert affect_event.acl_read == public_read_groups
+        assert affect_event.acl_write == public_write_groups
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
+        with transaction.atomic():
+            assert (
+                affect_audit_model.objects.filter(pgh_id=affect_event.pgh_id).count()
+                == 1
+            )
+
+    def test_deleted_affect_audit_acls_follow_flaw_release(
+        self,
+        public_read_groups,
+        public_write_groups,
+        embargoed_read_groups,
+        embargoed_write_groups,
+    ):
+        """Deleted affect audit rows must be released with the parent flaw."""
+        flaw = FlawFactory(embargoed=True)
+        affect = AffectFactory(flaw=flaw)
+        affect_id = affect.uuid
+
+        affect.delete()
+        affect_audit_model = audit_model_for_model(Affect)
+        affect_event = affect_audit_model.objects.get(
+            pgh_obj_id=affect_id,
+            pgh_label="delete",
+        )
+
+        assert affect_event.acl_read == embargoed_read_groups
+        assert affect_event.acl_write == embargoed_write_groups
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS + settings.PUBLIC_WRITE_GROUPS)
+        with transaction.atomic():
+            assert (
+                affect_audit_model.objects.filter(pgh_id=affect_event.pgh_id).count()
+                == 0
+            )
+
+        set_user_acls(settings.ALL_GROUPS)
+        flaw.unembargo_dt = datetime(2000, 1, 1, tzinfo=timezone.utc)
+        flaw.unembargo()
+
+        affect_event.refresh_from_db()
+        assert affect_event.acl_read == public_read_groups
+        assert affect_event.acl_write == public_write_groups
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
+        with transaction.atomic():
+            assert (
+                affect_audit_model.objects.filter(pgh_id=affect_event.pgh_id).count()
+                == 1
+            )
 
     def test_audit_api_cleansing(self, auth_client, test_api_uri):
         """
