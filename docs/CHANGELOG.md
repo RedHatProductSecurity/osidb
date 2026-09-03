@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - base middleware recognition on better covering team attribute (OSIDB-5392)
 
 ### Fixed
+- Copy tracker created/updated timestamps from Jira and Bugzilla on create so OSIM does not display Unix epoch (OSIDB-5468)
 - Fix DjangoQL filter for `query=embargoed=True` (OSIDB-5465)
 - Fix UBI label incorrectly applied to older EUS/AUS RHEL streams — now only
   applies to latest Z-stream and next Y-stream (e.g., rhel-9.8.z and rhel-9.9,
