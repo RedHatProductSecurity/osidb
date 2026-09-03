@@ -1,3 +1,7 @@
+NEWTOPIA_ECOSYSTEMS = frozenset(
+    {"cargo", "gem", "generic", "golang", "maven", "npm", "nuget", "pypi", "upstream"}
+)
+
 # OSV ecosystem strings to normalized ecosystem identifiers
 OSV_ECOSYSTEM_MAP: dict[str, str] = {
     "maven": "maven",

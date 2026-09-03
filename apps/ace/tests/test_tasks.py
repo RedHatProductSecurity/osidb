@@ -22,6 +22,7 @@ from apps.ace.constants import (
 from apps.ace.tasks import (
     PreFilterAction,
     SpecialWorkflow,
+    _aegis_ecosystems,
     _is_go_stdlib_component,
     _pre_filter_component,
     _resolve_component,
@@ -826,9 +827,196 @@ def test_sync_queries_each_ecosystem_for_component(monkeypatch, ace_enabled):
     stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
 
     assert len(search_kwargs) == 2
-    assert search_kwargs[0]["ecosystem"] == "npm"
-    assert search_kwargs[1]["ecosystem"] == "pypi"
+    searched_ecosystems = [kw["ecosystem"] for kw in search_kwargs]
+    assert "npm" in searched_ecosystems
+    assert "pypi" in searched_ecosystems
     assert stats["created"] == 2
+
+
+# ── AEGIS ecosystem fallback tests ───────────────────────────────────────────
+
+
+def test_aegis_ecosystems_extracts_values():
+    """_aegis_ecosystems combines values from all entries."""
+    flaw = SimpleNamespace(
+        aegis_meta={
+            "_ecosystems": [
+                {"type": "AI-Bot", "value": ["npm"], "timestamp": "2026-01-01"},
+                {"type": "AI-Bot", "value": ["npm", "pypi"], "timestamp": "2026-01-02"},
+            ]
+        }
+    )
+    result = _aegis_ecosystems(flaw)
+    assert sorted(result) == ["npm", "npm", "pypi"]
+
+
+def test_aegis_ecosystems_empty_when_no_aegis_meta():
+    flaw = SimpleNamespace(aegis_meta={})
+    assert _aegis_ecosystems(flaw) == []
+
+
+def test_aegis_ecosystems_empty_when_no_ecosystems_key():
+    flaw = SimpleNamespace(aegis_meta={"components": [{"value": ["foo"]}]})
+    assert _aegis_ecosystems(flaw) == []
+
+
+def test_aegis_ecosystems_lowercases():
+    flaw = SimpleNamespace(
+        aegis_meta={"_ecosystems": [{"type": "AI-Bot", "value": ["NPM"]}]}
+    )
+    assert _aegis_ecosystems(flaw) == ["npm"]
+
+
+def test_aegis_ecosystems_passes_all_values():
+    """_aegis_ecosystems returns raw values; canonical filtering happens downstream."""
+    flaw = SimpleNamespace(
+        aegis_meta={
+            "_ecosystems": [
+                {
+                    "type": "AI-Bot",
+                    "value": ["npm", "unknown_eco", "crates.io", "golang"],
+                }
+            ]
+        }
+    )
+    result = _aegis_ecosystems(flaw)
+    assert sorted(result) == ["crates.io", "golang", "npm", "unknown_eco"]
+
+
+@pytest.mark.django_db
+def test_sync_falls_back_to_aegis_ecosystem_when_no_osv(monkeypatch, ace_enabled):
+    """When no UpstreamData exists but aegis_meta has ecosystem info,
+    the AEGIS ecosystem is used as fallback."""
+    flaw = FlawFactory(
+        components=["ip-address"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta={
+            "_ecosystems": [
+                {"type": "AI-Bot", "value": ["npm"], "timestamp": "2026-01-01"}
+            ]
+        },
+    )
+
+    search_kwargs = []
+
+    def _search(terms, **kwargs):
+        search_kwargs.append(kwargs)
+        qs = MagicMock()
+        qs.filter.return_value.all.return_value = []
+        return qs
+
+    mock_nq = MagicMock()
+    mock_nq.return_value.search.side_effect = _search
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_nq)
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert len(search_kwargs) == 1
+    assert search_kwargs[0]["ecosystem"] == "npm"
+
+
+@pytest.mark.django_db
+def test_sync_osv_ecosystem_takes_precedence_over_aegis(monkeypatch, ace_enabled):
+    """When both OSV component_ecosystems and aegis_meta have ecosystem info,
+    the OSV ecosystem takes precedence."""
+    flaw = FlawFactory(
+        components=["redis"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta={
+            "_ecosystems": [
+                {"type": "AI-Bot", "value": ["pypi"], "timestamp": "2026-01-01"}
+            ]
+        },
+    )
+    UpstreamDataFactory(
+        flaw=flaw,
+        upstream_purls=[
+            {
+                "purl": "pkg:npm/redis",
+                "name": "redis",
+                "ecosystem": "npm",
+                "ranges": [],
+                "versions": [],
+            }
+        ],
+    )
+
+    search_kwargs = []
+
+    def _search(terms, **kwargs):
+        search_kwargs.append(kwargs)
+        qs = MagicMock()
+        qs.filter.return_value.all.return_value = []
+        return qs
+
+    mock_nq = MagicMock()
+    mock_nq.return_value.search.side_effect = _search
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_nq)
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert len(search_kwargs) == 1
+    assert search_kwargs[0]["ecosystem"] == "npm"
+
+
+@pytest.mark.django_db
+def test_sync_no_ecosystem_when_neither_osv_nor_aegis(monkeypatch, ace_enabled):
+    """Without UpstreamData and without aegis_meta ecosystems, falls back to empty."""
+    flaw = FlawFactory(
+        components=["curl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta={},
+    )
+
+    search_kwargs = []
+
+    def _search(terms, **kwargs):
+        search_kwargs.append(kwargs)
+        qs = MagicMock()
+        qs.filter.return_value.all.return_value = []
+        return qs
+
+    mock_nq = MagicMock()
+    mock_nq.return_value.search.side_effect = _search
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_nq)
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert len(search_kwargs) == 1
+    assert search_kwargs[0]["ecosystem"] == ""
+
+
+@pytest.mark.django_db
+def test_sync_non_canonical_ecosystem_treated_as_empty(monkeypatch, ace_enabled):
+    """Non-canonical ecosystem values (from any source) are converted to empty string."""
+    flaw = FlawFactory(
+        components=["foo"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta={
+            "_ecosystems": [{"type": "AI-Bot", "value": ["not-a-real-ecosystem"]}]
+        },
+    )
+
+    search_kwargs = []
+
+    def _search(terms, **kwargs):
+        search_kwargs.append(kwargs)
+        qs = MagicMock()
+        qs.filter.return_value.all.return_value = []
+        return qs
+
+    mock_nq = MagicMock()
+    mock_nq.return_value.search.side_effect = _search
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_nq)
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert len(search_kwargs) == 1
+    assert search_kwargs[0]["ecosystem"] == ""
 
 
 # ── Pre-filter tests ──────────────────────────────────────────────────────────
