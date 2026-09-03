@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Add `resolved_dt` recording when a flaw enters the DONE workflow state (OSIDB-5467)
+
 ### Changed
 - prefer relevant trackers over duplicates (OSIDB-5449)
 

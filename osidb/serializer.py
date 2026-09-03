@@ -2624,10 +2624,20 @@ class FlawPutSerializer(FlawSerializer):
     pass
 
 
+# fields exposed on the v2 flaw API only; excluded from the v1 serializer below
+V2_ONLY_FLAW_FIELDS = ("resolved_dt",)
+
+
 class FlawV1Serializer(FlawSerializer):
     """Serializer for the flaw model adapted to affects v1"""
 
     labels = FlawCollaboratorSerializer(many=True, required=False, read_only=True)
+
+    # fields exposed on the v2 flaw API only; exclude them from v1
+    resolved_dt = None
+
+    class Meta(FlawSerializer.Meta):
+        fields = [f for f in FlawSerializer.Meta.fields if f not in V2_ONLY_FLAW_FIELDS]
 
     history_relations = (
         HistoryRelation(
