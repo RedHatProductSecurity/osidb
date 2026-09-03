@@ -14822,6 +14822,13 @@ paths:
         name: status
         schema:
           type: string
+          enum:
+          - empty
+          - in_progress
+          - submitted
+        description: |+
+          Current status of the SRP report
+
       - in: query
         name: timer_started_at__gte
         schema:

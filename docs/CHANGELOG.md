@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add report payloads in milestones (OSIDB-5070)
 - Add manual POST create for SRP reports with PRE_REQUIRED status and evidence field (OSIDB-5284)
 - Add owner and submitted_at fields to SRP report milestones (OSIDB-5439)
+- Add Top-Level SRP Report Status Filtering to Advanced Search (OSIDB - 5487)
 
 ### Changed
 - Remove additional information from report type (OSIDB-5437)
