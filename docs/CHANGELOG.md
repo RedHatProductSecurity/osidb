@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - prefer relevant trackers over duplicates (OSIDB-5449)
+- ACE: stop auto-creating `openshift-golang-builder-container` affects for OSSM
+  streams in the Go stdlib workflow
 
 ## [5.17.1] - 2026-08-31
 ### Added
