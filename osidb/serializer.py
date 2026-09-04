@@ -267,12 +267,13 @@ class TrackingMixinSerializer(serializers.ModelSerializer):
 
 class SyncToBzBulkEnablementMixinSerializer(serializers.ModelSerializer):
     """
-    Provides parameter "sync_to_bz" that when set to False disables sync
-    with Bugzilla for the given request. This is to be used by clients
-    during bulk actions that are carried out by repeated single-instance
-    calls (e.g. creating Trackers). The reason is that the final flaw bz
-    sync that happens after e.g. creating a tracker can take minutes for
-    huge flaws.
+    Provides parameter "sync_to_bz" that when set to False skips the
+    tracker-level Bugzilla sync for the given request. For Jira trackers,
+    the related flaws are still synced to Bugzilla automatically as part of the
+    operation, deduplicated per flaw, regardless of this flag.
+    This is to be used by clients during bulk actions that
+    are carried out by repeated single-instance calls (e.g. creating
+    Trackers). Bugzilla trackers do not go through this related-flaw sync path.
 
     The parameter does nothing if BZ sync is not enabled in the OSIDB instance.
     """
@@ -281,10 +282,11 @@ class SyncToBzBulkEnablementMixinSerializer(serializers.ModelSerializer):
         required=False,
         write_only=True,
         help_text=(
-            "Setting sync_to_bz to false disables flaw sync with Bugzilla "
-            "after this operation. Use only as part of bulk actions and "
-            "trigger a flaw bugzilla sync afterwards. Does nothing if BZ "
-            "is disabled."
+            "Setting sync_to_bz to false skips the tracker's own Bugzilla "
+            "sync during this operation. For Jira trackers, the related "
+            "flaw is still synced to Bugzilla automatically, deduplicated "
+            "per flaw. Bugzilla trackers do not go through this sync. "
+            "Does nothing if BZ is disabled."
         ),
     )
 
@@ -731,6 +733,18 @@ class TrackerSerializer(
             "resolved_dt",
         ]
 
+    def _sync_related_flaws_to_bz(self, affects):
+        synced_flaw_ids = set()
+        for affect in affects:
+            if affect.flaw_id in synced_flaw_ids:
+                continue
+            synced_flaw_ids.add(affect.flaw_id)
+            affect.flaw.save(
+                bz_api_key=self.get_bz_api_key(),
+                no_alerts=True,
+                raise_validation_error=False,
+            )
+
     def create(self, validated_data):
         """
         perform the tracker instance creation
@@ -797,18 +811,13 @@ class TrackerSerializer(
             # related flaws need to be saved to Bugzilla in order to update SRT notes with the new
             # Jira tracker ID (Bugzilla trackers are linked naturally through Bugzilla relations)
             if tracker.type == Tracker.TrackerType.JIRA:
-                for affect in affects:
-                    # do not raise validation errors here as the flaw is not what the user touches
-                    # which would make the errors hard to understand and cause the tracker to orphan
-                    affect.flaw.save(
-                        bz_api_key=self.get_bz_api_key(),
-                        no_alerts=True,
-                        raise_validation_error=False,
-                    )
+                self._sync_related_flaws_to_bz(affects)
         else:
             # Special path for bulk tracker create. Works for Jira trackers only.
-            # Do not sync with BZ, as that can take a long time for large flaws.
-            pass
+            # Previously skipped the BZ sync entirely for performance, but that
+            # left the flaw's bz_component stale.
+            if tracker.type == Tracker.TrackerType.JIRA:
+                self._sync_related_flaws_to_bz(affects)
 
         #####################
         # 5) return created #
