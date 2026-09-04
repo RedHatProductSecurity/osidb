@@ -101,7 +101,7 @@ CHROMIUM_STREAMS = [
 ]
 
 # Go stdlib workflow constants
-GO_STDLIB_BUILDER_PRODUCTS = ["openshift-4", "cnv-4", "ossm-2", "ossm-3"]
+GO_STDLIB_BUILDER_PRODUCTS = ["openshift-4", "cnv-4"]
 GO_STDLIB_BUILDER_PURL = (
     "pkg:oci/openshift-golang-builder-container"
     "?repository_url=registry.redhat.io/openshift-golang-builder-container"
