@@ -879,7 +879,7 @@ def _sync_affects_from_results(
     }
 
 
-@app.task
+@app.task(queue="high")
 @bypass_rls
 def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
     """
@@ -1024,7 +1024,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
     return totals
 
 
-@app.task
+@app.task(queue="high")
 @bypass_rls
 def sync_hummingbird_affects(flaw_id: str) -> dict[str, Any]:
     """

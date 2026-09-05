@@ -21,7 +21,7 @@ from osidb.sync_manager import (
 logger = get_task_logger(__name__)
 
 
-@app.task
+@app.task(queue="low")
 def check_for_non_periodic_reschedules():
     """
     some sync managers perform async jobs based on non-periodic
@@ -36,7 +36,7 @@ def check_for_non_periodic_reschedules():
     JiraTaskTransitionManager.check_for_reschedules()
 
 
-@app.task
+@app.task(queue="low")
 def stale_alert_cleanup():
     """Delete stale alerts from the database.
 
@@ -90,7 +90,7 @@ def stale_alert_cleanup():
     return f"Deleted {deleted_alerts_count} Stale Alerts"
 
 
-@app.task
+@app.task(queue="low")
 def refresh_affect_v1_view():
     """Refresh the materialized view for affects v1."""
     set_user_acls(settings.ALL_GROUPS)
@@ -113,7 +113,7 @@ def refresh_affect_v1_view():
         return message
 
 
-@app.task
+@app.task(queue="high")
 def async_send_email(**kwargs) -> int:
     if not EmailSettings().send_enabled:
         return 0

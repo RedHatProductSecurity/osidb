@@ -664,7 +664,7 @@ class BZTrackerDownloadManager(SyncManager):
         return affects, failed_flaws, failed_affects
 
     @staticmethod
-    @app.task(name="sync_manager.bz_tracker_download", bind=True)
+    @app.task(name="sync_manager.bz_tracker_download", bind=True, queue="low")
     def sync_task(task, tracker_id, **kwargs):
         from collectors.bzimport import collectors
 
@@ -784,7 +784,7 @@ class BZSyncManager(SyncManager):
             transaction.on_commit(schedule_task)
 
     @staticmethod
-    @app.task(name="sync_manager.bzsync", bind=True)
+    @app.task(name="sync_manager.bzsync", bind=True, queue="low")
     def sync_task(task, flaw_id, **kwargs):
         # flaw_id is the flaw UUID
         from osidb.models import Flaw
@@ -838,6 +838,7 @@ class JiraTaskSyncManager(SyncManager):
         base=LockableTaskWithArgs,
         name="sync_manager.jira_task_sync",
         bind=True,
+        queue="high",
         # Must last at least MAX_RUN_LENGTH - the same threshold
         # is_in_progress()/check_for_reschedules() use to decide a run is
         # stuck - or the Redis lock could expire while a still-legitimate
@@ -905,6 +906,7 @@ class JiraTaskTransitionManager(SyncManager):
         base=LockableTaskWithArgs,
         name="sync_manager.jira_task_transition",
         bind=True,
+        queue="high",
         lock_ttl=60,
     )
     def sync_task(task, flaw_id, **kwargs):
@@ -1032,7 +1034,7 @@ class JiraTrackerDownloadManager(SyncManager):
         return affects, failed_flaws, failed_affects
 
     @staticmethod
-    @app.task(name="sync_manager.jira_tracker_download", bind=True)
+    @app.task(name="sync_manager.jira_tracker_download", bind=True, queue="high")
     def sync_task(task, tracker_id, **kwargs):
         from collectors.jiraffe.convertors import JiraTrackerConvertor
         from collectors.jiraffe.core import JiraQuerier
