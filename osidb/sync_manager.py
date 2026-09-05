@@ -845,12 +845,12 @@ class JiraTaskSyncManager(SyncManager):
         #
         # Contention is dropped, not retried: LockableTaskWithArgs rejects
         # outright (Reject, no requeue) rather than retrying, since a
-        # bounded Celery-retry-on-lock-contention policy re-enqueued into
-        # the fifo.* queues faster than the concurrency-1 workers could
-        # drain them (OSIDB-5189 revert). Recovery for a dropped run is
-        # left to check_for_reschedules()'s periodic sweep, on the
-        # MAX_RUN_LENGTH timescale (see the scheduled_not_started bucket
-        # there), not the longer MAX_SCHEDULE_DELAY.
+        # bounded Celery-retry-on-lock-contention policy would re-enqueue
+        # tasks faster than workers could drain them (OSIDB-5189 revert).
+        # Recovery for a dropped run is left to check_for_reschedules()'s
+        # periodic sweep, on the MAX_RUN_LENGTH timescale (see the
+        # scheduled_not_started bucket there), not the longer
+        # MAX_SCHEDULE_DELAY.
         lock_ttl=int(SyncManager.MAX_RUN_LENGTH.total_seconds()),
     )
     def sync_task(task, flaw_id, **kwargs):
