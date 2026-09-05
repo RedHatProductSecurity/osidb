@@ -7,7 +7,11 @@ from packageurl import PackageURL
 from rest_framework.viewsets import ModelViewSet
 
 from osidb.api_views import get_valid_http_methods
-from osidb.core import set_user_acls
+from osidb.core import (
+    restore_user_acl_session,
+    set_user_acls,
+    snapshot_user_acl_session,
+)
 from osidb.exceptions import OSIDBException
 from osidb.mixins import Alert
 from osidb.models import Flaw, FlawReference, PsContact
@@ -61,6 +65,24 @@ class TestCore(object):
     def test_flaw_exceptions(self):
         with pytest.raises(OSIDBException):
             set_user_acls(1)
+
+    @pytest.mark.enable_rls
+    def test_set_user_acls_roundtrip(self, settings):
+        """
+        Regression: psycopg v3 uses server-side parameter binding, which
+        does not support parameters in SET statements. Verify that
+        set_user_acls, snapshot, and restore all work with parameterized
+        queries (set_config / current_setting).
+        """
+        groups = settings.PUBLIC_READ_GROUPS + settings.PUBLIC_WRITE_GROUPS
+        set_user_acls(groups)
+
+        snapshot = snapshot_user_acl_session()
+        assert all(v is not None and v != "" for v in snapshot.values())
+
+        restore_user_acl_session(snapshot)
+        snapshot_after = snapshot_user_acl_session()
+        assert snapshot == snapshot_after
 
     def test_valid_http_methods(self, settings):
         base = ModelViewSet.http_method_names.copy()

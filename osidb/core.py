@@ -51,9 +51,9 @@ def restore_user_acl_session(snapshot: dict[str, str | None]) -> None:
                 continue
             with connections[db_alias].cursor() as cursor:
                 if raw is None:
-                    cursor.execute("RESET osidb.acl")
+                    cursor.execute("SELECT set_config('osidb.acl', '', false)")
                 else:
-                    cursor.execute("SET osidb.acl = %s", [raw])
+                    cursor.execute("SELECT set_config('osidb.acl', %s, false)", [raw])
     except Exception:
         raise OSIDBException("Cannot restore user acl session")
 
@@ -71,10 +71,9 @@ def set_user_acls(groups) -> None:
             # empty result set.
             for db_alias in connections:
                 with connections[db_alias].cursor() as cursor:
-                    # in theory psycopg2 should support list conversion but
-                    # it seems to be broken, to pass into postgres we need
-                    # to convert UUID[] into STRING[] doing some old
-                    # fashioned string munging TBD-INVESTIGATE psycopg2
-                    cursor.execute("SET osidb.acl = %s", [",".join(acls)])
+                    cursor.execute(
+                        "SELECT set_config('osidb.acl', %s, false)",
+                        [",".join(acls)],
+                    )
     except Exception:
         raise OSIDBException("Cannot set user acl")

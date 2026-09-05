@@ -81,12 +81,12 @@ def configure_telemetry():
 
 def _instrument_all():
     # Django is registered separately, pre-fork, by instrument_django().
-    from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
+    from opentelemetry.instrumentation.psycopg import PsycopgInstrumentor
     from opentelemetry.instrumentation.redis import RedisInstrumentor
     from opentelemetry.instrumentation.requests import RequestsInstrumentor
 
     for instrumentor_cls in (
-        Psycopg2Instrumentor,
+        PsycopgInstrumentor,
         RequestsInstrumentor,
         RedisInstrumentor,
     ):
