@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - prefer relevant trackers over duplicates (OSIDB-5449)
 
+### Fixed
+- Fallback to Aegis' suggested ecosystem if not available in OSIDB (OSIDB-5353)
+
 ## [5.17.1] - 2026-08-31
 ### Added
 - make sure that the flaw impact is always at or above any affect override (OSIDB-5389)
