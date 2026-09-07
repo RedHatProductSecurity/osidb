@@ -19969,6 +19969,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
           description: Current status of the milestone
+        additional_details: {}
         request_received_at:
           type:
           - string
@@ -20076,6 +20077,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
           description: Current status of the milestone
+        additional_details: {}
         request_received_at:
           type:
           - string
@@ -20168,6 +20170,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
           description: Current status of the milestone
+        additional_details: {}
         request_received_at:
           type:
           - string
@@ -20202,6 +20205,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
           description: Current status of the milestone
+        additional_details: {}
         request_received_at:
           type:
           - string

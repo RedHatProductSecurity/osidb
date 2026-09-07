@@ -8,6 +8,8 @@ import uuid
 
 from django.db import IntegrityError, transaction
 from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from osidb.core import generate_acls
@@ -34,6 +36,9 @@ class SRPReportMilestoneSerializer(
     """
 
     # Declared so drf-spectacular includes them in openapi.yml
+    additional_details = extend_schema_field(OpenApiTypes.OBJECT)(
+        serializers.JSONField(required=False)
+    )
     due_at = serializers.DateTimeField(read_only=True, allow_null=True)
     hours_remaining = serializers.IntegerField(read_only=True, allow_null=True)
     days_remaining = serializers.IntegerField(read_only=True, allow_null=True)
@@ -62,6 +67,7 @@ class SRPReportMilestoneSerializer(
                 # Core fields
                 "milestone_type",
                 "status",
+                "additional_details",
                 "request_received_at",
                 "request_source",
                 "request_text",
@@ -94,6 +100,13 @@ class SRPReportMilestoneSerializer(
             "alerts",
         ]
 
+    def validate_additional_details(self, value):
+        if not isinstance(value, dict):
+            raise serializers.ValidationError(
+                "additional_details must be a JSON object, not a list or scalar."
+            )
+        return value
+
     def update(self, instance, validated_data, *args, **kwargs):
         """
         Preserve ACLs on update.
@@ -101,6 +114,9 @@ class SRPReportMilestoneSerializer(
         ACLMixinSerializer.update() reads request.data.get("embargoed") and
         rewrites ACLs; omitting embargoed resolves as public. Milestone ACLs
         are inherited from the parent report and are not mutable via this API.
+
+        Snapshot rebuild for already-submitted milestones when additional_details
+        changes is handled in SRPReportMilestone.save().
         """
         validated_data["acl_read"] = instance.acl_read
         validated_data["acl_write"] = instance.acl_write

@@ -15,6 +15,39 @@ logger = logging.getLogger(__name__)
 
 REDHAT_IDENTIFIED_SOURCES = {FlawSource.REDHAT}
 
+# ISO 3166-1 alpha-2 codes for all 27 EU member states recognised by ENISA/NIS2.
+SRP_MEMBER_STATE_CODES = frozenset(
+    {
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "ES",
+        "FI",
+        "FR",
+        "EL",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK",
+    }
+)
+
 
 def create_srp_report_milestones(
     srp_report: SRPReport,
@@ -225,6 +258,17 @@ class SRPPayloadBuilder:
     expected_milestone_type = None
     previous_milestone_type = None
 
+    # Fields computed entirely from OSIDB data that coordinators must not override.
+    # Allowing writes here would let additional_details bypass required-field logic
+    # or corrupt the notification contract with ENISA.
+    DERIVED_PAYLOAD_FIELDS = frozenset(
+        {
+            "notification_type",  # derived from reportable_event_type
+            "notification_level",  # derived from milestone_type
+            "product_identity",  # derived from flaw.affects
+        }
+    )
+
     def __init__(self, milestone):
         if (
             self.expected_milestone_type
@@ -344,6 +388,113 @@ class SRPPayloadBuilder:
             return json.loads(previous.meta_attr["payload_snapshot"])
         return {}
 
+    def _parse_member_states_override(self, value):
+        """Parse and validate a member_states_available override value.
+
+        Returns the validated list, or None if invalid (with a warning logged).
+        Accepts a list or a pre-serialised JSON string.
+        """
+        if isinstance(value, list):
+            invalid = self._invalid_member_state_entries(value)
+            if invalid:
+                logger.warning(
+                    "SRP override: member_states_available contains %d invalid "
+                    "entries; skipping",
+                    len(invalid),
+                )
+                return None
+            return value
+        if isinstance(value, str):
+            try:
+                parsed = json.loads(value)
+            except (json.JSONDecodeError, ValueError):
+                logger.warning(
+                    "SRP override: member_states_available string is not "
+                    "valid JSON; skipping",
+                )
+                return None
+            if not isinstance(parsed, list):
+                logger.warning(
+                    "SRP override: member_states_available JSON value "
+                    "must be a list, got %s; skipping",
+                    type(parsed).__name__,
+                )
+                return None
+            invalid = self._invalid_member_state_entries(parsed)
+            if invalid:
+                logger.warning(
+                    "SRP override: member_states_available contains "
+                    "%d invalid entries; skipping",
+                    len(invalid),
+                )
+                return None
+            return parsed
+        logger.warning(
+            "SRP override: member_states_available must be list or str, "
+            "got %s; skipping",
+            type(value).__name__,
+        )
+        return None
+
+    @staticmethod
+    def _invalid_member_state_entries(items):
+        """Return entries from *items* that are not valid SRP member-state codes."""
+        return [
+            v
+            for v in items
+            if not isinstance(v, str) or v not in SRP_MEMBER_STATE_CODES
+        ]
+
+    def _apply_overrides(self, payload, details):
+        """
+        Return (overrides, rejected_keys) where *overrides* is a filtered copy
+        of coordinator-provided additional_details suitable for merging into the
+        assembled payload, and *rejected_keys* is the list of keys that were
+        skipped due to validation failures.
+
+        Allow-list: keys that (a) already exist in the assembled payload and
+        (b) are not in DERIVED_PAYLOAD_FIELDS.  This prevents unknown keys
+        from being injected and derived keys from being silently overwritten.
+
+        Type contract:
+          - ``member_states_available`` must be a list (JSON-serialised to
+            match the type set by _build_common_fields) or already a str.
+          - All other overridable values must be str.
+
+        Invalid types are skipped with a warning; they never reach
+        payload.update() and therefore cannot bypass required-field checks.
+        """
+        overrides = {}
+        rejected = []
+        for key, value in details.items():
+            if key in self.DERIVED_PAYLOAD_FIELDS:
+                logger.warning("SRP override: ignoring derived field %r", key)
+                rejected.append(key)
+                continue
+            if key not in payload:
+                logger.warning(
+                    "SRP override: ignoring unknown field for milestone type %s",
+                    self.milestone.milestone_type,
+                )
+                rejected.append(key)
+                continue
+            if key == "member_states_available":
+                parsed = self._parse_member_states_override(value)
+                if parsed is None:
+                    rejected.append(key)
+                else:
+                    overrides[key] = json.dumps(parsed)
+            elif isinstance(value, str):
+                overrides[key] = value
+            else:
+                logger.warning(
+                    "SRP override: field %r must be str, got %s; skipping",
+                    key,
+                    type(value).__name__,
+                )
+                rejected.append(key)
+        return overrides, rejected
+
     def prepare(self):
         """
         Build the payload and store it in milestone.meta_attr.
@@ -367,11 +518,27 @@ class SRPPayloadBuilder:
             if key not in payload:
                 payload[key] = value
 
+        # Coordinator-provided values override auto-derived ones.
+        # Allow-list + type-check via _apply_overrides; derived fields and
+        # wrong-typed values are dropped before reaching payload.update.
+        details = self.milestone.additional_details
+        if isinstance(details, dict):
+            overrides, rejected_keys = self._apply_overrides(payload, details)
+            payload.update(overrides)
+        else:
+            if details is not None:
+                logger.warning(
+                    "SRP override: additional_details is not a dict (got %s); ignoring",
+                    type(details).__name__,
+                )
+            rejected_keys = []
+
         missing = self._get_missing_required_fields(payload)
 
         self.milestone.meta_attr["payload_snapshot"] = json.dumps(payload)
         self.milestone.meta_attr["prepared_at"] = timezone.now().isoformat()
         self.milestone.missing_required_fields = json.dumps(missing)
+        self.milestone.meta_attr["rejected_override_keys"] = json.dumps(rejected_keys)
 
         return self.milestone
 
