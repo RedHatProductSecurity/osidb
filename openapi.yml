@@ -19921,6 +19921,7 @@ components:
           - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
           description: Current status of the milestone
         additional_details:
+          type: object
           description: Coordinator-provided SRP FAQ fields for this milestone stage.
             OSIM stores and reads these as individual form fields. Values here override
             auto-derived payload fields at submission time.
@@ -20032,6 +20033,7 @@ components:
           - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
           description: Current status of the milestone
         additional_details:
+          type: object
           description: Coordinator-provided SRP FAQ fields for this milestone stage.
             OSIM stores and reads these as individual form fields. Values here override
             auto-derived payload fields at submission time.
@@ -20128,6 +20130,7 @@ components:
           - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
           description: Current status of the milestone
         additional_details:
+          type: object
           description: Coordinator-provided SRP FAQ fields for this milestone stage.
             OSIM stores and reads these as individual form fields. Values here override
             auto-derived payload fields at submission time.
@@ -20166,6 +20169,7 @@ components:
           - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
           description: Current status of the milestone
         additional_details:
+          type: object
           description: Coordinator-provided SRP FAQ fields for this milestone stage.
             OSIM stores and reads these as individual form fields. Values here override
             auto-derived payload fields at submission time.

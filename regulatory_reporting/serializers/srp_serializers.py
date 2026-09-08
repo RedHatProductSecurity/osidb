@@ -8,7 +8,6 @@ import uuid
 
 from django.db import IntegrityError, transaction
 from django.utils import timezone
-from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -20,7 +19,14 @@ from osidb.serializer import (
     IncludeMetaAttrMixin,
     TrackingMixinSerializer,
 )
+from regulatory_reporting.constants import ENISA_STATE_CODES
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
+from regulatory_reporting.services import get_overridable_keys
+
+
+@extend_schema_field({"type": "object"})
+class _ObjectJSONField(serializers.JSONField):
+    """JSONField that emits type:object in the OpenAPI schema."""
 
 
 class SRPReportMilestoneSerializer(
@@ -35,9 +41,17 @@ class SRPReportMilestoneSerializer(
     Includes computed fields for deadline tracking and status.
     """
 
-    # Declared so drf-spectacular includes them in openapi.yml
-    additional_details = extend_schema_field(OpenApiTypes.OBJECT)(
-        serializers.JSONField(required=False)
+    # Declared so drf-spectacular includes them in openapi.yml.
+    # help_text must live on the field instance itself: extend_schema_field() on an
+    # instance is silently dropped by DRF's deepcopy (fields are reconstructed from
+    # _args/_kwargs, losing any __dict__ additions).
+    additional_details = _ObjectJSONField(
+        required=False,
+        help_text=(
+            "Coordinator-provided SRP FAQ fields for this milestone stage. "
+            "OSIM stores and reads these as individual form fields. "
+            "Values here override auto-derived payload fields at submission time."
+        ),
     )
     due_at = serializers.DateTimeField(read_only=True, allow_null=True)
     hours_remaining = serializers.IntegerField(read_only=True, allow_null=True)
@@ -105,7 +119,36 @@ class SRPReportMilestoneSerializer(
             raise serializers.ValidationError(
                 "additional_details must be a JSON object, not a list or scalar."
             )
+        for k, v in value.items():
+            if k == "member_states_available":
+                if not isinstance(v, (list, str)):
+                    raise serializers.ValidationError(
+                        f"additional_details[{k!r}] must be a list or string, "
+                        f"got {type(v).__name__}."
+                    )
+            elif not isinstance(v, str):
+                raise serializers.ValidationError(
+                    f"additional_details[{k!r}] must be a string, "
+                    f"got {type(v).__name__}."
+                )
         return value
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        details = attrs.get("additional_details")
+        if details and self.instance:
+            event_type = self.instance.srp_report.reportable_event_type
+            allowed = get_overridable_keys(self.instance.milestone_type, event_type)
+            unknown = set(details.keys()) - allowed
+            if unknown:
+                raise serializers.ValidationError(
+                    {
+                        "additional_details": (
+                            f"Unknown or non-overridable keys: {sorted(unknown)}"
+                        )
+                    }
+                )
+        return attrs
 
     def update(self, instance, validated_data, *args, **kwargs):
         """
@@ -148,6 +191,18 @@ class SRPReportMilestoneCreateSerializer(SRPReportMilestoneSerializer):
     """
 
     updated_dt = serializers.DateTimeField(read_only=True)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if attrs.get("additional_details"):
+            raise serializers.ValidationError(
+                {
+                    "additional_details": (
+                        "additional_information_response milestones have no overridable keys."
+                    )
+                }
+            )
+        return attrs
 
 
 class SRPReportSerializer(
@@ -204,6 +259,15 @@ class SRPReportSerializer(
             "meta_attr",
             "alerts",
         ]
+
+    def validate_member_states_available(self, value):
+        invalid = [v for v in value if v not in ENISA_STATE_CODES]
+        if invalid:
+            raise serializers.ValidationError(
+                f"Invalid ENISA member-state codes: {invalid}. "
+                "Use EL for Greece, not GR."
+            )
+        return value
 
     def update(self, instance, validated_data, *args, **kwargs):
         """
