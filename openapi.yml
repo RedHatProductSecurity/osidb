@@ -14648,6 +14648,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - affect
       - alerts
       - created_dt
       - cvss_version
@@ -14689,6 +14690,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - affect
       - cvss_version
       - embargoed
       - updated_dt
@@ -14746,6 +14748,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - affect
       - alerts
       - created_dt
       - cvss_version
@@ -15785,6 +15788,7 @@ components:
       - created_dt
       - cvss_version
       - embargoed
+      - flaw
       - score
       - updated_dt
       - uuid
@@ -15884,6 +15888,7 @@ components:
       required:
       - cvss_version
       - embargoed
+      - flaw
       - updated_dt
       - vector
     FlawCVSSV2:
@@ -15943,6 +15948,7 @@ components:
       - created_dt
       - cvss_version
       - embargoed
+      - flaw
       - issuer
       - score
       - updated_dt
@@ -18702,10 +18708,13 @@ components:
           pattern: ^[\w.@+-]+$
           maxLength: 150
         email:
-          type: string
-          format: email
           title: Email address
-          maxLength: 254
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
         groups:
           type: array
           items:
