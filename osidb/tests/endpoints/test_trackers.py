@@ -132,10 +132,11 @@ class TestEndpointsTrackers:
             assert tracker.affects.first().uuid == affect.uuid
 
             if sync_to_bz is False:
-                # Flaw was not synced but affect was
+                # sync_to_bz=False now schedules an async BZ sync instead of
+                # syncing synchronously, so no additional Flaw.save() call happen here
                 assert len(shared_state["runs"]) == 3
             else:
-                # Flaw was synced.
+                # Flaw is synced synchronously when sync_to_bz is True or None (default)
                 assert len(shared_state["runs"]) == 4
                 assert shared_state["runs"][-1] == (Flaw, {"success": True})
 

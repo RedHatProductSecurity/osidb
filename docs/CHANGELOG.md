@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fallback to Aegis' suggested ecosystem if not available in OSIDB (OSIDB-5353)
+- Fix Bugzilla flaw bug not in sync with the flaw (OSIDB-5332)
 
 ## [5.17.1] - 2026-08-31
 ### Added
