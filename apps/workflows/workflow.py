@@ -11,6 +11,7 @@ from os.path import join
 
 import yaml
 from django.db import models
+from django.utils import timezone
 
 from osidb.acls import ACL
 from osidb.helpers import deprecate_field
@@ -160,6 +161,9 @@ class WorkflowModel(models.Model):
     group_key = deprecate_field(models.CharField(max_length=60, blank=True))
     task_key = models.CharField(max_length=60, blank=True)
     task_updated_dt = models.DateTimeField(null=True, blank=True)
+    # The datetime when the object entered the DONE workflow state, or null
+    # otherwise. Maintained automatically by adjust_classification().
+    resolved_dt = models.DateTimeField(null=True, blank=True)
     team_id = deprecate_field(models.CharField(max_length=8, blank=True))
     classification_meta = models.JSONField(default=list, blank=True)
 
@@ -269,6 +273,15 @@ class WorkflowModel(models.Model):
 
         # Update instance fields
         self.classification = classification
+
+        # Stamp resolved_dt when entering DONE, clear it whenever not DONE
+        was_done = old_classification["state"] == "DONE"
+        is_done = classification["state"] == "DONE"
+        if is_done and not was_done:
+            self.resolved_dt = timezone.now()
+        elif not is_done:
+            self.resolved_dt = None
+
         self.adjust_acls()  # possibly adjust ACLs too
 
         # Notify listeners that classification changed (e.g. ACE).

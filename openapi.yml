@@ -11271,6 +11271,7 @@ paths:
             - -references__url
             - -references__uuid
             - -reported_dt
+            - -resolved_dt
             - -source
             - -statement
             - -team_id
@@ -11333,6 +11334,7 @@ paths:
             - references__url
             - references__uuid
             - reported_dt
+            - resolved_dt
             - source
             - statement
             - team_id
@@ -11553,6 +11555,46 @@ paths:
           format: date-time
       - in: query
         name: reported_dt__lte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: resolved_dt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: resolved_dt__date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: resolved_dt__date__gte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: resolved_dt__date__lte
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: resolved_dt__gt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: resolved_dt__gte
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: resolved_dt__lt
+        schema:
+          type: string
+          format: date-time
+      - in: query
+        name: resolved_dt__lte
         schema:
           type: string
           format: date-time
@@ -15560,6 +15602,12 @@ components:
           type: string
           readOnly: true
           deprecated: true
+        resolved_dt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          readOnly: true
         alerts:
           type: array
           items:
@@ -15580,6 +15628,7 @@ components:
       - package_versions
       - references
       - requires_cve_description
+      - resolved_dt
       - selected_cve_description
       - task_key
       - team_id
@@ -16571,6 +16620,12 @@ components:
           type: string
           readOnly: true
           deprecated: true
+        resolved_dt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          readOnly: true
         alerts:
           type: array
           items:
@@ -16591,6 +16646,7 @@ components:
       - package_versions
       - references
       - requires_cve_description
+      - resolved_dt
       - selected_cve_description
       - task_key
       - team_id

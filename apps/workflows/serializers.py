@@ -239,10 +239,18 @@ class ClassificationResponseSerializer(serializers.Serializer):
 class WorkflowModelSerializer(serializers.ModelSerializer):
     classification = serializers.SerializerMethodField()
     task_key = serializers.CharField(read_only=True, allow_null=True)
+    resolved_dt = serializers.DateTimeField(read_only=True, allow_null=True)
 
     class Meta:
         model = WorkflowModel
-        fields = ["classification", "group_key", "owner", "task_key", "team_id"]
+        fields = [
+            "classification",
+            "group_key",
+            "owner",
+            "task_key",
+            "team_id",
+            "resolved_dt",
+        ]
         abstract = True
 
     @extend_schema_field(

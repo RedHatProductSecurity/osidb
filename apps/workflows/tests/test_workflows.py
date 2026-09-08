@@ -5,7 +5,7 @@ workflow definitions validation tests
 from datetime import datetime
 
 import pytest
-from django.utils.timezone import make_aware
+from django.utils.timezone import make_aware, now
 
 from apps.workflows.workflow import WorkflowFramework
 from osidb.models import Affect, Impact, WorkflowLabel
@@ -288,6 +288,52 @@ class TestDefaultWorkflow:
         label.delete()
         flaw.refresh_from_db()
         assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
+
+    @pytest.mark.enable_signals
+    def test_resolved_dt_being_set_correctly(self):
+        """
+        resolved_dt is stamped when a flaw enters DONE and cleared when it leaves.
+        """
+        # build a flaw all the way to DONE
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-123",
+            owner="analyst@redhat.com",
+            cwe_id="CWE-79",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        tracker = TrackerFactory.build(
+            embargoed=False,
+            ps_update_stream=affect.ps_update_stream,
+        )
+        tracker.save()
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
+
+        # not resolved before reaching DONE
+        assert flaw.resolved_dt is None
+
+        before = now()
+        label = WorkflowLabel.objects.create(flaw=flaw, name="approved")
+        after = now()
+
+        # entering DONE stamps resolved_dt with the current time
+        assert flaw.workflow_state == "DONE"
+        assert flaw.resolved_dt is not None
+        assert before <= flaw.resolved_dt <= after
+
+        flaw.refresh_from_db()
+        assert flaw.resolved_dt is not None  # persisted
+
+        # leaving DONE clears it
+        label.delete()
+        flaw.refresh_from_db()
+        assert flaw.workflow_state != "DONE"
+        assert flaw.resolved_dt is None
 
     @pytest.mark.enable_signals
     def test_cwe_requirement_for_triage(self):
