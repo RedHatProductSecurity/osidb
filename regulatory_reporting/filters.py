@@ -62,7 +62,12 @@ class SRPReportFilter(FilterSet):
 
     uuid = UUIDFilter(field_name="uuid", lookup_expr="exact")
     flaw_id = UUIDFilter(field_name="flaw_id", lookup_expr="exact")
-    status = CharFilter(field_name="status", lookup_expr="exact")
+    STATUS_FILTER_CHOICES = (
+        (SRPReport.SRPReportStatus.EMPTY, "None"),
+        (SRPReport.SRPReportStatus.IN_PROGRESS, "In Progress"),
+        (SRPReport.SRPReportStatus.SUBMITTED, "Done"),
+    )
+    status = ChoiceFilter(field_name="status", choices=STATUS_FILTER_CHOICES)
     reportable_event_type = CharFilter(
         field_name="reportable_event_type", lookup_expr="exact"
     )

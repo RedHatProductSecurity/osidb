@@ -11,7 +11,6 @@ from freezegun import freeze_time
 from rest_framework import status
 
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
-from regulatory_reporting.models.abstracts import SRPReportBase
 from regulatory_reporting.tests.factories import (
     NonReportableFlawFactory,
     SRPReportFactory,
@@ -455,6 +454,38 @@ class TestSRPReportFiltering:
             response.data["results"][0]["status"]
             == SRPReport.SRPReportStatus.IN_PROGRESS
         )
+
+    def test_filter_by_status_choices(self, api_client):
+        """Filter accepts all three top-level status values."""
+        SRPReportFactory(status=SRPReport.SRPReportStatus.EMPTY)
+        SRPReportFactory(
+            status=SRPReport.SRPReportStatus.IN_PROGRESS,
+            timer_started_at=timezone.now(),
+        )
+        SRPReportFactory(
+            status=SRPReport.SRPReportStatus.SUBMITTED,
+            timer_started_at=timezone.now(),
+            srp_reference_id="SRP-2026-TEST",
+        )
+
+        for value in [
+            SRPReport.SRPReportStatus.EMPTY,
+            SRPReport.SRPReportStatus.IN_PROGRESS,
+            SRPReport.SRPReportStatus.SUBMITTED,
+        ]:
+            response = api_client.get(
+                f"/regulatory-reporting/api/v1/srp-reports?status={value}"
+            )
+            assert response.status_code == status.HTTP_200_OK
+            assert len(response.data["results"]) == 1
+            assert response.data["results"][0]["status"] == value
+
+    def test_filter_by_status_rejects_unsupported_value(self, api_client):
+        """Filter rejects a status value outside the defined choices."""
+        response = api_client.get(
+            "/regulatory-reporting/api/v1/srp-reports?status=not_a_real_status"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_filter_by_reportable_event_type(self, api_client):
         """Can filter by reportable_event_type."""
