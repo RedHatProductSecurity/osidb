@@ -7,46 +7,16 @@ from django.utils import timezone
 
 from osidb.models import Flaw, FlawCVSS
 from osidb.models.flaw import FlawSource
-from regulatory_reporting.constants import MILESTONES_TYPES_BY_REPORTABLE_EVENT_TYPE
+from regulatory_reporting.constants import (
+    ENISA_STATE_CODES,
+    MILESTONES_TYPES_BY_REPORTABLE_EVENT_TYPE,
+)
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 from regulatory_reporting.models.upstream import UpstreamNotification
 
 logger = logging.getLogger(__name__)
 
 REDHAT_IDENTIFIED_SOURCES = {FlawSource.REDHAT}
-
-# ISO 3166-1 alpha-2 codes for all 27 EU member states recognised by ENISA/NIS2.
-SRP_MEMBER_STATE_CODES = frozenset(
-    {
-        "AT",
-        "BE",
-        "BG",
-        "CY",
-        "CZ",
-        "DE",
-        "DK",
-        "EE",
-        "ES",
-        "FI",
-        "FR",
-        "EL",
-        "HR",
-        "HU",
-        "IE",
-        "IT",
-        "LT",
-        "LU",
-        "LV",
-        "MT",
-        "NL",
-        "PL",
-        "PT",
-        "RO",
-        "SE",
-        "SI",
-        "SK",
-    }
-)
 
 
 def create_srp_report_milestones(
@@ -269,6 +239,38 @@ class SRPPayloadBuilder:
         }
     )
 
+    REQUIRED_IF_AVAILABLE_COMMON_FIELDS = []
+    REQUIRED_IF_AVAILABLE_VULNERABILITY_FIELDS = []
+    REQUIRED_IF_AVAILABLE_INCIDENT_FIELDS = []
+
+    # Keys coordinators may supply via additional_details, per builder subclass.
+    # Excludes DERIVED_PAYLOAD_FIELDS. Used by the serializer to reject unknown
+    # keys with a 400 rather than silently dropping them.
+    OVERRIDABLE_COMMON_KEYS = frozenset(
+        {
+            "manufacturer_or_steward_name",
+            "report_title",
+            "member_states_available",
+            "product_type",
+            "product_category",
+            "product_class",
+            "end_of_support",
+            "mitigating_measure_expected_shortly",
+            "attack_vector",
+        }
+    )
+    OVERRIDABLE_VULNERABILITY_KEYS = frozenset()
+    OVERRIDABLE_INCIDENT_KEYS = frozenset()
+
+    @classmethod
+    def overridable_keys(cls, event_type):
+        keys = set(cls.OVERRIDABLE_COMMON_KEYS)
+        if event_type == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED:
+            keys |= cls.OVERRIDABLE_VULNERABILITY_KEYS
+        elif event_type == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED:
+            keys |= cls.OVERRIDABLE_INCIDENT_KEYS
+        return frozenset(keys)
+
     def __init__(self, milestone):
         if (
             self.expected_milestone_type
@@ -298,8 +300,16 @@ class SRPPayloadBuilder:
         fields["product_identity"] = self._collect_product_identity()
         fields["product_type"] = ""
         fields["product_category"] = ""
+        fields["product_class"] = ""  # CRA field 14 — Optional
+        fields["end_of_support"] = ""  # CRA field 16 — Optional
+        fields["mitigating_measure_expected_shortly"] = ""  # CRA field 18 — Optional
+        fields["attack_vector"] = ""  # CRA field 23 — Optional
 
-        member_states = self.srp_report.member_states_available or []
+        member_states = [
+            s
+            for s in (self.srp_report.member_states_available or [])
+            if s in ENISA_STATE_CODES
+        ]
         fields["member_states_available"] = json.dumps(member_states)
 
         return fields
@@ -351,7 +361,10 @@ class SRPPayloadBuilder:
         return "\n\n".join(parts)
 
     def _build_vulnerability_fields(self):
-        return {}
+        return {
+            "euvd_id": "",  # CRA v25 — Optional
+            "further_information": "",  # CRA v34 — Optional
+        }
 
     def _build_incident_fields(self):
         return {}
@@ -377,6 +390,20 @@ class SRPPayloadBuilder:
             if not value or value == "[]":
                 missing.append(key)
         return missing
+
+    def _get_missing_conditionally_required_fields(self, payload):
+        fields = list(self.REQUIRED_IF_AVAILABLE_COMMON_FIELDS)
+        if (
+            self.srp_report.reportable_event_type
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
+        ):
+            fields += self.REQUIRED_IF_AVAILABLE_VULNERABILITY_FIELDS
+        elif (
+            self.srp_report.reportable_event_type
+            == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
+        ):
+            fields += self.REQUIRED_IF_AVAILABLE_INCIDENT_FIELDS
+        return [k for k in fields if not payload.get(k, "")]
 
     def _get_previous_snapshot(self):
         if not self.previous_milestone_type:
@@ -440,9 +467,7 @@ class SRPPayloadBuilder:
     def _invalid_member_state_entries(items):
         """Return entries from *items* that are not valid SRP member-state codes."""
         return [
-            v
-            for v in items
-            if not isinstance(v, str) or v not in SRP_MEMBER_STATE_CODES
+            v for v in items if not isinstance(v, str) or v not in ENISA_STATE_CODES
         ]
 
     def _apply_overrides(self, payload, details):
@@ -452,9 +477,10 @@ class SRPPayloadBuilder:
         assembled payload, and *rejected_keys* is the list of keys that were
         skipped due to validation failures.
 
-        Allow-list: keys that (a) already exist in the assembled payload and
-        (b) are not in DERIVED_PAYLOAD_FIELDS.  This prevents unknown keys
-        from being injected and derived keys from being silently overwritten.
+        Allow-list: overridable_keys(event_type) — keys explicitly listed as
+        coordinator-overridable for this report type (see overridable_keys()).
+        Keys must also be present in the assembled payload.  Derived fields
+        (DERIVED_PAYLOAD_FIELDS) are always rejected regardless.
 
         Type contract:
           - ``member_states_available`` must be a list (JSON-serialised to
@@ -466,14 +492,17 @@ class SRPPayloadBuilder:
         """
         overrides = {}
         rejected = []
+        allowed = self.overridable_keys(self.srp_report.reportable_event_type)
         for key, value in details.items():
             if key in self.DERIVED_PAYLOAD_FIELDS:
                 logger.warning("SRP override: ignoring derived field %r", key)
                 rejected.append(key)
                 continue
-            if key not in payload:
+            if key not in allowed or key not in payload:
                 logger.warning(
-                    "SRP override: ignoring unknown field for milestone type %s",
+                    "SRP override: ignoring unknown or non-overridable field %r "
+                    "for milestone type %s",
+                    key,
                     self.milestone.milestone_type,
                 )
                 rejected.append(key)
@@ -515,7 +544,10 @@ class SRPPayloadBuilder:
             payload.update(self._build_incident_fields())
 
         for key, value in self._get_previous_snapshot().items():
-            if key not in payload:
+            # Replace absent OR empty-string values so that fields like
+            # incident_detected_at (set to "" by the builder as a placeholder)
+            # are populated from earlier milestone snapshots.
+            if not payload.get(key):
                 payload[key] = value
 
         # Coordinator-provided values override auto-derived ones.
@@ -534,11 +566,15 @@ class SRPPayloadBuilder:
             rejected_keys = []
 
         missing = self._get_missing_required_fields(payload)
+        conditionally_missing = self._get_missing_conditionally_required_fields(payload)
 
         self.milestone.meta_attr["payload_snapshot"] = json.dumps(payload)
         self.milestone.meta_attr["prepared_at"] = timezone.now().isoformat()
         self.milestone.missing_required_fields = json.dumps(missing)
         self.milestone.meta_attr["rejected_override_keys"] = json.dumps(rejected_keys)
+        self.milestone.meta_attr["missing_conditionally_required_fields"] = json.dumps(
+            conditionally_missing
+        )
 
         return self.milestone
 
@@ -548,14 +584,48 @@ class SRPPayloadBuilder24h(SRPPayloadBuilder):
 
     expected_milestone_type = SRPReportMilestone.MilestoneType.LEVEL_24H
 
-    REQUIRED_VULNERABILITY_FIELDS = ["cve_id"]
-    REQUIRED_INCIDENT_FIELDS = ["suspected_unlawful_or_malicious_acts"]
+    REQUIRED_VULNERABILITY_FIELDS = ["cve_id", "aev_detected_at"]
+    REQUIRED_INCIDENT_FIELDS = [
+        "suspected_unlawful_or_malicious_acts",
+        "incident_detected_at",
+    ]
+
+    OVERRIDABLE_VULNERABILITY_KEYS = frozenset(
+        {
+            "cve_id",
+            "aev_detected_at",
+            "information_sensitivity",
+            "euvd_id",
+            "further_information",
+        }
+    )
+    OVERRIDABLE_INCIDENT_KEYS = frozenset(
+        {
+            "suspected_unlawful_or_malicious_acts",
+            "incident_detected_at",
+            "information_sensitivity",
+        }
+    )
 
     def _build_vulnerability_fields(self):
-        return {"cve_id": self.flaw.cve_id or ""}
+        fields = super()._build_vulnerability_fields()
+        fields["cve_id"] = self.flaw.cve_id or ""
+        fields["aev_detected_at"] = (
+            self.flaw.reported_dt.isoformat() if self.flaw.reported_dt else ""
+        )
+        fields["information_sensitivity"] = ""
+        return fields
 
     def _build_incident_fields(self):
-        return {"suspected_unlawful_or_malicious_acts": ""}
+        return {
+            "suspected_unlawful_or_malicious_acts": "",
+            "incident_detected_at": (
+                self.flaw.major_incident_start_dt.isoformat()
+                if self.flaw.major_incident_start_dt
+                else ""
+            ),
+            "information_sensitivity": "",
+        }
 
 
 class SRPPayloadBuilder72h(SRPPayloadBuilder):
@@ -587,8 +657,36 @@ class SRPPayloadBuilder72h(SRPPayloadBuilder):
         "corrective_or_mitigating_measures_users_can_take",
     ]
 
+    OVERRIDABLE_VULNERABILITY_KEYS = frozenset(
+        {
+            "cve_id",
+            "general_information",
+            "general_nature_of_vulnerability",
+            "general_nature_of_exploit",
+            "corrective_or_mitigating_measures_taken",
+            "corrective_or_mitigating_measures_users_can_take",
+            "information_sensitivity",
+            "pec",
+            "pec_delay_reason",
+            "euvd_id",
+            "further_information",
+        }
+    )
+    OVERRIDABLE_INCIDENT_KEYS = frozenset(
+        {
+            "suspected_unlawful_or_malicious_acts",
+            "general_incident_information",
+            "incident_detected_at",
+            "incident_occurred_at",
+            "initial_incident_assessment",
+            "corrective_or_mitigating_measures_taken",
+            "corrective_or_mitigating_measures_users_can_take",
+            "information_sensitivity",
+        }
+    )
+
     def _build_vulnerability_fields(self):
-        fields = {}
+        fields = super()._build_vulnerability_fields()
         fields["cve_id"] = self.flaw.cve_id or ""
         fields["general_information"] = self._build_general_information()
         cwe = self.flaw.cwe_id or ""
@@ -601,6 +699,8 @@ class SRPPayloadBuilder72h(SRPPayloadBuilder):
             self._build_user_mitigations()
         )
         fields["information_sensitivity"] = ""
+        fields["pec"] = ""  # CRA v32 — Optional at 72h only
+        fields["pec_delay_reason"] = ""  # CRA v33 — Optional at 72h only
         return fields
 
     def _build_incident_fields(self):
@@ -648,6 +748,7 @@ class SRPPayloadBuilderFinal(SRPPayloadBuilder):
         "vulnerability_severity",
         "vulnerability_impact",
         "security_update_or_corrective_measure_details",
+        "corrective_or_mitigating_measure_available_at",
     ]
 
     REQUIRED_INCIDENT_FIELDS = [
@@ -664,6 +765,45 @@ class SRPPayloadBuilderFinal(SRPPayloadBuilder):
         "likely_threat_or_root_cause",
         "applied_and_ongoing_mitigation_measures",
     ]
+
+    REQUIRED_IF_AVAILABLE_VULNERABILITY_FIELDS = ["known_or_suspected_malicious_actor"]
+
+    OVERRIDABLE_VULNERABILITY_KEYS = frozenset(
+        {
+            "cve_id",
+            "general_information",
+            "general_nature_of_vulnerability",
+            "general_nature_of_exploit",
+            "corrective_or_mitigating_measures_taken",
+            "corrective_or_mitigating_measures_users_can_take",
+            "information_sensitivity",
+            "corrective_or_mitigating_measure_available_at",
+            "full_vulnerability_description",
+            "vulnerability_severity",
+            "vulnerability_impact",
+            "known_or_suspected_malicious_actor",
+            "security_update_or_corrective_measure_details",
+            "euvd_id",
+            "further_information",
+        }
+    )
+    OVERRIDABLE_INCIDENT_KEYS = frozenset(
+        {
+            "suspected_unlawful_or_malicious_acts",
+            "general_incident_information",
+            "incident_detected_at",
+            "incident_occurred_at",
+            "initial_incident_assessment",
+            "corrective_or_mitigating_measures_taken",
+            "corrective_or_mitigating_measures_users_can_take",
+            "information_sensitivity",
+            "detailed_incident_description",
+            "incident_severity",
+            "incident_impact",
+            "likely_threat_or_root_cause",
+            "applied_and_ongoing_mitigation_measures",
+        }
+    )
 
     def _build_full_description(self):
         parts = []
@@ -705,7 +845,7 @@ class SRPPayloadBuilderFinal(SRPPayloadBuilder):
         return "\n".join(parts)
 
     def _build_vulnerability_fields(self):
-        fields = {}
+        fields = super()._build_vulnerability_fields()
         fields["cve_id"] = self.flaw.cve_id or ""
         fields["general_information"] = self._build_general_information()
 
@@ -764,6 +904,14 @@ BUILDER_BY_MILESTONE_TYPE = {
     SRPReportMilestone.MilestoneType.LEVEL_72H: SRPPayloadBuilder72h,
     SRPReportMilestone.MilestoneType.LEVEL_FINAL: SRPPayloadBuilderFinal,
 }
+
+
+def get_overridable_keys(milestone_type, event_type):
+    """Return the set of additional_details keys accepted for a milestone/event-type pair."""
+    builder_cls = BUILDER_BY_MILESTONE_TYPE.get(milestone_type)
+    if builder_cls is None:
+        return frozenset()
+    return builder_cls.overridable_keys(event_type)
 
 
 def prepare_payload(milestone):
