@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+- Add experimental read-only stats aggregation endpoint `GET /stats/api/v1beta/flaws`
+  returning `COUNT(DISTINCT flaw)` grouped by chosen dimensions (OSIDB-5290)
 - Add `resolved_dt` recording when a flaw enters the DONE workflow state (OSIDB-5467)
 
 ### Changed

@@ -14141,6 +14141,171 @@ paths:
                     version:
                       type: string
           description: ''
+  /stats/api/v1beta/flaws:
+    get:
+      operationId: stats_api_v1beta_flaws_retrieve
+      description: '**Experimental.** This endpoint is experimental and may change
+        or be removed without notice. Do not build hard dependencies on its shape
+        or behavior.'
+      summary: '[Experimental] Aggregated flaw statistics'
+      parameters:
+      - in: query
+        name: age_bucket_bounds
+        schema:
+          type: string
+        description: 'Comma-separated, strictly ascending positive day cut points
+          for age_bucket / embargo_duration_bucket. Default: 7,30,90.'
+      - in: query
+        name: group_by
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - impact
+            - workflow_state
+            - workflow_name
+            - ps_product
+            - age_bucket
+            - embargo_duration_bucket
+        description: 'Required. Comma-separated dimensions to group by. Allowed: impact,
+          workflow_state, workflow_name, ps_product, age_bucket, embargo_duration_bucket.'
+        required: true
+        explode: false
+        style: form
+      - in: query
+        name: impact__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - LOW
+            - MODERATE
+            - IMPORTANT
+            - CRITICAL
+        description: Keep only these impacts.
+        explode: false
+        style: form
+      - in: query
+        name: impact__not_in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ''
+            - LOW
+            - MODERATE
+            - IMPORTANT
+            - CRITICAL
+        description: Drop these impacts.
+        explode: false
+        style: form
+      - in: query
+        name: ps_product__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Keep flaws with >=1 affect in these products.
+        explode: false
+        style: form
+      - in: query
+        name: ps_product__not_in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Drop flaws with >=1 affect in these products.
+        explode: false
+        style: form
+      - in: query
+        name: visibility__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - EMBARGOED
+            - INTERNAL
+            - PUBLIC
+        description: Keep only flaws with these visibilities.
+        explode: false
+        style: form
+      - in: query
+        name: visibility__not_in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - EMBARGOED
+            - INTERNAL
+            - PUBLIC
+        description: Drop flaws with these visibilities.
+        explode: false
+        style: form
+      - in: query
+        name: workflow_name__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Keep only these workflow names.
+        explode: false
+        style: form
+      - in: query
+        name: workflow_name__not_in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Drop these workflow names.
+        explode: false
+        style: form
+      - in: query
+        name: workflow_state__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Keep only these workflow states.
+        explode: false
+        style: form
+      - in: query
+        name: workflow_state__not_in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Drop these workflow states.
+        explode: false
+        style: form
+      tags:
+      - stats
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/StatsFlawsResponse'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /trackers/api/v1/file:
     post:
       operationId: trackers_api_v1_file_create
@@ -18093,6 +18258,46 @@ components:
       - SKIP
       - DONE
       type: string
+    StatsFlawsResponse:
+      type: object
+      properties:
+        groups:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        meta:
+          $ref: '#/components/schemas/StatsMeta'
+      required:
+      - groups
+      - meta
+    StatsMeta:
+      type: object
+      properties:
+        total_flaws:
+          type: integer
+        sum_group_counts:
+          type: integer
+        group_by:
+          type: array
+          items:
+            type: string
+        filters:
+          type: object
+          additionalProperties: {}
+        age_bucket_bounds:
+          type: array
+          items:
+            type: integer
+        generated_at:
+          type: string
+          format: date-time
+      required:
+      - filters
+      - generated_at
+      - group_by
+      - sum_group_counts
+      - total_flaws
     StreamComponent:
       type: object
       properties:

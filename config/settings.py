@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     "apps.bbsync",
     "apps.exploits",
     "apps.sla",
+    "apps.stats",
     # --- Business logic (depends on tier above) ---
     "apps.trackers",
     "apps.ace",
@@ -250,6 +251,7 @@ LOGGING = {
                 "apps.bbsync",
                 "apps.exploits",
                 "apps.sla",
+                "apps.stats",
                 "apps.trackers",
                 "apps.workflows",
             ]
