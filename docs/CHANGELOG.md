@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+- Adding bot reporter when flaws are auto-analyzed (OSIDB-4950)
 - Add `resolved_dt` recording when a flaw enters the DONE workflow state (OSIDB-5467)
 
 ### Changed

@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Type
 
 import celery.states as celery_states
 import inflection
+import pghistory
 from celery import exceptions
 from celery.schedules import crontab
 from django.conf import settings
@@ -545,7 +546,8 @@ def collector(
         # but would be substituted with inner function below otherwise
         @wraps(func)
         def inner(*args, **kwargs):
-            return func(*args, **kwargs)
+            with pghistory.context(user=name, source="collector"):
+                return func(*args, **kwargs)
 
         return inner
 

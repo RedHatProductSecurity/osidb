@@ -1,8 +1,10 @@
 import pytest
 from rest_framework import status
 
+from apps.ace.constants import LABEL_AUTO_AFFECTS, LABEL_MANUAL_TRIAGE
 from apps.bbsync.mixins import BugzillaSyncMixin
 from osidb.models import Affect, Flaw, Tracker
+from osidb.models.flaw.label import WorkflowLabel
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -12,6 +14,23 @@ from osidb.tests.factories import (
 )
 
 pytestmark = pytest.mark.unit
+
+
+@pytest.fixture
+def captured_tracker_saves(monkeypatch):
+    captured = []
+    original_save = Tracker.save
+
+    def wrapped(
+        self, *args, bz_api_key=None, jira_token=None, jira_email=None, **kwargs
+    ):
+        captured.append((bz_api_key, jira_token, jira_email))
+        return original_save(
+            self, *args, bz_api_key=None, jira_token=None, jira_email=None, **kwargs
+        )
+
+    monkeypatch.setattr(Tracker, "save", wrapped)
+    return captured
 
 
 class TestEndpointsTrackers:
@@ -54,6 +73,123 @@ class TestEndpointsTrackers:
         tracker = Tracker.objects.first()
         assert tracker.affects.count() == 1
         assert tracker.affects.first().uuid == affect.uuid
+
+    def test_tracker_create_auto_affects_uses_service_credentials(
+        self, auth_client, test_api_v2_uri, monkeypatch, captured_tracker_saves
+    ):
+        """Auto-analyzed flaws file trackers with the OSIDB service account."""
+        service = ("service-bz", "service-jira", "service@example.com")
+        caller = ("caller-bz", "caller-jira", "caller@example.com")
+        monkeypatch.setattr("collectors.bzimport.constants.BZ_API_KEY", service[0])
+        monkeypatch.setattr("apps.taskman.constants.JIRA_AUTH_TOKEN", service[1])
+        monkeypatch.setattr("apps.taskman.constants.JIRA_EMAIL", service[2])
+
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw__embargoed=False,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+        )
+        WorkflowLabel.objects.create(flaw=affect.flaw, name=LABEL_AUTO_AFFECTS)
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/trackers",
+            {
+                "affects": [affect.uuid],
+                "embargoed": False,
+                "ps_update_stream": ps_update_stream.name,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY=caller[0],
+            HTTP_JIRA_API_KEY=caller[1],
+            HTTP_JIRA_API_EMAIL=caller[2],
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        bts_saves = [
+            creds for creds in captured_tracker_saves if creds != (None, None, None)
+        ]
+        assert service in bts_saves
+        assert caller not in bts_saves
+
+    def test_tracker_create_auto_affects_missing_service_credentials(
+        self, auth_client, test_api_v2_uri, monkeypatch
+    ):
+        """Unconfigured service Jira credentials must not create an unfiled tracker."""
+        caller = ("caller-bz", "caller-jira", "caller@example.com")
+        monkeypatch.setattr("collectors.bzimport.constants.BZ_API_KEY", "service-bz")
+        monkeypatch.setattr("apps.taskman.constants.JIRA_AUTH_TOKEN", None)
+        monkeypatch.setattr("apps.taskman.constants.JIRA_EMAIL", "service@example.com")
+
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw__embargoed=False,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+        )
+        WorkflowLabel.objects.create(flaw=affect.flaw, name=LABEL_AUTO_AFFECTS)
+
+        assert Tracker.objects.count() == 0
+        response = auth_client().post(
+            f"{test_api_v2_uri}/trackers",
+            {
+                "affects": [affect.uuid],
+                "embargoed": False,
+                "ps_update_stream": ps_update_stream.name,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY=caller[0],
+            HTTP_JIRA_API_KEY=caller[1],
+            HTTP_JIRA_API_EMAIL=caller[2],
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "Jira-Api-Key" in response.json()
+        assert Tracker.objects.count() == 0
+
+    def test_tracker_create_manual_triage_uses_caller_credentials(
+        self, auth_client, test_api_v2_uri, monkeypatch, captured_tracker_saves
+    ):
+        """MANUAL / manual-triage flaws keep the caller's BTS credentials."""
+        service = ("service-bz", "service-jira", "service@example.com")
+        caller = ("caller-bz", "caller-jira", "caller@example.com")
+        monkeypatch.setattr("collectors.bzimport.constants.BZ_API_KEY", service[0])
+        monkeypatch.setattr("apps.taskman.constants.JIRA_AUTH_TOKEN", service[1])
+        monkeypatch.setattr("apps.taskman.constants.JIRA_EMAIL", service[2])
+
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw__embargoed=False,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+        )
+        WorkflowLabel.objects.create(flaw=affect.flaw, name=LABEL_MANUAL_TRIAGE)
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/trackers",
+            {
+                "affects": [affect.uuid],
+                "embargoed": False,
+                "ps_update_stream": ps_update_stream.name,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY=caller[0],
+            HTTP_JIRA_API_KEY=caller[1],
+            HTTP_JIRA_API_EMAIL=caller[2],
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        bts_saves = [
+            creds for creds in captured_tracker_saves if creds != (None, None, None)
+        ]
+        assert caller in bts_saves
+        assert service not in bts_saves
 
     @pytest.mark.parametrize("sync_to_bz", [False, True, None])
     def test_tracker_create_jira_bulk_enablement(

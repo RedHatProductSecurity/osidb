@@ -1,3 +1,4 @@
+import pghistory
 import pytest
 from celery.schedules import crontab
 from django.utils import timezone
@@ -7,6 +8,7 @@ from collectors.framework.models import (
     collector,
 )
 from osidb.models import Affect, Flaw, Tracker
+from osidb.tests.factories import FlawFactory
 
 pytestmark = pytest.mark.unit
 
@@ -159,3 +161,24 @@ class TestCollectorFramework:
         ).first()
         assert metadata is not None
         assert metadata.enabled is False
+
+    def test_collector_sets_pghistory_context(self):
+        """collector DB writes stamp pghistory with the collector name"""
+
+        @collector(crontab=crontab(minute="5"))
+        def test_collector9(collector_obj):
+            flaw = FlawFactory(embargoed=False)
+            flaw.mitigation = "collector wrote this"
+            flaw.save()
+            return flaw.uuid
+
+        flaw_uuid = test_collector9.apply().get()
+        flaw = Flaw.objects.get(uuid=flaw_uuid)
+        event = (
+            pghistory.models.Events.objects.tracks(flaw)
+            .filter(pgh_context__source="collector")
+            .order_by("-pgh_created_at")
+            .first()
+        )
+        assert event is not None
+        assert event.pgh_context["user"] == f"{self.__module__}.test_collector9"

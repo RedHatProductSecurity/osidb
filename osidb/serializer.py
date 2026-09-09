@@ -22,6 +22,7 @@ from rest_framework.utils import model_meta
 from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW
 from apps.taskman.mixins import JiraTaskSyncMixin
+from apps.trackers.identity import filing_credentials
 from apps.workflows.serializers import WorkflowModelSerializer
 from osidb.acls import ACL
 from osidb.mixins import ACLMixinVisibility
@@ -784,6 +785,14 @@ class TrackerSerializer(
         affects = validated_data.pop("affects", [])
         tracker = self.Meta.model(**validated_data)
 
+        bz_api_key, jira_token, jira_email = filing_credentials(
+            affects,
+            bz_api_key=self.get_bz_api_key(),
+            jira_token=self.get_jira_token(),
+            jira_email=self.get_jira_email(),
+            tracker_type=tracker.type,
+        )
+
         #########################
         # 2) pre-create actions #
         #########################
@@ -808,9 +817,9 @@ class TrackerSerializer(
         tracker.save(
             # the serializer does not care for the backend system
             # therefore at this point we simply require both secrets
-            bz_api_key=self.get_bz_api_key(),
-            jira_token=self.get_jira_token(),
-            jira_email=self.get_jira_email(),
+            bz_api_key=bz_api_key,
+            jira_token=jira_token,
+            jira_email=jira_email,
         )
 
         ##########################
