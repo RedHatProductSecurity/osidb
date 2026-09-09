@@ -10,6 +10,7 @@ from collections import defaultdict
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pghistory
 import pytest
 from packageurl import PackageURL
 
@@ -263,6 +264,16 @@ def test_sync_sets_created_by_and_updated_by(
     for affect in flaw.affects.all():
         assert affect.created_by == "AffectCreationEngine"
         assert affect.updated_by == "AffectCreationEngine"
+        event = (
+            pghistory.models.Events.objects.tracks(affect)
+            .filter(pgh_label="insert")
+            .order_by("pgh_created_at")
+            .first()
+        )
+        assert event is not None
+        assert event.pgh_context["user"] == "AffectCreationEngine"
+        assert event.pgh_context["source"] == "ace"
+        assert event.pgh_context["action"] == "sync_flaw_affects_from_newcli"
 
 
 def test_sync_sets_assist_meta(monkeypatch, ace_enabled, urllib3_results, mock_querier):

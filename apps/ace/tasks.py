@@ -3,6 +3,7 @@ import importlib.metadata
 from dataclasses import dataclass, field
 from typing import Any
 
+import pghistory
 from celery.utils.log import get_task_logger
 from django.db import transaction
 from packageurl import PackageURL
@@ -878,6 +879,17 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
         )
         return {"skipped_reason": "workflow gate: not eligible"}
 
+    with pghistory.context(
+        user="AffectCreationEngine",
+        source="ace",
+        action="sync_flaw_affects_from_newcli",
+    ):
+        return _sync_eligible_flaw_affects(flaw)
+
+
+def _sync_eligible_flaw_affects(flaw: Flaw) -> dict[str, Any]:
+    """Create ACE affects and labels. Caller sets pghistory context."""
+    flaw_id = str(flaw.uuid)
     components = _flaw_components(flaw)
     ps_modules = AffectSettings().auto_create_ps_modules
     totals: dict[str, int] = {

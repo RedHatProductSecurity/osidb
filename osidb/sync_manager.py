@@ -25,10 +25,10 @@ def pghistory_context(
     celery_task_id: str,
     *,
     source: str = "celery",
-    user: str = "celery_task",
+    user: str | None = None,
     **extra_context: Any,
 ) -> Iterator[None]:
-    ctx = {"source": source, "user": user, "action": action, **extra_context}
+    ctx = {"source": source, "user": user or action, "action": action, **extra_context}
     if celery_task_id:
         ctx["celery_task_id"] = celery_task_id
     with pghistory.context(**ctx):
