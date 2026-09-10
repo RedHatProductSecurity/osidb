@@ -53,6 +53,7 @@ class SRPReportMilestoneSerializer(
             "Values here override auto-derived payload fields at submission time."
         ),
     )
+    manual_due_at = serializers.DateTimeField(required=False, allow_null=True)
     due_at = serializers.DateTimeField(read_only=True, allow_null=True)
     hours_remaining = serializers.IntegerField(read_only=True, allow_null=True)
     days_remaining = serializers.IntegerField(read_only=True, allow_null=True)
@@ -93,6 +94,7 @@ class SRPReportMilestoneSerializer(
                 "updated_dt",
                 # Computed fields
                 "due_at",
+                "manual_due_at",
                 "hours_remaining",
                 "days_remaining",
                 "is_overdue",
