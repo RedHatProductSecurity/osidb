@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     # --- Foundation ---
     "osidb",
     # --- Business logic (no cross-app deps beyond osidb) ---
+    "apps.regulatory_reporting",
     "apps.workflows",
     "apps.bbsync",
     "apps.exploits",
@@ -236,6 +237,11 @@ LOGGING = {
             "handlers": ["console"],
         },
         "celery": {"handlers": ["celery"], "level": "INFO", "propagate": True},
+        "apps.regulatory_reporting": {
+            "handlers": ["celery"],
+            "level": "INFO",
+            "propagate": False,
+        },
         "osidb": {"level": "WARNING", "handlers": ["console"], "propagate": False},
         "api_req": {"level": "INFO", "handlers": ["console"], "propagate": False},
         "django_auth_ldap": {"level": "WARNING", "handlers": ["console"]},
@@ -318,6 +324,10 @@ SPECTACULAR_SETTINGS = {
             ("workflow", "Workflow"),
         ],
         "UpstreamDataSource": "osidb.models.flaw.upstream.UpstreamData.Source",
+        "SRPReportStatusEnum": "apps.regulatory_reporting.models.srp_report.SRPReport.SRPReportStatus",
+        "SRPReportMilestoneStatusEnum": (
+            "apps.regulatory_reporting.models.srp_report_milestone.SRPReportMilestone.SRPReportMilestoneStatus"
+        ),
     },
     "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
     "COMPONENT_SPLIT_REQUEST": True,
@@ -350,7 +360,6 @@ PGHISTORY_APPEND_ONLY = True
 # Base model for any pghistory-generated event
 PGHISTORY_BASE_MODEL = "osidb.models.audit_history.CustomHistoryBase"
 PGHISTORY_OBJ_FIELD = ObjForeignKey(related_name="events")
-
 
 # Email configuration
 

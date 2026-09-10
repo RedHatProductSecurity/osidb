@@ -36,6 +36,8 @@ urlpatterns = [
     token_obtain_path,
     path("auth/token/refresh", refresh_token, name="token_refresh"),
     path("auth/token/verify", TokenVerifyView.as_view(), name="token_verify"),
+    # regulatory reporting
+    path("regulatory-reporting/api/v1/", include("apps.regulatory_reporting.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if "silk" in settings.INSTALLED_APPS:

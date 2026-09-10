@@ -212,6 +212,11 @@ def tokens(ldap_test_username, ldap_test_password):
     return r.data
 
 
+def clear_signal_cache(signal):
+    if hasattr(signal, "sender_receivers_cache"):
+        signal.sender_receivers_cache.clear()
+
+
 # https://www.cameronmaske.com/muting-django-signals-with-a-pytest-fixture/
 @pytest.fixture(autouse=True)  # Automatically use in tests.
 def mute_signals(request):
@@ -232,11 +237,13 @@ def mute_signals(request):
         # Temporally remove the signal's receivers (a.k.a attached functions)
         restore[signal] = signal.receivers
         signal.receivers = []
+        clear_signal_cache(signal)
 
     def restore_signals():
         # When the test tears down, restore the signals.
         for signal, receivers in restore.items():
             signal.receivers = receivers
+            clear_signal_cache(signal)
 
     # Called after a test has finished.
     request.addfinalizer(restore_signals)

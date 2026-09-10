@@ -103,6 +103,7 @@ class TestFlawModelIntegration(object):
         assert sync_count == 1
 
         AffectFactory(flaw=flaw)
+        flaw.refresh_from_db()
 
         # save without token should not sync
         assert flaw.save() is None
