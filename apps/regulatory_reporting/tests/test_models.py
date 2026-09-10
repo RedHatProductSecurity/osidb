@@ -192,6 +192,28 @@ class TestSRPReportMilestone:
         ):
             duplicate.save()
 
+    def test_due_at_manual_override_bypasses_kev_calculation(self):
+        """
+        Manually setting due_at should override the computed 14-day
+        KEV timer.
+        """
+        report = SRPReportFactory()  # defaults to EXPLOITS_KEV_APPROVED
+        milestone = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+        )
+
+        computed_due_at = milestone.due_at
+        override_date = timezone.now() + timedelta(days=100)
+
+        milestone.manual_due_at = override_date
+        milestone.save()
+
+        milestone.refresh_from_db()
+
+        assert milestone.due_at == override_date
+        assert milestone.due_at != computed_due_at
+
     def test_multiple_additional_information_response_allowed(self):
         report = SRPReportFactory()
         first = SRPReportMilestoneFactory(
