@@ -234,12 +234,12 @@ class TestUpstreamNotificationFiltering:
 
 @pytest.mark.no_cra_notifications
 class TestUpstreamNotificationAPIDisabled:
-    def test_list_returns_404_when_notifications_disabled(self, auth_client):
-        """/regulatory-reporting/api/v1/notifications/ 404s when regulatory reporting notifications are disabled."""
+    def test_list_returns_423_when_notifications_disabled(self, auth_client):
+        """/regulatory-reporting/api/v1/notifications/ is locked when regulatory reporting notifications are disabled."""
         response = auth_client().get(
             "/regulatory-reporting/api/v1/notifications/upstream"
         )
-        assert response.status_code == 404
+        assert response.status_code == 423
 
 
 class TestSendEmailAction:

@@ -4,11 +4,15 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from osidb.api_views import RudimentaryUserPathLoggingMixin, get_valid_http_methods
 from osidb.models import Flaw
+from regulatory_reporting.api_views.base import (
+    RegulatoryReportingNotificationsEnabledMixin,
+)
 from regulatory_reporting.models.upstream import FlawUpstreamMapping
 from regulatory_reporting.serializers.upstream import FlawUpstreamMappingSerializer
 
 
 class FlawUpstreamMappingListCreateView(
+    RegulatoryReportingNotificationsEnabledMixin,
     RudimentaryUserPathLoggingMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
@@ -35,6 +39,7 @@ class FlawUpstreamMappingListCreateView(
 
 
 class FlawUpstreamMappingDetailView(
+    RegulatoryReportingNotificationsEnabledMixin,
     RudimentaryUserPathLoggingMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,

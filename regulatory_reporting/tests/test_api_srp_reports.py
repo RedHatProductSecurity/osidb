@@ -543,10 +543,10 @@ class TestSRPReportAPIDisabled:
     REGULATORY_REPORTING_ENABLED is off (see ``cra_reporting_enabled`` in conftest)."""
 
     @override_settings(REGULATORY_REPORTING_ENABLED=False)
-    def test_list_reports_returns_404_when_disabled(self, api_client):
-        """/regulatory-reporting/api/v1/srp-reports 404s when regulatory reporting is disabled."""
+    def test_list_reports_returns_423_when_disabled(self, api_client):
+        """/regulatory-reporting/api/v1/srp-reports is locked when regulatory reporting is disabled."""
         response = api_client.get("/regulatory-reporting/api/v1/srp-reports")
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == 423
 
 
 @pytest.mark.django_db

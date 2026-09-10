@@ -17,6 +17,9 @@ from osidb.api_views import (
     include_exclude_fields_extend_schema_view,
 )
 from osidb.tasks import async_send_email
+from regulatory_reporting.api_views.base import (
+    RegulatoryReportingNotificationsEnabledMixin,
+)
 from regulatory_reporting.filters import (
     UpstreamNotificationFilter,
     UpstreamProjectFilter,
@@ -40,6 +43,7 @@ from regulatory_reporting.tasks import (
 
 @include_exclude_fields_extend_schema_view
 class UpstreamNotificationView(
+    RegulatoryReportingNotificationsEnabledMixin,
     RudimentaryUserPathLoggingMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -174,6 +178,7 @@ def _redact_query_string_for_logging(request):
 
 @include_exclude_fields_extend_schema_view
 class UpstreamProjectView(
+    RegulatoryReportingNotificationsEnabledMixin,
     RudimentaryUserPathLoggingMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,

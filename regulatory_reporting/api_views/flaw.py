@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from osidb.models import Flaw
+from regulatory_reporting.api_views.base import RegulatoryReportingEnabledMixin
 from regulatory_reporting.constants import UUID_PATH_REGEX
 from regulatory_reporting.models import SRPReport, SRPReportMilestone
 from regulatory_reporting.serializers import (
@@ -28,7 +29,7 @@ def _require_uuid(value):
         raise Http404
 
 
-class FlawSRPReportViewSet(ReadOnlyModelViewSet):
+class FlawSRPReportViewSet(RegulatoryReportingEnabledMixin, ReadOnlyModelViewSet):
     """
     ViewSet for flaw SRP reports (read-only subresource).
 
@@ -57,7 +58,9 @@ class FlawSRPReportViewSet(ReadOnlyModelViewSet):
         return SRPReport.objects.filter(flaw_id=flaw_id).prefetch_related("milestones")
 
 
-class FlawSRPReportMilestoneViewSet(ReadOnlyModelViewSet):
+class FlawSRPReportMilestoneViewSet(
+    RegulatoryReportingEnabledMixin, ReadOnlyModelViewSet
+):
     """
     ViewSet for flaw SRP report milestones (read-only subresource).
 

@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import ModelViewSet
 
 from osidb.api_views import get_valid_http_methods
+from regulatory_reporting.api_views.base import RegulatoryReportingEnabledMixin
 from regulatory_reporting.constants import UUID_PATH_REGEX
 from regulatory_reporting.filters import SRPReportFilter
 from regulatory_reporting.models import SRPReport
@@ -20,7 +21,7 @@ from regulatory_reporting.serializers import (
 from regulatory_reporting.services import create_srp_report_milestones
 
 
-class SRPReportViewSet(ModelViewSet):
+class SRPReportViewSet(RegulatoryReportingEnabledMixin, ModelViewSet):
     """
     ViewSet for SRP Reports (top-level).
 
