@@ -5,7 +5,6 @@ Tests list, retrieve, create, update operations and filtering.
 """
 
 import pytest
-from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
@@ -540,9 +539,9 @@ class TestSRPReportFiltering:
 @pytest.mark.django_db
 class TestSRPReportAPIDisabled:
     """Tests that SRP reporting endpoints are unavailable when
-    REGULATORY_REPORTING_ENABLED is off (see ``cra_reporting_enabled`` in conftest)."""
+    regulatory reporting is off (see ``cra_reporting_enabled`` in conftest)."""
 
-    @override_settings(REGULATORY_REPORTING_ENABLED=False)
+    @pytest.mark.no_cra_reporting
     def test_list_reports_returns_423_when_disabled(self, api_client):
         """/regulatory-reporting/api/v1/srp-reports is locked when regulatory reporting is disabled."""
         response = api_client.get("/regulatory-reporting/api/v1/srp-reports")

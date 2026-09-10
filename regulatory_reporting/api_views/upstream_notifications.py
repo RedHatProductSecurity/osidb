@@ -1,6 +1,5 @@
 from contextlib import contextmanager
 
-from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -31,6 +30,7 @@ from regulatory_reporting.serializers.upstream import (
     UpstreamProjectPostSerializer,
     UpstreamProjectSerializer,
 )
+from regulatory_reporting.settings import regulatory_reporting_settings
 from regulatory_reporting.services import (
     build_upstream_notification_context,
     render_upstream_notification_preview,
@@ -97,7 +97,7 @@ class UpstreamNotificationView(
         payload = {
             "subject": f"Security notification for {flaw_id}",
             "to": [upstream_project.security_contact],
-            "from": settings.REGULATORY_REPORTING_UPSTREAM_NOTIFICATIONS_SENDER,
+            "from": regulatory_reporting_settings.upstream_notifications_sender,
             "body": text_body,
         }
 

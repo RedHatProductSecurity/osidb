@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 from osidb.models import Flaw
 from osidb.tests.factories import FlawFactory
 from regulatory_reporting.models import SRPReport
+from regulatory_reporting.settings import regulatory_reporting_settings
 from regulatory_reporting.services import create_srp_report
 
 
@@ -35,25 +36,30 @@ def pytest_configure(config):
 
 
 @pytest.fixture(autouse=True)
-def cra_reporting_enabled(request, settings):
+def cra_reporting_enabled(request):
     """Enable CRA reporting API unless the test opts out with no_cra_reporting."""
-    if request.node.get_closest_marker("no_cra_reporting"):
-        settings.REGULATORY_REPORTING_ENABLED = False
+    original = regulatory_reporting_settings.enabled
+    regulatory_reporting_settings.enabled = not bool(
+        request.node.get_closest_marker("no_cra_reporting")
+    )
+    try:
         yield
-        return
-
-    settings.REGULATORY_REPORTING_ENABLED = True
-    yield
+    finally:
+        regulatory_reporting_settings.enabled = original
 
 
 @pytest.fixture(autouse=True)
-def cra_notification_signals(request, settings):
+def cra_notification_signals(request):
+    original = regulatory_reporting_settings.notifications_enabled
     if request.node.get_closest_marker("no_cra_notifications"):
-        settings.REGULATORY_REPORTING_NOTIFICATIONS_ENABLED = False
-        yield
+        regulatory_reporting_settings.notifications_enabled = False
+        try:
+            yield
+        finally:
+            regulatory_reporting_settings.notifications_enabled = original
         return
 
-    settings.REGULATORY_REPORTING_NOTIFICATIONS_ENABLED = True
+    regulatory_reporting_settings.notifications_enabled = True
     from django.db.models.signals import post_save
 
     from osidb.models import Flaw
@@ -65,9 +71,12 @@ def cra_notification_signals(request, settings):
 
     post_save.connect(check_upstream_notifiable, sender=Flaw)
     post_save.connect(link_mapping_to_notification, sender=FlawUpstreamMapping)
-    yield
-    post_save.disconnect(check_upstream_notifiable, sender=Flaw)
-    post_save.disconnect(link_mapping_to_notification, sender=FlawUpstreamMapping)
+    try:
+        yield
+    finally:
+        post_save.disconnect(check_upstream_notifiable, sender=Flaw)
+        post_save.disconnect(link_mapping_to_notification, sender=FlawUpstreamMapping)
+        regulatory_reporting_settings.notifications_enabled = original
 
 
 @pytest.fixture

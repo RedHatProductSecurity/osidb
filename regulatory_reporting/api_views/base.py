@@ -1,5 +1,6 @@
-from django.conf import settings
 from rest_framework.exceptions import APIException
+
+from regulatory_reporting.settings import regulatory_reporting_settings
 
 
 class RegulatoryReportingDisabled(APIException):
@@ -13,7 +14,9 @@ class RegulatoryReportingFeatureFlagMixin:
     regulatory_reporting_disabled_detail = "Regulatory reporting disabled."
 
     def initial(self, request, *args, **kwargs):
-        if not getattr(settings, self.regulatory_reporting_feature_flag):
+        if not getattr(
+            regulatory_reporting_settings, self.regulatory_reporting_feature_flag
+        ):
             raise RegulatoryReportingDisabled(
                 self.regulatory_reporting_disabled_detail
             )
@@ -21,14 +24,14 @@ class RegulatoryReportingFeatureFlagMixin:
 
 
 class RegulatoryReportingEnabledMixin(RegulatoryReportingFeatureFlagMixin):
-    regulatory_reporting_feature_flag = "REGULATORY_REPORTING_ENABLED"
+    regulatory_reporting_feature_flag = "enabled"
     regulatory_reporting_disabled_detail = "Regulatory reporting is disabled."
 
 
 class RegulatoryReportingNotificationsEnabledMixin(
     RegulatoryReportingFeatureFlagMixin
 ):
-    regulatory_reporting_feature_flag = "REGULATORY_REPORTING_NOTIFICATIONS_ENABLED"
+    regulatory_reporting_feature_flag = "notifications_enabled"
     regulatory_reporting_disabled_detail = (
         "Regulatory reporting notifications are disabled."
     )

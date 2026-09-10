@@ -3,7 +3,6 @@ from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import status
@@ -12,6 +11,7 @@ from rest_framework.test import APIClient
 from osidb.models.abstract import Impact
 from osidb.models.flaw import FlawSource
 from regulatory_reporting.models.upstream import UpstreamNotification, UpstreamProject
+from regulatory_reporting.settings import regulatory_reporting_settings
 from regulatory_reporting.tasks import (
     mark_upstream_notification_failed,
     mark_upstream_notification_sent,
@@ -415,7 +415,7 @@ class TestSendEmailAction:
         call_args = mock_task.apply_async.call_args
         assert (
             call_args.kwargs["kwargs"]["from"]
-            == settings.REGULATORY_REPORTING_UPSTREAM_NOTIFICATIONS_SENDER
+            == regulatory_reporting_settings.upstream_notifications_sender
         )
 
 

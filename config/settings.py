@@ -14,7 +14,6 @@ from pghistory.config import ObjForeignKey
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from osidb.helpers import get_env, get_env_groups
-from regulatory_reporting.settings import regulatory_reporting_settings
 
 DEBUG: bool = get_env("OSIDB_DEBUG", default="False", is_bool=True)
 
@@ -341,14 +340,6 @@ CISA_COLLECTOR_CRONTAB = crontab(minute=0, hour=1)
 # default requests.get timeout aims to be generous but finite
 DEFAULT_REQUEST_TIMEOUT = get_env(
     "OSIDB_DEFAULT_REQUEST_TIMEOUT", default="30", is_int=True
-)
-
-REGULATORY_REPORTING_NOTIFICATIONS_ENABLED = (
-    regulatory_reporting_settings.notifications_enabled
-)
-REGULATORY_REPORTING_ENABLED = regulatory_reporting_settings.enabled
-REGULATORY_REPORTING_UPSTREAM_NOTIFICATIONS_SENDER = (
-    regulatory_reporting_settings.upstream_notifications_sender
 )
 
 # sets the Access-Control-Allow-Origin response header - accepts regex
