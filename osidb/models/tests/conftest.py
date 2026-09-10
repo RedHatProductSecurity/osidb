@@ -149,7 +149,15 @@ def ubi_ps_stream_with_moderate_tracker():
     """
     ps_product = PsProductFactory(business_unit="RHEL")
     ps_module = PsModuleFactory(ps_product=ps_product, name="rhel-8")
+    # Create a Z-stream so Y-streams can be recognized as "future"
+    PsUpdateStreamFactory(
+        name="rhel-8.10.z",
+        ps_module=ps_module,
+        active_to_ps_module=ps_module,
+    )
+    # Create a Y-stream (future relative to 8.10.z)
     stream = PsUpdateStreamFactory(
+        name="rhel-8.11",
         ps_module=ps_module,
         active_to_ps_module=ps_module,
         moderate_to_ps_module=ps_module,

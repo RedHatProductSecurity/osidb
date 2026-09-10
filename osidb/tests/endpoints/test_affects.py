@@ -517,7 +517,18 @@ class TestAffectUbiLabel:
     def test_ubi_label_present(self):
         UbiPackage.objects.create(name="ubi-component", ps_module="rhel-8")
         ps_module = PsModuleFactory(name="rhel-8")
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        # Create Z-stream
+        PsUpdateStreamFactory(
+            name="rhel-8.10.z",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+        )
+        # Create Y-stream (future, newer than Z)
+        ps_update_stream = PsUpdateStreamFactory(
+            name="rhel-8.11",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+        )
         affect = AffectFactory(
             ps_update_stream=ps_update_stream.name,
             ps_component="ubi-component",
@@ -527,7 +538,18 @@ class TestAffectUbiLabel:
     @pytest.mark.enable_signals
     def test_ubi_label_absent(self):
         ps_module = PsModuleFactory(name="rhel-8")
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        # Create Z-stream
+        PsUpdateStreamFactory(
+            name="rhel-8.10.z",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+        )
+        # Create Y-stream
+        ps_update_stream = PsUpdateStreamFactory(
+            name="rhel-8.11",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+        )
         affect = AffectFactory(
             ps_update_stream=ps_update_stream.name,
             ps_component="not-ubi",
@@ -538,7 +560,18 @@ class TestAffectUbiLabel:
     def test_ubi_label_wrong_ps_module(self):
         UbiPackage.objects.create(name="ubi-component", ps_module="rhel-8")
         ps_module = PsModuleFactory(name="rhel-9")
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        # Create Z-stream
+        PsUpdateStreamFactory(
+            name="rhel-9.10.z",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+        )
+        # Create Y-stream
+        ps_update_stream = PsUpdateStreamFactory(
+            name="rhel-9.11",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+        )
         affect = AffectFactory(
             ps_update_stream=ps_update_stream.name,
             ps_component="ubi-component",

@@ -6,7 +6,7 @@ from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
-from django.db.models import CharField, Exists, F, OuterRef, Q, Subquery
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from psqlextra.fields import HStoreField
@@ -985,13 +985,14 @@ class Affect(
     def is_ubi(self) -> bool:
         """
         Check whether this affect's component is a UBI package AND
-        the update stream is a current UBI stream (latest Z or next Y).
+        the update stream is a current UBI stream (latest Z or future Y-streams).
 
         UBI images track the latest minor release of each RHEL major version:
         - Latest Z-stream (e.g., rhel-9.8.z, not rhel-9.2.z)
-        - Next Y-stream only (e.g., rhel-9.9, not rhel-9.10)
+        - All future Y-streams newer than latest Z (e.g., rhel-9.9 and rhel-9.10
+          when latest Z is rhel-9.8.z, but not rhel-9.7)
 
-        Older EUS/AUS streams and future Y-streams do not get the UBI label.
+        Older EUS/AUS streams and Y-streams older than the latest Z do not get the UBI label.
 
         Looks the module up via ps_update_stream rather than the denormalized
         ps_module field, as ps_update_stream is a required field that is always set
@@ -1009,23 +1010,42 @@ class Affect(
                         ps_module=OuterRef("ps_module__name"),
                     )
                 ),
-                latest_z=Subquery(
+                is_latest_z=Exists(
+                    PsUpdateStream.objects.get_z_streams(OuterRef("ps_module")).filter(
+                        name=OuterRef("name")
+                    )
+                ),
+                latest_z_name=models.Subquery(
                     PsUpdateStream.objects.get_z_streams(OuterRef("ps_module")).values(
                         "name"
                     )[:1],
-                    output_field=CharField(),
+                    output_field=models.CharField(),
                 ),
-                next_y=Subquery(
-                    PsUpdateStream.objects.get_y_streams(OuterRef("ps_module")).values(
-                        "name"
-                    )[:1],
-                    output_field=CharField(),
+                is_future_y=Exists(
+                    PsUpdateStream.objects.get_y_streams(OuterRef("ps_module"))
+                    .filter(
+                        name=OuterRef("name"),
+                    )
+                    .annotate(
+                        latest_z_for_compare=models.Subquery(
+                            PsUpdateStream.objects.get_z_streams(
+                                OuterRef("ps_module")
+                            ).values("name")[:1],
+                            output_field=models.CharField(),
+                        )
+                    )
+                    .filter(
+                        # Y-stream must be greater than latest Z when using natural sort
+                        name__gt=models.functions.Collate(
+                            "latest_z_for_compare", "natural"
+                        )
+                    )
                 ),
             )
             .filter(
+                Q(is_latest_z=True) | Q(is_future_y=True),
                 is_ubi_package=True,
             )
-            .filter(Q(name=F("latest_z")) | Q(name=F("next_y")))
             .exists()
         )
 
