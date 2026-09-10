@@ -38,13 +38,7 @@ class UpstreamNotificationFilter(FilterSet):
 
     class Meta:
         model = UpstreamNotification
-        fields: ClassVar[list[str]] = [
-            "status",
-            "method",
-            "upstream_project",
-            "flaw",
-            "owner",
-        ]
+        fields: ClassVar[list[str]] = []
 
 
 class SRPReportQLSchema(DjangoQLSchema):
@@ -86,21 +80,7 @@ class SRPReportFilter(FilterSet):
 
     class Meta:
         model = SRPReport
-        fields = [
-            "uuid",
-            "flaw_id",
-            "status",
-            "reportable_event_type",
-            "responsibility_scope",
-            "created_dt__gte",
-            "created_dt__lte",
-            "updated_dt__gte",
-            "updated_dt__lte",
-            "timer_started_at__gte",
-            "timer_started_at__lte",
-            "srp_reference_id",
-            "title",
-        ]
+        fields: ClassVar[list[str]] = []
 
 
 class SRPReportMilestoneFilter(FilterSet):
@@ -124,19 +104,7 @@ class SRPReportMilestoneFilter(FilterSet):
 
     class Meta:
         model = SRPReportMilestone
-        fields = [
-            "uuid",
-            "srp_report",
-            "milestone_type",
-            "status",
-            "created_dt__gte",
-            "created_dt__lte",
-            "submitted_at__gte",
-            "submitted_at__lte",
-            "owner",
-            "request_source",
-            "request_text",
-        ]
+        fields: ClassVar[list[str]] = []
 
 
 class UpstreamProjectFilter(FilterSet):
@@ -150,4 +118,4 @@ class UpstreamProjectFilter(FilterSet):
 
     class Meta:
         model = UpstreamProject
-        fields = ["component", "purl", "repository_url"]
+        fields: ClassVar[list[str]] = []
