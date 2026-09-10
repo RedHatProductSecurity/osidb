@@ -192,6 +192,24 @@ class SRPReport(SRPReportBase):
         return f"SRP Report {self.uuid} for {self.flaw.cve_id or self.flaw.uuid}"
 
     @validator
+    def _validate_member_states_available(self, **kwargs):
+        """Reject member_states_available entries that are not valid ENISA member-state codes.
+
+        Deferred import avoids a circular import (constants imports models).
+        Use EL for Greece — GR is ISO 3166-1 alpha-2 but not the ENISA/NIS2 code.
+        """
+        from regulatory_reporting.constants import ENISA_STATE_CODES
+
+        invalid = [
+            v for v in self.member_states_available if v not in ENISA_STATE_CODES
+        ]
+        if invalid:
+            raise ValidationError(
+                f"Invalid ENISA member-state codes: {invalid}. "
+                "Use EL for Greece, not GR."
+            )
+
+    @validator
     def _validate_timer_started_required(self, **kwargs):
         """Timer must be set when status is IN_PROGRESS or SUBMITTED."""
         if (

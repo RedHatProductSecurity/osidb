@@ -10,7 +10,7 @@ from datetime import timedelta
 import pghistory
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from psqlextra.fields import HStoreField
 
@@ -121,6 +121,16 @@ class SRPReportMilestone(SRPReportBase):
         help_text="Current status of the milestone",
     )
 
+    additional_details = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Coordinator-provided SRP FAQ fields for this milestone stage. "
+            "OSIM stores and reads these as individual form fields. "
+            "Values here override auto-derived payload fields at submission time."
+        ),
+    )
+
     # Non-operational metadata
     meta_attr = HStoreField(default=dict)
 
@@ -202,54 +212,79 @@ class SRPReportMilestone(SRPReportBase):
         if getattr(self, "_preparing_payload", False):
             return super().save(*args, **kwargs)
 
+        # Capture caller's update_fields before we may extend it with submitted_at.
+        update_fields = kwargs.get("update_fields")
+
         if (
             self.status == self.SRPReportMilestoneStatus.SUBMITTED
             and not self.submitted_at
         ):
             self.submitted_at = timezone.now()
-            update_fields = kwargs.get("update_fields")
             if update_fields is not None:
                 kwargs["update_fields"] = list(update_fields) + ["submitted_at"]
 
-        previous_status = None
-        if self.pk:
-            previous_status = (
-                type(self)
-                .objects.filter(pk=self.pk)
-                .values_list("status", flat=True)
-                .first()
+        builder_types = {
+            self.MilestoneType.LEVEL_24H,
+            self.MilestoneType.LEVEL_72H,
+            self.MilestoneType.LEVEL_FINAL,
+        }
+
+        with transaction.atomic():
+            previous_status = None
+            previous_additional_details = None
+            if not self._state.adding:
+                prev = (
+                    type(self)
+                    .objects.select_for_update()
+                    .filter(pk=self.pk)
+                    .values("status", "additional_details")
+                    .first()
+                )
+                if prev:
+                    previous_status = prev["status"]
+                    previous_additional_details = prev["additional_details"]
+
+            writing_status = update_fields is None or "status" in update_fields
+            writing_details = (
+                update_fields is None or "additional_details" in update_fields
+            )
+            should_prepare = self.milestone_type in builder_types and (
+                # First-time transition to SUBMITTED: status must be part of this write.
+                (
+                    writing_status
+                    and self.status == self.SRPReportMilestoneStatus.SUBMITTED
+                    and previous_status != self.SRPReportMilestoneStatus.SUBMITTED
+                )
+                # Coordinator correction on an already-SUBMITTED milestone:
+                # additional_details must be part of this write so the snapshot
+                # reflects only what super().save() actually persists.
+                or (
+                    previous_status == self.SRPReportMilestoneStatus.SUBMITTED
+                    and writing_details
+                    and self.additional_details != previous_additional_details
+                )
             )
 
-        super().save(*args, **kwargs)
+            super().save(*args, **kwargs)
 
-        should_prepare = (
-            self.status == self.SRPReportMilestoneStatus.SUBMITTED
-            and previous_status != self.SRPReportMilestoneStatus.SUBMITTED
-            and self.milestone_type
-            in {
-                self.MilestoneType.LEVEL_24H,
-                self.MilestoneType.LEVEL_72H,
-                self.MilestoneType.LEVEL_FINAL,
-            }
-        )
-        if should_prepare:
-            # Lazy import avoids circular dependency with services.py
-            from regulatory_reporting.services import prepare_payload
+            if should_prepare:
+                # Lazy import avoids circular dependency with services.py
+                from regulatory_reporting.services import prepare_payload
 
-            prepare_payload(self)
-            self._preparing_payload = True
-            try:
-                # force_insert must not carry over: the row was already
-                # inserted/updated above, so this second save is always an
-                # update.
-                save_kwargs = {**kwargs, "force_insert": False}
-                if save_kwargs.get("update_fields") is not None:
-                    save_kwargs["update_fields"] = list(
-                        save_kwargs["update_fields"]
-                    ) + ["meta_attr", "missing_required_fields"]
-                super().save(*args, **save_kwargs)
-            finally:
-                self._preparing_payload = False
+                prepare_payload(self)
+                self._preparing_payload = True
+                try:
+                    # force_insert must not carry over: the row was already
+                    # inserted/updated above, so this second save is always an
+                    # update.
+                    save_kwargs = {**kwargs, "force_insert": False}
+                    if save_kwargs.get("update_fields") is not None:
+                        save_kwargs["update_fields"] = list(
+                            save_kwargs["update_fields"]
+                        ) + ["meta_attr", "missing_required_fields"]
+                    super().save(*args, **save_kwargs)
+                finally:
+                    self._preparing_payload = False
 
     @validator
     def _validate_due_at_required(self, **kwargs):
