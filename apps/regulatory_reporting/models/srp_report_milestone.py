@@ -158,48 +158,9 @@ class SRPReportMilestone(SRPReportBase):
             )
         ]
 
+    due_at = models.DateTimeField(null=True, blank=True)
+
     objects = SRPReportMilestoneManager()
-
-    @property
-    def due_at(self):
-        """
-        Calculate milestone due date.
-
-        For LEVEL_FINAL: duration depends on event type:
-        - KEV (EXPLOITS_KEV_APPROVED): 14 days
-        - Severe Incident (MAJOR_INCIDENT_APPROVED): 30 days
-        - Additional Information Request: 30 days from the request received
-        """
-        if (
-            self.milestone_type
-            == self.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
-        ):
-            if not self.request_received_at:
-                return None
-            return self.request_received_at + timedelta(days=30)
-
-        if not self.srp_report.timer_started_at:
-            return None
-
-        if self.milestone_type == self.MilestoneType.LEVEL_FINAL:
-            # Check parent report's event type
-            if (
-                self.srp_report.reportable_event_type
-                == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
-            ):
-                duration = timedelta(days=14)
-            elif (
-                self.srp_report.reportable_event_type
-                == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
-            ):
-                duration = timedelta(days=30)
-            else:
-                return None
-        else:
-            # Use static duration for 24h, 72h, etc.
-            duration = self.MILESTONE_DURATION_BY_TYPE[self.milestone_type]
-
-        return self.srp_report.timer_started_at + duration
 
     def __str__(self):
         return f"{self.milestone_type} - {self.srp_report.flaw.cve_id or self.srp_report.flaw.uuid}"
@@ -209,6 +170,11 @@ class SRPReportMilestone(SRPReportBase):
         Persist the milestone, and prepare the SRP payload snapshot when
         status transitions to SUBMITTED for builder-backed milestone types.
         """
+        if self.due_at is None:
+            self.due_at = self._compute_default_due_at()
+            update_fields = kwargs.get("update_fields")
+            if self.due_at is not None and update_fields is not None:
+                kwargs["update_fields"] = list(update_fields) + ["due_at"]
         if getattr(self, "_preparing_payload", False):
             return super().save(*args, **kwargs)
 
@@ -285,6 +251,43 @@ class SRPReportMilestone(SRPReportBase):
                     super().save(*args, **save_kwargs)
                 finally:
                     self._preparing_payload = False
+
+    def _compute_default_due_at(self):
+        """
+        Calculate the default due date for a milestone at creation time.
+        For LEVEL_FINAL: duration depends on event type:
+        KEV (EXPLOITS_KEV_APPROVED): 14 days
+        Severe Incident (MAJOR_INCIDENT_APPROVED): 30 days
+        Additional Information Request: 30 days from the request received
+        """
+        if (
+            self.milestone_type
+            == self.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
+        ):
+            if not self.request_received_at:
+                return None
+            return self.request_received_at + timedelta(days=30)
+
+        if not self.srp_report.timer_started_at:
+            return None
+
+        if self.milestone_type == self.MilestoneType.LEVEL_FINAL:
+            if (
+                self.srp_report.reportable_event_type
+                == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
+            ):
+                duration = timedelta(days=14)
+            elif (
+                self.srp_report.reportable_event_type
+                == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
+            ):
+                duration = timedelta(days=30)
+            else:
+                return None
+        else:
+            duration = self.MILESTONE_DURATION_BY_TYPE[self.milestone_type]
+
+        return self.srp_report.timer_started_at + duration
 
     @validator
     def _validate_due_at_required(self, **kwargs):

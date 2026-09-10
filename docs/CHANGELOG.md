@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add owner and submitted_at fields to SRP report milestones (OSIDB-5439)
 - Add Top-Level SRP Report Status Filtering to Advanced Search (OSIDB-5487)
 - Add milestone field to support additional information (OSIDB-5482)
+- Fix 14-days due date in AEV needs to be editable (OSIDB-5549)
 
 ## [5.17.1] - 2026-08-31
 ### Added
