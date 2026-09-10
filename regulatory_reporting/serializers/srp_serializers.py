@@ -87,6 +87,7 @@ class SRPReportMilestoneSerializer(
                 "request_text",
                 "submitted_at",
                 "owner",
+                "manual_completion_notes",
                 # Tracking fields
                 "created_dt",
                 "updated_dt",
@@ -243,6 +244,7 @@ class SRPReportSerializer(
             "member_states_available",
             "designated_csirt_country",
             "designated_csirt_source",
+            "manual_completion_notes",
             # Tracking fields
             "created_dt",
             "updated_dt",
