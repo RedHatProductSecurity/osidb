@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fallback to Aegis' suggested ecosystem if not available in OSIDB (OSIDB-5353)
 - Fix Bugzilla flaw bug not in sync with the flaw (OSIDB-5332)
-- Add new module "regulatory_reporting" (OSIDB-5127)
+- Add new module "apps.regulatory_reporting" (OSIDB-5127)
 - Add new Models SRPReport and SRPReportMilestone (OSIDB-5066)
 - Add `upstream maintainer` notification models (OSIDB-5076)
 - Add create SRP report when Flaw is EXPLOITS_KEV_APPROVED or MAJOR_INCIDENT (OSIDB-5067)

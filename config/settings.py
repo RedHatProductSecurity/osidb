@@ -64,7 +64,7 @@ INSTALLED_APPS = [
     # --- Foundation ---
     "osidb",
     # --- Business logic (no cross-app deps beyond osidb) ---
-    "regulatory_reporting",
+    "apps.regulatory_reporting",
     "apps.workflows",
     "apps.bbsync",
     "apps.exploits",
@@ -237,7 +237,7 @@ LOGGING = {
             "handlers": ["console"],
         },
         "celery": {"handlers": ["celery"], "level": "INFO", "propagate": True},
-        "regulatory_reporting": {
+        "apps.regulatory_reporting": {
             "handlers": ["celery"],
             "level": "INFO",
             "propagate": False,
@@ -324,9 +324,9 @@ SPECTACULAR_SETTINGS = {
             ("workflow", "Workflow"),
         ],
         "UpstreamDataSource": "osidb.models.flaw.upstream.UpstreamData.Source",
-        "SRPReportStatusEnum": "regulatory_reporting.models.srp_report.SRPReport.SRPReportStatus",
+        "SRPReportStatusEnum": "apps.regulatory_reporting.models.srp_report.SRPReport.SRPReportStatus",
         "SRPReportMilestoneStatusEnum": (
-            "regulatory_reporting.models.srp_report_milestone.SRPReportMilestone.SRPReportMilestoneStatus"
+            "apps.regulatory_reporting.models.srp_report_milestone.SRPReportMilestone.SRPReportMilestoneStatus"
         ),
     },
     "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
