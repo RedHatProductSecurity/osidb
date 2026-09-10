@@ -7,7 +7,10 @@ class RegulatoryReportingConfig(AppConfig):
     name = "regulatory_reporting"
 
     def ready(self):
-        if settings.CRA_NOTIFICATIONS_ENABLED or settings.CRA_REPORTING_ENABLED:
+        if (
+            settings.REGULATORY_REPORTING_NOTIFICATIONS_ENABLED
+            or settings.REGULATORY_REPORTING_ENABLED
+        ):
             from django.db.models.signals import post_save
 
             from osidb.models import Flaw
@@ -15,7 +18,7 @@ class RegulatoryReportingConfig(AppConfig):
             from .models.upstream import FlawUpstreamMapping
             from .signals import link_mapping_to_notification
 
-        if settings.CRA_NOTIFICATIONS_ENABLED:
+        if settings.REGULATORY_REPORTING_NOTIFICATIONS_ENABLED:
             from .signals import check_upstream_notifiable
 
             post_save.connect(check_upstream_notifiable, sender=Flaw)

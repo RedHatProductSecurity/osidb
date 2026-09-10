@@ -14,6 +14,7 @@ from pghistory.config import ObjForeignKey
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from osidb.helpers import get_env, get_env_groups
+from regulatory_reporting.settings import regulatory_reporting_settings
 
 DEBUG: bool = get_env("OSIDB_DEBUG", default="False", is_bool=True)
 
@@ -343,13 +344,13 @@ DEFAULT_REQUEST_TIMEOUT = get_env(
     "OSIDB_DEFAULT_REQUEST_TIMEOUT", default="30", is_int=True
 )
 
-# opt-in-flag for CRA upstream notification
-CRA_NOTIFICATIONS_ENABLED = get_env(
-    "CRA_NOTIFICATIONS_ENABLED", default="False", is_bool=True
+REGULATORY_REPORTING_NOTIFICATIONS_ENABLED = (
+    regulatory_reporting_settings.notifications_enabled
 )
-
-# opt-in-flag for CRA upstream reporting
-CRA_REPORTING_ENABLED = get_env("CRA_REPORTING_ENABLED", default="False", is_bool=True)
+REGULATORY_REPORTING_ENABLED = regulatory_reporting_settings.enabled
+REGULATORY_REPORTING_UPSTREAM_NOTIFICATIONS_SENDER = (
+    regulatory_reporting_settings.upstream_notifications_sender
+)
 
 # sets the Access-Control-Allow-Origin response header - accepts regex
 # example value: [ r"^https://([^.]*\.)?\.example\.com$" ]
@@ -370,7 +371,6 @@ PGHISTORY_APPEND_ONLY = True
 PGHISTORY_BASE_MODEL = "osidb.models.audit_history.CustomHistoryBase"
 PGHISTORY_OBJ_FIELD = ObjForeignKey(related_name="events")
 
-UPSTREAM_NOTIFICATIONS_SENDER = "secalert@redhat.com"
 # Email configuration
 
 

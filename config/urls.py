@@ -37,7 +37,7 @@ urlpatterns = [
     path("auth/token/refresh", refresh_token, name="token_refresh"),
     path("auth/token/verify", TokenVerifyView.as_view(), name="token_verify"),
     # regulatory reporting - CRAReportingEnabledMiddleware returns 404 for
-    # these paths when the relevant CRA_* feature flag is False
+    # these paths when the relevant regulatory reporting feature flag is False
     path("regulatory-reporting/api/v1/", include("regulatory_reporting.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

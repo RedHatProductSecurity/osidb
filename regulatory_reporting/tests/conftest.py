@@ -38,22 +38,22 @@ def pytest_configure(config):
 def cra_reporting_enabled(request, settings):
     """Enable CRA reporting API unless the test opts out with no_cra_reporting."""
     if request.node.get_closest_marker("no_cra_reporting"):
-        settings.CRA_REPORTING_ENABLED = False
+        settings.REGULATORY_REPORTING_ENABLED = False
         yield
         return
 
-    settings.CRA_REPORTING_ENABLED = True
+    settings.REGULATORY_REPORTING_ENABLED = True
     yield
 
 
 @pytest.fixture(autouse=True)
 def cra_notification_signals(request, settings):
     if request.node.get_closest_marker("no_cra_notifications"):
-        settings.CRA_NOTIFICATIONS_ENABLED = False
+        settings.REGULATORY_REPORTING_NOTIFICATIONS_ENABLED = False
         yield
         return
 
-    settings.CRA_NOTIFICATIONS_ENABLED = True
+    settings.REGULATORY_REPORTING_NOTIFICATIONS_ENABLED = True
     from django.db.models.signals import post_save
 
     from osidb.models import Flaw

@@ -13,9 +13,10 @@ class CRAReportingEnabledMiddleware:
     """
     Return 404 for CRA API endpoints when the relevant feature flag is off.
 
-    - /regulatory-reporting/api/v1/notifications/... is gated by CRA_NOTIFICATIONS_ENABLED
+    - /regulatory-reporting/api/v1/notifications/... is gated by
+      REGULATORY_REPORTING_NOTIFICATIONS_ENABLED
     - /regulatory-reporting/api/v1/... CRA routes (SRP reports/milestones) are
-      gated by CRA_REPORTING_ENABLED
+      gated by REGULATORY_REPORTING_ENABLED
 
     Flags are checked here, per request, rather than used to conditionally
     register routes in urlpatterns at import time. Django caches the compiled
@@ -31,10 +32,10 @@ class CRAReportingEnabledMiddleware:
     def __call__(self, request):
         path = request.path_info
         if path.startswith(CRA_NOTIFICATIONS_PATH_PREFIX):
-            if not settings.CRA_NOTIFICATIONS_ENABLED:
+            if not settings.REGULATORY_REPORTING_NOTIFICATIONS_ENABLED:
                 raise Http404
         elif path.startswith(CRA_API_PATH_PREFIX) and not (
-            settings.CRA_REPORTING_ENABLED
+            settings.REGULATORY_REPORTING_ENABLED
         ):
             raise Http404
 

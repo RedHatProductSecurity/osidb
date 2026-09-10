@@ -235,7 +235,7 @@ class TestUpstreamNotificationFiltering:
 @pytest.mark.no_cra_notifications
 class TestUpstreamNotificationAPIDisabled:
     def test_list_returns_404_when_notifications_disabled(self, auth_client):
-        """/regulatory-reporting/api/v1/notifications/ 404s when CRA_NOTIFICATIONS_ENABLED is False."""
+        """/regulatory-reporting/api/v1/notifications/ 404s when regulatory reporting notifications are disabled."""
         response = auth_client().get(
             "/regulatory-reporting/api/v1/notifications/upstream"
         )
@@ -414,7 +414,8 @@ class TestSendEmailAction:
 
         call_args = mock_task.apply_async.call_args
         assert (
-            call_args.kwargs["kwargs"]["from"] == settings.UPSTREAM_NOTIFICATIONS_SENDER
+            call_args.kwargs["kwargs"]["from"]
+            == settings.REGULATORY_REPORTING_UPSTREAM_NOTIFICATIONS_SENDER
         )
 
 

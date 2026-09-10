@@ -540,11 +540,11 @@ class TestSRPReportFiltering:
 @pytest.mark.django_db
 class TestSRPReportAPIDisabled:
     """Tests that SRP reporting endpoints are unavailable when
-    CRA_REPORTING_ENABLED is off (see ``cra_reporting_enabled`` in conftest)."""
+    REGULATORY_REPORTING_ENABLED is off (see ``cra_reporting_enabled`` in conftest)."""
 
-    @override_settings(CRA_REPORTING_ENABLED=False)
+    @override_settings(REGULATORY_REPORTING_ENABLED=False)
     def test_list_reports_returns_404_when_disabled(self, api_client):
-        """/regulatory-reporting/api/v1/srp-reports 404s when CRA_REPORTING_ENABLED is False."""
+        """/regulatory-reporting/api/v1/srp-reports 404s when regulatory reporting is disabled."""
         response = api_client.get("/regulatory-reporting/api/v1/srp-reports")
         assert response.status_code == status.HTTP_404_NOT_FOUND
 

@@ -93,7 +93,7 @@ class UpstreamNotificationView(
         payload = {
             "subject": f"Security notification for {flaw_id}",
             "to": [upstream_project.security_contact],
-            "from": settings.UPSTREAM_NOTIFICATIONS_SENDER,
+            "from": settings.REGULATORY_REPORTING_UPSTREAM_NOTIFICATIONS_SENDER,
             "body": text_body,
         }
 
