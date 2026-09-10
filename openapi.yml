@@ -19767,6 +19767,9 @@ components:
           type: string
           description: Source of the designated CSIRT coordinator
           maxLength: 255
+        manual_completion_notes:
+          type: string
+          description: Manual completion notes
         created_dt:
           type: string
           format: date-time
@@ -19859,6 +19862,9 @@ components:
           type: string
           description: Source of the designated CSIRT coordinator
           maxLength: 255
+        manual_completion_notes:
+          type: string
+          description: Manual completion notes
         created_dt:
           type: string
           format: date-time
@@ -19940,6 +19946,9 @@ components:
           type: string
           description: Source of the designated CSIRT coordinator
           maxLength: 255
+        manual_completion_notes:
+          type: string
+          description: Manual completion notes
       required:
       - evidence
       - flaw_id
@@ -19997,6 +20006,9 @@ components:
           type: string
           description: Owner of this milestone
           maxLength: 60
+        manual_completion_notes:
+          type: string
+          description: Manual completion notes
         created_dt:
           type: string
           format: date-time
@@ -20109,6 +20121,9 @@ components:
           type: string
           description: Owner of this milestone
           maxLength: 60
+        manual_completion_notes:
+          type: string
+          description: Manual completion notes
         created_dt:
           type: string
           format: date-time
@@ -20206,6 +20221,9 @@ components:
           type: string
           description: Owner of this milestone
           maxLength: 60
+        manual_completion_notes:
+          type: string
+          description: Manual completion notes
     SRPReportMilestoneRequest:
       type: object
       description: |-
@@ -20245,6 +20263,9 @@ components:
           type: string
           description: Owner of this milestone
           maxLength: 60
+        manual_completion_notes:
+          type: string
+          description: Manual completion notes
         updated_dt:
           type: string
           format: date-time
@@ -20321,6 +20342,9 @@ components:
           type: string
           description: Source of the designated CSIRT coordinator
           maxLength: 255
+        manual_completion_notes:
+          type: string
+          description: Manual completion notes
         updated_dt:
           type: string
           format: date-time

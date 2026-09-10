@@ -337,6 +337,25 @@ class TestSRPMilestoneUpdate:
         milestone.refresh_from_db()
         assert milestone.submitted_at == correction
 
+    def test_update_manual_completion_notes(
+        self, authenticated_client, create_flaw_report
+    ):
+        """Can update manual_completion_notes and value is returned in response."""
+        milestones_report = create_flaw_report()
+        milestone = milestones_report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+        response = self._put_milestone(
+            authenticated_client,
+            milestones_report,
+            milestone,
+            manual_completion_notes="some notes",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["manual_completion_notes"] == "some notes"
+        milestone.refresh_from_db()
+        assert milestone.manual_completion_notes == "some notes"
+
 
 @pytest.mark.django_db
 @pytest.mark.enable_signals

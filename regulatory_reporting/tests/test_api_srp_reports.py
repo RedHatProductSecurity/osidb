@@ -436,6 +436,21 @@ class TestSRPReportUpdate:
         assert report.status == SRPReport.SRPReportStatus.SUBMITTED
         assert report.srp_reference_id == "SRP-2026-001"
 
+    def test_update_manual_completion_notes(
+        self, authenticated_client, create_flaw_report
+    ):
+        """Can update manual_completion_notes and value is returned in response."""
+        report = create_flaw_report()
+        response = self._put_report(
+            authenticated_client,
+            report,
+            manual_completion_notes="some notes",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["manual_completion_notes"] == "some notes"
+        report.refresh_from_db()
+        assert report.manual_completion_notes == "some notes"
+
 
 @pytest.mark.django_db
 class TestSRPReportFiltering:
