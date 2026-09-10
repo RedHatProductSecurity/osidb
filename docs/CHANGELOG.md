@@ -10,11 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - prefer relevant trackers over duplicates (OSIDB-5449)
+- Remove additional information from report type (OSIDB-5437)
+- Make reference id and url optional (OSIDB-5436)
+- Remove Flaw signal to create report (OSIDB-5462)
+- Change srp report status choices (OSIDB-5442)
+- Change srp milestones status choices (OSIDB-5441)
 
 ### Fixed
 - Fallback to Aegis' suggested ecosystem if not available in OSIDB (OSIDB-5353)
 - Fix Bugzilla flaw bug not in sync with the flaw (OSIDB-5332)
-- Add new module "regulatory_reporting" (OSIDB-5127)
+- Add new module "apps.regulatory_reporting" (OSIDB-5127)
 - Add new Models SRPReport and SRPReportMilestone (OSIDB-5066)
 - Add `upstream maintainer` notification models (OSIDB-5076)
 - Add create SRP report when Flaw is EXPLOITS_KEV_APPROVED or MAJOR_INCIDENT (OSIDB-5067)
@@ -38,13 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add owner and submitted_at fields to SRP report milestones (OSIDB-5439)
 - Add Top-Level SRP Report Status Filtering to Advanced Search (OSIDB-5487)
 - Add milestone field to support additional information (OSIDB-5482)
-
-### Changed
-- Remove additional information from report type (OSIDB-5437)
-- Make reference id and url optional (OSIDB-5436)
-- Remove Flaw signal to create report (OSIDB-5462)
-- Change srp report status choices (OSIDB-5442)
-- Change srp milestones status choices (OSIDB-5441)
 
 ## [5.17.1] - 2026-08-31
 ### Added
