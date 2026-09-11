@@ -2400,8 +2400,9 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         limit = self._get_limit(request)
         offset = self._get_offset(request)
-        count = self._audit_count(request.query_params)
-        rows = self._audit_rows(request.query_params, limit, offset)
+        related_context = self._related_history_context(request.query_params)
+        count = self._audit_count(request.query_params, related_context)
+        rows = self._audit_rows(request.query_params, limit, offset, related_context)
         previous_rows = self._previous_rows_for_rows(rows)
         events = [
             self._event_from_row(
@@ -2422,7 +2423,7 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
         )
 
     def retrieve(self, request, *args, **kwargs):
-        event = self._event_by_slug(kwargs[self.lookup_field])
+        event = self._event_by_slug(kwargs[self.lookup_field], request.query_params)
         if event is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(event)
@@ -2461,7 +2462,7 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
             return remove_query_param(url, "offset")
         return replace_query_param(url, "offset", previous_offset)
 
-    def _audit_count(self, params):
+    def _audit_count(self, params, related_context=None):
         pgh_slug = params.get("pgh_slug")
         if pgh_slug:
             return 1 if self._row_by_slug(pgh_slug, params) else 0
@@ -2476,10 +2477,13 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
             # Exact counts on unfiltered audit feeds are expensive on large audit tables,
             # but are preserved for API compatibility with the existing /audit contract.
             count += self._audit_queryset(audit_table, params).count()
+        if self._include_relation_events(params):
+            count += self._related_history_count(params, related_context)
         return count
 
-    def _audit_rows(self, params, limit, offset):
+    def _audit_rows(self, params, limit, offset, related_context=None):
         rows = []
+        window = limit + offset
         pgh_slug = params.get("pgh_slug")
         if pgh_slug:
             if not limit or offset:
@@ -2494,21 +2498,26 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
             ):
                 continue
 
-            window = limit + offset
             if not window:
                 continue
 
             rows.extend(
                 (audit_table, row)
                 for row in audit_rows_with_context(
-                    self._audit_queryset(audit_table, params).order_by("-pgh_id")[
-                        :window
-                    ],
+                    self._audit_queryset(audit_table, params).order_by(
+                        "-pgh_created_at", "-pgh_id"
+                    )[:window],
                     audit_table,
                 )
             )
 
-        rows.sort(key=lambda item: item[1]["pgh_created_at"], reverse=True)
+        if self._include_relation_events(params) and window:
+            rows.extend(self._related_history_rows(params, window, related_context))
+
+        rows.sort(
+            key=lambda item: (item[1]["pgh_created_at"], item[1]["pgh_id"]),
+            reverse=True,
+        )
         return rows[offset : offset + limit]
 
     def _audit_queryset(self, audit_table, params):
@@ -2521,8 +2530,8 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
             filters["pgh_created_at"] = params["pgh_created_at"]
         return audit_table["model"].objects.filter(**filters)
 
-    def _event_by_slug(self, pgh_slug):
-        row = self._row_by_slug(pgh_slug)
+    def _event_by_slug(self, pgh_slug, params=None):
+        row = self._row_by_slug(pgh_slug, params)
         if row is None:
             return None
         return self._event_from_row(*row)
@@ -2631,6 +2640,92 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
                     previous_rows[(audit_label, row["pgh_id"])] = previous
 
         return previous_rows
+
+    def _include_relation_events(self, params):
+        value = params.get("include_relation_events")
+        return isinstance(value, str) and value.lower() in {"1", "true", "yes"}
+
+    def _related_history_context(self, params):
+        if not self._include_relation_events(params):
+            return None
+        if params.get("pgh_obj_model") != Flaw._meta.label or not params.get(
+            "pgh_obj_id"
+        ):
+            return None
+
+        affect_table = audit_table_for_model(Affect)
+        if affect_table is None:
+            return None
+
+        tracker_ids = set(
+            affect_table["model"]
+            .objects.filter(flaw_id=params["pgh_obj_id"])
+            .exclude(tracker_id__isnull=True)
+            .values_list("tracker_id", flat=True)
+            .distinct()
+        )
+        return {
+            "flaw_id": params["pgh_obj_id"],
+            "affect_table": affect_table,
+            "tracker_table": audit_table_for_model(Tracker),
+            "tracker_ids": tracker_ids,
+        }
+
+    def _related_history_querysets(self, params, related_context):
+        if related_context is None:
+            return []
+
+        querysets = [
+            (
+                related_context["affect_table"],
+                related_context["affect_table"]["model"].objects.filter(
+                    flaw_id=related_context["flaw_id"]
+                ),
+            )
+        ]
+        if (
+            related_context["tracker_table"] is not None
+            and related_context["tracker_ids"]
+        ):
+            querysets.append(
+                (
+                    related_context["tracker_table"],
+                    related_context["tracker_table"]["model"].objects.filter(
+                        pgh_obj_id__in=related_context["tracker_ids"]
+                    ),
+                )
+            )
+        return [
+            (audit_table, self._filter_related_history_queryset(queryset, params))
+            for audit_table, queryset in querysets
+        ]
+
+    def _filter_related_history_queryset(self, queryset, params):
+        if params.get("pgh_label"):
+            queryset = queryset.filter(pgh_label=params["pgh_label"])
+        if params.get("pgh_created_at"):
+            queryset = queryset.filter(pgh_created_at=params["pgh_created_at"])
+        return queryset
+
+    def _related_history_count(self, params, related_context):
+        return sum(
+            queryset.count()
+            for _, queryset in self._related_history_querysets(params, related_context)
+        )
+
+    def _related_history_rows(self, params, window, related_context):
+        rows = []
+        for audit_table, queryset in self._related_history_querysets(
+            params, related_context
+        ):
+            rows.extend(
+                (audit_table, row)
+                for row in audit_rows_with_context(
+                    queryset.order_by("-pgh_created_at", "-pgh_id")[:window],
+                    audit_table,
+                )
+            )
+        return rows
 
 
 # NOTE: Purpose of this custom class is for Kerberos authenticated
