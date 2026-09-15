@@ -2154,3 +2154,420 @@ def test_apply_label_does_not_overwrite_reason():
 
     label = WorkflowLabel.objects.get(flaw=flaw, name="manual-triage")
     assert label.reason == "First reason"
+
+
+# ============================================================================
+# Hummingbird-specific tests
+# ============================================================================
+
+
+def test_hummingbird_sync_no_workflow_gate(
+    monkeypatch, ace_enabled, urllib3_results, mock_querier
+):
+    """
+    Hummingbird task runs for flaws in any workflow state, including NEW and DONE.
+    """
+    from apps.ace.tasks import sync_hummingbird_affects
+
+    # NEW state flaw (would be rejected by ACE)
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="NEW"
+    )
+
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"urllib3": urllib3_results})
+    )
+
+    stats = sync_hummingbird_affects(str(flaw.uuid))
+
+    assert stats["created"] == len(urllib3_results)
+    assert flaw.affects.count() == len(urllib3_results)
+
+
+def test_hummingbird_sync_skips_blocklisted_component(
+    monkeypatch, ace_enabled, mock_querier
+):
+    """
+    Hummingbird skips blocklisted components but continues processing others.
+    """
+    from apps.ace.tasks import sync_hummingbird_affects
+    from collectors.component_mapping.models import BlocklistEntry
+
+    BlocklistEntry.objects.create(
+        name="badcomponent", reason="Known false positive generator"
+    )
+
+    flaw = FlawFactory(
+        components=["badcomponent", "urllib3"],
+        workflow_name="DEFAULT",
+        workflow_state="NEW",
+    )
+
+    urllib3_results = [
+        SimpleNamespace(
+            ps_update_stream="hummingbird-1",
+            purls=["pkg:oci/python3.11?repository_url=registry.redhat.io/python3.11"],
+        )
+    ]
+
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        mock_querier({"urllib3": urllib3_results, "badcomponent": []}),
+    )
+
+    stats = sync_hummingbird_affects(str(flaw.uuid))
+
+    assert stats["blocklisted"] == 1
+    assert stats["created"] == 1
+    # Only urllib3 affects created, badcomponent was skipped
+    assert flaw.affects.count() == 1
+
+
+def test_hummingbird_sync_no_labels_applied(
+    monkeypatch, ace_enabled, urllib3_results, mock_querier
+):
+    """
+    Hummingbird task never applies labels, even for components that would
+    normally trigger manual-triage or potential-rejection in ACE.
+    """
+    from apps.ace.tasks import sync_hummingbird_affects
+    from osidb.models.flaw.label import WorkflowLabel
+
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="NEW"
+    )
+
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"urllib3": urllib3_results})
+    )
+
+    sync_hummingbird_affects(str(flaw.uuid))
+
+    # No labels should be applied
+    assert WorkflowLabel.objects.filter(flaw=flaw).count() == 0
+
+
+def test_hummingbird_sync_queries_only_hummingbird_modules(
+    monkeypatch, ace_enabled, urllib3_results
+):
+    """
+    Hummingbird task queries only hummingbird ps_modules (filter, not exclude).
+    """
+    from apps.ace.tasks import sync_hummingbird_affects
+
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="NEW"
+    )
+
+    filter_calls = []
+
+    def _search(terms, **kwargs):
+        qs = MagicMock()
+
+        def _filter(products=None, **fkwargs):
+            if products is not None:
+                filter_calls.append(("filter", products))
+            filtered_qs = MagicMock()
+            filtered_qs.all.return_value = urllib3_results
+            return filtered_qs
+
+        qs.filter = _filter
+        return qs
+
+    mock_nq = MagicMock()
+    mock_nq.return_value.search.side_effect = _search
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_nq)
+
+    sync_hummingbird_affects(str(flaw.uuid))
+
+    # Should have called filter(products=["hummingbird-1"])
+    assert ("filter", ["hummingbird-1"]) in filter_calls
+
+
+def test_hummingbird_sync_still_applies_version_checking(
+    monkeypatch, ace_enabled, upstream_purls_openssl_rpm
+):
+    """
+    Hummingbird task still applies OSV version range checking to mark
+    NOTAFFECTED affects.
+    """
+    from apps.ace.tasks import sync_hummingbird_affects
+
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="NEW"
+    )
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+
+    # OSV fixed at 3.0.9, so 3.0.8 is affected, 3.0.10 is not
+    openssl_results = [
+        SimpleNamespace(
+            ps_update_stream="hummingbird-1",
+            purls=["pkg:rpm/redhat/openssl@3.0.8-1.hum1?arch=src"],
+        ),
+        SimpleNamespace(
+            ps_update_stream="hummingbird-1",
+            purls=["pkg:rpm/redhat/openssl@3.0.10-1.hum1?arch=src"],
+        ),
+    ]
+
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        MagicMock(
+            return_value=MagicMock(
+                search=MagicMock(
+                    return_value=MagicMock(
+                        filter=MagicMock(
+                            return_value=MagicMock(
+                                all=MagicMock(return_value=openssl_results)
+                            )
+                        )
+                    )
+                )
+            )
+        ),
+    )
+
+    stats = sync_hummingbird_affects(str(flaw.uuid))
+
+    assert stats["created"] == 2
+    assert stats["marked_notaffected"] == 1
+
+    # 3.0.10 should be NOTAFFECTED
+    notaffected = flaw.affects.filter(
+        affectedness=Affect.AffectAffectedness.NOTAFFECTED
+    )
+    assert notaffected.count() == 1
+    assert "3.0.10" in str(notaffected.first().purl)
+
+
+def test_hummingbird_sync_still_resolves_components(
+    monkeypatch, ace_enabled, mock_querier
+):
+    """
+    Hummingbird task still uses _resolve_component() for accurate querying.
+    """
+    from apps.ace.tasks import sync_hummingbird_affects
+    from collectors.component_mapping.models import ComponentMapEntry
+
+    # Create a mapping for "python urllib3" -> "urllib3"
+    ComponentMapEntry.objects.create(name="python urllib3", upstream_packages="urllib3")
+
+    flaw = FlawFactory(
+        components=["python urllib3"],  # Space in component name
+        workflow_name="DEFAULT",
+        workflow_state="NEW",
+    )
+
+    query_terms = []
+
+    def _search(terms, **kwargs):
+        query_terms.append(terms[0])
+        qs = MagicMock()
+        qs.filter.return_value.all.return_value = []
+        return qs
+
+    mock_nq = MagicMock()
+    mock_nq.return_value.search.side_effect = _search
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_nq)
+
+    sync_hummingbird_affects(str(flaw.uuid))
+
+    # Should query for "urllib3" (resolved), not "python urllib3" or "python-urllib3"
+    assert "urllib3" in query_terms
+
+
+def test_hummingbird_sync_idempotent(
+    monkeypatch, ace_enabled, urllib3_results, mock_querier
+):
+    """
+    Running hummingbird sync twice does not duplicate affects.
+    """
+    from apps.ace.tasks import sync_hummingbird_affects
+
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="NEW"
+    )
+
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"urllib3": urllib3_results})
+    )
+
+    # First run
+    stats1 = sync_hummingbird_affects(str(flaw.uuid))
+    assert stats1["created"] == len(urllib3_results)
+    assert flaw.affects.count() == len(urllib3_results)
+
+    # Second run
+    stats2 = sync_hummingbird_affects(str(flaw.uuid))
+    assert stats2["created"] == 0
+    assert stats2["skipped_existing"] == len(urllib3_results)
+    assert flaw.affects.count() == len(urllib3_results)
+
+
+def test_ace_sync_excludes_hummingbird_modules(monkeypatch, ace_enabled):
+    """
+    ACE task uses exclude filter to prevent creating hummingbird affects.
+    """
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+
+    exclude_calls = []
+
+    def _search(terms, **kwargs):
+        qs = MagicMock()
+
+        def _filter(products=None, **fkwargs):
+            filtered_qs = MagicMock()
+
+            def _exclude(products=None, **ekwargs):
+                if products is not None:
+                    exclude_calls.append(("exclude", products))
+                excluded_qs = MagicMock()
+                excluded_qs.all.return_value = []
+                return excluded_qs
+
+            filtered_qs.exclude = _exclude
+            filtered_qs.all.return_value = []
+            return filtered_qs
+
+        qs.filter = _filter
+        return qs
+
+    mock_nq = MagicMock()
+    mock_nq.return_value.search.side_effect = _search
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_nq)
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    # Should have called exclude(products=["hummingbird-1"])
+    assert ("exclude", ["hummingbird-1"]) in exclude_calls
+
+
+# ============================================================================
+# Hummingbird signal handler tests
+# ============================================================================
+
+
+@pytest.mark.enable_signals
+def test_hummingbird_signal_fires_regardless_of_workflow_state(
+    monkeypatch, signal_ace_enabled
+):
+    """
+    Hummingbird signal handler fires for any workflow state (including NEW, DONE).
+    """
+    calls = _count_enqueues(monkeypatch)
+
+    # NEW state flaw (would NOT trigger ACE)
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="NEW"
+    )
+
+    # Should have triggered hummingbird on creation
+    assert len(calls) == 1
+
+    # Changing components in NEW state should also trigger
+    flaw.components = ["urllib3", "openssl"]
+    flaw.save()
+
+    assert len(calls) == 2
+
+
+@pytest.mark.enable_signals
+def test_hummingbird_signal_fires_for_manual_workflow(monkeypatch, signal_ace_enabled):
+    """
+    Hummingbird signal handler fires for MANUAL workflow (ACE would not).
+    """
+    calls = _count_enqueues(monkeypatch)
+
+    FlawFactory(components=["urllib3"], workflow_name="MANUAL", workflow_state="TRIAGE")
+
+    # Should have triggered hummingbird on creation
+    assert len(calls) == 1
+
+
+@pytest.mark.enable_signals
+def test_hummingbird_signal_fires_on_flaw_creation_with_components(
+    monkeypatch, signal_ace_enabled
+):
+    """
+    Hummingbird signal handler fires when a flaw is created with components.
+    """
+    calls = _count_enqueues(monkeypatch)
+
+    FlawFactory(components=["urllib3"], workflow_name="DEFAULT", workflow_state="NEW")
+
+    assert len(calls) == 1
+
+
+@pytest.mark.enable_signals
+def test_hummingbird_signal_no_fire_without_component_change(
+    monkeypatch, signal_ace_enabled
+):
+    """
+    Hummingbird signal handler does not fire when components don't change.
+    """
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="NEW"
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    # Save without changing components
+    flaw.title = "Updated title"
+    flaw.save()
+
+    assert len(calls) == 0
+
+
+@pytest.mark.enable_signals
+def test_hummingbird_signal_no_fire_when_feature_disabled(monkeypatch):
+    """
+    Hummingbird signal handler does not fire when auto_create is False.
+    """
+
+    class DisabledSettings:
+        auto_create = False
+
+    monkeypatch.setattr("apps.ace.signals.AffectSettings", DisabledSettings)
+    calls = _count_enqueues(monkeypatch)
+
+    FlawFactory(components=["urllib3"], workflow_name="DEFAULT", workflow_state="NEW")
+
+    assert len(calls) == 0
+
+
+@pytest.mark.enable_signals
+def test_hummingbird_signal_no_fire_for_empty_components(
+    monkeypatch, signal_ace_enabled
+):
+    """
+    Hummingbird signal handler does not fire when components are empty.
+    """
+    calls = _count_enqueues(monkeypatch)
+
+    FlawFactory(components=[], workflow_name="DEFAULT", workflow_state="NEW")
+
+    assert len(calls) == 0
+
+
+@pytest.mark.enable_signals
+def test_both_signals_fire_for_eligible_flaw(monkeypatch, signal_ace_enabled):
+    """
+    When a flaw in an ACE-eligible state has components changed, both ACE and
+    hummingbird signal handlers fire (concurrent execution is safe).
+    """
+    calls = _count_enqueues(monkeypatch)
+
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+
+    # Hummingbird fires on creation (1 call)
+    assert len(calls) == 1
+
+    # Change components: both ACE and hummingbird should fire
+    flaw.components = ["urllib3", "openssl"]
+    flaw.save()
+
+    # Total: 1 (creation) + 2 (ACE + hummingbird on change) = 3
+    assert len(calls) == 3

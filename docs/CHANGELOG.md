@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- Hummingbird affect resolution is now separate from ACE/ARGUS workflow (OSIDB-5534)
+
 ### Fixed
 - UBI label now applies to all future Y-streams (newer than latest Z) instead of
   just the next one (e.g., both rhel-9.9 and rhel-9.10 when latest Z is rhel-9.8.z,
