@@ -44,14 +44,24 @@ class AffectSettings(BaseSettings):
 
     require_purl_for_middleware: bool = False
     auto_create: bool = False
-    auto_create_ps_modules: list[str] = Field(
-        default_factory=lambda: ["hummingbird-1"],
-    )
+    # PS modules for ACE to query. Empty list means all products.
+    # Changed from ["hummingbird-1"] to [] for hummingbird separation (OSIDB-5534).
+    auto_create_ps_modules: list[str] = Field(default_factory=list)
     # Resolved upstream component names (see collectors.component_mapping)
     # that ACE should route to manual triage instead of auto-creating affects.
     # Maps a lowercase component name to the lowercase ecosystems it should
     # apply to; an empty ecosystem list means "any ecosystem".
     manual_triage_components: dict[str, list[str]] = Field(default_factory=dict)
+    # PS modules to include when querying lib-newtopia for hummingbird affects.
+    # Hummingbird affects are created immediately on component change, with no workflow gate.
+    hummingbird_ps_modules: list[str] = Field(
+        default_factory=lambda: ["hummingbird-1"],
+    )
+    # PS modules to exclude from ACE lib-newtopia queries.
+    # Used to prevent ACE from creating hummingbird affects (handled by separate task).
+    exclude_ps_modules: list[str] = Field(
+        default_factory=lambda: ["hummingbird-1"],
+    )
 
 
 class NotAffectedJustification(models.TextChoices):

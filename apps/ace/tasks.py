@@ -459,6 +459,7 @@ def _handle_go_stdlib(
     component: str,
     ps_modules: list[str],
     upstream_purls: list[dict],
+    exclude_products: list[str] | None = None,
 ) -> dict[str, int]:
     """
     Handle Go stdlib CVEs with a 4-phase affect creation workflow.
@@ -501,6 +502,7 @@ def _handle_go_stdlib(
             ps_modules,
             builds_only=True,
             no_community=True,
+            exclude_products=exclude_products,
         )
         _run_phase("Phase 1 (golang builds)", results, query_name="golang")
     except Exception as exc:
@@ -514,6 +516,7 @@ def _handle_go_stdlib(
             ecosystem="golang",
             build_type="rpm",
             no_community=True,
+            exclude_products=exclude_products,
         )
         _run_phase("Phase 2 (RPMs)", results)
     except Exception as exc:
@@ -528,6 +531,7 @@ def _handle_go_stdlib(
             build_type="container",
             one_component=True,
             no_community=True,
+            exclude_products=exclude_products,
         )
         _run_phase("Phase 3 (containers)", results)
     except Exception as exc:
@@ -594,6 +598,7 @@ def _query_newtopia(
     build_type: str = "",
     one_component: bool = False,
     no_community: bool = False,
+    exclude_products: list[str] | None = None,
 ) -> list:
     nq = NewtopiaQuerier()  # type: ignore[misc]
     qs = nq.search(
@@ -606,6 +611,8 @@ def _query_newtopia(
     if build_type:
         qs = qs.filter(build_type=build_type)
     qs = qs.filter(products=ps_modules)
+    if exclude_products:
+        qs = qs.exclude(products=exclude_products)
     if one_component:
         qs = qs.deduplicate(aggressive=True)
     return qs.all()
@@ -879,7 +886,9 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
         return {"skipped_reason": "workflow gate: not eligible"}
 
     components = _flaw_components(flaw)
-    ps_modules = AffectSettings().auto_create_ps_modules
+    settings = AffectSettings()
+    ps_modules = settings.auto_create_ps_modules
+    exclude_ps_modules = settings.exclude_ps_modules
     totals: dict[str, int] = {
         "created": 0,
         "skipped": 0,
@@ -936,6 +945,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
                     flaw_component,
                     ps_modules,
                     upstream_purls,
+                    exclude_products=exclude_ps_modules,
                 )
             else:
                 stats = {}
@@ -955,7 +965,12 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
             continue
 
         for resolved_name in pre_filter.resolved_names:
-            results = _query_newtopia(resolved_name, ps_modules, ecosystem=ecosystem)
+            results = _query_newtopia(
+                resolved_name,
+                ps_modules,
+                ecosystem=ecosystem,
+                exclude_products=exclude_ps_modules,
+            )
             stats = _sync_affects_from_results(
                 flaw,
                 results,
@@ -970,6 +985,118 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
 
     logger.info(
         "sync_flaw_affects_from_newcli flaw=%s components=%s %s",
+        flaw_id,
+        components,
+        totals,
+    )
+    return totals
+
+
+@app.task
+@bypass_rls
+def sync_hummingbird_affects(flaw_id: str) -> dict[str, Any]:
+    """
+    Create hummingbird affects for a flaw based on its components.
+
+    Unlike the main ACE task (:func:`sync_flaw_affects_from_newcli`), this task:
+    - Has no workflow gate (runs regardless of workflow type/state)
+    - Has minimal pre-filtering (blocklist only; no manual-triage guards)
+    - Only queries hummingbird ps_modules
+    - Never applies labels
+
+    The set of PS modules queried is controlled by
+    :attr:`osidb.models.affect.AffectSettings.hummingbird_ps_modules`
+    (``OSIDB_AFFECTS_HUMMINGBIRD_PS_MODULES``, JSON list; default ``["hummingbird-1"]``).
+
+    When :attr:`osidb.models.affect.AffectSettings.auto_create` is true
+    (``OSIDB_AFFECTS_AUTO_CREATE``), changes to :attr:`~osidb.models.flaw.flaw.Flaw.components`
+    register this task on :func:`django.db.transaction.on_commit` from a ``pre_save`` signal
+    on :class:`~osidb.models.flaw.flaw.Flaw`.
+
+    If ``lib_newtopia`` is not installed this task is a no-op — it logs a warning and returns
+    without creating any affects. Install the package from the internal Nexus repository
+    (``PRODSEC_PYPI_INDEX_URL``) to enable automatic affect creation.
+    """
+    if not HAS_LIB_NEWTOPIA:
+        logger.warning(
+            "lib_newtopia is not installed; skipping hummingbird affect creation for flaw %s. "
+            "Install lib-newtopia from the internal Nexus repository to enable this feature.",
+            flaw_id,
+        )
+        return {"skipped_reason": "lib_newtopia not installed"}
+
+    flaw = Flaw.objects.get(uuid=flaw_id)
+    settings = AffectSettings()
+    hummingbird_ps_modules = settings.hummingbird_ps_modules
+
+    if not hummingbird_ps_modules:
+        logger.info(
+            "Skipping hummingbird affect creation for flaw %s: no hummingbird ps_modules configured",
+            flaw_id,
+        )
+        return {"skipped_reason": "no hummingbird ps_modules configured"}
+
+    components = _flaw_components(flaw)
+    totals: dict[str, int] = {
+        "created": 0,
+        "skipped": 0,
+        "skipped_existing": 0,
+        "marked_notaffected": 0,
+        "blocklisted": 0,
+    }
+
+    osv_data = flaw.upstream_data.filter(source=UpstreamData.Source.OSV).first()
+    upstream_purls: list[dict] = osv_data.upstream_purls if osv_data else []
+    component_ecosystems = osv_data.component_ecosystems if osv_data else {}
+    aegis_ecosystems = _aegis_ecosystems(flaw)
+
+    for flaw_component in components:
+        component_lower = flaw_component.strip().lower()
+
+        # Blocklist check - skip this component if blocklisted, but continue processing others
+        block = BlocklistEntry.objects.filter(name=component_lower).first()
+        if block:
+            logger.info(
+                "Hummingbird: skipping blocklisted component %r for flaw=%s (reason: %s)",
+                flaw_component,
+                flaw_id,
+                block.reason,
+            )
+            totals["blocklisted"] += 1
+            continue
+
+        # Determine ecosystem
+        ecosystems = component_ecosystems.get(component_lower)
+        if not ecosystems and aegis_ecosystems:
+            ecosystems = aegis_ecosystems
+        if not ecosystems:
+            ecosystems = [""]
+        ecosystems = list(
+            set(e if e in NEWTOPIA_ECOSYSTEMS else "" for e in ecosystems)
+        )
+
+        # Resolve component name
+        resolved, _ = _resolve_component(flaw_component)
+
+        for ecosystem in ecosystems:
+            for resolved_name in resolved:
+                results = _query_newtopia(
+                    resolved_name, hummingbird_ps_modules, ecosystem=ecosystem
+                )
+                stats = _sync_affects_from_results(
+                    flaw,
+                    results,
+                    flaw_component,
+                    hummingbird_ps_modules,
+                    ecosystem=ecosystem,
+                    upstream_purls=upstream_purls,
+                    resolved_name=resolved_name,
+                )
+                for key in stats:
+                    totals[key] += stats[key]
+
+    logger.info(
+        "sync_hummingbird_affects flaw=%s components=%s %s",
         flaw_id,
         components,
         totals,
