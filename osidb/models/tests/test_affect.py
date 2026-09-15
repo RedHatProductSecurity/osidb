@@ -791,11 +791,23 @@ class TestAffectIsUbi:
         assert "ubi" not in affect.labels
 
     @pytest.mark.enable_signals
-    def test_ubi_next_y_stream(self):
-        """Next Y-stream (lowest active Y) should get UBI label"""
+    def test_ubi_next_y_streams(self):
+        """All future Y-streams (newer than latest Z) should get UBI label"""
         ps_module = PsModuleFactory(name="rhel-9")
 
-        # Both active Y-streams
+        # Latest Z-stream
+        PsUpdateStreamFactory(
+            name="rhel-9.8.z",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+        )
+        # Old Y-stream (older than latest Z) - should NOT get UBI
+        PsUpdateStreamFactory(
+            name="rhel-9.7",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+        )
+        # Future Y-streams (newer than latest Z) - should get UBI
         PsUpdateStreamFactory(
             name="rhel-9.9",
             ps_module=ps_module,
@@ -810,38 +822,63 @@ class TestAffectIsUbi:
         # Create UBI package
         UbiPackage.objects.create(name="curl", ps_module="rhel-9")
 
-        affect = AffectFactory(
+        # Old Y-stream should NOT get UBI (older than latest Z)
+        affect_9_7 = AffectFactory(
+            ps_update_stream="rhel-9.7",
+            ps_component="curl",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        # Future Y-streams should get UBI
+        affect_9_9 = AffectFactory(
             ps_update_stream="rhel-9.9",
             ps_component="curl",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
+        affect_9_10 = AffectFactory(
+            ps_update_stream="rhel-9.10",
+            ps_component="curl",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
 
-        assert affect.is_ubi() is True
-        assert "ubi" in affect.labels
+        assert affect_9_7.is_ubi() is False
+        assert "ubi" not in affect_9_7.labels
+        assert affect_9_9.is_ubi() is True
+        assert "ubi" in affect_9_9.labels
+        assert affect_9_10.is_ubi() is True
+        assert "ubi" in affect_9_10.labels
 
     @pytest.mark.enable_signals
-    def test_no_ubi_future_y_stream(self):
-        """Future Y-stream beyond next should NOT get UBI label"""
+    def test_no_ubi_inactive_y_stream(self):
+        """Inactive Y-stream should NOT get UBI label"""
         ps_module = PsModuleFactory(name="rhel-9")
 
-        # Both active Y-streams
+        # Latest Z-stream
+        PsUpdateStreamFactory(
+            name="rhel-9.8.z",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+        )
+        # Active Y-stream
         PsUpdateStreamFactory(
             name="rhel-9.9",
             ps_module=ps_module,
             active_to_ps_module=ps_module,
         )
+        # Inactive Y-stream (not linked to active_to_ps_module)
         PsUpdateStreamFactory(
             name="rhel-9.10",
             ps_module=ps_module,
-            active_to_ps_module=ps_module,
+            active_to_ps_module=None,  # Not active
         )
 
         # Create UBI package
         UbiPackage.objects.create(name="curl", ps_module="rhel-9")
 
         affect = AffectFactory(
-            ps_update_stream="rhel-9.10",  # Future Y, not next
+            ps_update_stream="rhel-9.10",  # Inactive Y
             ps_component="curl",
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
@@ -873,10 +910,16 @@ class TestAffectIsUbi:
 
     @pytest.mark.enable_signals
     def test_natural_sort_9_vs_10(self):
-        """Verify natural sorting: 9.9 < 9.10 (not 9.10 < 9.9)"""
+        """Verify natural sorting works: 9.9 < 9.10 (not 9.10 < 9.9)"""
         ps_module = PsModuleFactory(name="rhel-9")
 
-        # Both active Y-streams
+        # Latest Z-stream at 9.8
+        PsUpdateStreamFactory(
+            name="rhel-9.8.z",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+        )
+        # Both active Y-streams (both > 9.8)
         PsUpdateStreamFactory(
             name="rhel-9.9",
             ps_module=ps_module,
@@ -891,7 +934,7 @@ class TestAffectIsUbi:
         # Create UBI package
         UbiPackage.objects.create(name="curl", ps_module="rhel-9")
 
-        # Only 9.9 (min) should get UBI, not 9.10
+        # Both future Y-streams should get UBI (natural sort: 9.9 and 9.10 both > 9.8)
         affect_9_9 = AffectFactory(
             ps_update_stream="rhel-9.9",
             ps_component="curl",
@@ -906,7 +949,7 @@ class TestAffectIsUbi:
         )
 
         assert affect_9_9.is_ubi() is True
-        assert affect_9_10.is_ubi() is False
+        assert affect_9_10.is_ubi() is True
 
 
 @pytest.mark.enable_signals
