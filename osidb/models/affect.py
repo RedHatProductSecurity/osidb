@@ -1010,11 +1010,6 @@ class Affect(
                         ps_module=OuterRef("ps_module__name"),
                     )
                 ),
-                is_latest_z=Exists(
-                    PsUpdateStream.objects.get_z_streams(OuterRef("ps_module")).filter(
-                        name=OuterRef("name")
-                    )
-                ),
                 latest_z_name=models.Subquery(
                     PsUpdateStream.objects.get_z_streams(OuterRef("ps_module")).values(
                         "name"
@@ -1022,28 +1017,17 @@ class Affect(
                     output_field=models.CharField(),
                 ),
                 is_future_y=Exists(
-                    PsUpdateStream.objects.get_y_streams(OuterRef("ps_module"))
-                    .filter(
+                    PsUpdateStream.objects.get_y_streams(OuterRef("ps_module")).filter(
                         name=OuterRef("name"),
-                    )
-                    .annotate(
-                        latest_z_for_compare=models.Subquery(
-                            PsUpdateStream.objects.get_z_streams(
-                                OuterRef("ps_module")
-                            ).values("name")[:1],
-                            output_field=models.CharField(),
-                        )
-                    )
-                    .filter(
                         # Y-stream must be greater than latest Z when using natural sort
                         name__gt=models.functions.Collate(
-                            "latest_z_for_compare", "natural"
-                        )
+                            OuterRef("latest_z_name"), "natural"
+                        ),
                     )
                 ),
             )
             .filter(
-                Q(is_latest_z=True) | Q(is_future_y=True),
+                Q(name=models.F("latest_z_name")) | Q(is_future_y=True),
                 is_ubi_package=True,
             )
             .exists()

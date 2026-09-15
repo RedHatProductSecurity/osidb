@@ -851,6 +851,64 @@ class TestAffectIsUbi:
         assert "ubi" in affect_9_10.labels
 
     @pytest.mark.enable_signals
+    def test_ubi_only_latest_z_not_older_active_z(self):
+        """
+        When there are multiple active Z-streams, only the latest should get UBI label.
+        This tests the bug where is_latest_z was checking if stream is ANY active Z,
+        not specifically the LATEST one.
+        """
+        ps_module = PsModuleFactory(name="rhel-9")
+
+        # Multiple active Z-streams - only the latest (9.8.z) should get UBI
+        PsUpdateStreamFactory(
+            name="rhel-9.6.z",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,  # Active but not latest
+        )
+        PsUpdateStreamFactory(
+            name="rhel-9.7.z",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,  # Active but not latest
+        )
+        PsUpdateStreamFactory(
+            name="rhel-9.8.z",
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,  # Latest Z-stream
+        )
+
+        # Create UBI package
+        UbiPackage.objects.create(name="curl", ps_module="rhel-9")
+
+        # Older active Z-streams should NOT get UBI
+        affect_9_6_z = AffectFactory(
+            ps_update_stream="rhel-9.6.z",
+            ps_component="curl",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        affect_9_7_z = AffectFactory(
+            ps_update_stream="rhel-9.7.z",
+            ps_component="curl",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        # Latest Z-stream should get UBI
+        affect_9_8_z = AffectFactory(
+            ps_update_stream="rhel-9.8.z",
+            ps_component="curl",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+
+        assert affect_9_6_z.is_ubi() is False
+        assert "ubi" not in affect_9_6_z.labels
+        assert affect_9_7_z.is_ubi() is False
+        assert "ubi" not in affect_9_7_z.labels
+        # This should pass
+        assert affect_9_8_z.is_ubi() is True
+        assert "ubi" in affect_9_8_z.labels
+
+    @pytest.mark.enable_signals
     def test_no_ubi_inactive_y_stream(self):
         """Inactive Y-stream should NOT get UBI label"""
         ps_module = PsModuleFactory(name="rhel-9")
