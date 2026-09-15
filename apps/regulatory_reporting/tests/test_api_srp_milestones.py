@@ -140,6 +140,9 @@ class TestSRPMilestoneRetrieve:
         assert "srp_report" in data
         assert "milestone_type" in data
         assert "status" in data
+        assert "additional_details" in data
+        assert "payload_fields" in data
+        assert "missing_required_fields" in data
         assert "request_received_at" in data
         assert "request_source" in data
         assert "request_text" in data
@@ -151,6 +154,44 @@ class TestSRPMilestoneRetrieve:
         assert "hours_remaining" in data
         assert "days_remaining" in data
         assert "is_overdue" in data
+
+    def test_retrieve_milestone_includes_payload_field_schema(
+        self, api_client, create_flaw_report
+    ):
+        """Payload fields include order, labels, values, editability, and options."""
+        report = create_flaw_report()
+        milestone = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+
+        response = api_client.get(
+            f"/regulatory-reporting/api/v1/srp-reports/{report.uuid}/milestones/{milestone.uuid}"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        payload_fields = response.data["payload_fields"]
+        keys = [field["key"] for field in payload_fields]
+        assert keys[:4] == [
+            "notification_type",
+            "report_title",
+            "summary",
+            "manufacturer_or_steward_name",
+        ]
+        assert "product_identity" not in keys
+
+        member_states = next(
+            field
+            for field in payload_fields
+            if field["key"] == "member_states_available"
+        )
+        assert member_states["input_type"] == "multi_select"
+        assert member_states["editable"] is True
+        assert "EL" in member_states["options"]
+
+        notification_type = payload_fields[0]
+        assert notification_type["label"] == "Notification Type"
+        assert notification_type["editable"] is False
+        assert notification_type["requirement"] == "required"
 
 
 @pytest.mark.django_db
