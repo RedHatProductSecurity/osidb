@@ -11,6 +11,13 @@ from apps.regulatory_reporting.constants import (
 )
 from apps.regulatory_reporting.models import SRPReport, SRPReportMilestone
 from apps.regulatory_reporting.models.upstream import UpstreamNotification
+from apps.regulatory_reporting.payload_fields import (
+    build_payload_field_rows,
+    get_conditionally_required_payload_keys,
+    get_copied_or_updated_payload_keys,
+    get_overridable_payload_keys,
+    get_required_payload_keys,
+)
 from osidb.models import Flaw, FlawCVSS
 from osidb.models.flaw import FlawSource
 
@@ -264,12 +271,7 @@ class SRPPayloadBuilder:
 
     @classmethod
     def overridable_keys(cls, event_type):
-        keys = set(cls.OVERRIDABLE_COMMON_KEYS)
-        if event_type == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED:
-            keys |= cls.OVERRIDABLE_VULNERABILITY_KEYS
-        elif event_type == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED:
-            keys |= cls.OVERRIDABLE_INCIDENT_KEYS
-        return frozenset(keys)
+        return get_overridable_payload_keys(event_type, cls.expected_milestone_type)
 
     def __init__(self, milestone):
         if (
@@ -297,12 +299,20 @@ class SRPPayloadBuilder:
             self.srp_report.manufacturer_or_steward_name or ""
         )
         fields["report_title"] = self.srp_report.title or ""
+        fields["summary"] = self._build_general_information()
         fields["product_identity"] = self._collect_product_identity()
+        fields["product_name"] = self._collect_affect_values("ps_product")
+        fields["product_version"] = self._collect_affect_values("ps_module")
         fields["product_type"] = ""
         fields["product_category"] = ""
         fields["product_class"] = ""  # CRA field 14 — Optional
         fields["end_of_support"] = ""  # CRA field 16 — Optional
+        fields["component_name"] = self._collect_affect_values("ps_component")
         fields["mitigating_measure_expected_shortly"] = ""  # CRA field 18 — Optional
+        fields["user_action_able_to_reduce_impact"] = ""
+        fields["information_sensitivity"] = ""
+        fields["corrective_or_mitigating_measures_taken"] = ""
+        fields["corrective_or_mitigating_measures_users_can_take"] = ""
         fields["attack_vector"] = ""  # CRA field 23 — Optional
 
         member_states = [
@@ -325,6 +335,14 @@ class SRPPayloadBuilder:
                 }
             )
         return json.dumps(products)
+
+    def _collect_affect_values(self, attr_name):
+        values = []
+        for affect in self.flaw.affects.all():
+            value = getattr(affect, attr_name, "") or ""
+            if value and value not in values:
+                values.append(value)
+        return ", ".join(values)
 
     def _build_general_information(self):
         parts = []
@@ -362,26 +380,37 @@ class SRPPayloadBuilder:
 
     def _build_vulnerability_fields(self):
         return {
+            "general_information": "",
+            "general_nature_of_vulnerability": "",
+            "general_nature_of_exploit": "",
+            "corrective_or_mitigating_measure_available_at": "",
+            "security_update_or_corrective_measure_details": "",
+            "vulnerability_severity": "",
+            "vulnerability_impact": "",
+            "known_or_suspected_malicious_actor": "",
             "euvd_id": "",  # CRA v25 — Optional
             "further_information": "",  # CRA v34 — Optional
         }
 
     def _build_incident_fields(self):
-        return {}
+        return {
+            "suspected_unlawful_or_malicious_acts": "",
+            "general_incident_information": "",
+            "incident_detected_at": "",
+            "incident_occurred_at": "",
+            "initial_incident_assessment": "",
+            "detailed_incident_description": "",
+            "incident_severity": "",
+            "incident_impact": "",
+            "likely_threat_or_root_cause": "",
+            "applied_and_ongoing_mitigation_measures": "",
+        }
 
     def _get_required_fields(self):
-        required = list(self.REQUIRED_COMMON_FIELDS)
-        if (
-            self.srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
-        ):
-            required += self.REQUIRED_VULNERABILITY_FIELDS
-        elif (
-            self.srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
-        ):
-            required += self.REQUIRED_INCIDENT_FIELDS
-        return required
+        return get_required_payload_keys(
+            self.srp_report.reportable_event_type,
+            self.milestone.milestone_type,
+        )
 
     def _get_missing_required_fields(self, payload):
         missing = []
@@ -392,18 +421,21 @@ class SRPPayloadBuilder:
         return missing
 
     def _get_missing_conditionally_required_fields(self, payload):
-        fields = list(self.REQUIRED_IF_AVAILABLE_COMMON_FIELDS)
-        if (
-            self.srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
-        ):
-            fields += self.REQUIRED_IF_AVAILABLE_VULNERABILITY_FIELDS
-        elif (
-            self.srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
-        ):
-            fields += self.REQUIRED_IF_AVAILABLE_INCIDENT_FIELDS
+        fields = get_conditionally_required_payload_keys(
+            self.srp_report.reportable_event_type,
+            self.milestone.milestone_type,
+        )
         return [k for k in fields if not payload.get(k, "")]
+
+    def _get_copied_or_updated_fields(self):
+        return get_copied_or_updated_payload_keys(
+            self.srp_report.reportable_event_type,
+            self.milestone.milestone_type,
+        )
+
+    @staticmethod
+    def _has_payload_value(value):
+        return value not in (None, "", "[]", [])
 
     def _get_previous_snapshot(self):
         if not self.previous_milestone_type:
@@ -524,12 +556,8 @@ class SRPPayloadBuilder:
                 rejected.append(key)
         return overrides, rejected
 
-    def prepare(self):
-        """
-        Build the payload and store it in milestone.meta_attr.
-
-        Does NOT call milestone.save() -- caller is responsible for saving.
-        """
+    def build_payload(self):
+        """Build effective SRP payload data without mutating the milestone."""
         payload = self._build_common_fields()
 
         if (
@@ -543,7 +571,13 @@ class SRPPayloadBuilder:
         ):
             payload.update(self._build_incident_fields())
 
+        copied_or_updated_keys = self._get_copied_or_updated_fields()
         for key, value in self._get_previous_snapshot().items():
+            if key in copied_or_updated_keys:
+                if self._has_payload_value(value):
+                    payload[key] = value
+                continue
+
             # Replace absent OR empty-string values so that fields like
             # incident_detected_at (set to "" by the builder as a placeholder)
             # are populated from earlier milestone snapshots.
@@ -565,8 +599,34 @@ class SRPPayloadBuilder:
                 )
             rejected_keys = []
 
+        applied_override_keys = (
+            list(overrides.keys()) if isinstance(details, dict) else []
+        )
+
         missing = self._get_missing_required_fields(payload)
         conditionally_missing = self._get_missing_conditionally_required_fields(payload)
+
+        return (
+            payload,
+            missing,
+            conditionally_missing,
+            rejected_keys,
+            applied_override_keys,
+        )
+
+    def prepare(self):
+        """
+        Build the payload and store it in milestone.meta_attr.
+
+        Does NOT call milestone.save() -- caller is responsible for saving.
+        """
+        (
+            payload,
+            missing,
+            conditionally_missing,
+            rejected_keys,
+            _applied_override_keys,
+        ) = self.build_payload()
 
         self.milestone.meta_attr["payload_snapshot"] = json.dumps(payload)
         self.milestone.meta_attr["prepared_at"] = timezone.now().isoformat()
@@ -577,6 +637,25 @@ class SRPPayloadBuilder:
         )
 
         return self.milestone
+
+    def build_payload_fields(self):
+        """Return ordered payload field metadata and effective values for the API."""
+        (
+            payload,
+            missing,
+            conditionally_missing,
+            _rejected_keys,
+            applied_override_keys,
+        ) = self.build_payload()
+        return build_payload_field_rows(
+            self.srp_report.reportable_event_type,
+            self.milestone.milestone_type,
+            payload,
+            self.milestone.additional_details,
+            missing,
+            conditionally_missing,
+            applied_override_keys,
+        )
 
 
 class SRPPayloadBuilder24h(SRPPayloadBuilder):
@@ -617,15 +696,19 @@ class SRPPayloadBuilder24h(SRPPayloadBuilder):
         return fields
 
     def _build_incident_fields(self):
-        return {
-            "suspected_unlawful_or_malicious_acts": "",
-            "incident_detected_at": (
-                self.flaw.major_incident_start_dt.isoformat()
-                if self.flaw.major_incident_start_dt
-                else ""
-            ),
-            "information_sensitivity": "",
-        }
+        fields = super()._build_incident_fields()
+        fields.update(
+            {
+                "suspected_unlawful_or_malicious_acts": "",
+                "incident_detected_at": (
+                    self.flaw.major_incident_start_dt.isoformat()
+                    if self.flaw.major_incident_start_dt
+                    else ""
+                ),
+                "information_sensitivity": "",
+            }
+        )
+        return fields
 
 
 class SRPPayloadBuilder72h(SRPPayloadBuilder):
@@ -704,7 +787,7 @@ class SRPPayloadBuilder72h(SRPPayloadBuilder):
         return fields
 
     def _build_incident_fields(self):
-        fields = {}
+        fields = super()._build_incident_fields()
         fields["suspected_unlawful_or_malicious_acts"] = ""
         fields["general_incident_information"] = self._build_general_information()
         fields["incident_detected_at"] = ""
@@ -869,7 +952,7 @@ class SRPPayloadBuilderFinal(SRPPayloadBuilder):
         return fields
 
     def _build_incident_fields(self):
-        fields = {}
+        fields = super()._build_incident_fields()
         fields["suspected_unlawful_or_malicious_acts"] = ""
         fields["general_incident_information"] = self._build_general_information()
         fields["incident_detected_at"] = ""
@@ -912,6 +995,14 @@ def get_overridable_keys(milestone_type, event_type):
     if builder_cls is None:
         return frozenset()
     return builder_cls.overridable_keys(event_type)
+
+
+def get_payload_fields(milestone):
+    """Return ordered API field descriptors for a milestone payload."""
+    builder_cls = BUILDER_BY_MILESTONE_TYPE.get(milestone.milestone_type)
+    if builder_cls is None:
+        return []
+    return builder_cls(milestone).build_payload_fields()
 
 
 def prepare_payload(milestone):
