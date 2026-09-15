@@ -13987,6 +13987,74 @@ paths:
                     version:
                       type: string
           description: ''
+  /osidb/api/v2/trackers/{uuid}/link-affects:
+    post:
+      operationId: osidb_api_v2_trackers_link_affects_create
+      description: Re-fetch this tracker from Jira and link it to the correct affects
+      parameters:
+      - in: path
+        name: uuid
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Tracker.
+        required: true
+      tags:
+      - osidb
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - affects
+                - failed_flaws
+                - failed_affects
+                properties:
+                  affects:
+                    type: array
+                    items:
+                      type: object
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  failed_affects:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: string
+                  failed_flaws:
+                    type: array
+                    items:
+                      type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                properties:
+                  dt:
+                    type: string
+                    format: date-time
+                  env:
+                    type: string
+                  revision:
+                    type: string
+                  version:
+                    type: string
+          description: ''
   /osidb/healthy:
     get:
       operationId: osidb_healthy_retrieve

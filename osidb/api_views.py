@@ -58,6 +58,8 @@ from rest_framework.viewsets import (
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
+from collectors.jiraffe.convertors import JiraTrackerConvertor
+from collectors.jiraffe.core import JiraQuerier
 from osidb.helpers import (
     bypass_rls,
     get_bugzilla_api_key,
@@ -90,7 +92,7 @@ from osidb.models.audit_history import (
 )
 from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.cvss import FlawCVSS
-from osidb.sync_manager import SyncManager
+from osidb.sync_manager import JiraTrackerDownloadManager, SyncManager
 
 from .acls import ACL
 from .constants import OSIDB_API_VERSION, PYPI_URL
@@ -484,6 +486,28 @@ flaw_index_response_schema = {
             "items": {
                 "minItems": 2,
                 "maxItems": 2,
+                "items": {"type": "string"},
+            },
+        },
+    },
+}
+
+tracker_link_affects_response_schema = {
+    "type": "object",
+    "required": ["affects", "failed_flaws", "failed_affects"],
+    "properties": {
+        "affects": {
+            "type": "array",
+            "items": {"type": "object"},
+        },
+        "failed_flaws": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
+        "failed_affects": {
+            "type": "array",
+            "items": {
+                "type": "array",
                 "items": {"type": "string"},
             },
         },
@@ -2026,6 +2050,52 @@ class TrackerView(RudimentaryUserPathLoggingMixin, ModelViewSet):
         if self.action == "create":
             return TrackerPostSerializer
         return self.serializer_class
+
+    @extend_schema(
+        request=None,
+        responses={
+            200: tracker_link_affects_response_schema,
+            400: OpenApiTypes.OBJECT,
+        },
+    )
+    @action(detail=True, methods=["post"], url_path="link-affects")
+    def link_affects(self, request, *args, **kwargs):
+        """
+        Re-fetch this tracker from Jira and link it to the correct affects
+        """
+        tracker = self.get_object()
+
+        if tracker.type != Tracker.TrackerType.JIRA:
+            return Response(
+                {"detail": "This endpoint only supports Jira trackers."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not tracker.external_system_id:
+            return Response(
+                {"detail": "This tracker has no associated Jira issue."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        tracker_data = JiraQuerier().get_issue(tracker.external_system_id)
+        refreshed_tracker = JiraTrackerConvertor(tracker_data).tracker
+        if refreshed_tracker:
+            refreshed_tracker.save()
+
+        affects, failed_flaws, failed_affects = (
+            JiraTrackerDownloadManager.link_tracker_with_affects(
+                tracker.external_system_id
+            )
+        )
+
+        return Response(
+            {
+                "affects": AffectSerializer(affects, many=True).data,
+                "failed_flaws": failed_flaws,
+                "failed_affects": failed_affects,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 @include_meta_attr_extend_schema_view
