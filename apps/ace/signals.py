@@ -29,6 +29,18 @@ def _enqueue_ace(flaw_id):
     transaction.on_commit(enqueue_sync)
 
 
+def _enqueue_hummingbird(flaw_id):
+    """Enqueue the Hummingbird Celery task via transaction.on_commit."""
+
+    def enqueue_sync():
+        from apps.ace.tasks import sync_hummingbird_affects
+
+        # Celery adds .delay at import time; static checkers do not see it
+        sync_hummingbird_affects.delay(flaw_id)  # type: ignore[attr-defined]
+
+    transaction.on_commit(enqueue_sync)
+
+
 @receiver(pre_save, sender=Flaw)
 def schedule_sync_flaw_affects_on_components_change(sender, instance, **kwargs) -> None:
     """
@@ -61,13 +73,13 @@ def schedule_sync_flaw_affects_on_components_change(sender, instance, **kwargs) 
     if not _is_eligible(db_flaw.workflow_name, db_flaw.workflow_state):
         return
 
-    # Check if components changed
-    old_list = list(db_flaw.components or [])
-    new_list = list(instance.components or [])
-    if old_list == new_list:
+    # Check if components changed (use set comparison to ignore order)
+    old_set = set(db_flaw.components or [])
+    new_set = set(instance.components or [])
+    if old_set == new_set:
         return
 
-    if not _has_nonempty_components(new_list):
+    if not _has_nonempty_components(instance.components):
         return
 
     _enqueue_ace(str(instance.uuid))
@@ -107,3 +119,46 @@ def schedule_sync_flaw_affects_on_classification_change(
         return
 
     _enqueue_ace(str(instance.uuid))
+
+
+@receiver(pre_save, sender=Flaw)
+def schedule_sync_hummingbird_affects_on_components_change(
+    sender, instance, **kwargs
+) -> None:
+    """
+    Trigger Hummingbird affect creation when components change, regardless of workflow state.
+
+    Unlike the ACE components-change handler, this handler:
+    - Has no workflow gate (fires for any workflow type/state)
+    - Fires on flaw creation if components are set
+    - Never applies labels
+
+    Gated by :attr:`osidb.models.affect.AffectSettings.auto_create`
+    (``OSIDB_AFFECTS_AUTO_CREATE``, default false).
+    """
+    if not AffectSettings().auto_create:
+        return
+
+    if kwargs.get("raw"):
+        return
+
+    update_fields = kwargs.get("update_fields")
+    if update_fields is not None and "components" not in update_fields:
+        return
+
+    if not _has_nonempty_components(instance.components):
+        return
+
+    if instance._state.adding:
+        # New flaw with components: trigger hummingbird
+        _enqueue_hummingbird(str(instance.uuid))
+        return
+
+    # Existing flaw: check if components actually changed (use set comparison to ignore order)
+    db_flaw = Flaw.objects.get(pk=instance.pk)
+    old_set = set(db_flaw.components or [])
+    new_set = set(instance.components or [])
+    if old_set == new_set:
+        return
+
+    _enqueue_hummingbird(str(instance.uuid))

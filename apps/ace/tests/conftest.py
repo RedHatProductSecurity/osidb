@@ -33,15 +33,17 @@ def result():
 
 
 def _make_mock_querier(results_by_component: dict) -> MagicMock:
-    """Return a NewtopiaQuerier mock whose .search().filter().all() returns
+    """Return a NewtopiaQuerier mock whose .search().filter().exclude().all() returns
     the list mapped to each component key in *results_by_component*."""
 
     def _search(terms, **kwargs):
         component = terms[0]
         qs = MagicMock()
-        qs.filter.return_value.all.return_value = results_by_component.get(
-            component, []
-        )
+        filtered_qs = MagicMock()
+        filtered_qs.all.return_value = results_by_component.get(component, [])
+        # Make exclude() return the same object so .exclude().all() works
+        filtered_qs.exclude.return_value = filtered_qs
+        qs.filter.return_value = filtered_qs
         return qs
 
     querier = MagicMock()
