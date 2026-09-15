@@ -3,16 +3,22 @@ tracker saver tests
 """
 
 import uuid
-from unittest.mock import patch
+from datetime import datetime
+from datetime import timezone as dt_timezone
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 import pytest
+from bugzilla.exceptions import BugzillaError
+from django.utils import timezone
+from freezegun import freeze_time
 from jira import JIRAError
 
 from apps.bbsync.save import BugzillaSaver
 from apps.trackers.bugzilla.save import TrackerBugzillaSaver
 from apps.trackers.exceptions import BTSException, UnsupportedTrackerError
 from apps.trackers.jira.query import OldTrackerJiraQueryBuilder, TrackerJiraQueryBuilder
-from apps.trackers.jira.save import TrackerJiraSaver
+from apps.trackers.jira.save import TrackerJiraSaver, parse_jira_datetime
 from apps.trackers.save import TrackerSaver
 from collectors.bzimport.collectors import (
     BugzillaTrackerCollector,
@@ -472,3 +478,204 @@ class TestTrackerJiraSaverIssuetype:
         assert mock_create_issue.called
         assert "JIRAError during tracker creation" in caplog.text
         assert str(tracker.uuid) in caplog.text
+
+
+class TestTrackerCreateTimestamps:
+    """
+    OSIDB-5468: BTS create must replace the Unix-epoch placeholder timestamps
+    """
+
+    def _tracker(self, bts_name, tracker_type, **extra):
+        """
+        build a tracker linked to a single affect for the given BTS
+        """
+        ps_module = PsModuleFactory(bts_name=bts_name)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="component",
+        )
+        return TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=tracker_type,
+            **extra,
+        )
+
+    def test_parse_jira_datetime_with_and_without_fractional_seconds(self):
+        """
+        parse Jira timestamps with and without fractional seconds
+        """
+        with_ms = parse_jira_datetime("2026-08-21T15:15:21.123+0000")
+        without_ms = parse_jira_datetime("2026-08-21T15:15:21+0000")
+        assert with_ms == datetime(
+            2026, 8, 21, 15, 15, 21, 123000, tzinfo=dt_timezone.utc
+        )
+        assert without_ms == datetime(2026, 8, 21, 15, 15, 21, tzinfo=dt_timezone.utc)
+        assert parse_jira_datetime(None) is None
+        assert parse_jira_datetime("not-a-date") is None
+
+    def test_jira_create_copies_issue_timestamps(self, jira_token, jira_email):
+        """
+        copy created/updated timestamps from the Jira create response
+        """
+        tracker = self._tracker(
+            "jboss", Tracker.TrackerType.JIRA, external_system_id=""
+        )
+        tracker.created_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+        tracker.updated_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+
+        issue = SimpleNamespace(
+            key="RHEL-1234",
+            fields=SimpleNamespace(
+                created="2026-08-21T15:15:21.000+0000",
+                updated="2026-08-21T15:16:09.000+0000",
+            ),
+        )
+        mock_builder = type(
+            "MockQueryBuilder",
+            (),
+            {"query": {"fields": {}}, "query_comment": None},
+        )
+        saver = TrackerSaver(
+            tracker, jira_token=jira_token, jira_email=jira_email, jira_issuetype="Bug"
+        )
+        mock_conn = Mock()
+        mock_conn.create_issue.return_value = issue
+        saver._jira_conn = mock_conn
+        saver._jira_conn_timestamp = datetime.now()
+
+        with patch.object(
+            saver, "get_builder", return_value=lambda _tracker: mock_builder()
+        ):
+            result = saver.create(tracker)
+
+        mock_conn.create_issue.assert_called_once()
+
+        assert result.external_system_id == "RHEL-1234"
+        assert result.created_dt == datetime(
+            2026, 8, 21, 15, 15, 21, tzinfo=dt_timezone.utc
+        )
+        assert result.updated_dt == datetime(
+            2026, 8, 21, 15, 16, 9, tzinfo=dt_timezone.utc
+        )
+
+    def test_bugzilla_create_copies_bug_timestamps(self):
+        """
+        copy created/updated timestamps from the Bugzilla bug after create
+        """
+        tracker = self._tracker(
+            "bugzilla", Tracker.TrackerType.BUGZILLA, external_system_id=""
+        )
+        tracker.created_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+        tracker.updated_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+
+        saver = TrackerBugzillaSaver(tracker)
+
+        def fake_bz_create(self):
+            """
+            stub Bugzilla create to only assign an external bug id
+            """
+            self.instance.bz_id = "999888"
+            return self.instance
+
+        with (
+            patch("apps.trackers.bugzilla.save.BugzillaSaver.create", fake_bz_create),
+            patch.object(
+                saver,
+                "get_bug_data",
+                return_value={
+                    "creation_time": "2026-08-21T15:15:21Z",
+                    "last_change_time": "2026-08-21T15:16:09Z",
+                },
+            ) as get_bug_data_mock,
+        ):
+            result = saver.create()
+
+        get_bug_data_mock.assert_called_once_with(
+            "999888", include_fields=["creation_time", "last_change_time"]
+        )
+        assert result.bz_id == "999888"
+        assert result.created_dt == datetime(
+            2026, 8, 21, 15, 15, 21, tzinfo=dt_timezone.utc
+        )
+        assert result.updated_dt == datetime(
+            2026, 8, 21, 15, 16, 9, tzinfo=dt_timezone.utc
+        )
+
+    def test_bugzilla_create_timestamps_stay_utc_in_non_utc_timezone(self):
+        """
+        treat Bugzilla Z timestamps as UTC rather than the active Django timezone
+        """
+        tracker = self._tracker(
+            "bugzilla", Tracker.TrackerType.BUGZILLA, external_system_id=""
+        )
+        tracker.created_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+        tracker.updated_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+
+        saver = TrackerBugzillaSaver(tracker)
+
+        def fake_bz_create(self):
+            """
+            stub Bugzilla create to only assign an external bug id
+            """
+            self.instance.bz_id = "999888"
+            return self.instance
+
+        with (
+            timezone.override("America/New_York"),
+            patch("apps.trackers.bugzilla.save.BugzillaSaver.create", fake_bz_create),
+            patch.object(
+                saver,
+                "get_bug_data",
+                return_value={
+                    "creation_time": "2026-08-21T15:15:21Z",
+                    "last_change_time": "2026-08-21T15:16:09Z",
+                },
+            ),
+        ):
+            result = saver.create()
+
+        created_utc = datetime(2026, 8, 21, 15, 15, 21, tzinfo=dt_timezone.utc)
+        updated_utc = datetime(2026, 8, 21, 15, 16, 9, tzinfo=dt_timezone.utc)
+        assert result.created_dt == created_utc
+        assert result.updated_dt == updated_utc
+        assert result.created_dt.utctimetuple() == created_utc.utctimetuple()
+        assert result.updated_dt.utctimetuple() == updated_utc.utctimetuple()
+
+    @freeze_time("2026-08-27T18:00:00Z")
+    def test_bugzilla_create_falls_back_when_get_bug_data_fails(self):
+        """
+        keep bz_id and use current time when Bugzilla timestamp fetch fails
+        """
+        tracker = self._tracker(
+            "bugzilla", Tracker.TrackerType.BUGZILLA, external_system_id=""
+        )
+        tracker.created_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+        tracker.updated_dt = timezone.datetime(1970, 1, 1, tzinfo=timezone.utc)
+
+        saver = TrackerBugzillaSaver(tracker)
+
+        def fake_bz_create(self):
+            """
+            stub Bugzilla create to only assign an external bug id
+            """
+            self.instance.bz_id = "999888"
+            return self.instance
+
+        with (
+            patch("apps.trackers.bugzilla.save.BugzillaSaver.create", fake_bz_create),
+            patch.object(
+                saver,
+                "get_bug_data",
+                side_effect=BugzillaError({}),
+            ),
+        ):
+            result = saver.create()
+
+        assert result.bz_id == "999888"
+        assert result.created_dt == timezone.now()
+        assert result.updated_dt == timezone.now()

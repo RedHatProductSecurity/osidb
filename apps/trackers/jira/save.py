@@ -4,16 +4,58 @@ Jira tracker query module
 
 import json
 import logging
+from datetime import datetime
 
+from django.utils import timezone
 from jira import JIRAError
 
 from apps.trackers.exceptions import BTSException
+from collectors.jiraffe.constants import JIRA_DT_FULL_FMT
 from collectors.jiraffe.core import JiraQuerier
 
 from .constants import JIRA_SERVER
 from .query import OldTrackerJiraQueryBuilder, TrackerJiraQueryBuilder
 
 logger = logging.getLogger(__name__)
+
+# Jira Cloud sometimes omits fractional seconds
+_JIRA_DT_FMTS = (JIRA_DT_FULL_FMT, "%Y-%m-%dT%H:%M:%S%z")
+
+
+def parse_jira_datetime(value):
+    """
+    parse a Jira datetime string into an aware datetime
+    """
+    if not value:
+        return None
+    for fmt in _JIRA_DT_FMTS:
+        try:
+            return datetime.strptime(value, fmt)
+        except ValueError:
+            continue
+    logger.warning("Unable to parse Jira datetime %r", value)
+    return None
+
+
+def apply_jira_issue_timestamps(tracker, issue):
+    """
+    copy created/updated timestamps from a Jira issue onto the tracker
+
+    tracker create uses Unix epoch as a placeholder until BTS timestamps exist.
+    without this copy OSIM displays 1970-01-01 until a collector later syncs.
+    """
+    fields = getattr(issue, "fields", None)
+    created_dt = parse_jira_datetime(getattr(fields, "created", None))
+    updated_dt = parse_jira_datetime(getattr(fields, "updated", None)) or created_dt
+    if created_dt is None:
+        created_dt = timezone.now()
+        logger.warning(
+            "Jira issue %s had no parseable created timestamp; using now for tracker %s",
+            getattr(issue, "key", None),
+            getattr(tracker, "uuid", None),
+        )
+    tracker.created_dt = created_dt
+    tracker.updated_dt = updated_dt or created_dt
 
 
 class TrackerJiraSaver(JiraQuerier):
@@ -49,6 +91,9 @@ class TrackerJiraSaver(JiraQuerier):
         )
 
     def get_builder(self):
+        """
+        select the Jira query builder for the configured issuetype
+        """
         if not self._jira_issuetype:
             return OldTrackerJiraQueryBuilder
 
@@ -82,6 +127,7 @@ class TrackerJiraSaver(JiraQuerier):
             )
             raise
         tracker.external_system_id = issue.key
+        apply_jira_issue_timestamps(tracker, issue)
         if comment:
             self.create_comment(
                 issue_key=issue.key,

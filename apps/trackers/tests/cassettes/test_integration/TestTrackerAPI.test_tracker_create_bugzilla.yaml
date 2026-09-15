@@ -168,6 +168,56 @@ interactions:
       User-Agent:
       - python-bugzilla/3.2.0
     method: GET
+    uri: https://example.com/rest/bug/2291492?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags&include_fields=creation_time&include_fields=last_change_time&include_fields=id
+  response:
+    body:
+      string: '{"bugs": [{"id": 2291492, "data_category": "Engineering", "creation_time":
+        "2024-06-13T14:33:19Z", "last_change_time": "2024-06-13T14:33:19Z"}], "faults":
+        []}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '158'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 13 Jun 2024 14:33:19 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.64f06e68.1718289198.76f2efa
+      x-rh-edge-request-id:
+      - 76f2efa
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
     uri: https://example.com/rest/version
   response:
     body:
