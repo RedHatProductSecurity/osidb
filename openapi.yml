@@ -16107,6 +16107,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - affect
       - alerts
       - created_dt
       - cvss_version
@@ -16148,6 +16149,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - affect
       - cvss_version
       - embargoed
       - updated_dt
@@ -16205,6 +16207,7 @@ components:
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
       required:
+      - affect
       - alerts
       - created_dt
       - cvss_version
@@ -17261,6 +17264,7 @@ components:
       - created_dt
       - cvss_version
       - embargoed
+      - flaw
       - score
       - updated_dt
       - uuid
@@ -17360,6 +17364,7 @@ components:
       required:
       - cvss_version
       - embargoed
+      - flaw
       - updated_dt
       - vector
     FlawCVSSV2:
@@ -17419,6 +17424,7 @@ components:
       - created_dt
       - cvss_version
       - embargoed
+      - flaw
       - issuer
       - score
       - updated_dt
@@ -19749,10 +19755,13 @@ components:
           description: Reference ID returned by the SRP after submission
           maxLength: 255
         srp_reference_url:
-          type: string
-          format: uri
           description: URL of the SRP reference
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         member_states_available:
           type: array
           items:
@@ -19845,9 +19854,12 @@ components:
           type: string
           maxLength: 255
         srp_reference_url:
-          type: string
-          format: uri
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         member_states_available:
           type: array
           items:
@@ -19928,9 +19940,12 @@ components:
           type: string
           maxLength: 255
         srp_reference_url:
-          type: string
-          format: uri
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         member_states_available:
           type: array
           items:
@@ -20323,10 +20338,13 @@ components:
           description: Reference ID returned by the SRP after submission
           maxLength: 255
         srp_reference_url:
-          type: string
-          format: uri
           description: URL of the SRP reference
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         member_states_available:
           type: array
           items:
@@ -21180,9 +21198,12 @@ components:
           type: string
           maxLength: 255
         repository_url:
-          type: string
-          format: uri
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         security_contact:
           type: string
           maxLength: 255
@@ -21191,9 +21212,12 @@ components:
           - $ref: '#/components/schemas/ContactMethodEnum'
           - $ref: '#/components/schemas/BlankEnum'
         contact_url:
-          type: string
-          format: uri
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         source:
           type: string
           maxLength: 255
@@ -21247,9 +21271,12 @@ components:
           type: string
           maxLength: 255
         repository_url:
-          type: string
-          format: uri
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         security_contact:
           type: string
           maxLength: 255
@@ -21258,9 +21285,12 @@ components:
           - $ref: '#/components/schemas/ContactMethodEnum'
           - $ref: '#/components/schemas/BlankEnum'
         contact_url:
-          type: string
-          format: uri
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         source:
           type: string
           maxLength: 255
@@ -21306,9 +21336,12 @@ components:
           minLength: 1
           maxLength: 255
         repository_url:
-          type: string
-          format: uri
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         security_contact:
           type: string
           maxLength: 255
@@ -21317,9 +21350,12 @@ components:
           - $ref: '#/components/schemas/ContactMethodEnum'
           - $ref: '#/components/schemas/BlankEnum'
         contact_url:
-          type: string
-          format: uri
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         source:
           type: string
           maxLength: 255
@@ -21368,9 +21404,12 @@ components:
           minLength: 1
           maxLength: 255
         repository_url:
-          type: string
-          format: uri
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         security_contact:
           type: string
           maxLength: 255
@@ -21379,9 +21418,12 @@ components:
           - $ref: '#/components/schemas/ContactMethodEnum'
           - $ref: '#/components/schemas/BlankEnum'
         contact_url:
-          type: string
-          format: uri
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         source:
           type: string
           maxLength: 255
@@ -21427,10 +21469,13 @@ components:
           pattern: ^[\w.@+-]+$
           maxLength: 150
         email:
-          type: string
-          format: email
           title: Email address
-          maxLength: 254
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
         groups:
           type: array
           items:
