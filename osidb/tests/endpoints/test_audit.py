@@ -1,9 +1,19 @@
+from datetime import datetime, timezone
 from uuid import uuid4
 
 import pghistory
 import pytest
+from django.conf import settings
 
-from osidb.tests.factories import AffectFactory, FlawFactory
+from osidb.core import set_user_acls
+from osidb.models import Affect, PsModule, Tracker
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
+    TrackerFactory,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -132,3 +142,198 @@ class TestEndpointsAudit:
         for result in body_affect["results"]:
             assert result["pgh_obj_id"] == str(affect.uuid)
             assert "Affect" in result["pgh_obj_model"]
+
+    def test_audit_related_history_unaudited_model_returns_empty_page(
+        self, auth_client, test_api_uri
+    ):
+        """Unaudited pgh_obj_model with related history returns an empty page."""
+        response = auth_client().get(
+            f"{test_api_uri}/audit?include_relation_events=true"
+            "&pgh_obj_model=osidb.PsUpdateStream"
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["count"] == 0
+        assert body["results"] == []
+
+    def test_audit_includes_affect_history_from_flaw_context(
+        self, auth_client, test_api_uri
+    ):
+        """GET /audit can expose affect history from the flaw context."""
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw)
+
+        response = auth_client().get(
+            f"{test_api_uri}/audit?include_relation_events=true"
+            f"&pgh_obj_model=osidb.Flaw&pgh_obj_id={flaw.uuid}"
+        )
+
+        assert response.status_code == 200
+        affect_events = [
+            result
+            for result in response.json()["results"]
+            if result["pgh_obj_model"] == "osidb.Affect"
+            and result["pgh_obj_id"] == str(affect.uuid)
+        ]
+        assert affect_events
+        assert affect_events[0]["pgh_label"] == "insert"
+        assert affect_events[0]["pgh_slug"].startswith("osidb.AffectAudit:")
+        assert affect_events[0]["pgh_data"]["flaw_id"] == str(flaw.uuid)
+
+    def test_audit_includes_deleted_affect_history_from_flaw_context(
+        self, auth_client, test_api_uri
+    ):
+        """Deleted affects remain visible from the flaw audit feed."""
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw)
+        affect_id = affect.uuid
+
+        affect.delete()
+
+        response = auth_client().get(
+            f"{test_api_uri}/audit?include_relation_events=true"
+            f"&pgh_obj_model=osidb.Flaw&pgh_obj_id={flaw.uuid}"
+        )
+
+        assert response.status_code == 200
+        delete_events = [
+            result
+            for result in response.json()["results"]
+            if result["pgh_obj_model"] == "osidb.Affect"
+            and result["pgh_obj_id"] == str(affect_id)
+            and result["pgh_label"] == "delete"
+        ]
+        assert delete_events
+        assert delete_events[0]["pgh_data"]["flaw_id"] == str(flaw.uuid)
+
+    def test_audit_includes_tracker_history_from_flaw_context(
+        self, auth_client, test_api_uri
+    ):
+        """Tracker history linked through an affect is visible from the flaw feed."""
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(
+            flaw=flaw, tracker=None, affectedness=Affect.AffectAffectedness.NEW
+        )
+        ps_module = PsModule.objects.get(name=affect.ps_module)
+        tracker = TrackerFactory(
+            embargoed=False,
+            affects=[affect],
+            ps_update_stream=affect.ps_update_stream,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        response = auth_client().get(
+            f"{test_api_uri}/audit?include_relation_events=true"
+            f"&pgh_obj_model=osidb.Flaw&pgh_obj_id={flaw.uuid}"
+        )
+
+        assert response.status_code == 200
+        results = response.json()["results"]
+        tracker_events = [
+            result
+            for result in results
+            if result["pgh_obj_model"] == "osidb.Tracker"
+            and result["pgh_obj_id"] == str(tracker.uuid)
+        ]
+        assert tracker_events
+        assert tracker_events[0]["pgh_label"] == "insert"
+        assert tracker_events[0]["pgh_slug"].startswith("osidb.TrackerAudit:")
+
+        affect_tracker_events = [
+            result
+            for result in results
+            if result["pgh_obj_model"] == "osidb.Affect"
+            and result["pgh_obj_id"] == str(affect.uuid)
+            and result["pgh_data"].get("tracker_id") == str(tracker.uuid)
+        ]
+        assert affect_tracker_events
+        assert affect_tracker_events[0]["pgh_diff"]["tracker_id"] == [
+            None,
+            str(tracker.uuid),
+        ]
+
+    def test_audit_does_not_release_mixed_visibility_tracker_history(
+        self, auth_client, test_api_uri
+    ):
+        """A public flaw feed must not expose an embargoed shared tracker."""
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory(embargoed=True)
+        embargoed_flaw = FlawFactory(embargoed=True)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="kernel",
+        )
+        embargoed_affect = AffectFactory(
+            flaw=embargoed_flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=affect.ps_update_stream,
+            ps_component=affect.ps_component,
+        )
+        tracker = TrackerFactory(
+            embargoed=True,
+            affects=[affect, embargoed_affect],
+            ps_update_stream=affect.ps_update_stream,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        set_user_acls(settings.ALL_GROUPS)
+        flaw.unembargo_dt = datetime(2000, 1, 1, tzinfo=timezone.utc)
+        flaw.unembargo()
+        tracker.refresh_from_db()
+
+        assert tracker.is_embargoed
+
+        response = auth_client("pubread").get(
+            f"{test_api_uri}/audit?include_relation_events=true"
+            f"&pgh_obj_model=osidb.Flaw&pgh_obj_id={flaw.uuid}"
+        )
+
+        assert response.status_code == 200
+        results = response.json()["results"]
+        assert not any(
+            result["pgh_obj_model"] == "osidb.Tracker"
+            and result["pgh_obj_id"] == str(tracker.uuid)
+            for result in results
+        )
+
+    def test_audit_retrieves_related_audit_slug_without_flag(
+        self, auth_client, test_api_uri
+    ):
+        """Related audit slugs should be retrievable as normal audit events."""
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw)
+
+        response_related = auth_client().get(
+            f"{test_api_uri}/audit?include_relation_events=true"
+            f"&pgh_obj_model=osidb.Flaw&pgh_obj_id={flaw.uuid}"
+        )
+        assert response_related.status_code == 200
+        event = next(
+            result
+            for result in response_related.json()["results"]
+            if result["pgh_obj_model"] == "osidb.Affect"
+            and result["pgh_obj_id"] == str(affect.uuid)
+        )
+        pgh_slug = event["pgh_slug"]
+
+        response_list = auth_client().get(f"{test_api_uri}/audit?pgh_slug={pgh_slug}")
+
+        assert response_list.status_code == 200
+        list_body = response_list.json()
+        assert list_body["count"] == 1
+        assert list_body["results"][0]["pgh_slug"] == pgh_slug
+
+        response = auth_client().get(f"{test_api_uri}/audit/{pgh_slug}")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["pgh_slug"] == pgh_slug
+        assert body["pgh_obj_id"] == str(affect.uuid)
+        assert body["pgh_obj_model"] == "osidb.Affect"
+        assert body["pgh_data"]["flaw_id"] == str(flaw.uuid)
