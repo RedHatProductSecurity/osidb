@@ -2307,6 +2307,7 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
             "User-Agent": "OSIM",
         }
         params = request.GET.copy()
+        params.pop("path", None)
         self._set_authorization_header(request, headers)
 
         response = requests.get(
@@ -2329,6 +2330,7 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
             "User-Agent": "OSIM",
         }
         params = request.GET.copy()
+        params.pop("path", None)
         self._set_authorization_header(request, headers)
 
         response = requests.post(

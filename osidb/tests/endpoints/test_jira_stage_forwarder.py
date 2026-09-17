@@ -109,3 +109,24 @@ class TestJiraStageForwarder:
         assert response.status_code == 400
         assert response.json() == {"Jira-Api-Key": ["This HTTP header is required."]}
         request_mock.assert_not_called()
+
+    @pytest.mark.parametrize("method", ["get", "post"])
+    def test_path_param_not_forwarded_to_jira(
+        self, client, test_api_uri, monkeypatch, method
+    ):
+        """'path' must not be forwarded to Jira — it causes 404s on valid tickets."""
+        path = "/rest/api/3/issue/OSIDB-1"
+        response_mock = Mock(status_code=200, text='{"ok": true}')
+        response_mock.json.return_value = {"ok": True}
+        request_mock = Mock(return_value=response_mock)
+        monkeypatch.setattr(f"osidb.api_views.requests.{method}", request_mock)
+
+        url = f"{test_api_uri}/jira_stage_forwarder?path={path}"
+        kwargs = dict(HTTP_AUTHORIZATION="Basic fake==")
+        if method == "get":
+            client.get(url, **kwargs)
+        else:
+            client.post(url, data=b"{}", content_type="application/json", **kwargs)
+
+        forwarded_params = request_mock.call_args.kwargs["params"]
+        assert "path" not in forwarded_params
