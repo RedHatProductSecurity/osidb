@@ -5,6 +5,7 @@ This module contains models for managing SRP (Single Reporting Platform)
 milestones as required by the EU Cyber Resilience Act.
 """
 
+import uuid
 from datetime import timedelta
 
 import pghistory
@@ -15,6 +16,7 @@ from django.utils import timezone
 from psqlextra.fields import HStoreField
 
 from osidb.mixins import (
+    ACLMixin,
     TrackingMixin,
     TrackingMixinManager,
     validator,
@@ -61,16 +63,11 @@ class SRPReportMilestone(SRPReportBase):
         LEVEL_24H = "24h", "24 Hour Template"
         LEVEL_72H = "72h", "72 Hour Template"
         LEVEL_FINAL = "final", "Final Report Template"
-        LEVEL_ADDITIONAL_INFORMATION_RESPONSE = (
-            "additional_information_response",
-            "Additional Information Response Template",
-        )
 
     MILESTONE_DURATION_BY_TYPE = {
         MilestoneType.LEVEL_24H: timedelta(hours=24),
         MilestoneType.LEVEL_72H: timedelta(hours=72),
         MilestoneType.LEVEL_FINAL: None,  # Duration is calculated based on the reportable event type
-        MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE: timedelta(days=30),
     }
 
     # Foreign key to parent SRP report
@@ -86,21 +83,6 @@ class SRPReportMilestone(SRPReportBase):
         choices=MilestoneType.choices,
         max_length=50,
         help_text="Type of milestone (24h, 72h, final, etc.)",
-    )
-
-    request_received_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When the request was received",
-    )
-    request_source = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="Source of the request",
-    )
-    request_text = models.TextField(
-        blank=True,
-        help_text="Text of the request",
     )
 
     submitted_at = models.DateTimeField(
@@ -153,7 +135,6 @@ class SRPReportMilestone(SRPReportBase):
         constraints = [
             models.UniqueConstraint(
                 fields=["srp_report", "milestone_type"],
-                condition=~models.Q(milestone_type="additional_information_response"),
                 name="unique_srp_report_milestone_type_level",
             )
         ]
@@ -258,15 +239,7 @@ class SRPReportMilestone(SRPReportBase):
         For LEVEL_FINAL: duration depends on event type:
         KEV (EXPLOITS_KEV_APPROVED): 14 days
         Severe Incident (MAJOR_INCIDENT_APPROVED): 30 days
-        Additional Information Request: 30 days from the request received
         """
-        if (
-            self.milestone_type
-            == self.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
-        ):
-            if not self.request_received_at:
-                return None
-            return self.request_received_at + timedelta(days=30)
 
         if not self.srp_report.timer_started_at:
             return None
@@ -295,8 +268,6 @@ class SRPReportMilestone(SRPReportBase):
         Due date must be set for all milestones.
 
         Exceptions:
-        - LEVEL_ADDITIONAL_INFORMATION_RESPONSE can have None due_at if
-          request_received_at is not yet set.
         - REQUIRED milestones can have None due_at until the parent
           report's SLA timer starts.
         """
@@ -312,14 +283,71 @@ class SRPReportMilestone(SRPReportBase):
             raise ValidationError("Invalid reportable event type")
 
         if not self.due_at:
-            # Allow None for additional info milestones without request time
-            if (
-                self.milestone_type
-                == self.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
-                and not self.request_received_at
-            ):
-                return  # Valid state - waiting for request
             # Allow None while manually created reports wait for timer start
             if self.status == self.SRPReportMilestoneStatus.REQUIRED:
                 return
             raise ValidationError("due_at must be set for all milestones")
+
+
+@pghistory.track(
+    pghistory.InsertEvent(),
+    pghistory.UpdateEvent(),
+    pghistory.DeleteEvent(),
+    exclude="meta_attr",
+    model_name="AdditionalInformationRequestAudit",
+)
+class AdditionalInformationRequest(TrackingMixin, ACLMixin):
+    """
+    A follow-up information request tied to a parent SRP milestone.
+
+    Represents an "Additional Information Response" request previously
+    modeled as its own SRPReportMilestone type, now nested under whichever
+    milestone (24h, 72h, or final) it was raised against, so multiple
+    requests can exist per milestone without name collisions.
+    """
+
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    milestone = models.ForeignKey(
+        SRPReportMilestone,
+        on_delete=models.CASCADE,
+        related_name="additional_information_requests",
+        help_text="The milestone this additional information request belongs to",
+    )
+
+    request_received_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the request was received",
+    )
+    request_source = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Source of the request",
+    )
+    request_text = models.TextField(
+        blank=True,
+        help_text="Text of the request",
+    )
+    manual_due_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Manual override for the due date",
+    )
+
+    class Meta(TrackingMixin.Meta):
+        ordering = ("milestone", "created_dt")
+
+    @property
+    def due_at(self):
+        if self.manual_due_at:
+            return self.manual_due_at
+        if not self.request_received_at:
+            return None
+        return self.request_received_at + timedelta(days=30)
+
+    def __str__(self):
+        siblings = list(
+            self.milestone.additional_information_requests.order_by("created_dt", "pk")
+        )
+        index = siblings.index(self) + 1 if self in siblings else "?"
+        return f"Additional Information Request {index} - {self.milestone}"

@@ -1,4 +1,5 @@
 from .srp_serializers import (
+    AdditionalInformationRequestSerializer,
     SRPReportCreateSerializer,
     SRPReportMilestoneCreateSerializer,
     SRPReportMilestoneSerializer,
@@ -16,6 +17,7 @@ __all__ = [
     "SRPReportMilestoneCreateSerializer",
     "SRPReportMilestoneSerializer",
     "SRPReportSerializer",
+    "AdditionalInformationRequestSerializer",
     "UpstreamNotificationSerializer",
     "UpstreamProjectSerializer",
 ]
