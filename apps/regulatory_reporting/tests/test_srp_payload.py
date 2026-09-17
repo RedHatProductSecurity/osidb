@@ -5,6 +5,7 @@ import pytest
 from django.utils import timezone
 
 from apps.regulatory_reporting.models import SRPReport, SRPReportMilestone
+from apps.regulatory_reporting.payload_fields import get_payload_field_definitions
 from apps.regulatory_reporting.serializers import (
     SRPReportMilestoneCreateSerializer,
     SRPReportMilestoneSerializer,
@@ -431,10 +432,13 @@ class TestPrepare24hPayloadMissingFields:
 
     def test_no_missing_product_identity_when_affects_exist(self):
         report = _create_vulnerability_report()
+        ps_module = PsModuleFactory(
+            name="rhel-9",
+            ps_product__name="Red Hat Enterprise Linux",
+        )
         AffectFactory(
             flaw=report.flaw,
-            ps_product="Red Hat Enterprise Linux",
-            ps_module="rhel-9",
+            ps_module=ps_module.name,
             ps_component="kernel",
         )
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
@@ -1719,6 +1723,32 @@ class TestAdditionalDetailsKeyValidation:
 
 
 # ── Step 6: Overridable-keys drift guard ──
+
+
+class TestPayloadFieldDefinitions:
+    def test_final_aev_required_builder_fields_are_exposed(self):
+        fields = get_payload_field_definitions(
+            SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
+            SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+        )
+        required = {
+            field["key"]
+            for field in fields
+            if field["requirements"]["final"] == "required"
+        }
+        assert "full_vulnerability_description" in required
+
+    def test_final_incident_required_builder_fields_are_exposed(self):
+        fields = get_payload_field_definitions(
+            SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+            SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+        )
+        required = {
+            field["key"]
+            for field in fields
+            if field["requirements"]["final"] == "required"
+        }
+        assert "detailed_incident_description" in required
 
 
 class TestOverridableKeysDriftGuard:

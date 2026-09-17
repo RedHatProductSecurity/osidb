@@ -389,6 +389,19 @@ PAYLOAD_FIELD_DEFINITIONS = [
         },
     ),
     _field(
+        "full_vulnerability_description",
+        "Full Description of the Vulnerability",
+        "aev",
+        "aev",
+        "generated_editable_override",
+        "textarea",
+        {
+            "24h": REQUIREMENT_NOT_APPLICABLE,
+            "72h": REQUIREMENT_NOT_APPLICABLE,
+            "final": REQUIREMENT_REQUIRED,
+        },
+    ),
+    _field(
         "vulnerability_severity",
         "Full Description of the Severity of the Vulnerability",
         "aev",
@@ -516,6 +529,19 @@ PAYLOAD_FIELD_DEFINITIONS = [
         {
             "24h": REQUIREMENT_OPTIONAL,
             "72h": REQUIREMENT_OPTIONAL,
+            "final": REQUIREMENT_REQUIRED,
+        },
+    ),
+    _field(
+        "detailed_incident_description",
+        "Detailed Description of the Incident",
+        "si",
+        "si",
+        "generated_editable_override",
+        "textarea",
+        {
+            "24h": REQUIREMENT_NOT_APPLICABLE,
+            "72h": REQUIREMENT_NOT_APPLICABLE,
             "final": REQUIREMENT_REQUIRED,
         },
     ),
