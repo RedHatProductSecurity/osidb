@@ -12,9 +12,13 @@ from rest_framework.viewsets import ModelViewSet
 from apps.regulatory_reporting.api_views.base import RegulatoryReportingEnabledMixin
 from apps.regulatory_reporting.constants import UUID_PATH_REGEX
 from apps.regulatory_reporting.filters import SRPReportMilestoneFilter
-from apps.regulatory_reporting.models import SRPReport, SRPReportMilestone
+from apps.regulatory_reporting.models import (
+    AdditionalInformationRequest,
+    SRPReport,
+    SRPReportMilestone,
+)
 from apps.regulatory_reporting.serializers import (
-    SRPReportMilestoneCreateSerializer,
+    AdditionalInformationRequestSerializer,
     SRPReportMilestoneSerializer,
 )
 from osidb.api_views import get_valid_http_methods
@@ -27,11 +31,9 @@ class SRPReportMilestoneViewSet(RegulatoryReportingEnabledMixin, ModelViewSet):
     Supports:
     - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - List milestones for a report
     - GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Retrieve single milestone
-    - POST /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones - Create additional_information_response milestone
     - PUT /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{uuid} - Update
 
     Standard milestones (24h, 72h, final) are auto-created by signals.
-    Only additional_information_response milestones can be created via POST.
     PATCH is globally blacklisted (BLACKLISTED_HTTP_METHODS).
     """
 
@@ -44,8 +46,6 @@ class SRPReportMilestoneViewSet(RegulatoryReportingEnabledMixin, ModelViewSet):
     lookup_value_regex = UUID_PATH_REGEX
 
     def get_serializer_class(self):
-        if self.action == "create":
-            return SRPReportMilestoneCreateSerializer
         return SRPReportMilestoneSerializer
 
     def get_queryset(self):
@@ -64,12 +64,45 @@ class SRPReportMilestoneViewSet(RegulatoryReportingEnabledMixin, ModelViewSet):
             srp_report__uuid=report_uuid
         ).select_related("srp_report")
 
+
+class AdditionalInformationRequestViewSet(
+    RegulatoryReportingEnabledMixin, ModelViewSet
+):
+    """
+    ViewSet for Additional Information Requests (nested under milestones).
+
+    Supports:
+    -GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{milestone_uuid}/additional-information-requests
+    -GET /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{milestone_uuid}/additional-information-requests/{uuid}
+    -POST /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{milestone_uuid}/additional-information-requests
+    -PUT /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{milestone_uuid}/additional-information-requests/{uuid}
+    """
+
+    serializer_class = AdditionalInformationRequestSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
+
+    def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return AdditionalInformationRequest.objects.none()
+
+        report_uuid = self.kwargs.get("report_uuid")
+        milestone_uuid = self.kwargs.get("milestone_uuid")
+        get_object_or_404(
+            SRPReportMilestone, uuid=milestone_uuid, srp_report__uuid=report_uuid
+        )
+        return AdditionalInformationRequest.objects.filter(
+            milestone__uuid=milestone_uuid
+        )
+
     def perform_create(self, serializer):
         report_uuid = self.kwargs.get("report_uuid")
-        srp_report = get_object_or_404(SRPReport, uuid=report_uuid)
+        milestone_uuid = self.kwargs.get("milestone_uuid")
+        milestone = get_object_or_404(
+            SRPReportMilestone, uuid=milestone_uuid, srp_report__uuid=report_uuid
+        )
         serializer.save(
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-            srp_report=srp_report,
-            acl_read=srp_report.acl_read,
-            acl_write=srp_report.acl_write,
+            milestone=milestone,
+            acl_read=milestone.acl_read,
+            acl_write=milestone.acl_write,
         )

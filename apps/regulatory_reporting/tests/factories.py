@@ -2,6 +2,7 @@ import factory
 from django.utils import timezone
 
 from apps.regulatory_reporting.models import (
+    AdditionalInformationRequest,
     FlawUpstreamMapping,
     SRPReport,
     SRPReportMilestone,
@@ -101,3 +102,12 @@ class SRPReportWithMilestonesFactory(SRPReportFactory):
         factory_related_name="srp_report",
         milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
     )
+
+
+class AdditionalInformationRequestFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = AdditionalInformationRequest
+
+    milestone = factory.SubFactory(SRPReportMilestoneFactory)
+    acl_read = factory.LazyAttribute(lambda o: o.milestone.acl_read)
+    acl_write = factory.LazyAttribute(lambda o: o.milestone.acl_write)

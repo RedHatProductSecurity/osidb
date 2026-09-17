@@ -7,6 +7,7 @@ Registers both top-level and flaw subresource endpoints.
 from rest_framework.routers import DefaultRouter
 
 from apps.regulatory_reporting.api_views import (
+    AdditionalInformationRequestViewSet,
     FlawSRPReportMilestoneViewSet,
     FlawSRPReportViewSet,
     FlawUpstreamMappingDetailView,
@@ -28,6 +29,13 @@ router.register(
     rf"srp-reports/(?P<report_uuid>{UUID_PATH_REGEX})/milestones",
     SRPReportMilestoneViewSet,
     basename="srpreportmilestones",
+)
+
+# Additional Information Requests (nested under milestones)
+router.register(
+    rf"srp-reports/(?P<report_uuid>{UUID_PATH_REGEX})/milestones/(?P<milestone_uuid>{UUID_PATH_REGEX})/additional-information-requests",
+    AdditionalInformationRequestViewSet,
+    basename="additionalinformationrequests",
 )
 
 # Flaw subresource SRP Reports (read-only)
