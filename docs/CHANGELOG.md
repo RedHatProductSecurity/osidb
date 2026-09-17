@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Changed
+- Add SRP payload field schema metadata for CRA milestone dialogs (OSIDB-5604)
 - Hummingbird affect resolution is now separate from ACE/ARGUS workflow (OSIDB-5534)
 
 ### Fixed
