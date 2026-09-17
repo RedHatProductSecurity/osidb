@@ -25,6 +25,7 @@ from apps.trackers.exceptions import (
     TrackerCreationError,
 )
 from collectors.bzimport.exceptions import RecoverableBZImportException
+from collectors.jiraffe.exceptions import NonRecoverableJiraffeException
 from osidb.exceptions import JiraUserMappingException
 
 logger = logging.getLogger(__name__)
@@ -52,6 +53,12 @@ def exception_handler(exc, context):
         set_rollback()
         logger.exception(exc)
         data = {"detail": parse_jira_error(exc)}
+        return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    if isinstance(exc, NonRecoverableJiraffeException):
+        set_rollback()
+        logger.exception(exc)
+        data = {"detail": "Failed to retrieve the associated Jira issue."}
         return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     if isinstance(exc, OperationalError):

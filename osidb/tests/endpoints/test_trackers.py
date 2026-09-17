@@ -1,7 +1,10 @@
+from types import SimpleNamespace
+
 import pytest
 from rest_framework import status
 
 from apps.bbsync.mixins import BugzillaSyncMixin
+from collectors.jiraffe.exceptions import NonRecoverableJiraffeException
 from osidb.models import Affect, Flaw, Tracker
 from osidb.tests.factories import (
     AffectFactory,
@@ -300,3 +303,163 @@ class TestEndpointsTrackers:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["count"] == 1
         assert response.data["results"][0]["cve_id"] == flaw.cve_id
+
+    def test_link_affects_endpoint(self, auth_client, test_api_v2_uri, monkeypatch):
+        """
+        Test the on-demand link-affects endpoint triggers a Jira re-fetch
+        and relinks the tracker to its affects.
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            flaw__embargoed=False,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        mock_issue = SimpleNamespace(
+            key="JIRA-1234",
+            fields=SimpleNamespace(
+                summary="Test summary",
+                labels=[],
+                created="2024-01-01T00:00:00.000+0000",
+                updated=None,
+                resolutiondate=None,
+                status=SimpleNamespace(name="New"),
+                issuetype=SimpleNamespace(name="Bug"),
+                resolution=None,
+                security=None,
+                customfield_10832=None,
+                customfield_10873=None,
+                customfield_10670=None,
+            ),
+        )
+
+        monkeypatch.setattr(
+            "osidb.api_views.JiraQuerier.get_issue",
+            lambda self, issue_id: mock_issue,
+        )
+        monkeypatch.setattr(
+            "collectors.jiraffe.convertors.JiraTrackerConvertor.tracker",
+            property(lambda self: None),
+        )
+        monkeypatch.setattr(
+            "osidb.api_views.JiraTrackerDownloadManager.link_tracker_with_affects",
+            staticmethod(lambda tracker_id: ([affect], [], [])),
+        )
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/trackers/{tracker.uuid}/link-affects"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["failed_flaws"] == []
+        assert response.data["failed_affects"] == []
+        assert len(response.data["affects"]) == 1
+        assert response.data["affects"][0]["uuid"] == str(affect.uuid)
+
+    def test_link_affects_endpoint_rejects_bugzilla_tracker(
+        self, auth_client, test_api_v2_uri, monkeypatch
+    ):
+        """
+        Test the link-affects endpoint rejects non-Jira trackers
+        without invoking any Jira handling.
+        """
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            flaw__embargoed=False,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        def fail_if_called(*args, **kwargs):
+            raise AssertionError(
+                "JiraQuerier.get_issue should not be called for a Bugzilla tracker"
+            )
+
+        monkeypatch.setattr("osidb.api_views.JiraQuerier.get_issue", fail_if_called)
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/trackers/{tracker.uuid}/link-affects"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_link_affects_endpoint_rejects_empty_external_system_id(
+        self, auth_client, test_api_v2_uri, monkeypatch
+    ):
+        """
+        Test the link-affects endpoint returns 400 for a Jira tracker
+        with no external_system_id, without calling Jira.
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            flaw__embargoed=False,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+            external_system_id="",
+        )
+
+        def fail_if_called(*args, **kwargs):
+            raise AssertionError(
+                "JiraQuerier.get_issue should not be called when external_system_id is empty"
+            )
+
+        monkeypatch.setattr("osidb.api_views.JiraQuerier.get_issue", fail_if_called)
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/trackers/{tracker.uuid}/link-affects"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_link_affects_endpoint_handles_missing_jira_issue(
+        self, auth_client, test_api_v2_uri, monkeypatch
+    ):
+        """
+        Test the link-affects endpoint returns 422 when the tracker's Jira issue cannot be fetched.
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            flaw__embargoed=False,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+
+        def raise_not_found(*args, **kwargs):
+            raise NonRecoverableJiraffeException("Jira issue not found")
+
+        monkeypatch.setattr("osidb.api_views.JiraQuerier.get_issue", raise_not_found)
+
+        response = auth_client().post(
+            f"{test_api_v2_uri}/trackers/{tracker.uuid}/link-affects"
+        )
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
