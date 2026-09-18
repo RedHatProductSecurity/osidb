@@ -346,10 +346,11 @@ wheels = [
 
 [[package]]
 name = "cvss"
-version = "3.0"
+version = "3.6"
 source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a5/f6/1f7d315de23f39bbc32b94bb6b33a1b6124856037bfaa3f8bdb1a49584fa/cvss-3.6.tar.gz", hash = "sha256:f21d18224efcd3c01b44ff1b37dec2e3208d29a6d0ce6c87a599c73c21ee1a99", size = 30047, upload-time = "2025-08-04T10:50:13.753Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1b/58/8fd085ff357815351ae72a867588bc3ee38f24cfeca251d669ed5adff570/cvss-3.0-py2.py3-none-any.whl", hash = "sha256:705995aa6f99efdd600f83997c78b625bc81be0603ec00a91465ad2eb613cd7b", size = 26729, upload-time = "2024-01-24T12:41:33.068Z" },
+    { url = "https://files.pythonhosted.org/packages/63/6d/fe2c65b94a28ae0481dc254e8cd664b82390069003bea945076d8a445f2b/cvss-3.6-py2.py3-none-any.whl", hash = "sha256:e342c6ad9c7eb69d2aebbbc2768a03cabd57eb947c806e145de5b936219833ea", size = 31154, upload-time = "2025-08-04T10:50:12.328Z" },
 ]
 
 [[package]]
