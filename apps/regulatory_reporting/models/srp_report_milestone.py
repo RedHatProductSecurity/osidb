@@ -158,6 +158,8 @@ class SRPReportMilestone(SRPReportBase):
             )
         ]
 
+    manual_due_at = models.DateTimeField(null=True, blank=True)
+
     objects = SRPReportMilestoneManager()
 
     @property
@@ -170,6 +172,8 @@ class SRPReportMilestone(SRPReportBase):
         - Severe Incident (MAJOR_INCIDENT_APPROVED): 30 days
         - Additional Information Request: 30 days from the request received
         """
+        if self.manual_due_at:
+            return self.manual_due_at
         if (
             self.milestone_type
             == self.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE

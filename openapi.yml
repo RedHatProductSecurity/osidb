@@ -20039,6 +20039,11 @@ components:
           - 'null'
           format: date-time
           readOnly: true
+        manual_due_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
         hours_remaining:
           type:
           - integer
@@ -20153,6 +20158,11 @@ components:
           - 'null'
           format: date-time
           readOnly: true
+        manual_due_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
         hours_remaining:
           type:
           - integer
@@ -20239,6 +20249,11 @@ components:
         manual_completion_notes:
           type: string
           description: Manual completion notes
+        manual_due_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
     SRPReportMilestoneRequest:
       type: object
       description: |-
@@ -20286,6 +20301,11 @@ components:
           format: date-time
           description: The updated_dt timestamp attribute is mandatory on update as
             it is used to detect mit-air collisions.
+        manual_due_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
       required:
       - updated_dt
     SRPReportMilestoneStatusEnum:
