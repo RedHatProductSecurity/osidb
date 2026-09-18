@@ -4,8 +4,8 @@ Tests for Celery queue routing.
 These exercise the exact routing pipeline Celery uses at apply_async() time
 (app.amqp.router.route) without needing a running broker/worker, so they
 work as a red/green check for queue-topology changes: change where a task
-is routed and these fail until config/celery.py + the task's `queue=`/
-`task_routes` are updated to match.
+is routed and these fail until config/celery.py + the task's `queue=`
+default are updated to match.
 """
 
 import pytest
@@ -54,20 +54,3 @@ class TestCeleryRouting:
         """
         options = _route(task_name)
         assert options["queue"].name == "default"
-
-    def test_object_id_tasks_use_fifo_queue_when_enabled(self, monkeypatch):
-        """
-        The per-object FIFO pool routing (used for ordering guarantees) must
-        keep taking precedence over any per-task default queue.
-        """
-        from config.celery import CelerySettings
-
-        monkeypatch.setattr(
-            "config.celery.CelerySettings",
-            lambda: CelerySettings(enable_fifo=True, fifo_pool_size=2),
-        )
-
-        options = _route(
-            "sync_manager.jira_task_sync", kwargs={"object_id": "some-uuid"}
-        )
-        assert options["queue"].name.startswith("fifo.")

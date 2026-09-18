@@ -382,11 +382,10 @@ class TestCheckForReschedules(TestCase):
 class TestJiraTaskSyncManagerLockContention:
     """
     RetryOnLockContention turned lock contention into Celery-level
-    retries every 30s (up to ~130/task), re-enqueuing into the fifo.*
-    queues faster than the two concurrency-1 workers could drain them.
-    JiraTaskSyncManager.sync_task must not use any such
-    retry-on-contention wrapper: lock contention must be dropped
-    (LockableTaskWithArgs' plain behaviour), not retried.
+    retries every 30s (up to ~130/task), re-enqueuing tasks faster
+    than workers could drain them (OSIDB-5189). JiraTaskSyncManager.sync_task
+    must not use any such retry-on-contention wrapper: lock contention must
+    be dropped (LockableTaskWithArgs' plain behaviour), not retried.
     """
 
     def test_sync_task_uses_plain_lockable_task_with_args(self):
