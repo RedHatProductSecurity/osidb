@@ -3,7 +3,7 @@ version: '3'
 services:
 
     testldap:
-      container_name: testldap
+      labels: ["app=osidb"]
       image: mirror.gcr.io/osixia/openldap:1.5.0
       command: --copy-service -l debug
       ports:
@@ -23,7 +23,7 @@ services:
       #     condition: service_healthy
 
     testrunner:
-      container_name: testrunner
+      labels: ["app=osidb"]
       build:
         context: .
         dockerfile: test.Dockerfile
@@ -47,7 +47,7 @@ services:
         - ${PWD}:/opt/app-root/src:z
 
     locust:
-      container_name: locust
+      labels: ["app=osidb"]
       image: mirror.gcr.io/locustio/locust:2.20.1
       ports:
         - '9000:8089'

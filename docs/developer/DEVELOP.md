@@ -210,6 +210,70 @@ The following dependencies are now required to build the cryptography Python lib
 
 See [Installation - Cryptography](https://cryptography.io/en/latest/installation/#rust) for more details.
 
+## Working with Git Worktrees
+
+OSIDB supports running multiple git worktrees simultaneously. Each worktree gets isolated Docker containers, networks, and volumes based on its directory name.
+
+### Creating a Worktree
+
+From the main repository:
+
+```bash
+git worktree add /path/to/worktrees/<branch-name> -b <branch-name>
+```
+
+A **post-checkout hook** automatically runs in new worktrees to:
+1. Create a Python virtual environment (`.venv`) with `uv`
+2. Install all dependencies via `uv sync`
+3. Copy the `.env` file from the main repository
+
+### Installing the Worktree Hook
+
+The hook is distributed in `dist/hooks/post-checkout`. Install it once in your repository:
+
+```bash
+make setup-worktree
+```
+
+This copies the hook to `.git/hooks/post-checkout` and makes it executable.
+
+### Using a Worktree
+
+```bash
+cd /path/to/worktrees/my-feature
+source .venv/bin/activate
+make start-local
+```
+
+### Container Isolation
+
+Each worktree automatically gets a unique Docker Compose project name (from its directory name):
+- Containers: `<worktree-name>-<service>-1` (e.g., `my-feature-osidb-service-1`)
+- Networks: `<worktree-name>_default`
+- Volumes: `<worktree-name>_pg-data`
+
+### Auto-Stop Behavior
+
+`make start-local` automatically stops containers from other OSIDB worktrees to prevent port conflicts. All worktrees use the same default ports (8000, 5555, etc.).
+
+### Switching Worktrees
+
+```bash
+cd /path/to/other-worktree
+source .venv/bin/activate
+make start-local  # Auto-stops previous worktree's containers
+```
+
+**Note:** Running multiple worktrees simultaneously is not supported as they all use the same ports. The auto-stop mechanism ensures only one worktree runs at a time.
+
+### Removing a Worktree
+
+```bash
+cd /path/to/worktree
+make stop-local
+git worktree remove /path/to/worktree
+```
+
 ## Startup
 
 ### Start local dev env
