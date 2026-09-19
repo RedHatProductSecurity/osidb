@@ -19998,6 +19998,17 @@ components:
           description: Coordinator-provided SRP FAQ fields for this milestone stage.
             OSIM stores and reads these as individual form fields. Values here override
             auto-derived payload fields at submission time.
+        payload_fields:
+          type: array
+          items:
+            type: object
+          readOnly: true
+          description: Ordered SRP payload form fields with labels, values, input
+            type, requiredness, editability, and options for this milestone.
+        missing_required_fields:
+          type: string
+          readOnly: true
+          description: Missing required fields
         request_received_at:
           type:
           - string
@@ -20077,6 +20088,8 @@ components:
       - hours_remaining
       - is_overdue
       - milestone_type
+      - missing_required_fields
+      - payload_fields
       - srp_report
       - updated_dt
       - uuid
@@ -20113,6 +20126,17 @@ components:
           description: Coordinator-provided SRP FAQ fields for this milestone stage.
             OSIM stores and reads these as individual form fields. Values here override
             auto-derived payload fields at submission time.
+        payload_fields:
+          type: array
+          items:
+            type: object
+          readOnly: true
+          description: Ordered SRP payload form fields with labels, values, input
+            type, requiredness, editability, and options for this milestone.
+        missing_required_fields:
+          type: string
+          readOnly: true
+          description: Missing required fields
         request_received_at:
           type:
           - string
@@ -20191,6 +20215,8 @@ components:
       - hours_remaining
       - is_overdue
       - milestone_type
+      - missing_required_fields
+      - payload_fields
       - srp_report
       - updated_dt
       - uuid

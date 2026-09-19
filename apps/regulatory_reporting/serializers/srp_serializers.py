@@ -13,7 +13,7 @@ from rest_framework import serializers
 
 from apps.regulatory_reporting.constants import ENISA_STATE_CODES
 from apps.regulatory_reporting.models import SRPReport, SRPReportMilestone
-from apps.regulatory_reporting.services import get_overridable_keys
+from apps.regulatory_reporting.services import get_overridable_keys, get_payload_fields
 from osidb.core import generate_acls
 from osidb.models import Flaw
 from osidb.serializer import (
@@ -53,6 +53,12 @@ class SRPReportMilestoneSerializer(
             "Values here override auto-derived payload fields at submission time."
         ),
     )
+    payload_fields = serializers.SerializerMethodField(
+        help_text=(
+            "Ordered SRP payload form fields with labels, values, input type, "
+            "requiredness, editability, and options for this milestone."
+        )
+    )
     due_at = serializers.DateTimeField(read_only=True, allow_null=True)
     hours_remaining = serializers.IntegerField(read_only=True, allow_null=True)
     days_remaining = serializers.IntegerField(read_only=True, allow_null=True)
@@ -82,6 +88,8 @@ class SRPReportMilestoneSerializer(
                 "milestone_type",
                 "status",
                 "additional_details",
+                "payload_fields",
+                "missing_required_fields",
                 "request_received_at",
                 "request_source",
                 "request_text",
@@ -104,6 +112,8 @@ class SRPReportMilestoneSerializer(
             "uuid",
             "srp_report",
             "milestone_type",
+            "payload_fields",
+            "missing_required_fields",
             "created_dt",
             "updated_dt",
             "due_at",
@@ -114,6 +124,10 @@ class SRPReportMilestoneSerializer(
             "acl_write",
             "alerts",
         ]
+
+    @extend_schema_field({"type": "array", "items": {"type": "object"}})
+    def get_payload_fields(self, instance):
+        return get_payload_fields(instance)
 
     def validate_additional_details(self, value):
         if not isinstance(value, dict):
