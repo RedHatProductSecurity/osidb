@@ -182,23 +182,20 @@ class TestSRPReportMilestoneRLS:
         m2 = SRPReportMilestoneFactory(srp_report__flaw__embargoed=True)
 
         set_user_acls(settings.PUBLIC_READ_GROUPS + [settings.PUBLIC_WRITE_GROUP])
-        m1.request_source = "updated"
+        m1.owner = "updated"
         m1.save(raise_validation_error=False)
-        assert m1.request_source == "updated"
+        assert m1.owner == "updated"
 
         assert (
-            SRPReportMilestone.objects.filter(pk=m2.pk).update(
-                request_source="should fail"
-            )
-            == 0
+            SRPReportMilestone.objects.filter(pk=m2.pk).update(owner="should fail") == 0
         )
 
         set_user_acls([settings.EMBARGO_READ_GROUP, settings.EMBARGO_WRITE_GROUP])
         m2 = SRPReportMilestone.objects.get(pk=m2.pk)
-        assert m2.request_source != "should fail"
-        m2.request_source = "updated"
+        assert m2.owner != "should fail"
+        m2.owner = "updated"
         m2.save(raise_validation_error=False)
-        assert m2.request_source == "updated"
+        assert m2.owner == "updated"
 
     def test_delete(self):
         set_user_acls(settings.ALL_GROUPS)
@@ -362,9 +359,9 @@ class TestAuditTablesRLS:
         events = SRPReportMilestoneAudit.objects.filter(pgh_obj=milestone_pk)
         assert events.filter(pgh_label="insert").count() == 1
 
-        self._assert_mutation_blocked(events, request_source="tampered")
+        self._assert_mutation_blocked(events, owner="tampered")
         self._assert_mutation_blocked(events)
-        assert not events.filter(request_source="tampered").exists()
+        assert not events.filter(owner="tampered").exists()
 
         assert milestone.delete()
         assert (

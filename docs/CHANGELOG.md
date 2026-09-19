@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   just the next one (e.g., both rhel-9.9 and rhel-9.10 when latest Z is rhel-9.8.z,
   but not rhel-9.7) (OSIDB-5535)
 
+### Added
+- Add Unique Numbering for Multiple Additional Information Requests (OSIDB-5483)
+
 ## [5.18.0] - 2026-09-10
 ### Added
 - Add `resolved_dt` recording when a flaw enters the DONE workflow state (OSIDB-5467)

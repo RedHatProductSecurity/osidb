@@ -57,12 +57,6 @@ class TestSRPMilestoneAutoCreation:
         assert SRPReportMilestone.MilestoneType.LEVEL_72H in milestone_types
         assert SRPReportMilestone.MilestoneType.LEVEL_FINAL in milestone_types
 
-        # Additional information response NOT created
-        assert (
-            SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
-            not in milestone_types
-        )
-
     def test_milestones_created_for_severe_incident_report(self, create_flaw_report):
         """
         When SRP Report is created for Severe Incident, create 24h, 72h, and final milestones.
@@ -230,32 +224,6 @@ class TestSRPMilestoneAutoCreation:
                 milestone.status == SRPReportMilestone.SRPReportMilestoneStatus.REQUIRED
             ), f"{milestone.milestone_type} should have REQUIRED status"
 
-    def test_additional_information_response_not_auto_created(self, create_flaw_report):
-        """
-        For KEV / severe-incident reports, LEVEL_ADDITIONAL_INFORMATION_RESPONSE
-        should NOT be created automatically with the standard 24h/72h/final set.
-        Extra AIR milestones are created on-demand when authorities send follow-ups.
-        """
-
-        start_time = timezone.now()
-        flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-            major_incident_start_dt=start_time,
-        )
-
-        srp_report = create_flaw_report(
-            flaw=flaw, incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED
-        )
-
-        # Should have no additional_information_response milestones
-        additional_info_milestones = SRPReportMilestone.objects.filter(
-            srp_report=srp_report,
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-        )
-        assert additional_info_milestones.count() == 0, (
-            "Additional information response milestones should NOT be auto-created"
-        )
-
     @pytest.mark.parametrize(
         "milestone_type",
         [
@@ -287,9 +255,7 @@ class TestSRPMilestoneAutoCreation:
             ).count()
             == 1
         )
-        with pytest.raises(
-            ValidationError, match="unique_srp_report_milestone_type_level"
-        ):
+        with pytest.raises(ValidationError, match="already exists"):
             SRPReportMilestone.objects.create(
                 srp_report=srp_report,
                 milestone_type=milestone_type,
@@ -370,112 +336,6 @@ class TestMilestoneDueDateProperty:
         milestone_str = str(milestone_24h)
         assert "24h" in milestone_str
         assert srp_report.flaw.cve_id in milestone_str
-
-    def test_additional_information_response_due_at_uses_request_received_at(
-        self, create_flaw_report
-    ):
-        """
-        LEVEL_ADDITIONAL_INFORMATION_RESPONSE milestones should calculate due_at
-        from request_received_at (not timer_started_at) and use 30 days duration.
-        """
-        srp_report = create_flaw_report()
-
-        # Act - manually create additional information response milestone
-        request_time = timezone.now() + timedelta(
-            days=5
-        )  # Request comes 5 days after report
-        additional_info_milestone = SRPReportMilestone.objects.create(
-            srp_report=srp_report,
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-            status=SRPReportMilestone.SRPReportMilestoneStatus.REQUIRED,
-            request_received_at=request_time,
-            request_source="ENISA",
-            request_text="Please provide additional technical details",
-            acl_read=srp_report.acl_read,
-            acl_write=srp_report.acl_write,
-        )
-
-        # Assert - due_at should be 30 days from request_received_at
-        expected_due_at = request_time + timedelta(days=30)
-        assert additional_info_milestone.due_at == expected_due_at, (
-            "Additional info milestone should be due 30 days from request_received_at"
-        )
-
-        # Verify it's NOT calculated from timer_started_at
-        wrong_due_at = srp_report.flaw.major_incident_start_dt + timedelta(days=30)
-        assert additional_info_milestone.due_at != wrong_due_at, (
-            "Should NOT use timer_started_at for additional info milestones"
-        )
-
-    def test_additional_information_response_due_at_returns_none_without_request_time(
-        self,
-        create_flaw_report,
-    ):
-        """
-        LEVEL_ADDITIONAL_INFORMATION_RESPONSE milestone with no request_received_at
-        should return None for due_at (can't calculate deadline without request time).
-        """
-        # Arrange - create SRP Report
-        start_time = timezone.now()
-        flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
-            major_incident_start_dt=start_time,
-        )
-        srp_report = create_flaw_report(flaw=flaw)
-        # Act - create additional info milestone WITHOUT request_received_at
-        additional_info_milestone = SRPReportMilestone.objects.create(
-            srp_report=srp_report,
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-            status=SRPReportMilestone.SRPReportMilestoneStatus.IN_PROGRESS,
-            request_received_at=None,  # No request time set yet
-            acl_read=srp_report.acl_read,
-            acl_write=srp_report.acl_write,
-        )
-
-        # Assert - due_at should be None
-        assert additional_info_milestone.due_at is None, (
-            "due_at should be None when request_received_at is not set"
-        )
-
-    def test_additional_information_response_milestone_for_severe_incident(
-        self, create_flaw_report
-    ):
-        """
-        LEVEL_ADDITIONAL_INFORMATION_RESPONSE should work the same for
-        Severe Incident reports (30 days from request, not affected by
-        parent report's event type).
-        """
-        # Arrange - create Severe Incident report
-        start_time = timezone.now()
-        flaw = FlawFactory(
-            major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
-            major_incident_start_dt=start_time,
-        )
-        srp_report = create_flaw_report(
-            flaw=flaw, incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
-        )
-        assert (
-            srp_report.reportable_event_type
-            == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
-        )
-
-        # Act - create additional info milestone
-        request_time = timezone.now() + timedelta(days=10)
-        additional_info_milestone = SRPReportMilestone.objects.create(
-            srp_report=srp_report,
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-            status=SRPReportMilestone.SRPReportMilestoneStatus.IN_PROGRESS,
-            request_received_at=request_time,
-            acl_read=srp_report.acl_read,
-            acl_write=srp_report.acl_write,
-        )
-
-        # Assert - still 30 days from request (not affected by parent's 30-day final deadline)
-        expected_due_at = request_time + timedelta(days=30)
-        assert additional_info_milestone.due_at == expected_due_at, (
-            "Additional info response should always be 30 days from request, "
-            "regardless of parent report type"
-        )
 
 
 class TestCreateSrpReportIncidentState:
