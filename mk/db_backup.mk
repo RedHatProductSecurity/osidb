@@ -13,18 +13,18 @@ db-backup:
 	@echo "1. Create backups only from master branch."
 	@echo "2. Create backups only after having all migrations correctly applied. Check with:"
 	@echo "   make compose-up"
-	@echo "   podman exec -it osidb-service python3 manage.py showmigrations"
+	@echo "   make shell-service, then: python3 manage.py showmigrations"
 	@echo "3. Make a note of the list of migrations included in the backup. Record with:"
 	@echo "   make compose-up"
-	@echo "   podman exec -it osidb-service python3 manage.py showmigrations > osidb_data_backup_dump_showmigrations.txt"
+	@echo "   make shell-service, then: python3 manage.py showmigrations > osidb_data_backup_dump_showmigrations.txt"
 	@echo ""
 	@echo -n "Otherwise, restoring the DB might become problematic later on. Do you want to back up the database? [y/N]" && read ans && [ $${ans:-N} = y ]
 	@echo ">backing up DB to osidb_data_backup_dump.db.gz"
 	@make stop-local
 	@make start-local-psql
-	@$(podman) exec -it osidb-data bash -c 'rm -f /var/lib/postgresql/data/osidb_data_backup_dump.db.gz && pg_dump -Fp osidb | gzip > /var/lib/postgresql/data/osidb_data_backup_dump.db.gz && echo "pg_dump created inside container"'
-	@$(podman) cp osidb-data:/var/lib/postgresql/data/osidb_data_backup_dump.db.gz osidb_data_backup_dump.db.gz && echo "pg_dump backup copied from container"
-	@$(podman) exec -it osidb-data bash -c 'rm -f /var/lib/postgresql/data/osidb_data_backup_dump.db.gz'
+	@$(compose) exec osidb-data bash -c 'rm -f /var/lib/postgresql/data/osidb_data_backup_dump.db.gz && pg_dump -Fp osidb | gzip > /var/lib/postgresql/data/osidb_data_backup_dump.db.gz && echo "pg_dump created inside container"'
+	@$(compose) cp osidb-data:/var/lib/postgresql/data/osidb_data_backup_dump.db.gz osidb_data_backup_dump.db.gz && echo "pg_dump backup copied from container"
+	@$(compose) exec osidb-data bash -c 'rm -f /var/lib/postgresql/data/osidb_data_backup_dump.db.gz'
 	@ls -la osidb/migrations > osidb_data_backup_dump_known_migrations.txt
 	@git log -v --source --log-size --notes -n 1 > osidb_data_backup_dump_git_commit_status.txt
 	@echo -e "\n---\n" >> osidb_data_backup_dump_git_commit_status.txt
@@ -50,16 +50,16 @@ db-backup:
 db-restore: stop-local start-local-psql
 	@echo ">restoring osidb_data_backup_dump.db.gz"
 	@[ -f osidb_data_backup_dump.db.gz ] || { echo "Error! osidb_data_backup_dump.db.gz doesn't exist." ; exit 1 ; }
-	@$(podman) cp osidb_data_backup_dump.db.gz osidb-data:/var/lib/postgresql/data/osidb_data_backup_dump.db.gz.x && echo "backup dump copied to container"
-	@$(podman) exec -it osidb-data bash -c 'zcat /var/lib/postgresql/data/osidb_data_backup_dump.db.gz.x | sed "s/^SELECT pg_catalog.set_config..search_path/-- &/" | gzip > /var/lib/postgresql/data/osidb_data_backup_dump.db.gz && echo "search path fixed"'
-	@$(podman) exec -it osidb-data dropdb --if-exists -h osidb-data -p 5432 osidb && echo "existing database osidb dropped"
+	@$(compose) cp osidb_data_backup_dump.db.gz osidb-data:/var/lib/postgresql/data/osidb_data_backup_dump.db.gz.x && echo "backup dump copied to container"
+	@$(compose) exec osidb-data bash -c 'zcat /var/lib/postgresql/data/osidb_data_backup_dump.db.gz.x | sed "s/^SELECT pg_catalog.set_config..search_path/-- &/" | gzip > /var/lib/postgresql/data/osidb_data_backup_dump.db.gz && echo "search path fixed"'
+	@$(compose) exec osidb-data dropdb --if-exists -h osidb-data -p 5432 osidb && echo "existing database osidb dropped"
 	@sleep 1
-	@$(podman) exec -it osidb-data createdb  -T template0 osidb && echo "created new database"
+	@$(compose) exec osidb-data createdb  -T template0 osidb && echo "created new database"
 	@sleep 1
-	@$(podman) exec -it osidb-data bash -c 'zcat /var/lib/postgresql/data/osidb_data_backup_dump.db.gz | psql osidb && echo "dump restored inside container"'
-	@$(podman) exec -it osidb-data bash -c 'rm -f /var/lib/postgresql/data/osidb_data_backup_dump.db.gz*'
+	@$(compose) exec osidb-data bash -c 'zcat /var/lib/postgresql/data/osidb_data_backup_dump.db.gz | psql osidb && echo "dump restored inside container"'
+	@$(compose) exec osidb-data bash -c 'rm -f /var/lib/postgresql/data/osidb_data_backup_dump.db.gz*'
 	@sleep 3
-	@$(podman) stop osidb-data
+	@$(compose) stop osidb-data
 
 
 #***********************************
@@ -67,9 +67,8 @@ db-restore: stop-local start-local-psql
 #***********************************
 .PHONY : db-drop
 db-drop:
-	@echo -n "This will delete data in the database. It will delete the osidb_pg-data volume. As a side effect, it will also remove all osidb containers. Are you sure? [y/N]" && read ans && [ $${ans:-N} = y ]
-	$(podman) compose -f docker-compose.yml -f docker-compose.test.yml down
-	podman volume rm osidb_pg-data -f
+	@echo -n "This will delete data in the database. It will delete the pg-data volume. As a side effect, it will also remove all osidb containers. Are you sure? [y/N]" && read ans && [ $${ans:-N} = y ]
+	$(compose) down -v
 
 
 # NOTE: The following approach doesn't work. If a new db is created, celery crashes with [1]. If a new db is not created, osidb-service crashes with [2]. It seems there's some inherent magic that auto-setups the db if the container and the volume are freshly created at the same time, and that magic is not run when the db is simply dropped or dropped & recreated.

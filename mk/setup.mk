@@ -11,9 +11,8 @@
 # NOTE: podman-compose 0.1.7 doesn't support argument '-v' for action 'down', hence deleting volume separately.
 .PHONY: clean
 clean:
-	@echo -n "osidb: 'make clean' will force stop running osidb containers, REMOVE OSIDB_PG-DATA VOLUME, delete venv, remove .tox cache, pycache, pg keys, etc ... Are you really sure? [y/N] " && read ans && [ $${ans:-N} = y ]
-	$(podman) compose -f docker-compose.yml -f docker-compose.test.yml down
-	$(podman) volume rm osidb_pg-data || true
+	@echo -n "osidb: 'make clean' will force stop running osidb containers, REMOVE PG-DATA VOLUME, delete venv, remove .tox cache, pycache, pg keys, etc ... Are you really sure? [y/N] " && read ans && [ $${ans:-N} = y ]
+	$(compose) down -v
 	$(podman) image rm localhost/osidb-service --force || true
 	rm -rf .tox
 	rm -rf .pytest_cache
@@ -34,6 +33,18 @@ githooks: check-venv-active
 	@echo -n "This will install githooks that will prevent you from committing unless the commits meet the required criteria. Are you sure? [y/N]" && read ans && [ $${ans:-N} = y ]
 	@echo "> installing git hooks"
 	$(pre-commit) install -t pre-commit
+
+
+#***********************************
+### Install worktree hooks
+#***********************************
+.PHONY : setup-worktree
+setup-worktree:
+	@echo "> installing worktree post-checkout hook"
+	@git_dir=$$(git rev-parse --git-common-dir) && \
+	cp dist/hooks/post-checkout $$git_dir/hooks/post-checkout && \
+	chmod +x $$git_dir/hooks/post-checkout && \
+	echo "> hook installed at $$git_dir/hooks/post-checkout"
 
 
 #***********************************
@@ -100,17 +111,17 @@ upgrade-dep: check-venv-active
 .PHONY : apply-uv-sync
 apply-uv-sync: check-reg check-venv sync-deps
 	@echo ">appyling uv sync on osidb-service"
-	$(podman) exec -it osidb-service uv sync --frozen --no-dev
-	@echo ">appyling uv sync on osidb_celery_1"
-	$(podman) exec -it osidb_celery_1 uv sync --frozen  --no-dev
-	@echo ">appyling uv sync on osidb_celery_2" # if you have more celery replicas, you're on your own
-	$(podman) exec -it osidb_celery_2 uv sync --frozen --no-dev || true  # do not fail if only 1 host is configured
+	$(compose) exec osidb-service uv sync --frozen --no-dev
+	@echo ">appyling uv sync on celery replica 1"
+	$(compose) exec --index 1 celery uv sync --frozen  --no-dev
+	@echo ">appyling uv sync on celery replica 2" # if you have more celery replicas, you're on your own
+	$(compose) exec --index 2 celery uv sync --frozen --no-dev || true  # do not fail if only 1 host is configured
 	@echo ">appyling uv sync on celery_beat"
-	$(podman) exec -it celery_beat uv sync --frozen --no-dev
+	$(compose) exec celery_beat uv sync --frozen --no-dev
 	@echo ">appyling uv sync on flower"
-	$(podman) exec -it flower uv sync --frozen --no-dev
+	$(compose) exec flower uv sync --frozen --no-dev
 	@echo ">appyling uv sync on testrunner"
-	$(podman) exec -it testrunner uv sync --frozen --only-dev
+	$(compose) exec testrunner uv sync --frozen --only-dev
 
 
 #***********************************
@@ -119,7 +130,7 @@ apply-uv-sync: check-reg check-venv sync-deps
 .PHONY : apply-uv-dev-sync
 apply-uv-dev-sync: check-reg check-venv sync-deps
 	@echo ">syncing dev dependencies into osidb-service"
-	$(podman) exec -it osidb-service uv sync --frozen
+	$(compose) exec osidb-service uv sync --frozen
 
 
 #***********************************
@@ -140,7 +151,7 @@ dev-rpm-install:
 .PHONY: build
 build:
 	@echo ">building docker images and deleting existing containers"
-	$(podman) compose -f docker-compose.yml -f docker-compose.test.yml down
+	$(compose) down
 	$(podman) compose -f docker-compose.yml build
 	$(podman) compose -f docker-compose.yml pull
 	$(podman) compose -f docker-compose.test.yml build

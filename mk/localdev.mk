@@ -26,7 +26,7 @@ start-local-gunicorn: check-venv generate_local_pg_tls_cert compose-up start_gun
 start-local-psql: check-reg check-venv generate_local_pg_tls_cert
 	@echo ">starting osidb-data"
 	@$(podman) compose -f docker-compose.yml start osidb-data
-	@while ! $(podman) exec -it osidb-data bash -c "( pg_isready >/dev/null 2>&1 )" ; do echo ">waiting for osidb-data" ; sleep 2 ; done
+	@while ! $(compose) exec osidb-data bash -c "( pg_isready >/dev/null 2>&1 )" 2>/dev/null ; do echo ">waiting for osidb-data" ; sleep 2 ; done
 
 
 #***********************************
@@ -36,7 +36,7 @@ start-local-psql: check-reg check-venv generate_local_pg_tls_cert
 .PHONY : stop-local
 stop-local:
 	@echo ">stopping local env without deleting containers"
-	$(podman) compose -f docker-compose.yml -f docker-compose.test.yml stop || $(podman) compose -f docker-compose.yml -f docker-compose.test.yml stop testrunner testldap flower redis celery_beat celery osidb-service osidb-data
+	$(compose) stop || $(compose) stop testrunner testldap flower redis celery_beat celery osidb-service osidb-data
 
 
 
@@ -46,9 +46,9 @@ stop-local:
 # Running inside osidb-service and not locally, because this is the most maintainable form of having access to psql in osidb-data.
 .PHONY : migrations-create
 migrations-create:
-	@if ! $(podman) exec -it osidb-service bash -c '( { curl -f http://127.0.0.1:8000/osidb/healthy >/dev/null 2>&1 || exit 1 ; } )' ; then make compose-up ; fi
+	@if ! $(compose) exec osidb-service bash -c '( { curl -f http://127.0.0.1:8000/osidb/healthy >/dev/null 2>&1 || exit 1 ; } )' 2>/dev/null ; then make compose-up ; fi
 	@echo ">creating migrations in osidb-service"
-	$(podman) exec -it osidb-service python3 manage.py makemigrations --settings config.settings_local
+	$(compose) exec osidb-service python3 manage.py makemigrations --settings config.settings_local
 
 
 #***********************************
@@ -57,9 +57,9 @@ migrations-create:
 # Running inside osidb-service and not locally, because this is the most maintainable form of having access to psql in osidb-data.
 .PHONY : migrations-apply
 migrations-apply:
-	@if ! $(podman) exec -it osidb-service bash -c '( { curl -f http://127.0.0.1:8000/osidb/healthy >/dev/null 2>&1 || exit 1 ; } )' ; then make compose-up ; fi
+	@if ! $(compose) exec osidb-service bash -c '( { curl -f http://127.0.0.1:8000/osidb/healthy >/dev/null 2>&1 || exit 1 ; } )' 2>/dev/null ; then make compose-up ; fi
 	@echo ">appyling migrations in osidb-service"
-	$(podman) exec -it osidb-service python3 manage.py migrate --settings config.settings_local
+	$(compose) exec osidb-service python3 manage.py migrate --settings config.settings_local
 
 
 #***********************************
@@ -88,15 +88,15 @@ changelog:
 restart_django_foreground:
 	@echo ">Note that after CTRL+C, django server will restart in the background, as long as osidb-service is running."
 	@sleep 0.5
-	$(podman) exec -it osidb-service pkill -f "python3 manage.py runserver"
-	$(podman) exec -it osidb-service python3 manage.py runserver 0.0.0.0:8000
+	$(compose) exec osidb-service pkill -f "python3 manage.py runserver"
+	$(compose) exec osidb-service python3 manage.py runserver 0.0.0.0:8000
 
 .PHONY : start_gunicorn_fg
 start_gunicorn_fg:
 	@echo ">Note that after CTRL+C, django server will restart in the background, as long as osidb-service is running."
 	@sleep 0.5
-	$(podman) exec -it osidb-service pkill -f "python3 manage.py runserver"
-	$(podman) exec -it osidb-service gunicorn config.wsgi --config gunicorn_config.py
+	$(compose) exec osidb-service pkill -f "python3 manage.py runserver"
+	$(compose) exec osidb-service gunicorn config.wsgi --config gunicorn_config.py
 
 
 #***********************************
@@ -106,7 +106,7 @@ start_gunicorn_fg:
 kill_django:
 	@echo ">Note that the django server restarts automatically, as long as osidb-service is running."
 	@sleep 0.5
-	$(podman) exec -it osidb-service pkill -f "python3 manage.py runserver"
+	$(compose) exec osidb-service pkill -f "python3 manage.py runserver"
 
 
 #***********************************
@@ -116,7 +116,7 @@ kill_django:
 compose-down:
 	@echo ">$(podman) compose down - stopping and deleting containers and volumes, but not deleting images"
 	@echo -n "Are you really sure? [y/N] " && read ans && [ $${ans:-N} = y ]
-	$(podman) compose -f docker-compose.yml -f docker-compose.test.yml down -v
+	$(compose) down -v
 
 
 #***********************************
@@ -124,7 +124,7 @@ compose-down:
 #***********************************
 .PHONY : shell-service
 shell-service:
-	$(podman) exec -it osidb-service python3 manage.py shell --settings=config.settings_local
+	$(compose) exec osidb-service python3 manage.py shell --settings=config.settings_local
 
 
 #***********************************
@@ -132,7 +132,7 @@ shell-service:
 #***********************************
 .PHONY : bash-service
 bash-service:
-	$(podman) exec -it osidb-service bash
+	$(compose) exec osidb-service bash
 
 
 #***********************************
@@ -140,7 +140,7 @@ bash-service:
 #***********************************
 .PHONY : shell-local
 shell-local: check-venv-active
-	OSIDB_DB_PORT=$$( $(podman) port osidb-data | awk -F':' '/5432/ { print $$2 }' ) && export OSIDB_DB_PORT && source .env && export OSIDB_DB_PASSWORD && python manage.py shell --settings=config.settings_shell
+	OSIDB_DB_PORT=$$( $(compose) port osidb-data 5432 | awk -F':' '{ print $$NF }' ) && export OSIDB_DB_PORT && source .env && export OSIDB_DB_PASSWORD && python manage.py shell --settings=config.settings_shell
 
 
 #***********************************
@@ -149,7 +149,7 @@ shell-local: check-venv-active
 .PHONY : command-local
 command-local: check-venv-active
 	@[ -f command.py ] || { echo ">You must create command.py first." ; exit 1 ; }
-	OSIDB_DB_PORT=$$( $(podman) port osidb-data | awk -F':' '/5432/ { print $$2 }' ) && export OSIDB_DB_PORT && source .env && export OSIDB_DB_PASSWORD && python manage.py shell --settings=config.settings_shell --command="$$( cat command.py )"
+	OSIDB_DB_PORT=$$( $(compose) port osidb-data 5432 | awk -F':' '{ print $$NF }' ) && export OSIDB_DB_PORT && source .env && export OSIDB_DB_PASSWORD && python manage.py shell --settings=config.settings_shell --command="$$( cat command.py )"
 
 
 #***********************************
@@ -157,7 +157,7 @@ command-local: check-venv-active
 #***********************************
 .PHONY : bash-local
 bash-local: check-venv-active
-	OSIDB_DB_PORT=$$( $(podman) port osidb-data | awk -F':' '/5432/ { print $$2 }' ) && export OSIDB_DB_PORT && source .env && export OSIDB_DB_PASSWORD && bash
+	OSIDB_DB_PORT=$$( $(compose) port osidb-data 5432 | awk -F':' '{ print $$NF }' ) && export OSIDB_DB_PORT && source .env && export OSIDB_DB_PASSWORD && bash
 
 
 #***********************************
@@ -181,13 +181,24 @@ update-secrets: check-venv-active
 
 
 #***********************************
+### Stop any running OSIDB containers from other worktrees/projects
+#***********************************
+.PHONY : stop-other-osidb
+stop-other-osidb:
+	@running=$$($(podman) ps -q --filter "label=app=osidb" 2>/dev/null); \
+	if [ -n "$$running" ]; then \
+	  echo ">stopping other OSIDB containers"; \
+	  $(podman) stop $$running; \
+	fi
+
+#***********************************
 ### podman-compose up (fetches images and starts containers)
 #***********************************
 # NOTE: Waits for osidb-service availability so that other targets can use this target without race conditions.
 .PHONY : compose-up
-compose-up:
+compose-up: stop-other-osidb
 	@echo ">compose up"
-	@$(podman) compose -f docker-compose.yml -f docker-compose.test.yml up -d
-	@while ! $(podman) exec -it osidb-service bash -c '( { curl -f http://127.0.0.1:8000/osidb/healthy >/dev/null 2>&1 || exit 1 ; } )' ; do echo ">waiting for osidb-service" ; sleep 2 ; done
+	@$(compose) up -d
+	@while ! $(compose) exec osidb-service bash -c '( { curl -f http://127.0.0.1:8000/osidb/healthy >/dev/null 2>&1 || exit 1 ; } )' 2>/dev/null ; do echo ">waiting for osidb-service" ; sleep 2 ; done
 	@sleep 2
 	@echo ">compose is up"

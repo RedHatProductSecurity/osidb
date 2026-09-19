@@ -56,7 +56,7 @@ version: '3'
 services:
 
     osidb-service:
-      container_name: osidb-service
+      labels: ["app=osidb"]
       build:
         context: .
         args:
@@ -127,10 +127,10 @@ services:
       #   retries: 3
 
     osidb-data:
+      labels: ["app=osidb"]
       image: mirror.gcr.io/library/postgres:16
       shm_size: 1gb  # Needed for more consecutive connections
       hostname: osidb-data
-      container_name: osidb-data
       environment:
         # Default connection parameter values
         PGDATABASE: osidb
@@ -156,6 +156,7 @@ services:
           -c config_file=/etc/postgresql/postgresql.conf
 
     celery:
+      labels: ["app=osidb"]
       image: localhost/osidb-service
       pull_policy: never
       command: ./scripts/run-celery.sh
@@ -208,6 +209,7 @@ services:
     # long-running jobs can't starve the "default" queue used by
     # latency-sensitive interactive tasks (Jira task sync/transition).
     celery-collectors:
+      labels: ["app=osidb"]
       image: localhost/osidb-service
       pull_policy: never
       command:
@@ -221,7 +223,7 @@ services:
       depends_on: ["osidb-data", "osidb-service", "redis"]
 
     celery_beat:
-      container_name: celery_beat
+      labels: ["app=osidb"]
       hostname: celery_beat
       image: localhost/osidb-service
       pull_policy: never
@@ -263,7 +265,7 @@ services:
       #     condition: service_started
 
     flower:
-      container_name: flower
+      labels: ["app=osidb"]
       hostname: flower
       image: localhost/osidb-service
       pull_policy: never
@@ -307,7 +309,7 @@ services:
     # Then set OSIDB_OTEL_EXPORTER_OTLP_ENDPOINT=http://<service>:4317 in .env.
 
     redis:
-      container_name: redis
+      labels: ["app=osidb"]
       hostname: redis
       image: mirror.gcr.io/library/redis:6
       ports:
