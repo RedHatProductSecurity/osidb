@@ -32,6 +32,8 @@ urlpatterns = [
     path("osidb/", include("osidb.urls")),
     # Trackers
     path("trackers/", include("apps.trackers.urls")),
+    # Stats
+    path("stats/", include("apps.stats.urls")),
     # auth
     token_obtain_path,
     path("auth/token/refresh", refresh_token, name="token_refresh"),
