@@ -1404,6 +1404,64 @@ class TestTrackerSuggestions:
         assert all(stream["offer"] is not None for stream in res["streams_components"])
 
 
+class TestStreamImpactThreshold:
+    """Tests for the per-stream minimum impact gate in file_tracker_offer."""
+
+    @pytest.mark.parametrize(
+        "affect_impact,expects_offer",
+        [
+            (Impact.LOW, False),
+            (Impact.MODERATE, False),
+            (Impact.IMPORTANT, False),
+            (Impact.CRITICAL, True),
+        ],
+    )
+    def test_no_offer_below_stream_impact(self, affect_impact, expects_offer):
+        ps_module = PsModuleFactory()
+        stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            default_to_ps_module=ps_module,
+            minimal_impact=Impact.CRITICAL,
+        )
+        # the flaw stays CRITICAL while the affect impact is downgraded, so the
+        # gate must key off the affect's aggregated impact - not the flaw impact
+        # the caller passes in - to honour the threshold
+        flaw = FlawFactory(impact=Impact.CRITICAL)
+        affect = AffectFactory(
+            flaw=flaw,
+            impact=affect_impact,
+            ps_update_stream=stream.name,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+
+        offer = ProductDefinitionRules().file_tracker_offer(affect, flaw.impact, stream)
+        if expects_offer:
+            assert offer is not None
+            assert offer["ps_update_stream"] == stream.name
+        else:
+            assert offer is None
+
+    def test_offer_when_stream_has_no_impact(self):
+        """Streams without an impact threshold keep the standard behaviour."""
+        ps_module = PsModuleFactory()
+        stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            default_to_ps_module=ps_module,
+        )
+        affect = AffectFactory(
+            ps_update_stream=stream.name,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+
+        offer = ProductDefinitionRules().file_tracker_offer(affect, Impact.LOW, stream)
+        assert offer is not None
+        assert offer["ps_update_stream"] == stream.name
+
+
 class TestDefaultHandler:
     @pytest.mark.parametrize(
         "impact,is_applicable",

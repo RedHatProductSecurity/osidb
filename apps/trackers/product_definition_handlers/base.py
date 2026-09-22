@@ -29,6 +29,13 @@ class ProductDefinitionRules:
         if not ps_update_stream.is_active:
             return None
 
+        # Do not offer streams whose configured minimum impact is above the
+        # affect's aggregated impact - no tracker should be filed below the threshold.
+        if ps_update_stream.minimal_impact and affect.aggregated_impact < Impact(
+            ps_update_stream.minimal_impact
+        ):
+            return None
+
         if (
             exclude_existing_trackers
             and affect.tracker is not None
