@@ -700,6 +700,71 @@ class TestAutoResolve:
         assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
         assert affect.resolution == Affect.AffectResolution.DELEGATED
 
+    # ── stream impact threshold ──────────────────────────────────────────────
+
+    @pytest.mark.parametrize("impact", [Impact.LOW, Impact.MODERATE, Impact.IMPORTANT])
+    def test_defer_below_stream_impact_threshold(
+        self, impact, ps_stream_with_impact_threshold, flaw_with_cvss
+    ):
+        """Impact below the stream's configured minimum impact is deferred."""
+        stream = ps_stream_with_impact_threshold(Impact.CRITICAL)
+        # high CVSS so the MODERATE case is not deferred by the CVSS rule instead
+        flaw = flaw_with_cvss(impact, "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N")
+        affect = AffectFactory.build(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            impact=impact,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DEFER
+        assert "below the minimum impact" in affect.affectedness_explanation
+        assert "CRITICAL" in affect.affectedness_explanation
+
+    def test_delegated_at_stream_impact_threshold(
+        self, ps_stream_with_impact_threshold
+    ):
+        """Impact equal to the stream's configured minimum impact is delegated."""
+        stream = ps_stream_with_impact_threshold(Impact.IMPORTANT)
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.IMPORTANT),
+            ps_update_stream=stream.name,
+            impact=Impact.IMPORTANT,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DELEGATED
+
+    def test_delegated_above_stream_impact_threshold(
+        self, ps_stream_with_impact_threshold
+    ):
+        """Impact above the stream's configured minimum impact is delegated."""
+        stream = ps_stream_with_impact_threshold(Impact.IMPORTANT)
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.CRITICAL),
+            ps_update_stream=stream.name,
+            impact=Impact.CRITICAL,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DELEGATED
+
+    def test_stream_impact_threshold_skipped_for_community(
+        self, ps_stream_with_impact_threshold
+    ):
+        """Community streams ignore the stream impact threshold (always informed)."""
+        stream = ps_stream_with_impact_threshold(Impact.CRITICAL)
+        stream.ps_module.ps_product.business_unit = "Community"
+        stream.ps_module.ps_product.save()
+        affect = AffectFactory.build(
+            flaw=FlawFactory(impact=Impact.LOW),
+            ps_update_stream=stream.name,
+            impact=Impact.LOW,
+        )
+        affect.auto_resolve()
+        assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+        assert affect.resolution == Affect.AffectResolution.DELEGATED
+
     # ── Hummingbird (HUM) skips mod7 DEFER check ────────────────────────────
 
     def test_hummingbird_low_impact_skips_defer(

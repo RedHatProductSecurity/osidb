@@ -987,6 +987,21 @@ class Affect(
         # AFFECTED/DEFER — low severity or moderate without high CVSS (non-community)
         # Hummingbird (HUM) modules and UBI packages skip this check and always get AFFECTED/DELEGATED
         if not is_community and not self.is_hummingbird() and not self.is_ubi():
+            # AFFECTED/DEFER — impact below the stream's configured minimum impact.
+            # A stream may declare the lowest impact for which trackers are filed;
+            # affects below that threshold are deferred (no tracker).
+            if ps_update_stream_obj.minimal_impact and impact < Impact(
+                ps_update_stream_obj.minimal_impact
+            ):
+                self.resolution = self.AffectResolution.DEFER
+                self.affectedness_explanation = (
+                    f"Impact {impact.value or 'NOVALUE'} is below the minimum impact "
+                    f"'{ps_update_stream_obj.minimal_impact}' configured for stream "
+                    f"'{self.ps_update_stream}'. Resolution set to DEFER as no trackers "
+                    "are filed below the stream's impact threshold."
+                )
+                self._auto_resolved = True
+                return
             if impact == Impact.LOW:
                 self.resolution = self.AffectResolution.DEFER
                 self.affectedness_explanation = "Impact is LOW. Resolution set to DEFER as we do not file trackers for LOW severity."
