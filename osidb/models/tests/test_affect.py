@@ -278,6 +278,156 @@ class TestAffect:
             exc_info.value
         )
 
+    def test_validate_delegated_below_stream_impact(self):
+        """A new AFFECTED:DELEGATED affect below the stream's threshold is rejected."""
+        ps_module = PsModuleFactory(ps_product=PsProductFactory(business_unit="RHEL"))
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            minimal_impact=Impact.CRITICAL,
+        )
+        flaw = FlawFactory(impact=Impact.IMPORTANT)
+        with pytest.raises(ValidationError) as exc_info:
+            AffectFactory(
+                flaw=flaw,
+                ps_update_stream=ps_update_stream.name,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                impact=Impact.IMPORTANT,
+            )
+        assert "below the minimum impact" in str(exc_info.value)
+        assert "CRITICAL" in str(exc_info.value)
+
+    def test_validate_existing_delegated_below_stream_impact(self):
+        """
+        An existing AFFECTED:DELEGATED affect that ends up below the threshold
+        after the stream's minimum impact is raised gets a non-blocking alert
+        assigned instead of being hard-rejected on subsequent saves.
+        """
+        ps_module = PsModuleFactory(ps_product=PsProductFactory(business_unit="RHEL"))
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            minimal_impact="",
+        )
+        flaw = FlawFactory(impact=Impact.CRITICAL)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=Impact.IMPORTANT,
+        )
+
+        # the stream raises its minimum impact above the existing affect's impact
+        ps_update_stream.minimal_impact = Impact.CRITICAL
+        ps_update_stream.save()
+
+        # re-saving the existing affect must not raise ...
+        affect.save()
+
+        # ... but records an alert prompting migration of its resolution
+        assert affect.valid_alerts.filter(
+            name="affect_delegated_below_stream_impact"
+        ).exists()
+
+    def test_validate_transition_to_delegated_below_stream_impact(self):
+        """
+        An existing below-threshold affect newly transitioned into
+        AFFECTED:DELEGATED is hard-rejected, not exempted.
+        """
+        ps_module = PsModuleFactory(ps_product=PsProductFactory(business_unit="RHEL"))
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            minimal_impact=Impact.CRITICAL,
+        )
+        flaw = FlawFactory(impact=Impact.IMPORTANT)
+        # created below the threshold but not delegated, so it is allowed
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DEFER,
+            impact=Impact.IMPORTANT,
+        )
+
+        # transitioning it into DELEGATED below the threshold must be rejected
+        affect.resolution = Affect.AffectResolution.DELEGATED
+        with pytest.raises(ValidationError) as exc_info:
+            affect.save()
+        assert "below the minimum impact" in str(exc_info.value)
+        assert "CRITICAL" in str(exc_info.value)
+
+    def test_validate_delegated_impact_lowered_below_stream_impact(self):
+        """
+        An already AFFECTED:DELEGATED affect whose impact is lowered below the
+        threshold only gets an alert, as it may already have a tracker filed.
+        """
+        ps_module = PsModuleFactory(ps_product=PsProductFactory(business_unit="RHEL"))
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            minimal_impact=Impact.IMPORTANT,
+        )
+        flaw = FlawFactory(impact=Impact.CRITICAL)
+        # created delegated above the threshold, so it is allowed
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=Impact.CRITICAL,
+        )
+
+        # lowering the impact below the threshold must not raise ...
+        affect.impact = Impact.LOW
+        affect.save()
+
+        # ... but records an alert prompting migration of its resolution
+        assert affect.valid_alerts.filter(
+            name="affect_delegated_below_stream_impact"
+        ).exists()
+
+    @pytest.mark.parametrize("impact", [Impact.IMPORTANT, Impact.CRITICAL])
+    def test_validate_delegated_at_or_above_stream_impact(self, impact):
+        """AFFECTED:DELEGATED at or above the stream's impact threshold passes."""
+        ps_module = PsModuleFactory(ps_product=PsProductFactory(business_unit="RHEL"))
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            minimal_impact=Impact.IMPORTANT,
+        )
+        flaw = FlawFactory(impact=Impact.CRITICAL)
+        # should not raise
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=impact,
+        )
+        assert affect.resolution == Affect.AffectResolution.DELEGATED
+
+    def test_validate_delegated_no_stream_impact(self):
+        """AFFECTED:DELEGATED passes when the stream has no impact threshold."""
+        ps_module = PsModuleFactory(ps_product=PsProductFactory(business_unit="RHEL"))
+        ps_update_stream = PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            minimal_impact="",
+        )
+        flaw = FlawFactory(impact=Impact.LOW)
+        # should not raise - without a threshold the standard rules apply
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=Impact.LOW,
+        )
+        assert affect.resolution == Affect.AffectResolution.DELEGATED
+
     @pytest.mark.parametrize(
         "purl",
         [

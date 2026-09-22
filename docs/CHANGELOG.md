@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add experimental read-only stats aggregation endpoint `GET /stats/api/v1beta/flaws`
   returning `COUNT(DISTINCT flaw)` grouped by chosen dimensions (OSIDB-5290)
+- Add PS update stream `minimal_impact` field defining the lowest impact for tracker filing (OSIDB-4813)
 
 ### Changed
 - Change default,collectors queues for high/low priority queues (OSIDB-5513)

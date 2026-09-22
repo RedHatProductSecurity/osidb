@@ -9,6 +9,7 @@ from django.db.models.functions import Collate
 
 from osidb.mixins import NullStrFieldsMixin, ValidateMixin
 
+from .abstract import Impact
 from .ps_module import PsModule
 
 
@@ -65,6 +66,10 @@ class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
     additional_fields = models.JSONField(default=dict, blank=True)
     collections = fields.ArrayField(models.TextField(), default=list, blank=True)
     flags = fields.ArrayField(models.TextField(), default=list, blank=True)
+
+    # lowest impact for which trackers should be filed for this stream;
+    # blank means no threshold - the standard impact rules apply.
+    minimal_impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 
     # related PS Module
     ps_module = models.ForeignKey(
