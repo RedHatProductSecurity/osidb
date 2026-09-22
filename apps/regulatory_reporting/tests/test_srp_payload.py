@@ -745,6 +745,19 @@ class TestPrepare72hPayloadIncident:
 
 
 class TestPrepare72hPayloadMissingFields:
+    def test_missing_copied_or_updated_fields_reported(self):
+        report = _create_vulnerability_report(
+            report_attrs={"member_states_available": []},
+        )
+        m72 = _prepare_chain_up_to_72h(report)
+
+        prepare_72h_payload(m72)
+
+        missing = json.loads(m72.missing_required_fields)
+        assert "member_states_available" in missing
+        assert "product_name" in missing
+        assert "product_version" in missing
+
     def test_missing_general_information_when_no_data(self):
         report = _create_vulnerability_report()
         _clear_flaw_fields(
@@ -982,6 +995,19 @@ class TestPrepareFinalPayloadIncident:
 
 
 class TestPrepareFinalPayloadMissingFields:
+    def test_missing_copied_or_updated_fields_reported(self):
+        report = _create_vulnerability_report(
+            report_attrs={"member_states_available": []},
+        )
+        mfinal = _prepare_chain_up_to_final(report)
+
+        prepare_final_payload(mfinal)
+
+        missing = json.loads(mfinal.missing_required_fields)
+        assert "member_states_available" in missing
+        assert "product_name" in missing
+        assert "product_version" in missing
+
     def test_missing_full_description_when_empty(self):
         report = _create_vulnerability_report()
         _clear_flaw_fields(
@@ -1592,6 +1618,24 @@ class TestSRPReportMilestoneSerializerPayloadFields:
 
         assert payload_field["missing"] is True
         assert "manufacturer_or_steward_name" in missing
+
+    def test_copied_or_updated_missing_fields_are_serialized(self):
+        report = _create_vulnerability_report(
+            report_attrs={"member_states_available": []},
+        )
+        milestone = _prepare_chain_up_to_72h(report)
+
+        data = SRPReportMilestoneSerializer(milestone).data
+        payload_field = next(
+            field
+            for field in data["payload_fields"]
+            if field["key"] == "member_states_available"
+        )
+        missing = json.loads(data["missing_required_fields"])
+
+        assert payload_field["requirement"] == "copied_or_updated"
+        assert payload_field["missing"] is True
+        assert "member_states_available" in missing
 
 
 # ── Step 5: Serializer validation of additional_details keys ──

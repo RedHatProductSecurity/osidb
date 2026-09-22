@@ -16,7 +16,7 @@ from apps.regulatory_reporting.constants import ENISA_STATE_CODES
 from apps.regulatory_reporting.models import SRPReport, SRPReportMilestone
 from apps.regulatory_reporting.payload_fields import (
     INVALID_PAYLOAD_OVERRIDE,
-    REQUIREMENT_REQUIRED,
+    MISSING_REQUIRED_REQUIREMENTS,
     get_payload_field_definition_map,
     normalise_payload_override_value,
 )
@@ -143,7 +143,8 @@ class SRPReportMilestoneSerializer(
         missing = [
             field["key"]
             for field in self._get_payload_fields(instance)
-            if field["requirement"] == REQUIREMENT_REQUIRED and field["missing"]
+            if field["requirement"] in MISSING_REQUIRED_REQUIREMENTS
+            and field["missing"]
         ]
         return json.dumps(missing)
 

@@ -18,7 +18,7 @@ from apps.regulatory_reporting.payload_fields import (
     get_copied_or_updated_payload_keys,
     get_overridable_payload_keys,
     get_payload_field_definition_map,
-    get_required_payload_keys,
+    get_required_or_copied_payload_keys,
     normalise_payload_override_value,
 )
 from osidb.models import Flaw, FlawCVSS
@@ -410,7 +410,9 @@ class SRPPayloadBuilder:
         }
 
     def _get_required_fields(self):
-        return get_required_payload_keys(
+        # copied_or_updated fields must be either copied from a prior milestone
+        # or completed by a coordinator, so absent values block submission too.
+        return get_required_or_copied_payload_keys(
             self.srp_report.reportable_event_type,
             self.milestone.milestone_type,
         )
@@ -419,7 +421,7 @@ class SRPPayloadBuilder:
         missing = []
         for key in self._get_required_fields():
             value = payload.get(key, "")
-            if not value or value == "[]":
+            if not self._has_payload_value(value):
                 missing.append(key)
         return missing
 

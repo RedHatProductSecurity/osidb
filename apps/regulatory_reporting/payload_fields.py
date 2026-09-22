@@ -29,6 +29,10 @@ REQUIREMENT_OPTIONAL = "optional"
 REQUIREMENT_REQUIRED = "required"
 REQUIREMENT_REQUIRED_IF_AVAILABLE = "required_if_available"
 
+MISSING_REQUIRED_REQUIREMENTS = frozenset(
+    {REQUIREMENT_REQUIRED, REQUIREMENT_COPIED_OR_UPDATED}
+)
+
 DERIVED_DISPLAY_MODE = "derived_readonly"
 
 EU_MEMBER_STATE_OPTIONS = sorted(ENISA_STATE_CODES)
@@ -709,6 +713,14 @@ def get_required_payload_keys(event_type, milestone_type):
     ]
 
 
+def get_required_or_copied_payload_keys(event_type, milestone_type):
+    return [
+        field["key"]
+        for field in get_payload_field_definitions(event_type, milestone_type)
+        if field["requirements"][milestone_type] in MISSING_REQUIRED_REQUIREMENTS
+    ]
+
+
 def get_conditionally_required_payload_keys(event_type, milestone_type):
     return [
         field["key"]
@@ -773,7 +785,7 @@ def build_payload_field_rows(
             "value": value,
             "missing": field["key"] in missing_keys
             or (
-                field["requirements"][milestone_type] == REQUIREMENT_REQUIRED
+                field["requirements"][milestone_type] in MISSING_REQUIRED_REQUIREMENTS
                 and _is_empty(value)
             ),
             "source": (
