@@ -4,6 +4,7 @@ Serializers for SRP (Single Reporting Platform) models.
 Provides REST API serialization for CRA compliance reporting.
 """
 
+import json
 import uuid
 
 from django.db import IntegrityError, transaction
@@ -13,7 +14,13 @@ from rest_framework import serializers
 
 from apps.regulatory_reporting.constants import ENISA_STATE_CODES
 from apps.regulatory_reporting.models import SRPReport, SRPReportMilestone
-from apps.regulatory_reporting.services import get_overridable_keys
+from apps.regulatory_reporting.payload_fields import (
+    INVALID_PAYLOAD_OVERRIDE,
+    MISSING_REQUIRED_REQUIREMENTS,
+    get_payload_field_definition_map,
+    normalise_payload_override_value,
+)
+from apps.regulatory_reporting.services import get_overridable_keys, get_payload_fields
 from osidb.core import generate_acls
 from osidb.models import Flaw
 from osidb.serializer import (
@@ -53,6 +60,15 @@ class SRPReportMilestoneSerializer(
             "Values here override auto-derived payload fields at submission time."
         ),
     )
+    payload_fields = serializers.SerializerMethodField(
+        help_text=(
+            "Ordered SRP payload form fields with labels, values, input type, "
+            "requiredness, editability, and options for this milestone."
+        )
+    )
+    missing_required_fields = serializers.SerializerMethodField(
+        help_text="Missing required fields"
+    )
     due_at = serializers.DateTimeField(required=False, allow_null=True)
     hours_remaining = serializers.IntegerField(read_only=True, allow_null=True)
     days_remaining = serializers.IntegerField(read_only=True, allow_null=True)
@@ -82,6 +98,8 @@ class SRPReportMilestoneSerializer(
                 "milestone_type",
                 "status",
                 "additional_details",
+                "payload_fields",
+                "missing_required_fields",
                 "request_received_at",
                 "request_source",
                 "request_text",
@@ -104,6 +122,8 @@ class SRPReportMilestoneSerializer(
             "uuid",
             "srp_report",
             "milestone_type",
+            "payload_fields",
+            "missing_required_fields",
             "created_dt",
             "updated_dt",
             "hours_remaining",
@@ -113,6 +133,31 @@ class SRPReportMilestoneSerializer(
             "acl_write",
             "alerts",
         ]
+
+    @extend_schema_field({"type": "array", "items": {"type": "object"}})
+    def get_payload_fields(self, instance):
+        return self._get_payload_fields(instance)
+
+    @extend_schema_field({"type": "string"})
+    def get_missing_required_fields(self, instance):
+        missing = [
+            field["key"]
+            for field in self._get_payload_fields(instance)
+            if field["requirement"] in MISSING_REQUIRED_REQUIREMENTS
+            and field["missing"]
+        ]
+        return json.dumps(missing)
+
+    def _get_payload_fields(self, instance):
+        cache = getattr(self, "_srp_payload_fields_cache", None)
+        if cache is None:
+            cache = {}
+            self._srp_payload_fields_cache = cache
+
+        key = instance.pk or id(instance)
+        if key not in cache:
+            cache[key] = get_payload_fields(instance)
+        return cache[key]
 
     def validate_additional_details(self, value):
         if not isinstance(value, dict):
@@ -136,15 +181,38 @@ class SRPReportMilestoneSerializer(
     def validate(self, attrs):
         attrs = super().validate(attrs)
         details = attrs.get("additional_details")
-        if details and self.instance:
+        if details is not None and self.instance:
             event_type = self.instance.srp_report.reportable_event_type
-            allowed = get_overridable_keys(self.instance.milestone_type, event_type)
+            milestone_type = self.instance.milestone_type
+            allowed = get_overridable_keys(milestone_type, event_type)
             unknown = set(details.keys()) - allowed
             if unknown:
                 raise serializers.ValidationError(
                     {
                         "additional_details": (
                             f"Unknown or non-overridable keys: {sorted(unknown)}"
+                        )
+                    }
+                )
+            field_by_key = get_payload_field_definition_map(event_type, milestone_type)
+            invalid = []
+            for key, value in details.items():
+                field = field_by_key.get(key)
+                if field is None:
+                    invalid.append(key)
+                    continue
+                if (
+                    normalise_payload_override_value(field, value)
+                    is INVALID_PAYLOAD_OVERRIDE
+                ):
+                    invalid.append(key)
+            if invalid:
+                raise serializers.ValidationError(
+                    {
+                        "additional_details": (
+                            "Invalid values for keys: "
+                            f"{sorted(invalid)}. Values must match the "
+                            "field input_type and options."
                         )
                     }
                 )

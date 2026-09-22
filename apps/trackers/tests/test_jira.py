@@ -877,11 +877,13 @@ class TestBothNewOldTrackerJiraQueryBuilder:
 
         target_release_field = JiraProjectFieldsFactory(
             project_key=ps_module.bts_key,
+            field_id="customfield_target_release",
             field_name="Target Release",
             allowed_values=[target_release_value],
         )
         target_version_field = JiraProjectFieldsFactory(
             project_key=ps_module.bts_key,
+            field_id="customfield_target_version",
             field_name="Target Version",
             allowed_values=[target_release_value],
         )

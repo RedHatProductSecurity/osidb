@@ -5,6 +5,7 @@ import pytest
 from django.utils import timezone
 
 from apps.regulatory_reporting.models import SRPReport, SRPReportMilestone
+from apps.regulatory_reporting.payload_fields import get_payload_field_definitions
 from apps.regulatory_reporting.serializers import (
     SRPReportMilestoneCreateSerializer,
     SRPReportMilestoneSerializer,
@@ -95,6 +96,103 @@ def _prepare_chain_up_to_final(report):
     prepare_72h_payload(m72)
     m72.save()
     return _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_FINAL)
+
+
+COPIED_OR_UPDATED_72H_KEYS = {
+    SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED: frozenset(
+        {
+            "aev_detected_at",
+            "component_name",
+            "cve_id",
+            "end_of_support",
+            "euvd_id",
+            "manufacturer_or_steward_name",
+            "member_states_available",
+            "mitigating_measure_expected_shortly",
+            "notification_type",
+            "product_category",
+            "product_class",
+            "product_name",
+            "product_type",
+            "product_version",
+            "report_title",
+            "summary",
+            "user_action_able_to_reduce_impact",
+        }
+    ),
+    SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED: frozenset(
+        {
+            "component_name",
+            "end_of_support",
+            "incident_detected_at",
+            "manufacturer_or_steward_name",
+            "member_states_available",
+            "mitigating_measure_expected_shortly",
+            "notification_type",
+            "product_category",
+            "product_class",
+            "product_name",
+            "product_type",
+            "product_version",
+            "report_title",
+            "summary",
+            "suspected_unlawful_or_malicious_acts",
+            "user_action_able_to_reduce_impact",
+        }
+    ),
+}
+
+COPIED_OR_UPDATED_FINAL_KEYS = {
+    SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED: frozenset(
+        {
+            "aev_detected_at",
+            "component_name",
+            "cve_id",
+            "end_of_support",
+            "euvd_id",
+            "further_information",
+            "general_information",
+            "general_nature_of_exploit",
+            "general_nature_of_vulnerability",
+            "information_sensitivity",
+            "manufacturer_or_steward_name",
+            "member_states_available",
+            "mitigating_measure_expected_shortly",
+            "notification_type",
+            "product_category",
+            "product_class",
+            "product_name",
+            "product_type",
+            "product_version",
+            "report_title",
+            "summary",
+            "user_action_able_to_reduce_impact",
+        }
+    ),
+    SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED: frozenset(
+        {
+            "component_name",
+            "end_of_support",
+            "general_incident_information",
+            "incident_detected_at",
+            "information_sensitivity",
+            "initial_incident_assessment",
+            "manufacturer_or_steward_name",
+            "member_states_available",
+            "mitigating_measure_expected_shortly",
+            "notification_type",
+            "product_category",
+            "product_class",
+            "product_name",
+            "product_type",
+            "product_version",
+            "report_title",
+            "summary",
+            "suspected_unlawful_or_malicious_acts",
+            "user_action_able_to_reduce_impact",
+        }
+    ),
+}
 
 
 # ── 24h Milestone Tests ──
@@ -295,8 +393,10 @@ class TestPrepare24hPayloadMissingFields:
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         prepare_24h_payload(milestone)
         missing = json.loads(milestone.missing_required_fields)
-        assert "product_type" in missing
-        assert "product_category" in missing
+        assert "product_name" in missing
+        assert "product_version" in missing
+        assert "product_type" not in missing
+        assert "product_category" not in missing
 
     def test_empty_member_states_listed_as_missing(self):
         report = _create_vulnerability_report(
@@ -312,7 +412,7 @@ class TestPrepare24hPayloadMissingFields:
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         prepare_24h_payload(milestone)
         missing = json.loads(milestone.missing_required_fields)
-        assert "cve_id" in missing
+        assert "cve_id" not in missing
 
     def test_no_missing_cve_id_when_present(self):
         report = _create_vulnerability_report(cve_id="CVE-2026-99999")
@@ -332,18 +432,30 @@ class TestPrepare24hPayloadMissingFields:
 
     def test_no_missing_product_identity_when_affects_exist(self):
         report = _create_vulnerability_report()
-        AffectFactory(flaw=report.flaw, ps_module="rhel-9", ps_component="kernel")
+        ps_module = PsModuleFactory(
+            name="rhel-9",
+            ps_product__name="Red Hat Enterprise Linux",
+        )
+        AffectFactory(
+            flaw=report.flaw,
+            ps_module=ps_module.name,
+            ps_component="kernel",
+        )
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         prepare_24h_payload(milestone)
         missing = json.loads(milestone.missing_required_fields)
         assert "product_identity" not in missing
+        assert "product_name" not in missing
+        assert "product_version" not in missing
 
     def test_missing_product_identity_when_no_affects(self):
         report = _create_vulnerability_report()
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         prepare_24h_payload(milestone)
         missing = json.loads(milestone.missing_required_fields)
-        assert "product_identity" in missing
+        assert "product_identity" not in missing
+        assert "product_name" in missing
+        assert "product_version" in missing
 
 
 class TestPrepare24hPayloadMetaAttr:
@@ -441,6 +553,72 @@ class TestPrepare72hPayloadCarryForward:
         payload = json.loads(m72.meta_attr["payload_snapshot"])
         assert isinstance(payload, dict)
         assert "notification_type" in payload
+
+    @pytest.mark.parametrize(
+        "event_type",
+        [
+            SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
+            SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+        ],
+    )
+    def test_copied_or_updated_fields_from_24h_win_over_generated_values(
+        self, event_type
+    ):
+        report = _create_vulnerability_report(reportable_event_type=event_type)
+        m24 = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
+        prepare_24h_payload(m24)
+        previous_payload = json.loads(m24.meta_attr["payload_snapshot"])
+        copied_keys = COPIED_OR_UPDATED_72H_KEYS[event_type]
+
+        for key in copied_keys:
+            previous_payload[key] = (
+                json.dumps(["DE", "FR"])
+                if key == "member_states_available"
+                else f"24h value for {key}"
+            )
+        m24.meta_attr["payload_snapshot"] = json.dumps(previous_payload)
+        m24.save()
+
+        m72 = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_72H)
+        prepare_72h_payload(m72)
+        payload = json.loads(m72.meta_attr["payload_snapshot"])
+
+        for key in copied_keys:
+            assert payload[key] == previous_payload[key]
+
+
+class TestPrepareFinalPayloadSnapshotCarryForward:
+    @pytest.mark.parametrize(
+        "event_type",
+        [
+            SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
+            SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+        ],
+    )
+    def test_copied_or_updated_fields_from_72h_win_over_generated_values(
+        self, event_type
+    ):
+        report = _create_vulnerability_report(reportable_event_type=event_type)
+        m72 = _prepare_chain_up_to_72h(report)
+        prepare_72h_payload(m72)
+        previous_payload = json.loads(m72.meta_attr["payload_snapshot"])
+        copied_keys = COPIED_OR_UPDATED_FINAL_KEYS[event_type]
+
+        for key in copied_keys:
+            previous_payload[key] = (
+                json.dumps(["DE", "FR"])
+                if key == "member_states_available"
+                else f"72h value for {key}"
+            )
+        m72.meta_attr["payload_snapshot"] = json.dumps(previous_payload)
+        m72.save()
+
+        mfinal = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_FINAL)
+        prepare_final_payload(mfinal)
+        payload = json.loads(mfinal.meta_attr["payload_snapshot"])
+
+        for key in copied_keys:
+            assert payload[key] == previous_payload[key]
 
 
 class TestPrepare72hPayloadVulnerability:
@@ -567,6 +745,19 @@ class TestPrepare72hPayloadIncident:
 
 
 class TestPrepare72hPayloadMissingFields:
+    def test_missing_copied_or_updated_fields_reported(self):
+        report = _create_vulnerability_report(
+            report_attrs={"member_states_available": []},
+        )
+        m72 = _prepare_chain_up_to_72h(report)
+
+        prepare_72h_payload(m72)
+
+        missing = json.loads(m72.missing_required_fields)
+        assert "member_states_available" in missing
+        assert "product_name" in missing
+        assert "product_version" in missing
+
     def test_missing_general_information_when_no_data(self):
         report = _create_vulnerability_report()
         _clear_flaw_fields(
@@ -804,6 +995,19 @@ class TestPrepareFinalPayloadIncident:
 
 
 class TestPrepareFinalPayloadMissingFields:
+    def test_missing_copied_or_updated_fields_reported(self):
+        report = _create_vulnerability_report(
+            report_attrs={"member_states_available": []},
+        )
+        mfinal = _prepare_chain_up_to_final(report)
+
+        prepare_final_payload(mfinal)
+
+        missing = json.loads(mfinal.missing_required_fields)
+        assert "member_states_available" in missing
+        assert "product_name" in missing
+        assert "product_version" in missing
+
     def test_missing_full_description_when_empty(self):
         report = _create_vulnerability_report()
         _clear_flaw_fields(
@@ -901,13 +1105,13 @@ class TestAdditionalDetailsOverride:
         report = _create_vulnerability_report()
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         milestone.additional_details = {
-            "product_type": "software",
-            "product_category": "operating_system",
+            "product_name": "Red Hat Enterprise Linux",
+            "product_version": "9",
         }
         prepare_24h_payload(milestone)
         missing = json.loads(milestone.missing_required_fields)
-        assert "product_type" not in missing
-        assert "product_category" not in missing
+        assert "product_name" not in missing
+        assert "product_version" not in missing
 
     def test_missing_required_field_still_reported_when_not_in_additional_details(self):
         """Required fields absent from both auto-derived and additional_details are still missing."""
@@ -916,12 +1120,13 @@ class TestAdditionalDetailsOverride:
         )
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         milestone.additional_details = {
-            "product_type": "software"
+            "product_name": "Red Hat Enterprise Linux"
         }  # only satisfies one
         prepare_24h_payload(milestone)
         missing = json.loads(milestone.missing_required_fields)
-        assert "product_category" in missing  # not in additional_details
-        assert "product_type" not in missing  # was supplied
+        assert "manufacturer_or_steward_name" in missing
+        assert "product_version" in missing  # not in additional_details
+        assert "product_name" not in missing  # was supplied
 
     def test_empty_additional_details_has_no_effect(self):
         """Empty additional_details is a no-op — regression guard."""
@@ -970,6 +1175,50 @@ class TestAdditionalDetailsOverride:
         payload = json.loads(milestone.meta_attr["payload_snapshot"])
         # auto-derived default (empty string) wins because 42 was rejected
         assert payload["product_type"] == ""
+
+    def test_invalid_option_value_is_dropped(self):
+        """Option-backed fields reject values outside the field metadata options."""
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+        )
+        milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
+        milestone.additional_details = {"suspected_unlawful_or_malicious_acts": "Maybe"}
+        prepare_24h_payload(milestone)
+        payload = json.loads(milestone.meta_attr["payload_snapshot"])
+        missing = json.loads(milestone.missing_required_fields)
+        rejected = json.loads(milestone.meta_attr["rejected_override_keys"])
+        assert payload["suspected_unlawful_or_malicious_acts"] == ""
+        assert "suspected_unlawful_or_malicious_acts" in missing
+        assert rejected == ["suspected_unlawful_or_malicious_acts"]
+
+    def test_valid_option_value_is_accepted(self):
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+        )
+        milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
+        milestone.additional_details = {
+            "suspected_unlawful_or_malicious_acts": "Unknown"
+        }
+        prepare_24h_payload(milestone)
+        payload = json.loads(milestone.meta_attr["payload_snapshot"])
+        missing = json.loads(milestone.missing_required_fields)
+        assert payload["suspected_unlawful_or_malicious_acts"] == "Unknown"
+        assert "suspected_unlawful_or_malicious_acts" not in missing
+
+    def test_invalid_datetime_value_is_dropped(self):
+        """Datetime fields reject unparseable strings and remain missing."""
+        report = _create_vulnerability_report()
+        mfinal = _prepare_chain_up_to_final(report)
+        mfinal.additional_details = {
+            "corrective_or_mitigating_measure_available_at": "not-a-date"
+        }
+        prepare_final_payload(mfinal)
+        payload = json.loads(mfinal.meta_attr["payload_snapshot"])
+        missing = json.loads(mfinal.missing_required_fields)
+        rejected = json.loads(mfinal.meta_attr["rejected_override_keys"])
+        assert payload["corrective_or_mitigating_measure_available_at"] == ""
+        assert "corrective_or_mitigating_measure_available_at" in missing
+        assert rejected == ["corrective_or_mitigating_measure_available_at"]
 
     def test_member_states_available_list_is_json_serialised(self):
         """A list override for member_states_available is converted to a
@@ -1350,6 +1599,45 @@ class TestConditionallyRequiredFields:
         assert "known_or_suspected_malicious_actor" not in required_missing
 
 
+class TestSRPReportMilestoneSerializerPayloadFields:
+    def test_missing_required_fields_matches_payload_fields(self):
+        """Serializer recomputes top-level missing fields from fresh payload rows."""
+        report = _create_vulnerability_report(
+            report_attrs={"manufacturer_or_steward_name": ""},
+        )
+        milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
+        milestone.missing_required_fields = json.dumps([])
+
+        data = SRPReportMilestoneSerializer(milestone).data
+        payload_field = next(
+            field
+            for field in data["payload_fields"]
+            if field["key"] == "manufacturer_or_steward_name"
+        )
+        missing = json.loads(data["missing_required_fields"])
+
+        assert payload_field["missing"] is True
+        assert "manufacturer_or_steward_name" in missing
+
+    def test_copied_or_updated_missing_fields_are_serialized(self):
+        report = _create_vulnerability_report(
+            report_attrs={"member_states_available": []},
+        )
+        milestone = _prepare_chain_up_to_72h(report)
+
+        data = SRPReportMilestoneSerializer(milestone).data
+        payload_field = next(
+            field
+            for field in data["payload_fields"]
+            if field["key"] == "member_states_available"
+        )
+        missing = json.loads(data["missing_required_fields"])
+
+        assert payload_field["requirement"] == "copied_or_updated"
+        assert payload_field["missing"] is True
+        assert "member_states_available" in missing
+
+
 # ── Step 5: Serializer validation of additional_details keys ──
 
 
@@ -1428,6 +1716,26 @@ class TestAdditionalDetailsKeyValidation:
         ser = _milestone_patch_serializer(m72, {"pec": "delayed"})
         assert ser.is_valid(), ser.errors
 
+    def test_invalid_option_value_rejected(self):
+        report = _create_vulnerability_report(
+            reportable_event_type=SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+        )
+        milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
+        ser = _milestone_patch_serializer(
+            milestone, {"suspected_unlawful_or_malicious_acts": "Maybe"}
+        )
+        assert not ser.is_valid()
+        assert "additional_details" in ser.errors
+
+    def test_invalid_datetime_value_rejected(self):
+        report = _create_vulnerability_report()
+        mfinal = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_FINAL)
+        ser = _milestone_patch_serializer(
+            mfinal, {"corrective_or_mitigating_measure_available_at": "not-a-date"}
+        )
+        assert not ser.is_valid()
+        assert "additional_details" in ser.errors
+
     def test_mixed_valid_and_invalid_keys_rejected(self):
         """Even one unknown key causes rejection."""
         report = _create_vulnerability_report()
@@ -1459,6 +1767,32 @@ class TestAdditionalDetailsKeyValidation:
 
 
 # ── Step 6: Overridable-keys drift guard ──
+
+
+class TestPayloadFieldDefinitions:
+    def test_final_aev_required_builder_fields_are_exposed(self):
+        fields = get_payload_field_definitions(
+            SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
+            SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+        )
+        required = {
+            field["key"]
+            for field in fields
+            if field["requirements"]["final"] == "required"
+        }
+        assert "full_vulnerability_description" in required
+
+    def test_final_incident_required_builder_fields_are_exposed(self):
+        fields = get_payload_field_definitions(
+            SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+            SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+        )
+        required = {
+            field["key"]
+            for field in fields
+            if field["requirements"]["final"] == "required"
+        }
+        assert "detailed_incident_description" in required
 
 
 class TestOverridableKeysDriftGuard:
