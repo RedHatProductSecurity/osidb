@@ -192,6 +192,108 @@ class TestSRPReportMilestone:
         ):
             duplicate.save()
 
+    def test_due_at_editable_after_creation(self):
+        """
+        due_at defaults to the computed 14-day KEV timer at creation,
+        and can be edited directly afterwards.
+        """
+        report = SRPReportFactory()  # defaults to EXPLOITS_KEV_APPROVED
+        milestone = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+        )
+
+        computed_due_at = milestone.due_at
+        assert computed_due_at == report.timer_started_at + timedelta(days=14)
+        override_date = timezone.now() + timedelta(days=100)
+
+        milestone.due_at = override_date
+        milestone.save()
+
+        milestone.refresh_from_db()
+
+        assert milestone.due_at == override_date
+        assert milestone.due_at != computed_due_at
+
+    def test_air_due_at_editable_after_creation(self):
+        """
+        AIR due_at defaults to 30 days from request_received_at
+        and can be edited directly afterwards.
+        """
+        report = SRPReportFactory()
+        request_received_at = timezone.now()
+        milestone = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
+            request_received_at=request_received_at,
+        )
+
+        default_due_at = milestone.due_at
+        assert default_due_at == request_received_at + timedelta(days=30)
+
+        override_date = timezone.now() + timedelta(days=100)
+        milestone.due_at = override_date
+        milestone.save()
+
+        milestone.refresh_from_db()
+
+        assert milestone.due_at == override_date
+        assert milestone.due_at != default_due_at
+
+    def test_air_due_at_computed_when_request_received_at_set_later(self):
+        """
+        AIR due_at stays None without request_received_at and is
+        computed once the request time is set.
+        """
+        report = SRPReportFactory()
+        milestone = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
+            request_received_at=None,
+        )
+        assert milestone.due_at is None
+
+        milestone.request_received_at = timezone.now()
+        milestone.save()
+        milestone.refresh_from_db()
+
+        assert milestone.due_at == milestone.request_received_at + timedelta(days=30)
+
+    def test_air_due_at_persisted_on_partial_save(self):
+        """
+        Saving with update_fields also persists the computed AIR due_at.
+        """
+        report = SRPReportFactory()
+        milestone = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
+            request_received_at=None,
+        )
+        assert milestone.due_at is None
+
+        milestone.request_received_at = timezone.now()
+        milestone.save(update_fields=["request_received_at"])
+        milestone.refresh_from_db()
+
+        assert milestone.due_at == milestone.request_received_at + timedelta(days=30)
+
+    def test_due_at_explicit_value_persisted_on_creation(self):
+        """
+        An explicit due_at passed at creation is kept and not
+        replaced by the computed KEV default.
+        """
+        report = SRPReportFactory()  # KEV event type, timer already started
+        override_date = timezone.now() + timedelta(days=100)
+        milestone = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+            due_at=override_date,
+        )
+        milestone.refresh_from_db()
+
+        assert milestone.due_at == override_date
+        assert milestone.due_at != report.timer_started_at + timedelta(days=14)
+
     def test_multiple_additional_information_response_allowed(self):
         report = SRPReportFactory()
         first = SRPReportMilestoneFactory(
