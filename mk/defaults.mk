@@ -14,3 +14,6 @@ pre-commit=`which pre-commit`
 
 # Make sourcing work as expected. https://stackoverflow.com/a/43566158
 SHELL := /bin/bash
+
+# Convenience variable for podman compose commands with both compose files
+compose = $(podman) compose -f docker-compose.yml -f docker-compose.test.yml

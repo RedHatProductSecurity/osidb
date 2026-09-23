@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# Post-checkout hook for OSIDB git worktrees
+# Automatically sets up venv and .env when a new worktree is created
+
+# Arguments: previous-head new-head branch-checkout-flag
+prev_head=$1
+
+# Only run when prev_head is the null ref — this happens exclusively on
+# git worktree add (and git clone). Regular checkouts, branch switches,
+# and git pull --rebase all pass a real SHA.
+null_ref="0000000000000000000000000000000000000000"
+if [ "$prev_head" != "$null_ref" ]; then
+    exit 0
+fi
+
+git_common_dir=$(git rev-parse --git-common-dir)
+worktree_dir=$(git rev-parse --show-toplevel)
+main_repo_dir=$(dirname "$git_common_dir")
+
+echo "=================================================="
+echo "New OSIDB worktree detected: $(basename "$worktree_dir")"
+echo "Setting up development environment..."
+echo "=================================================="
+
+cd "$worktree_dir" || exit 1
+
+if ! command -v uv &> /dev/null; then
+    echo "ERROR: uv not found. Please install uv first: https://docs.astral.sh/uv/getting-started/installation/"
+    exit 1
+fi
+
+echo "[1/2] Creating venv and installing dependencies with uv..."
+if ! uv sync; then
+    echo "ERROR: Failed to create venv / sync dependencies"
+    exit 1
+fi
+
+# Copy .env from main repo if it exists
+echo "[2/2] Copying .env from main repository..."
+if [ -f "$main_repo_dir/.env" ]; then
+    cp "$main_repo_dir/.env" "$worktree_dir/.env"
+    echo "✓ Copied .env from $main_repo_dir"
+else
+    echo "⚠ No .env file found in main repository"
+    echo "  You'll need to create .env manually or copy it from another worktree"
+fi
+
+echo ""
+echo "=================================================="
+echo "✓ Worktree setup complete!"
+echo "  Location: $worktree_dir"
+echo "  Branch: $(git branch --show-current)"
+echo "  venv: .venv/"
+echo "  .env: $([ -f "$worktree_dir/.env" ] && echo "✓ copied" || echo "✗ not found")"
+echo "=================================================="
+echo ""
+echo "Next steps:"
+echo "  cd $worktree_dir"
+echo "  source .venv/bin/activate"
+echo "  make start-local"
+echo ""
