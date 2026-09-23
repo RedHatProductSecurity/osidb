@@ -327,7 +327,7 @@ class TestAuditTablesRLS:
                     assert queryset.update(**update_kwargs) == 0
                 else:
                     assert queryset.delete() == (0, {})
-        except InternalError as exc:
+        except (InternalError, ProgrammingError) as exc:
             assert "Cannot update or delete rows from" in str(exc)
 
     def test_srp_report_audit_is_append_only(self):

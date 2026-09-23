@@ -122,13 +122,14 @@ def cleanup_stale_alerts(apps, schema_editor):
     # Django ORM's exclude(name__in=...) would work but generates a subquery
     with schema_editor.connection.cursor() as cursor:
         # First, check how many stale alerts exist
+        valid_names = list(VALID_ALERT_NAMES)
         cursor.execute(
             """
             SELECT COUNT(*)
             FROM osidb_alert
-            WHERE name NOT IN %s
+            WHERE name != ALL(%s)
             """,
-            [tuple(VALID_ALERT_NAMES)]
+            [valid_names]
         )
         stale_count = cursor.fetchone()[0]
 
@@ -143,10 +144,10 @@ def cleanup_stale_alerts(apps, schema_editor):
         cursor.execute(
             """
             DELETE FROM osidb_alert
-            WHERE name NOT IN %s
+            WHERE name != ALL(%s)
             RETURNING name
             """,
-            [tuple(VALID_ALERT_NAMES)]
+            [valid_names]
         )
 
         # Fetch just the unique names that were deleted (for logging)
