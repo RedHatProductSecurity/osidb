@@ -1081,14 +1081,6 @@ class TestPreparePayloadDispatch:
         payload = json.loads(mfinal.meta_attr["payload_snapshot"])
         assert payload["notification_level"] == "final"
 
-    def test_raises_for_unknown_type(self):
-        milestone = SRPReportMilestoneFactory(
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-            srp_report__flaw__major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
-        )
-        with pytest.raises(ValueError, match="No builder"):
-            prepare_payload(milestone)
-
 
 class TestAdditionalDetailsOverride:
     def test_additional_details_overrides_auto_derived_field(self):
@@ -1347,7 +1339,7 @@ class TestPreparePayloadOnSubmitted:
 
         # Mutate additional_details in memory but persist only an unrelated field.
         milestone.additional_details = {"product_type": "firmware"}
-        milestone.save(update_fields=["request_source"])
+        milestone.save(update_fields=["owner"])
         milestone.refresh_from_db()
 
         assert milestone.meta_attr["prepared_at"] == first_prepared_at
@@ -1356,17 +1348,6 @@ class TestPreparePayloadOnSubmitted:
         report = _create_vulnerability_report()
         milestone = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
         milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW
-        milestone.save()
-        milestone.refresh_from_db()
-        assert milestone.meta_attr.get("payload_snapshot") is None
-
-    def test_skips_additional_information_response(self):
-        milestone = SRPReportMilestoneFactory(
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-            srp_report__flaw__major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
-            status=SRPReportMilestone.SRPReportMilestoneStatus.REQUIRED,
-        )
-        milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
         milestone.save()
         milestone.refresh_from_db()
         assert milestone.meta_attr.get("payload_snapshot") is None
@@ -1749,19 +1730,6 @@ class TestAdditionalDetailsKeyValidation:
     def test_create_with_additional_details_rejected(self):
         """Create serializer rejects any additional_details on additional_information_response."""
         ser = _milestone_create_serializer({"any_key": "value"})
-        assert not ser.is_valid()
-        assert "additional_details" in ser.errors
-
-    def test_patch_additional_information_response_rejected(self):
-        """PATCH additional_information_response milestone rejects all additional_details keys."""
-        report = _create_vulnerability_report()
-        milestone = SRPReportMilestoneFactory(
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-            srp_report=report,
-            acl_read=report.acl_read,
-            acl_write=report.acl_write,
-        )
-        ser = _milestone_patch_serializer(milestone, {"product_type": "software"})
         assert not ser.is_valid()
         assert "additional_details" in ser.errors
 

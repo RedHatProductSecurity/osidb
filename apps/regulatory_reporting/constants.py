@@ -15,11 +15,6 @@ BASIC_MILESTONES_TYPES = [
     SRPReportMilestone.MilestoneType.LEVEL_FINAL,
 ]
 
-# Milestones types for additional-information-request reports.
-ADDITIONAL_MILESTONES_TYPES = [
-    SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
-]
-
 # ENISA/EU member-state codes for all 27 EU member states recognised by ENISA/NIS2.
 # EL is used for Greece per ENISA/NIS2 convention (not the ISO 3166-1 alpha-2 code GR).
 ENISA_STATE_CODES = frozenset(

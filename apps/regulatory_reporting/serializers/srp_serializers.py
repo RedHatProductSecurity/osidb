@@ -13,7 +13,11 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.regulatory_reporting.constants import ENISA_STATE_CODES
-from apps.regulatory_reporting.models import SRPReport, SRPReportMilestone
+from apps.regulatory_reporting.models import (
+    AdditionalInformationRequest,
+    SRPReport,
+    SRPReportMilestone,
+)
 from apps.regulatory_reporting.payload_fields import (
     INVALID_PAYLOAD_OVERRIDE,
     MISSING_REQUIRED_REQUIREMENTS,
@@ -100,9 +104,6 @@ class SRPReportMilestoneSerializer(
                 "additional_details",
                 "payload_fields",
                 "missing_required_fields",
-                "request_received_at",
-                "request_source",
-                "request_text",
                 "submitted_at",
                 "owner",
                 "manual_completion_notes",
@@ -233,6 +234,69 @@ class SRPReportMilestoneSerializer(
         validated_data["acl_write"] = instance.acl_write
         return super(ACLMixinSerializer, self).update(
             instance, validated_data, *args, **kwargs
+        )
+
+    def to_representation(self, instance):
+        due_at = instance.due_at
+        if due_at is None:
+            instance.hours_remaining = None
+            instance.days_remaining = None
+            instance.is_overdue = False
+        else:
+            total_seconds = (due_at - timezone.now()).total_seconds()
+            instance.hours_remaining = int(total_seconds / 3600)
+            instance.days_remaining = int(total_seconds / 86400)
+            instance.is_overdue = total_seconds < 0
+        return super().to_representation(instance)
+
+
+class AdditionalInformationRequestSerializer(
+    TrackingMixinSerializer,
+    serializers.ModelSerializer,
+):
+    """
+    Serializer for Additional Information Requests nested under a milestone.
+
+    Includes computed fields for deadline tracking, mirroring
+    SRPReportMilestoneSerializer's due_at/hours_remaining/days_remaining/
+    is_overdue pattern.
+    """
+
+    due_at = serializers.DateTimeField(read_only=True, allow_null=True)
+    hours_remaining = serializers.IntegerField(read_only=True, allow_null=True)
+    days_remaining = serializers.IntegerField(read_only=True, allow_null=True)
+    is_overdue = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = AdditionalInformationRequest
+        fields = (
+            # Primary key
+            "uuid",
+            # Foreign key
+            "milestone",
+            "acl_read",
+            "acl_write",
+            # Core fields
+            "request_received_at",
+            "request_source",
+            "request_text",
+            "manual_due_at",
+            # Computed fields
+            "due_at",
+            "hours_remaining",
+            "days_remaining",
+            "is_overdue",
+            # Tracking
+            "created_dt",
+            "updated_dt",
+        )
+        read_only_fields = (
+            "uuid",
+            "created_dt",
+            "updated_dt",
+            "milestone",
+            "acl_read",
+            "acl_write",
         )
 
     def to_representation(self, instance):

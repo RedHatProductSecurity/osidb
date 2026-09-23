@@ -143,9 +143,6 @@ class TestSRPMilestoneRetrieve:
         assert "additional_details" in data
         assert "payload_fields" in data
         assert "missing_required_fields" in data
-        assert "request_received_at" in data
-        assert "request_source" in data
-        assert "request_text" in data
         assert "created_dt" in data
         assert "updated_dt" in data
         assert "owner" in data
@@ -254,14 +251,12 @@ class TestSRPMilestoneUpdate:
             milestones_report,
             milestone,
             status=SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW,
-            request_source="ENISA Portal",
-            request_text="Additional information requested",
+            owner="jdoe",
         )
         assert response.status_code == status.HTTP_200_OK
         milestone.refresh_from_db()
         assert milestone.status == SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW
-        assert milestone.request_source == "ENISA Portal"
-        assert milestone.request_text == "Additional information requested"
+        assert milestone.owner == "jdoe"
 
     def test_update_read_only_field_ignored(
         self, authenticated_client, create_flaw_report
@@ -276,7 +271,7 @@ class TestSRPMilestoneUpdate:
             authenticated_client,
             milestones_report,
             milestone,
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H,
         )
         assert response.status_code == status.HTTP_200_OK
         milestone.refresh_from_db()
@@ -316,14 +311,12 @@ class TestSRPMilestoneUpdate:
             milestones_report,
             milestone,
             status=SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED,
-            request_source="ENISA Portal",
-            request_text="Additional information requested",
+            owner="jdoe",
         )
         assert response.status_code == status.HTTP_200_OK
         milestone.refresh_from_db()
         assert milestone.status == SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
-        assert milestone.request_source == "ENISA Portal"
-        assert milestone.request_text == "Additional information requested"
+        assert milestone.owner == "jdoe"
         assert milestone.meta_attr.get("payload_snapshot")
         assert "prepared_at" in milestone.meta_attr
         assert milestone.submitted_at is not None
@@ -461,13 +454,13 @@ class TestSRPMilestoneFiltering:
         with freeze_time(old_date):
             milestones_report = create_flaw_report()
 
-        with freeze_time(recent_date):
-            recent_milestone = SRPReportMilestoneFactory(
-                srp_report=milestones_report,
-                milestone_type=(
-                    SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
-                ),
-            )
+        recent_milestone = milestones_report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H
+        )
+        SRPReportMilestone.objects.filter(pk=recent_milestone.pk).update(
+            created_dt=recent_date
+        )
+        recent_milestone.refresh_from_db()
 
         cutoff = timezone.now() - timedelta(days=5)
         response = api_client.get(
@@ -509,100 +502,6 @@ class TestSRPMilestoneFiltering:
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["uuid"] == str(recent_milestone.uuid)
-
-
-@pytest.mark.django_db
-@pytest.mark.enable_signals
-class TestSRPMilestoneCreate:
-    """Tests for POST /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones."""
-
-    def test_create_additional_information_response_milestone(
-        self, authenticated_client, create_flaw_report
-    ):
-        """Can create additional_information_response milestones via POST."""
-        milestones_report = create_flaw_report()
-
-        now = timezone.now()
-        data = {
-            "request_received_at": now.isoformat(),
-            "request_source": "ENISA Portal",
-            "request_text": "Please provide additional details.",
-        }
-
-        response = authenticated_client.post(
-            f"/regulatory-reporting/api/v1/srp-reports/{milestones_report.uuid}/milestones",
-            data,
-        )
-        assert response.status_code == status.HTTP_201_CREATED
-        assert (
-            response.data["milestone_type"]
-            == SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
-        )
-        assert response.data["request_source"] == "ENISA Portal"
-        assert response.data["srp_report"] == milestones_report.uuid
-
-        milestone = SRPReportMilestone.objects.get(uuid=response.data["uuid"])
-        assert milestone.acl_read == milestones_report.acl_read
-        assert milestone.acl_write == milestones_report.acl_write
-
-    def test_create_multiple_additional_information_response_allowed(
-        self, authenticated_client, create_flaw_report
-    ):
-        """Multiple additional_information_response milestones are allowed."""
-        milestones_report = create_flaw_report()
-
-        milestone_type = (
-            SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
-        )
-
-        for i in range(2):
-            response = authenticated_client.post(
-                f"/regulatory-reporting/api/v1/srp-reports/{milestones_report.uuid}/milestones",
-                {"request_text": f"Request {i}"},
-            )
-            assert response.status_code == status.HTTP_201_CREATED
-
-        assert (
-            milestones_report.milestones.filter(milestone_type=milestone_type).count()
-            == 2
-        )
-
-    def test_create_ignores_milestone_type_in_request_body(
-        self, authenticated_client, create_flaw_report
-    ):
-        """POST always creates additional_information_response regardless of body."""
-        milestones_report = create_flaw_report()
-
-        response = authenticated_client.post(
-            f"/regulatory-reporting/api/v1/srp-reports/{milestones_report.uuid}/milestones",
-            {"milestone_type": SRPReportMilestone.MilestoneType.LEVEL_24H},
-        )
-        assert response.status_code == status.HTTP_201_CREATED
-        assert (
-            response.data["milestone_type"]
-            == SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE
-        )
-
-    def test_create_milestone_unauthenticated_fails(
-        self, api_client, create_flaw_report
-    ):
-        """Unauthenticated users cannot create milestones."""
-        milestones_report = create_flaw_report()
-
-        response = api_client.post(
-            f"/regulatory-reporting/api/v1/srp-reports/{milestones_report.uuid}/milestones",
-            {"request_text": "Additional information requested"},
-        )
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_create_milestone_invalid_report_404(self, authenticated_client):
-        """404 when report doesn't exist."""
-        fake_uuid = "550e8400-e29b-41d4-a716-446655440000"
-        response = authenticated_client.post(
-            f"/regulatory-reporting/api/v1/srp-reports/{fake_uuid}/milestones",
-            {"request_text": "Additional information requested"},
-        )
-        assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 @pytest.mark.django_db

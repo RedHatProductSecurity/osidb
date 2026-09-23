@@ -15,6 +15,7 @@ from apps.regulatory_reporting.models import (
     UpstreamProject,
 )
 from apps.regulatory_reporting.tests.factories import (
+    AdditionalInformationRequestFactory,
     SRPReportFactory,
     SRPReportMilestoneFactory,
 )
@@ -188,7 +189,7 @@ class TestSRPReportMilestone:
 
         with pytest.raises(
             ValidationError,
-            match="unique_srp_report_milestone_type_level",
+            match="already exists",
         ):
             duplicate.save()
 
@@ -215,68 +216,6 @@ class TestSRPReportMilestone:
         assert milestone.due_at == override_date
         assert milestone.due_at != computed_due_at
 
-    def test_air_due_at_editable_after_creation(self):
-        """
-        AIR due_at defaults to 30 days from request_received_at
-        and can be edited directly afterwards.
-        """
-        report = SRPReportFactory()
-        request_received_at = timezone.now()
-        milestone = SRPReportMilestoneFactory(
-            srp_report=report,
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-            request_received_at=request_received_at,
-        )
-
-        default_due_at = milestone.due_at
-        assert default_due_at == request_received_at + timedelta(days=30)
-
-        override_date = timezone.now() + timedelta(days=100)
-        milestone.due_at = override_date
-        milestone.save()
-
-        milestone.refresh_from_db()
-
-        assert milestone.due_at == override_date
-        assert milestone.due_at != default_due_at
-
-    def test_air_due_at_computed_when_request_received_at_set_later(self):
-        """
-        AIR due_at stays None without request_received_at and is
-        computed once the request time is set.
-        """
-        report = SRPReportFactory()
-        milestone = SRPReportMilestoneFactory(
-            srp_report=report,
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-            request_received_at=None,
-        )
-        assert milestone.due_at is None
-
-        milestone.request_received_at = timezone.now()
-        milestone.save()
-        milestone.refresh_from_db()
-
-        assert milestone.due_at == milestone.request_received_at + timedelta(days=30)
-
-    def test_air_due_at_persisted_on_partial_save(self):
-        """
-        Saving with update_fields also persists the computed AIR due_at.
-        """
-        report = SRPReportFactory()
-        milestone = SRPReportMilestoneFactory(
-            srp_report=report,
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-            request_received_at=None,
-        )
-        assert milestone.due_at is None
-
-        milestone.request_received_at = timezone.now()
-        milestone.save(update_fields=["request_received_at"])
-        milestone.refresh_from_db()
-
-        assert milestone.due_at == milestone.request_received_at + timedelta(days=30)
-
     def test_due_at_explicit_value_persisted_on_creation(self):
         """
         An explicit due_at passed at creation is kept and not
@@ -294,19 +233,34 @@ class TestSRPReportMilestone:
         assert milestone.due_at == override_date
         assert milestone.due_at != report.timer_started_at + timedelta(days=14)
 
-    def test_multiple_additional_information_response_allowed(self):
-        report = SRPReportFactory()
-        first = SRPReportMilestoneFactory(
-            srp_report=report,
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-        )
-        second = SRPReportMilestoneFactory(
-            srp_report=report,
-            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_ADDITIONAL_INFORMATION_RESPONSE,
-        )
+    def test_multiple_additional_information_requests_allowed(self):
+        """
+        Multiple AdditionalInformationRequest entries can exist under
+        a single milestone.
+        """
+        milestone = SRPReportMilestoneFactory()
+        first = AdditionalInformationRequestFactory(milestone=milestone)
+        second = AdditionalInformationRequestFactory(milestone=milestone)
 
-        assert first.milestone_type == second.milestone_type
-        assert report.milestones.count() == 2
+        assert milestone.additional_information_requests.count() == 2
+        assert str(first) == f"Additional Information Request 1 - {milestone}"
+        assert str(second) == f"Additional Information Request 2 - {milestone}"
+
+    def test_due_at_uses_request_received_at(self):
+        """AdditionalInformationRequest.due_at is 30 days from request_received_at."""
+        milestone = SRPReportMilestoneFactory()
+        request_time = timezone.now() + timedelta(days=5)
+        air = AdditionalInformationRequestFactory(
+            milestone=milestone,
+            request_received_at=request_time,
+        )
+        assert air.due_at == request_time + timedelta(days=30)
+
+    def test_due_at_returns_none_without_request_received_at(self):
+        """due_at is None when request_received_at is not set."""
+        milestone = SRPReportMilestoneFactory()
+        air = AdditionalInformationRequestFactory(milestone=milestone)
+        assert air.due_at is None
 
     def test_cascade_delete_with_srp_report(self):
         milestone = SRPReportMilestoneFactory()
