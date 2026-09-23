@@ -13,14 +13,18 @@ app = Celery("celery")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 app.conf.task_queues = [
+    Queue("high", routing_key="high"),
+    # Low priority queue for bulk/periodic collector tasks (Bugzilla, Jira, CVE.org,
+    # etc. imports) and housekeeping tasks so they don't starve latency-sensitive
+    # tasks (Jira task sync/transition, ACE affect creation) waiting on the "high"
+    # queue behind long-running imports.
+    Queue("low", routing_key="low"),
+    # Legacy queue names for safe migration (tasks route to new names, workers
+    # consume from both old and new to avoid task loss during cutover)
     Queue("default", routing_key="default"),
-    # Bulk/periodic collector tasks (Bugzilla, Jira, CVE.org, etc. imports) are
-    # routed here so they don't starve latency-sensitive tasks (Jira task
-    # sync/transition) waiting on the "default" queue behind long-running
-    # imports.
     Queue("collectors", routing_key="collectors"),
 ]
-app.conf.task_default_queue = "default"
+app.conf.task_default_queue = "high"
 
 
 @signals.worker_process_init.connect

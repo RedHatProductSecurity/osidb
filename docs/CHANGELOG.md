@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add experimental read-only stats aggregation endpoint `GET /stats/api/v1beta/flaws`
   returning `COUNT(DISTINCT flaw)` grouped by chosen dimensions (OSIDB-5290)
 
+### Changed
+- Change default,collectors queues for high/low priority queues (OSIDB-5513)
+
 ## [5.18.2] - 2026-09-18
 ### Fixed
 - Updated cvss library to latest version (3.6.0) and updated existing CVSSv4 scores

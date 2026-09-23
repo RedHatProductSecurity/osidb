@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
 rm -f /tmp/celery_worker.pid
-exec celery -A config worker --pidfile /tmp/celery_worker.pid -f celery.log --loglevel DEBUG --concurrency=5 -E -Q default,fifo.0,fifo.1
+# During migration: consume from both high and default queues to avoid task loss
+exec celery -A config worker --pidfile /tmp/celery_worker.pid -f celery.log --loglevel DEBUG --concurrency=5 -E -Q high,default

@@ -204,16 +204,15 @@ services:
       #     condition: service_healthy
       #   redis:
       #     condition: service_started
-    # Dedicated worker for the "collectors" queue (periodic/bulk imports:
+    # Dedicated worker for the "low" priority queue (periodic/bulk imports:
     # Bugzilla, Jira, CVE.org, NVD, OSV, product-definitions, ...) so those
-    # long-running jobs can't starve the "default" queue used by
-    # latency-sensitive interactive tasks (Jira task sync/transition).
-    celery-collectors:
-      labels: ["app=osidb"]
+    # long-running jobs can't starve latency-sensitive interactive tasks
+    # (Jira task sync/transition) on the "high" queue.
+    celery-low:
       image: localhost/osidb-service
       pull_policy: never
       command:
-        celery -A config worker --pidfile /tmp/celery_worker.pid --loglevel DEBUG -Q collectors --concurrency=5 -E
+        /bin/bash scripts/run-celery-low-standalone.sh
       deploy:
         mode: replicated
         replicas: ${OSIDB_CELERY_COLLECTORS_WORKERS_NO:-1}
