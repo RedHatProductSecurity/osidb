@@ -15244,7 +15244,7 @@ paths:
                     version:
                       type: string
           description: ''
-  /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{milestone_uuid}/additional-information-requests/{id}:
+  /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{milestone_uuid}/additional-information-requests/{uuid}:
     get:
       operationId: regulatory_reporting_api_v1_srp_reports_milestones_additional_information_requests_retrieve
       description: |-
@@ -15257,11 +15257,6 @@ paths:
         -PUT /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{milestone_uuid}/additional-information-requests/{uuid}
       parameters:
       - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      - in: path
         name: milestone_uuid
         schema:
           type: string
@@ -15269,6 +15264,12 @@ paths:
         required: true
       - in: path
         name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: path
+        name: uuid
         schema:
           type: string
           pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
@@ -15309,11 +15310,6 @@ paths:
         -PUT /regulatory-reporting/api/v1/srp-reports/{report_uuid}/milestones/{milestone_uuid}/additional-information-requests/{uuid}
       parameters:
       - in: path
-        name: id
-        schema:
-          type: string
-        required: true
-      - in: path
         name: milestone_uuid
         schema:
           type: string
@@ -15321,6 +15317,12 @@ paths:
         required: true
       - in: path
         name: report_uuid
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+        required: true
+      - in: path
+        name: uuid
         schema:
           type: string
           pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
@@ -16271,12 +16273,26 @@ components:
         request_text:
           type: string
           description: Text of the request
+        response_text:
+          type: string
+          description: Text of the response
+        owner:
+          type: string
+          description: Owner of this additional information request
+          maxLength: 60
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
+          description: Current status of this additional information request
         manual_due_at:
           type:
           - string
           - 'null'
           format: date-time
           description: Manual override for the due date
+        manual_completion_notes:
+          type: string
+          description: Manual completion notes
         due_at:
           type:
           - string
@@ -16338,12 +16354,26 @@ components:
         request_text:
           type: string
           description: Text of the request
+        response_text:
+          type: string
+          description: Text of the response
+        owner:
+          type: string
+          description: Owner of this additional information request
+          maxLength: 60
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SRPReportMilestoneStatusEnum'
+          description: Current status of this additional information request
         manual_due_at:
           type:
           - string
           - 'null'
           format: date-time
           description: Manual override for the due date
+        manual_completion_notes:
+          type: string
+          description: Manual completion notes
         updated_dt:
           type: string
           format: date-time

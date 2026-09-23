@@ -78,6 +78,8 @@ class AdditionalInformationRequestViewSet(
     serializer_class = AdditionalInformationRequestSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
+    lookup_field = "uuid"
+    lookup_value_regex = UUID_PATH_REGEX
 
     def get_queryset(self):
         if getattr(self, "swagger_fake_view", False):

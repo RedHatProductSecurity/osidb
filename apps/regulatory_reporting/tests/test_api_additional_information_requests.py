@@ -24,15 +24,78 @@ class TestAdditionalInformationRequestCreate:
             f"/regulatory-reporting/api/v1/srp-reports/{report.uuid}"
             f"/milestones/{milestone.uuid}/additional-information-requests",
             {
+                "manual_completion_notes": "Initial notes",
+                "owner": "analyst@redhat.com",
                 "request_source": "ENISA Portal",
                 "request_text": "Please provide additional details.",
+                "response_text": "Here are the additional details.",
+                "status": SRPReportMilestone.SRPReportMilestoneStatus.IN_PROGRESS,
             },
         )
         assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["manual_completion_notes"] == "Initial notes"
+        assert response.data["owner"] == "analyst@redhat.com"
         assert response.data["request_source"] == "ENISA Portal"
+        assert response.data["request_text"] == "Please provide additional details."
+        assert response.data["response_text"] == "Here are the additional details."
+        assert (
+            response.data["status"]
+            == SRPReportMilestone.SRPReportMilestoneStatus.IN_PROGRESS
+        )
 
         air = AdditionalInformationRequest.objects.get(pk=response.data["uuid"])
         assert air.milestone == milestone
+        assert air.manual_completion_notes == "Initial notes"
+        assert air.owner == "analyst@redhat.com"
+        assert air.response_text == "Here are the additional details."
+        assert air.status == SRPReportMilestone.SRPReportMilestoneStatus.IN_PROGRESS
+
+    def test_update_air(self, authenticated_client, create_flaw_report):
+        """Can update AIR add/edit popup fields via PUT."""
+        report = create_flaw_report()
+        milestone = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+        air = AdditionalInformationRequestFactory(milestone=milestone)
+        data = {
+            "manual_completion_notes": "Updated notes",
+            "manual_due_at": None,
+            "owner": "owner@redhat.com",
+            "request_received_at": None,
+            "request_source": "ENISA Portal",
+            "request_text": "Please provide additional details.",
+            "response_text": "The requested details are included here.",
+            "status": SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW,
+            "updated_dt": air.updated_dt,
+        }
+
+        response = authenticated_client.put(
+            f"/regulatory-reporting/api/v1/srp-reports/{report.uuid}"
+            f"/milestones/{milestone.uuid}/additional-information-requests/{air.uuid}",
+            data,
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["manual_completion_notes"] == "Updated notes"
+        assert response.data["owner"] == "owner@redhat.com"
+        assert response.data["request_source"] == "ENISA Portal"
+        assert response.data["request_text"] == "Please provide additional details."
+        assert response.data["response_text"] == (
+            "The requested details are included here."
+        )
+        assert (
+            response.data["status"]
+            == SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW
+        )
+
+        air.refresh_from_db()
+        assert air.manual_completion_notes == "Updated notes"
+        assert air.owner == "owner@redhat.com"
+        assert air.request_source == "ENISA Portal"
+        assert air.request_text == "Please provide additional details."
+        assert air.response_text == "The requested details are included here."
+        assert air.status == SRPReportMilestone.SRPReportMilestoneStatus.IN_REVIEW
 
     def test_create_air_invalid_milestone_404(
         self, authenticated_client, create_flaw_report

@@ -280,7 +280,11 @@ class AdditionalInformationRequestSerializer(
             "request_received_at",
             "request_source",
             "request_text",
+            "response_text",
+            "owner",
+            "status",
             "manual_due_at",
+            "manual_completion_notes",
             # Computed fields
             "due_at",
             "hours_remaining",
