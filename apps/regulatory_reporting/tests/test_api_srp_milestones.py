@@ -190,6 +190,35 @@ class TestSRPMilestoneRetrieve:
         assert notification_type["editable"] is False
         assert notification_type["requirement"] == "required"
 
+    def test_retrieve_payload_fields_inherit_draft_previous_details(
+        self, api_client, create_flaw_report
+    ):
+        """Clients get inherited values without copying previous details forward."""
+        report = create_flaw_report()
+        m24 = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+        m24.additional_details = {"product_type": "firmware"}
+        m24.save()
+        assert m24.meta_attr.get("payload_snapshot") is None
+
+        m72 = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H
+        )
+
+        response = api_client.get(
+            f"/regulatory-reporting/api/v1/srp-reports/{report.uuid}/milestones/{m72.uuid}"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        product_type = next(
+            field
+            for field in response.data["payload_fields"]
+            if field["key"] == "product_type"
+        )
+        assert product_type["requirement"] == "copied_or_updated"
+        assert product_type["value"] == "firmware"
+
 
 @pytest.mark.django_db
 @pytest.mark.enable_signals
