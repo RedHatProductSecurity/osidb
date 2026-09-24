@@ -554,6 +554,19 @@ class TestPrepare72hPayloadCarryForward:
         assert isinstance(payload, dict)
         assert "notification_type" in payload
 
+    def test_carries_forward_draft_24h_additional_details(self):
+        report = _create_vulnerability_report()
+        m24 = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_24H)
+        m24.additional_details = {"product_type": "firmware"}
+        m24.save()
+        assert m24.meta_attr.get("payload_snapshot") is None
+
+        m72 = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_72H)
+        prepare_72h_payload(m72)
+        payload = json.loads(m72.meta_attr["payload_snapshot"])
+
+        assert payload["product_type"] == "firmware"
+
     @pytest.mark.parametrize(
         "event_type",
         [
@@ -870,6 +883,19 @@ class TestPrepareFinalPayloadCarryForward:
         prepare_final_payload(mfinal)
         payload = json.loads(mfinal.meta_attr["payload_snapshot"])
         assert isinstance(payload, dict)
+
+    def test_carries_forward_draft_72h_additional_details(self):
+        report = _create_vulnerability_report()
+        m72 = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_72H)
+        m72.additional_details = {"general_information": "Draft 72h details"}
+        m72.save()
+        assert m72.meta_attr.get("payload_snapshot") is None
+
+        mfinal = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_FINAL)
+        prepare_final_payload(mfinal)
+        payload = json.loads(mfinal.meta_attr["payload_snapshot"])
+
+        assert payload["general_information"] == "Draft 72h details"
 
 
 class TestPrepareFinalPayloadVulnerability:

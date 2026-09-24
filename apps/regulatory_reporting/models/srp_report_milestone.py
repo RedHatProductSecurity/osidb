@@ -328,10 +328,29 @@ class AdditionalInformationRequest(TrackingMixin, ACLMixin):
         blank=True,
         help_text="Text of the request",
     )
+    response_text = models.TextField(
+        blank=True,
+        help_text="Text of the response",
+    )
+    owner = models.CharField(
+        max_length=60,
+        blank=True,
+        help_text="Owner of this additional information request",
+    )
+    status = models.CharField(
+        choices=SRPReportMilestone.SRPReportMilestoneStatus.choices,
+        max_length=20,
+        default=SRPReportMilestone.SRPReportMilestoneStatus.REQUIRED,
+        help_text="Current status of this additional information request",
+    )
     manual_due_at = models.DateTimeField(
         null=True,
         blank=True,
         help_text="Manual override for the due date",
+    )
+    manual_completion_notes = models.TextField(
+        blank=True,
+        help_text="Manual completion notes",
     )
 
     class Meta(TrackingMixin.Meta):

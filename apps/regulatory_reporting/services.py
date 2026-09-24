@@ -448,8 +448,17 @@ class SRPPayloadBuilder:
         previous = self.srp_report.milestones.filter(
             milestone_type=self.previous_milestone_type,
         ).first()
-        if previous and previous.meta_attr.get("payload_snapshot"):
-            return json.loads(previous.meta_attr["payload_snapshot"])
+        if previous:
+            if previous.meta_attr.get("payload_snapshot"):
+                return json.loads(previous.meta_attr["payload_snapshot"])
+
+            # Draft previous milestones do not have a submitted snapshot yet, but
+            # their current effective payload should still be inherited by the
+            # next stage so clients do not need to copy values forward.
+            builder_cls = BUILDER_BY_MILESTONE_TYPE.get(previous.milestone_type)
+            if builder_cls:
+                payload, *_ = builder_cls(previous).build_payload()
+                return payload
         return {}
 
     def _apply_overrides(self, payload, details):

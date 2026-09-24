@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+- Add Additional Information Request popup fields to the SRP API (OSIDB-5654)
 - Add experimental read-only stats aggregation endpoint `GET /stats/api/v1beta/flaws`
   returning `COUNT(DISTINCT flaw)` grouped by chosen dimensions (OSIDB-5290)
 
