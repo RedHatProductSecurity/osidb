@@ -568,6 +568,57 @@ class Affect(
             )
 
     @validator
+    def _validate_delegated_below_stream_impact(self, **kwargs):
+        """
+        Prevent an AFFECTED:DELEGATED affect whose aggregated impact is below the
+        minimum impact configured on its PS update stream. An affect below the
+        threshold must be set as DEFER instead to avoid undesired tracker filing.
+
+        A newly introduced below-threshold ones are hard-rejected
+        and must be set as DEFER instead. An affect that was already
+        AFFECTED:DELEGATED and only now falls below the threshold just
+        gets an alert not to retrospectively block it.
+        """
+        if not (
+            self.affectedness == Affect.AffectAffectedness.AFFECTED
+            and self.resolution == Affect.AffectResolution.DELEGATED
+        ):
+            return
+
+        ps_update_stream = PsUpdateStream.objects.filter(
+            name=self.ps_update_stream
+        ).first()
+        if ps_update_stream is None or not ps_update_stream.minimal_impact:
+            return
+
+        if self.aggregated_impact < Impact(ps_update_stream.minimal_impact):
+            message = (
+                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is "
+                f"AFFECTED:DELEGATED: impact {self.aggregated_impact.value or 'NOVALUE'} is below "
+                f"the minimum impact '{ps_update_stream.minimal_impact}' configured for the stream."
+            )
+
+            # only warn for affects that were already AFFECTED:DELEGATED before
+            # this update; a newly introduced ones are hard-rejected
+            old_affect = (
+                Affect.objects.get(uuid=self.uuid) if not self._state.adding else None
+            )
+            was_delegated = (
+                old_affect is not None
+                and old_affect.affectedness == Affect.AffectAffectedness.AFFECTED
+                and old_affect.resolution == Affect.AffectResolution.DELEGATED
+            )
+            if not was_delegated:
+                raise ValidationError(message)
+
+            self.alert(
+                "affect_delegated_below_stream_impact",
+                f"{message} Its resolution should be migrated to DEFER once the "
+                "related tracker is closed.",
+                **kwargs,
+            )
+
+    @validator
     def _validate_ps_update_stream(self, **kwargs):
         if not PsUpdateStream.objects.filter(name=self.ps_update_stream).exists():
             raise ValidationError(
@@ -936,6 +987,21 @@ class Affect(
         # AFFECTED/DEFER — low severity or moderate without high CVSS (non-community)
         # Hummingbird (HUM) modules and UBI packages skip this check and always get AFFECTED/DELEGATED
         if not is_community and not self.is_hummingbird() and not self.is_ubi():
+            # AFFECTED/DEFER — impact below the stream's configured minimum impact.
+            # A stream may declare the lowest impact for which trackers are filed;
+            # affects below that threshold are deferred (no tracker).
+            if ps_update_stream_obj.minimal_impact and impact < Impact(
+                ps_update_stream_obj.minimal_impact
+            ):
+                self.resolution = self.AffectResolution.DEFER
+                self.affectedness_explanation = (
+                    f"Impact {impact.value or 'NOVALUE'} is below the minimum impact "
+                    f"'{ps_update_stream_obj.minimal_impact}' configured for stream "
+                    f"'{self.ps_update_stream}'. Resolution set to DEFER as no trackers "
+                    "are filed below the stream's impact threshold."
+                )
+                self._auto_resolved = True
+                return
             if impact == Impact.LOW:
                 self.resolution = self.AffectResolution.DEFER
                 self.affectedness_explanation = "Impact is LOW. Resolution set to DEFER as we do not file trackers for LOW severity."

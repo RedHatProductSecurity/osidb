@@ -90,6 +90,29 @@ def ps_stream_with_moderate_tracker():
 
 
 @pytest.fixture
+def ps_stream_with_impact_threshold():
+    """
+    Factory fixture: call with an Impact to get a non-community stream that is both
+    default and moderate (so it passes OOSS and WONTFIX for any impact) and carries
+    the given minimum impact threshold.
+    """
+
+    def _make(impact):
+        ps_product = PsProductFactory(business_unit="RHEL")
+        ps_module = PsModuleFactory(ps_product=ps_product)
+        return PsUpdateStreamFactory(
+            ps_module=ps_module,
+            active_to_ps_module=ps_module,
+            default_to_ps_module=ps_module,
+            moderate_to_ps_module=ps_module,
+            unacked_to_ps_module=None,
+            minimal_impact=impact,
+        )
+
+    return _make
+
+
+@pytest.fixture
 def community_ps_stream_not_moderate():
     """Community stream that is neither default nor moderate."""
     _, stream = _make_ps_hierarchy(
