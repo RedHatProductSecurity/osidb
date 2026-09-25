@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Change default,collectors queues for high/low priority queues (OSIDB-5513)
 
+### Fixed
+- Severe Incident has a 14-day timer start field (OSIDB-5543)
+
 ## [5.18.2] - 2026-09-18
 ### Fixed
 - Updated cvss library to latest version (3.6.0) and updated existing CVSSv4 scores

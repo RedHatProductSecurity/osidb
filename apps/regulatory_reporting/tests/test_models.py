@@ -199,22 +199,132 @@ class TestSRPReportMilestone:
         and can be edited directly afterwards.
         """
         report = SRPReportFactory()  # defaults to EXPLOITS_KEV_APPROVED
+        seventy_two_h = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H,
+        )
         milestone = SRPReportMilestoneFactory(
             srp_report=report,
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
         )
 
-        computed_due_at = milestone.due_at
-        assert computed_due_at == report.timer_started_at + timedelta(days=14)
-        override_date = timezone.now() + timedelta(days=100)
-
-        milestone.due_at = override_date
-        milestone.save()
-
+        seventy_two_h.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
+        seventy_two_h.save()
+        seventy_two_h.refresh_from_db()
         milestone.refresh_from_db()
+        computed_due_at = milestone.due_at
+        assert computed_due_at == seventy_two_h.submitted_at + timedelta(days=14)
 
+        override_date = timezone.now() + timedelta(days=100)
+        milestone.due_at = override_date
+        milestone.save(update_fields=["due_at"])
+        milestone.refresh_from_db()
         assert milestone.due_at == override_date
-        assert milestone.due_at != computed_due_at
+
+    def test_final_milestone_allows_null_due_at_before_72h_submission(self):
+        """
+        LEVEL_FINAL milestones can be moved to IN_PROGRESS/IN_REVIEW with
+        due_at still None, as long as the 72h sibling hasn't been submitted.
+        """
+        report = SRPReportFactory()
+        SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H,
+        )
+        final_milestone = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+        )
+        assert final_milestone.due_at is None
+
+        final_milestone.status = SRPReportMilestone.SRPReportMilestoneStatus.IN_PROGRESS
+        final_milestone.save()
+
+    def test_final_due_at_recomputed_on_submission_time_correction(self):
+        report = SRPReportFactory()
+        milestone_72h = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H,
+        )
+        final_milestone = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+        )
+
+        milestone_72h.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
+        milestone_72h.save()
+        milestone_72h.refresh_from_db()
+        final_milestone.refresh_from_db()
+        assert final_milestone.due_at == milestone_72h.submitted_at + timedelta(days=14)
+
+        corrected_time = milestone_72h.submitted_at - timedelta(hours=3)
+        milestone_72h.submitted_at = corrected_time
+        milestone_72h.save(update_fields=["submitted_at"])
+        final_milestone.refresh_from_db()
+
+        assert final_milestone.due_at == corrected_time + timedelta(days=14)
+
+    def test_final_due_at_override_survives_submission_time_correction(self):
+        report = SRPReportFactory()
+        milestone_72h = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H,
+        )
+        final_milestone = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+        )
+
+        milestone_72h.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
+        milestone_72h.save()
+        milestone_72h.refresh_from_db()
+
+        manual_due_at = timezone.now() + timedelta(days=100)
+        final_milestone.refresh_from_db()
+        final_milestone.due_at = manual_due_at
+        final_milestone.save(update_fields=["due_at"])
+
+        milestone_72h.submitted_at = milestone_72h.submitted_at - timedelta(hours=3)
+        milestone_72h.save(update_fields=["submitted_at"])
+        final_milestone.refresh_from_db()
+
+        assert final_milestone.due_at == manual_due_at
+
+    def test_72h_milestone_requires_due_at_when_not_required_status(self):
+        report = SRPReportFactory()
+        milestone_72h = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H,
+            due_at=None,
+        )
+        milestone_72h.due_at = None
+        milestone_72h.status = SRPReportMilestone.SRPReportMilestoneStatus.IN_PROGRESS
+
+        with pytest.raises(ValidationError, match="due_at must be set"):
+            milestone_72h._validate_due_at_required()
+
+    def test_final_due_at_not_set_when_72h_has_submitted_at_but_not_submitted(self):
+        report = SRPReportFactory()
+        milestone_72h = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H,
+        )
+        final_milestone = SRPReportMilestoneFactory(
+            srp_report=report,
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+        )
+
+        milestone_72h.submitted_at = timezone.now()
+        milestone_72h.save(update_fields=["submitted_at"])
+        milestone_72h.refresh_from_db()
+        assert (
+            milestone_72h.status
+            != SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
+        )
+
+        final_milestone.save()
+        final_milestone.refresh_from_db()
+        assert final_milestone.due_at is None
 
     def test_due_at_explicit_value_persisted_on_creation(self):
         """

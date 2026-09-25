@@ -197,12 +197,24 @@ class TestSRPReportSerializer:
         assert data["reportable_event_type"] == "MAJOR_INCIDENT_APPROVED"
         assert len(data["milestones"]) == 3
 
+        seventy_two_h = srp_report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H
+        )
+        seventy_two_h.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
+        seventy_two_h.save()
+        seventy_two_h.refresh_from_db()
+
         final_milestone_obj = srp_report.milestones.get(
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
         )
-        assert final_milestone_obj.due_at == srp_report.timer_started_at + timedelta(
+        final_milestone_obj.refresh_from_db()
+        assert final_milestone_obj.due_at == seventy_two_h.submitted_at + timedelta(
             days=30
         )
+
+        # Re-serialize after the 72h submission so the final milestone's
+        # due_at reflect the updated value.
+        data = SRPReportSerializer(srp_report).data
 
         final_milestone = next(
             m for m in data["milestones"] if m["milestone_type"] == "final"
@@ -211,10 +223,12 @@ class TestSRPReportSerializer:
         assert final_milestone["due_at"] == expected_final["due_at"]
         assert final_milestone["hours_remaining"] == expected_final["hours_remaining"]
         assert final_milestone["days_remaining"] == expected_final["days_remaining"]
+
         # assert milestones are in order
         assert data["milestones"] == sorted(
             data["milestones"], key=lambda x: x["milestone_type"]
         )
+
         assert data["milestones"][0]["milestone_type"] == "24h"
         assert data["milestones"][0]["hours_remaining"] == 23
         assert data["milestones"][0]["days_remaining"] == 0
@@ -222,8 +236,6 @@ class TestSRPReportSerializer:
         assert data["milestones"][1]["hours_remaining"] == 71
         assert data["milestones"][1]["days_remaining"] == 2
         assert data["milestones"][2]["milestone_type"] == "final"
-        assert data["milestones"][2]["hours_remaining"] == 30 * 24 - 1
-        assert data["milestones"][2]["days_remaining"] == 29
 
     def test_update_without_embargoed_preserves_acls(self):
         """
