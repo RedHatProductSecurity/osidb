@@ -1533,7 +1533,8 @@ class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFil
 class AffectFilter(
     InFilterSet, DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet
 ):
-    DISTINCT_FIELDS_PREFIXES = ("flaw__", "affects__")
+    # Flaw and tracker are foreign keys; only CVSS joins can multiply affects.
+    DISTINCT_FIELDS_PREFIXES = ("cvss_scores__",)
 
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
     embargoed = BooleanFilter(field_name="embargoed")

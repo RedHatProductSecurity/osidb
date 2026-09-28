@@ -1,3 +1,4 @@
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 import pytest
@@ -6,6 +7,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import status
 
 from osidb.core import set_user_acls
+from osidb.filters import AffectFilter
 from osidb.models import Affect, AffectCVSS, Tracker
 from osidb.models.ps_constants import UbiPackage
 from osidb.tests.factories import (
@@ -157,6 +159,85 @@ class TestEndpointsAffects:
     """
     tests specific to v2/affects endpoint
     """
+
+    def test_default_pagination_orders_ties_and_counts_visible_affects(
+        self, auth_client, test_api_v2_uri
+    ):
+        early = datetime(2024, 1, 1, tzinfo=UTC)
+        late = early + timedelta(days=1)
+        flaw = FlawFactory(embargoed=False)
+        affects = [
+            AffectFactory(flaw=flaw, created_dt=created_dt)
+            for created_dt in (late, early, early)
+        ]
+        expected = [
+            str(affect.uuid)
+            for affect in sorted(
+                affects, key=lambda affect: (affect.created_dt, affect.uuid)
+            )
+        ]
+        url = f"{test_api_v2_uri}/affects"
+
+        first = auth_client().get(f"{url}?limit=2")
+        second = auth_client().get(f"{url}?limit=2&offset=2")
+
+        assert first.status_code == second.status_code == status.HTTP_200_OK
+        assert first.data["count"] == second.data["count"] == 3
+        assert [row["uuid"] for row in first.data["results"]] == expected[:2]
+        assert [row["uuid"] for row in second.data["results"]] == expected[2:]
+
+    @pytest.mark.parametrize("with_cvss_filter", [False, True])
+    def test_filtered_pagination_distinct_only_for_cvss(
+        self, auth_client, test_api_v2_uri, with_cvss_filter
+    ):
+        flaw = FlawFactory(embargoed=False, workflow_state="PRE_SECONDARY_ASSESSMENT")
+        affects = [
+            AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                created_dt=datetime(2024, 1, 1, tzinfo=UTC),
+            )
+            for _ in range(3)
+        ]
+        params = {
+            "affectedness": "AFFECTED",
+            "embargoed": "False",
+            "flaw__workflow_state": "PRE_SECONDARY_ASSESSMENT",
+            "include_fields": "flaw",
+            "limit": 2,
+            "resolution": "DELEGATED",
+            "tracker__isnull": "True",
+        }
+        if with_cvss_filter:
+            for affect in affects:
+                for version in (
+                    AffectCVSS.CVSSVersion.VERSION3,
+                    AffectCVSS.CVSSVersion.VERSION4,
+                ):
+                    AffectCVSSFactory(
+                        affect=affect,
+                        issuer=AffectCVSS.CVSSIssuer.REDHAT,
+                        version=version,
+                    )
+            params["cvss_scores__issuer"] = AffectCVSS.CVSSIssuer.REDHAT
+
+        filters = AffectFilter(params, queryset=Affect.objects.all())
+        assert filters.is_valid(), filters.errors
+        assert filters.qs.query.distinct is with_cvss_filter
+        assert list(filters.qs.values_list("uuid", flat=True)) == sorted(
+            affect.uuid for affect in affects
+        )
+
+        client = auth_client()
+        for offset, length in ((0, 2), (2, 1), (29550, 0)):
+            response = client.get(
+                f"{test_api_v2_uri}/affects", {**params, "offset": offset}
+            )
+            assert response.status_code == status.HTTP_200_OK
+            body = response.json()
+            assert body["count"] == 3
+            assert body["results"] == [{"flaw": str(flaw.uuid)}] * length
 
     @pytest.mark.enable_signals
     def test_get_affect_with_cvss(self, auth_client, test_api_v2_uri):
