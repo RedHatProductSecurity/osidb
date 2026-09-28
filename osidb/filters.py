@@ -1653,6 +1653,14 @@ class AffectFilter(
         q = ~Q(updated_by=models.F("created_by"))
         return queryset.filter(q) if value else queryset.exclude(q)
 
+    def include_fields_filter(self, queryset, name, value):
+        queryset = super().include_fields_filter(queryset, name, value)
+        if "ps_product" not in value.split(","):
+            queryset.query.set_annotation_mask(
+                set(queryset.query.annotation_select) - {"ps_product_name"}
+            )
+        return queryset
+
 
 class TrackerFilter(
     InFilterSet, DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet

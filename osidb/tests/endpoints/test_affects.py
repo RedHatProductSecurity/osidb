@@ -3,7 +3,10 @@ from unittest.mock import patch
 
 import pytest
 from django.conf import settings
+from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from rest_framework import status
 
 from osidb.core import set_user_acls
@@ -204,7 +207,7 @@ class TestEndpointsAffects:
             "affectedness": "AFFECTED",
             "embargoed": "False",
             "flaw__workflow_state": "PRE_SECONDARY_ASSESSMENT",
-            "include_fields": "flaw",
+            "include_fields": "flaw,uuid",
             "limit": 2,
             "resolution": "DELEGATED",
             "tracker__isnull": "True",
@@ -229,15 +232,104 @@ class TestEndpointsAffects:
             affect.uuid for affect in affects
         )
 
+        expected_uuids = [
+            str(affect.uuid)
+            for affect in sorted(
+                affects, key=lambda affect: (affect.created_dt, affect.uuid)
+            )
+        ]
         client = auth_client()
-        for offset, length in ((0, 2), (2, 1), (29550, 0)):
+        for offset in (0, 2, 29550):
             response = client.get(
                 f"{test_api_v2_uri}/affects", {**params, "offset": offset}
             )
             assert response.status_code == status.HTTP_200_OK
             body = response.json()
             assert body["count"] == 3
-            assert body["results"] == [{"flaw": str(flaw.uuid)}] * length
+            assert [row["uuid"] for row in body["results"]] == expected_uuids[
+                offset : offset + 2
+            ]
+            assert all(row["flaw"] == str(flaw.uuid) for row in body["results"])
+
+    def test_include_fields_omits_unused_product_annotation(
+        self, auth_client, test_api_v2_uri
+    ):
+        affect = AffectFactory(flaw=FlawFactory(embargoed=False))
+        url = f"{test_api_v2_uri}/affects"
+
+        for fields, selected in (("flaw", False), ("ps_product", True)):
+            filters = AffectFilter(
+                {"include_fields": fields}, queryset=Affect.objects.all()
+            )
+            assert filters.is_valid(), filters.errors
+            assert ("ps_product_name" in filters.qs.query.annotation_select) is selected
+
+            with CaptureQueriesContext(connection) as queries:
+                response = auth_client().get(url, {"include_fields": fields})
+            page_queries = [
+                query["sql"]
+                for query in queries
+                if 'FROM "osidb_affect"' in query["sql"] and "LIMIT" in query["sql"]
+            ]
+            assert len(page_queries) == 1
+            assert ('FROM "osidb_psmodule"' in page_queries[0]) is selected
+            assert response.status_code == status.HTTP_200_OK
+            assert response.data["count"] == 1
+            assert response.data["results"] == [
+                {fields: affect.flaw_id if fields == "flaw" else affect.ps_product}
+            ]
+
+    def test_cvss_and_flaw_filters_with_explicit_order(
+        self, auth_client, test_api_v2_uri
+    ):
+        flaw = FlawFactory(embargoed=False, workflow_state="PRE_SECONDARY_ASSESSMENT")
+        affects = [
+            AffectFactory(flaw=flaw, ps_component=component) for component in ("a", "b")
+        ]
+        for affect in affects:
+            for version in (
+                AffectCVSS.CVSSVersion.VERSION3,
+                AffectCVSS.CVSSVersion.VERSION4,
+            ):
+                AffectCVSSFactory(
+                    affect=affect,
+                    issuer=AffectCVSS.CVSSIssuer.REDHAT,
+                    version=version,
+                )
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/affects",
+            {
+                "flaw__workflow_state": "PRE_SECONDARY_ASSESSMENT",
+                "cvss_scores__issuer": AffectCVSS.CVSSIssuer.REDHAT,
+                "order": "-ps_component",
+                "include_fields": "uuid",
+                "limit": 1,
+                "offset": 1,
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 2
+        assert response.data["results"] == [{"uuid": str(affects[0].uuid)}]
+
+    @pytest.mark.enable_rls
+    def test_filtered_pagination_respects_rls(self, auth_client, test_api_v2_uri):
+        set_user_acls(settings.ALL_GROUPS)
+        public = AffectFactory(flaw=FlawFactory(embargoed=False))
+        AffectFactory(flaw=FlawFactory(embargoed=True))
+
+        client = auth_client()
+        user = User.objects.get(username="testuser")
+        user.groups.set(
+            Group.objects.get_or_create(name=name)[0]
+            for name in settings.PUBLIC_READ_GROUPS
+        )
+        response = client.get(
+            f"{test_api_v2_uri}/affects", {"include_fields": "uuid", "limit": 1}
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 1
+        assert response.data["results"] == [{"uuid": str(public.uuid)}]
 
     @pytest.mark.enable_signals
     def test_get_affect_with_cvss(self, auth_client, test_api_v2_uri):
