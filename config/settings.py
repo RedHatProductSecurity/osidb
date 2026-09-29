@@ -198,11 +198,6 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-# There are multiple possible memory leaks in Celery. To work around these issues it is
-# recommended to restart Celery worker children processes after set number of tasks.
-# In our case, every hour ~200 tasks are executed. Reasonable number is then (200 / concurrency).
-CELERY_WORKER_MAX_TASKS_PER_CHILD = 60
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
