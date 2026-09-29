@@ -1,6 +1,6 @@
 from django.db import models
 
-from .constants import JIRA_TASKMAN_AUTO_SYNC_FLAW
+from .constants import JIRA_AUTH_TOKEN, JIRA_EMAIL, JIRA_TASKMAN_AUTO_SYNC_FLAW
 
 
 class JiraTaskSyncMixin(models.Model):
@@ -28,11 +28,29 @@ class JiraTaskSyncMixin(models.Model):
 
         Jira sync is conditional based on environment variable
         """
+        old_workflow_state = self.workflow_state
+
         # complete the save before the sync
         super().save(*args, **kwargs)
 
         # check taskman conditions are met
         # and eventually perform the sync
+        if self.workflow_state != old_workflow_state:
+            diff = dict(diff or {})
+            diff["workflow_state"] = {
+                "old": old_workflow_state,
+                "new": self.workflow_state,
+            }
+
+        if (
+            jira_token is None
+            and old_workflow_state
+            and self.task_key
+            and diff
+            and "workflow_state" in diff
+        ):
+            jira_token, jira_email = JIRA_AUTH_TOKEN, JIRA_EMAIL
+
         if JIRA_TASKMAN_AUTO_SYNC_FLAW and jira_token is not None:
             self.tasksync(
                 *args,
