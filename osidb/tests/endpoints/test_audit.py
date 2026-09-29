@@ -5,10 +5,13 @@ import pghistory
 import pytest
 from django.conf import settings
 
+from osidb.api_views import AuditView
 from osidb.core import set_user_acls
-from osidb.models import Affect, PsModule, Tracker
+from osidb.models import Affect, AliasLabel, FlawLabel, PsModule, Tracker
 from osidb.tests.factories import (
+    AffectCVSSFactory,
     AffectFactory,
+    FlawCVSSFactory,
     FlawFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
@@ -206,6 +209,87 @@ class TestEndpointsAudit:
         ]
         assert delete_events
         assert delete_events[0]["pgh_data"]["flaw_id"] == str(flaw.uuid)
+
+    def test_audit_includes_flaw_cvss_history_from_flaw_context(
+        self, auth_client, test_api_uri
+    ):
+        """GET /audit can expose flaw CVSS history from the flaw context."""
+        flaw = FlawFactory(embargoed=False)
+        cvss = FlawCVSSFactory(flaw=flaw)
+
+        response = auth_client().get(
+            f"{test_api_uri}/audit?include_relation_events=true"
+            f"&pgh_obj_model=osidb.Flaw&pgh_obj_id={flaw.uuid}"
+        )
+
+        assert response.status_code == 200
+        cvss_events = [
+            result
+            for result in response.json()["results"]
+            if result["pgh_obj_model"] == "osidb.FlawCVSS"
+            and result["pgh_obj_id"] == str(cvss.uuid)
+        ]
+        assert cvss_events
+        assert cvss_events[0]["pgh_label"] == "insert"
+        assert cvss_events[0]["pgh_slug"].startswith("osidb.FlawCVSSAudit:")
+        assert cvss_events[0]["pgh_data"]["flaw_id"] == str(flaw.uuid)
+
+    def test_audit_includes_affect_cvss_history_from_flaw_context(
+        self, auth_client, test_api_uri
+    ):
+        """GET /audit can expose affect CVSS history from the flaw context."""
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw)
+        cvss = AffectCVSSFactory(affect=affect)
+
+        response = auth_client().get(
+            f"{test_api_uri}/audit?include_relation_events=true"
+            f"&pgh_obj_model=osidb.Flaw&pgh_obj_id={flaw.uuid}"
+        )
+
+        assert response.status_code == 200
+        cvss_events = [
+            result
+            for result in response.json()["results"]
+            if result["pgh_obj_model"] == "osidb.AffectCVSS"
+            and result["pgh_obj_id"] == str(cvss.uuid)
+        ]
+        assert cvss_events
+        assert cvss_events[0]["pgh_label"] == "insert"
+        assert cvss_events[0]["pgh_slug"].startswith("osidb.AffectCVSSAudit:")
+        assert cvss_events[0]["pgh_data"]["affect_id"] == str(affect.uuid)
+
+    def test_audit_flaw_label_table_lookup_is_unique(self):
+        """FlawLabel related history must resolve the legacy audit table once."""
+        audit_table = AuditView()._registered_audit_table_for_model(FlawLabel)
+
+        assert audit_table["audit_label"] == "osidb.FlawLabelV2Audit"
+        assert audit_table["object_label"] == "osidb.FlawLabel"
+
+    def test_audit_includes_label_history_from_flaw_context(
+        self, auth_client, test_api_uri
+    ):
+        """GET /audit can expose label history from the flaw context."""
+        flaw = FlawFactory(embargoed=False)
+        label = AliasLabel.objects.create(flaw=flaw, name="incident-123")
+
+        response = auth_client().get(
+            f"{test_api_uri}/audit?include_relation_events=true"
+            f"&pgh_obj_model=osidb.Flaw&pgh_obj_id={flaw.uuid}"
+        )
+
+        assert response.status_code == 200
+        label_events = [
+            result
+            for result in response.json()["results"]
+            if result["pgh_obj_model"] == "osidb.FlawLabel"
+            and result["pgh_obj_id"] == str(label.uuid)
+        ]
+        assert label_events
+        assert label_events[0]["pgh_label"] == "insert"
+        assert label_events[0]["pgh_slug"].startswith("osidb.FlawLabelV2Audit:")
+        assert label_events[0]["pgh_data"]["flaw_id"] == str(flaw.uuid)
+        assert label_events[0]["pgh_data"]["name"] == "incident-123"
 
     def test_audit_includes_tracker_history_from_flaw_context(
         self, auth_client, test_api_uri
