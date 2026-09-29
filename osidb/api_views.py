@@ -15,7 +15,11 @@ import pghistory
 import requests
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import (
+    ImproperlyConfigured,
+    PermissionDenied,
+    ValidationError,
+)
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -2626,6 +2630,7 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
         )
 
     def _previous_rows_for_rows(self, rows):
+        """Return the previous audit row for each row in the response window."""
         rows_by_audit_label = defaultdict(list)
         audit_tables_by_label = {}
         for audit_table, row in rows:
@@ -2670,6 +2675,7 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
         return previous_rows
 
     def _include_relation_events(self, params):
+        """Return whether relation events were explicitly requested."""
         if "include_relation_events" not in params:
             return False
 
@@ -2679,6 +2685,7 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
         )
 
     def _related_history_context(self, params):
+        """Build query context for Flaw child entities exposed in related history."""
         if not self._include_relation_events(params):
             return None
         if params.get("pgh_obj_model") != Flaw._meta.label or not params.get(
@@ -2697,14 +2704,39 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
             .values_list("tracker_id", flat=True)
             .distinct()
         )
+        affect_ids = (
+            affect_table["model"]
+            .objects.filter(flaw_id=params["pgh_obj_id"])
+            .values("pgh_obj_id")
+            .distinct()
+        )
         return {
             "flaw_id": params["pgh_obj_id"],
             "affect_table": affect_table,
+            "affect_cvss_table": audit_table_for_model(AffectCVSS),
+            "affect_ids": affect_ids,
+            "flaw_cvss_table": audit_table_for_model(FlawCVSS),
+            "label_table": self._registered_audit_table_for_model(FlawLabel),
             "tracker_table": audit_table_for_model(Tracker),
             "tracker_ids": tracker_ids,
         }
 
+    def _registered_audit_table_for_model(self, model_class):
+        """Return the single registered audit table for the model's object label."""
+        audit_tables = [
+            audit_table
+            for audit_table in registered_audit_tables()
+            if audit_table["object_label"] == model_class._meta.label
+        ]
+        if len(audit_tables) != 1:
+            raise ImproperlyConfigured(
+                f"Expected exactly one audit table for {model_class._meta.label}, "
+                f"found {len(audit_tables)}."
+            )
+        return audit_tables[0]
+
     def _related_history_querysets(self, params, related_context):
+        """Return audit querysets for entities related to the requested flaw."""
         if related_context is None:
             return []
 
@@ -2716,6 +2748,33 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
                 ),
             )
         ]
+        if related_context["flaw_cvss_table"] is not None:
+            querysets.append(
+                (
+                    related_context["flaw_cvss_table"],
+                    related_context["flaw_cvss_table"]["model"].objects.filter(
+                        flaw_id=related_context["flaw_id"]
+                    ),
+                )
+            )
+        if related_context["affect_cvss_table"] is not None:
+            querysets.append(
+                (
+                    related_context["affect_cvss_table"],
+                    related_context["affect_cvss_table"]["model"].objects.filter(
+                        affect_id__in=related_context["affect_ids"]
+                    ),
+                )
+            )
+        if related_context["label_table"] is not None:
+            querysets.append(
+                (
+                    related_context["label_table"],
+                    related_context["label_table"]["model"].objects.filter(
+                        flaw_id=related_context["flaw_id"]
+                    ),
+                )
+            )
         if (
             related_context["tracker_table"] is not None
             and related_context["tracker_ids"]
@@ -2734,6 +2793,7 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
         ]
 
     def _filter_related_history_queryset(self, queryset, params):
+        """Apply audit filters shared by all related-history querysets."""
         if params.get("pgh_label"):
             queryset = queryset.filter(pgh_label=params["pgh_label"])
         if params.get("pgh_created_at"):
@@ -2741,12 +2801,14 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
         return queryset
 
     def _related_history_count(self, params, related_context):
+        """Return the total count of matching related audit events."""
         return sum(
             queryset.count()
             for _, queryset in self._related_history_querysets(params, related_context)
         )
 
     def _related_history_rows(self, params, window, related_context):
+        """Return related audit rows constrained to the response window size."""
         rows = []
         for audit_table, queryset in self._related_history_querysets(
             params, related_context
