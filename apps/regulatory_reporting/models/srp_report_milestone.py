@@ -179,17 +179,19 @@ class SRPReportMilestone(SRPReportBase):
         with transaction.atomic():
             previous_status = None
             previous_additional_details = None
+            previous_submitted_at = None
             if not self._state.adding:
                 prev = (
                     type(self)
                     .objects.select_for_update()
                     .filter(pk=self.pk)
-                    .values("status", "additional_details")
+                    .values("status", "additional_details", "submitted_at")
                     .first()
                 )
                 if prev:
                     previous_status = prev["status"]
                     previous_additional_details = prev["additional_details"]
+                    previous_submitted_at = prev["submitted_at"]
 
             writing_status = update_fields is None or "status" in update_fields
             writing_details = (
@@ -232,6 +234,49 @@ class SRPReportMilestone(SRPReportBase):
                     super().save(*args, **save_kwargs)
                 finally:
                     self._preparing_payload = False
+        if (
+            self.milestone_type == self.MilestoneType.LEVEL_72H
+            and self.status == self.SRPReportMilestoneStatus.SUBMITTED
+        ):
+            final_milestone = self.srp_report.milestones.filter(
+                milestone_type=self.MilestoneType.LEVEL_FINAL
+            ).first()
+            if final_milestone:
+                duration = final_milestone._final_report_duration()
+                submitted_at_changed = (
+                    previous_submitted_at is not None
+                    and previous_submitted_at != self.submitted_at
+                )
+                # Recompute only if the deadline is still auto-calculated.
+                # A manually edited deadline is left alone.
+                is_auto = final_milestone.due_at is None or (
+                    submitted_at_changed
+                    and duration is not None
+                    and final_milestone.due_at == previous_submitted_at + duration
+                )
+                if is_auto:
+                    new_due_at = final_milestone._compute_default_due_at()
+                    if new_due_at is not None and new_due_at != final_milestone.due_at:
+                        final_milestone.due_at = new_due_at
+                        final_milestone.save(update_fields=["due_at"])
+
+    def _final_report_duration(self):
+        """
+        Duration for a LEVEL_FINAL milestone based on reportable_event_type,
+        independent of the anchor timestamp. Returns None if the event type
+        isn't one that has a defined Final Report duration.
+        """
+        if (
+            self.srp_report.reportable_event_type
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
+        ):
+            return timedelta(days=14)
+        elif (
+            self.srp_report.reportable_event_type
+            == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
+        ):
+            return timedelta(days=30)
+        return None
 
     def _compute_default_due_at(self):
         """
@@ -241,26 +286,26 @@ class SRPReportMilestone(SRPReportBase):
         Severe Incident (MAJOR_INCIDENT_APPROVED): 30 days
         """
 
-        if not self.srp_report.timer_started_at:
-            return None
-
         if self.milestone_type == self.MilestoneType.LEVEL_FINAL:
+            seventy_two_h = self.srp_report.milestones.filter(
+                milestone_type=self.MilestoneType.LEVEL_72H
+            ).first()
             if (
-                self.srp_report.reportable_event_type
-                == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
+                not seventy_two_h
+                or not seventy_two_h.submitted_at
+                or seventy_two_h.status != self.SRPReportMilestoneStatus.SUBMITTED
             ):
-                duration = timedelta(days=14)
-            elif (
-                self.srp_report.reportable_event_type
-                == SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
-            ):
-                duration = timedelta(days=30)
-            else:
                 return None
-        else:
-            duration = self.MILESTONE_DURATION_BY_TYPE[self.milestone_type]
 
-        return self.srp_report.timer_started_at + duration
+            duration = self._final_report_duration()
+            if duration is None:
+                return None
+            return seventy_two_h.submitted_at + duration
+        else:
+            if not self.srp_report.timer_started_at:
+                return None
+            duration = self.MILESTONE_DURATION_BY_TYPE[self.milestone_type]
+            return self.srp_report.timer_started_at + duration
 
     @validator
     def _validate_due_at_required(self, **kwargs):
@@ -270,6 +315,7 @@ class SRPReportMilestone(SRPReportBase):
         Exceptions:
         - REQUIRED milestones can have None due_at until the parent
           report's SLA timer starts.
+        - LEVEL_FINAL milestones can have None due_at until the 72h milestone has been submitted.
         """
         if (
             self.milestone_type == self.MilestoneType.LEVEL_FINAL
@@ -286,6 +332,20 @@ class SRPReportMilestone(SRPReportBase):
             # Allow None while manually created reports wait for timer start
             if self.status == self.SRPReportMilestoneStatus.REQUIRED:
                 return
+            # LEVEL_FINAL's due_at is unknown until the 72h milestone is
+            # submitted (see _compute_default_due_at) — allow it to stay
+            # None while coordinators work the Final milestone before that
+            # happens.
+            if self.milestone_type == self.MilestoneType.LEVEL_FINAL:
+                seventy_two_h = self.srp_report.milestones.filter(
+                    milestone_type=self.MilestoneType.LEVEL_72H
+                ).first()
+                if (
+                    not seventy_two_h
+                    or not seventy_two_h.submitted_at
+                    or seventy_two_h.status != self.SRPReportMilestoneStatus.SUBMITTED
+                ):
+                    return None
             raise ValidationError("due_at must be set for all milestones")
 
 

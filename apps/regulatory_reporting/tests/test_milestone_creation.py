@@ -127,12 +127,17 @@ class TestSRPMilestoneAutoCreation:
         )
 
         # Check final milestone - 14 days for KEV
+        milestone_72h.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
+        milestone_72h.save()
+        milestone_72h.refresh_from_db()
+
         milestone_final = milestones.get(
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
         )
-        expected_final = start_time + timedelta(days=14)
+        milestone_final.refresh_from_db()
+        expected_final = milestone_72h.submitted_at + timedelta(days=14)
         assert milestone_final.due_at == expected_final, (
-            "Final milestone for KEV should be due 14 days after start"
+            "Final milestone for KEV should be due 14 days after 72h submission"
         )
 
     def test_milestone_due_dates_for_severe_incident(self, create_flaw_report):
@@ -169,13 +174,17 @@ class TestSRPMilestoneAutoCreation:
         expected_72h = start_time + timedelta(hours=72)
         assert milestone_72h.due_at == expected_72h
 
-        # Check final milestone - 30 days for Severe Incident
+        # Check final milestone - 30 days for Severe Incident, anchored on 72h submission
+        milestone_72h.status = SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED
+        milestone_72h.save()
+        milestone_72h.refresh_from_db()
         milestone_final = milestones.get(
             milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
         )
-        expected_final = start_time + timedelta(days=30)
+        milestone_final.refresh_from_db()
+        expected_final = milestone_72h.submitted_at + timedelta(days=30)
         assert milestone_final.due_at == expected_final, (
-            "Final milestone for Severe Incident should be due 30 days after start"
+            "Final milestone for Severe Incident should be due 30 days after 72h submission"
         )
 
     def test_milestones_inherit_acl_from_srp_report(self, create_flaw_report):
@@ -319,7 +328,9 @@ class TestMilestoneDueDateProperty:
         srp_report = create_flaw_report()
         assert srp_report.timer_started_at == srp_report.flaw.major_incident_start_dt
 
-        milestones = SRPReportMilestone.objects.filter(srp_report=srp_report)
+        milestones = SRPReportMilestone.objects.filter(srp_report=srp_report).exclude(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
+        )
         for milestone in milestones:
             # All due dates should be calculated from the same start time
             assert milestone.due_at > srp_report.flaw.major_incident_start_dt, (
