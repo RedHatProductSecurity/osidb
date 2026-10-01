@@ -82,6 +82,37 @@ def update_srp_report_milestones(srp_report: SRPReport):
         )
 
 
+def recalculate_srp_report_milestone_due_dates(
+    srp_report: SRPReport,
+    previous_timer_started_at=None,
+):
+    """Recalculate timer-derived due dates without overwriting manual edits."""
+    for milestone in SRPReportMilestone.objects.filter(srp_report=srp_report):
+        if milestone.status in {
+            SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED,
+            SRPReportMilestone.SRPReportMilestoneStatus.OBSOLETE,
+        }:
+            continue
+
+        old_due_at = None
+        if previous_timer_started_at:
+            original_timer = milestone.srp_report.timer_started_at
+            milestone.srp_report.timer_started_at = previous_timer_started_at
+            try:
+                old_due_at = milestone._compute_default_due_at()
+            finally:
+                milestone.srp_report.timer_started_at = original_timer
+
+        if milestone.due_at:
+            if old_due_at is None or milestone.due_at != old_due_at:
+                continue
+
+        new_due_at = milestone._compute_default_due_at()
+        if milestone.due_at != new_due_at:
+            milestone.due_at = new_due_at
+            milestone.save()
+
+
 def create_srp_report(flaw_instance: Flaw, incident_state: Flaw.FlawMajorIncident):
     """
     create SRP Report and milestones when Flaw is marked as KEV or Major Incident approved.
@@ -127,12 +158,18 @@ def create_srp_report(flaw_instance: Flaw, incident_state: Flaw.FlawMajorInciden
         )
 
         if not report_created:
+            previous_timer_started_at = srp_report.timer_started_at
             srp_report.title = locked_flaw.title or f"SRP Report for {locked_flaw.uuid}"
             srp_report.acl_read = locked_flaw.acl_read
             srp_report.acl_write = locked_flaw.acl_write
             srp_report.timer_started_at = locked_flaw.major_incident_start_dt
             srp_report.save()
             update_srp_report_milestones(srp_report)
+            if srp_report.timer_started_at != previous_timer_started_at:
+                recalculate_srp_report_milestone_due_dates(
+                    srp_report,
+                    previous_timer_started_at,
+                )
             logger.info(
                 f"Updated SRP Report {srp_report.uuid} for Flaw {locked_flaw.uuid} "
             )
@@ -909,12 +946,18 @@ class SRPPayloadBuilderFinal(SRPPayloadBuilder):
             self._build_user_mitigations()
         )
         fields["information_sensitivity"] = ""
-        fields["corrective_or_mitigating_measure_available_at"] = ""
+        fields["corrective_or_mitigating_measure_available_at"] = (
+            self.milestone.mitigation_created_at.isoformat()
+            if self.milestone.mitigation_created_at
+            else ""
+        )
         fields["full_vulnerability_description"] = self._build_full_description()
         fields["vulnerability_severity"] = self._build_severity()
         fields["vulnerability_impact"] = self._build_vulnerability_impact()
         fields["known_or_suspected_malicious_actor"] = ""
-        fields["security_update_or_corrective_measure_details"] = ""
+        fields["security_update_or_corrective_measure_details"] = (
+            self.milestone.mitigation_link
+        )
         return fields
 
     def _build_incident_fields(self):

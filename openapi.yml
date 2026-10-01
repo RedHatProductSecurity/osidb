@@ -20377,13 +20377,7 @@ components:
       - uuid
     SRPReportCreate:
       type: object
-      description: |-
-        Serializer for manually creating SRP Reports.
-
-        Status is always EMPTY. ACLs are inherited from the flaw in the
-        view's perform_create. evidence is required for manual create.
-        srp_reference_id and srp_reference_url are optional. timer_started_at is
-        read-only and remains null until the report transitions to IN_PROGRESS.
+      description: Schema serializer for manual SRP report create responses.
       properties:
         uuid:
           type: string
@@ -20480,8 +20474,7 @@ components:
 
         Status is always EMPTY. ACLs are inherited from the flaw in the
         view's perform_create. evidence is required for manual create.
-        srp_reference_id and srp_reference_url are optional. timer_started_at is
-        read-only and remains null until the report transitions to IN_PROGRESS.
+        srp_reference_id, srp_reference_url, and timer_started_at are optional.
       properties:
         flaw_id:
           type: string
@@ -20503,6 +20496,11 @@ components:
         evidence:
           type: string
           minLength: 1
+        timer_started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
         srp_reference_id:
           type: string
           maxLength: 255
@@ -20586,6 +20584,20 @@ components:
           type: string
           description: Owner of this milestone
           maxLength: 60
+        mitigation_created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the mitigation or patch became available
+        mitigation_link:
+          description: Link to the mitigation or patch used for reporting
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         manual_completion_notes:
           type: string
           description: Manual completion notes
@@ -20672,6 +20684,20 @@ components:
           type: string
           description: Owner of this milestone
           maxLength: 60
+        mitigation_created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the mitigation or patch became available
+        mitigation_link:
+          description: Link to the mitigation or patch used for reporting
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
         manual_completion_notes:
           type: string
           description: Manual completion notes

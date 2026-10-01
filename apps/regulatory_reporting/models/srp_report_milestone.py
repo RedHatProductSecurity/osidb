@@ -95,6 +95,16 @@ class SRPReportMilestone(SRPReportBase):
         blank=True,
         help_text="Owner of this milestone",
     )
+    mitigation_created_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the mitigation or patch became available",
+    )
+    mitigation_link = models.URLField(
+        max_length=200,
+        blank=True,
+        help_text="Link to the mitigation or patch used for reporting",
+    )
 
     status = models.CharField(
         choices=SRPReportMilestoneStatus.choices,
@@ -178,17 +188,19 @@ class SRPReportMilestone(SRPReportBase):
 
         with transaction.atomic():
             previous_status = None
+            previous_submitted_at = None
             previous_additional_details = None
             if not self._state.adding:
                 prev = (
                     type(self)
                     .objects.select_for_update()
                     .filter(pk=self.pk)
-                    .values("status", "additional_details")
+                    .values("status", "submitted_at", "additional_details")
                     .first()
                 )
                 if prev:
                     previous_status = prev["status"]
+                    previous_submitted_at = prev["submitted_at"]
                     previous_additional_details = prev["additional_details"]
 
             writing_status = update_fields is None or "status" in update_fields
@@ -213,6 +225,8 @@ class SRPReportMilestone(SRPReportBase):
             )
 
             super().save(*args, **kwargs)
+
+            self._update_severe_incident_final_due_at(previous_submitted_at)
 
             if should_prepare:
                 # Lazy import avoids circular dependency with services.py
@@ -241,14 +255,13 @@ class SRPReportMilestone(SRPReportBase):
         Severe Incident (MAJOR_INCIDENT_APPROVED): 30 days
         """
 
-        if not self.srp_report.timer_started_at:
-            return None
-
         if self.milestone_type == self.MilestoneType.LEVEL_FINAL:
             if (
                 self.srp_report.reportable_event_type
                 == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
             ):
+                if self.mitigation_created_at:
+                    return self.mitigation_created_at + timedelta(days=14)
                 duration = timedelta(days=14)
             elif (
                 self.srp_report.reportable_event_type
@@ -260,7 +273,49 @@ class SRPReportMilestone(SRPReportBase):
         else:
             duration = self.MILESTONE_DURATION_BY_TYPE[self.milestone_type]
 
+        if not self.srp_report.timer_started_at:
+            return None
+
         return self.srp_report.timer_started_at + duration
+
+    def _update_severe_incident_final_due_at(self, previous_submitted_at):
+        """Start the SI final 30-day clock when the 72h report is submitted."""
+        if (
+            self.milestone_type != self.MilestoneType.LEVEL_72H
+            or self.srp_report.reportable_event_type
+            != SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED
+            or self.status != self.SRPReportMilestoneStatus.SUBMITTED
+            or not self.submitted_at
+        ):
+            return
+
+        final = self.srp_report.milestones.filter(
+            milestone_type=self.MilestoneType.LEVEL_FINAL
+        ).first()
+        if not final:
+            return
+
+        auto_due_at_candidates = set()
+        if self.srp_report.timer_started_at:
+            auto_due_at_candidates.add(
+                self.srp_report.timer_started_at + timedelta(days=30)
+            )
+        if previous_submitted_at:
+            auto_due_at_candidates.add(previous_submitted_at + timedelta(days=30))
+
+        if (
+            final.due_at
+            and auto_due_at_candidates
+            and final.due_at not in auto_due_at_candidates
+        ):
+            return
+
+        new_due_at = self.submitted_at + timedelta(days=30)
+        if final.due_at == new_due_at:
+            return
+
+        final.due_at = new_due_at
+        final.save()
 
     @validator
     def _validate_due_at_required(self, **kwargs):
