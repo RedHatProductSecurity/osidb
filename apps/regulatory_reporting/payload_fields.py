@@ -23,6 +23,197 @@ AEV_EVENT = "EXPLOITS_KEV_APPROVED"
 SI_EVENT = "MAJOR_INCIDENT_APPROVED"
 PAYLOAD_MILESTONE_TYPES = {"24h", "72h", "final"}
 
+AEV_FIELD_ORDER_BY_MILESTONE = {
+    "24h": [
+        "notification_type",
+        "report_title",
+        "summary",
+        "manufacturer_or_steward_name",
+        "member_states_available",
+        "product_name",
+        "product_version",
+        "aev_detected_at",
+        "product_type",
+        "product_class",
+        "product_category",
+        "end_of_support",
+        "component_name",
+        "mitigating_measure_expected_shortly",
+        "user_action_able_to_reduce_impact",
+        "information_sensitivity",
+        "corrective_or_mitigating_measures_taken",
+        "corrective_or_mitigating_measures_users_can_take",
+        "attack_vector",
+        "cve_id",
+        "euvd_id",
+        "general_information",
+        "corrective_or_mitigating_measure_available_at",
+        "security_update_or_corrective_measure_details",
+        "vulnerability_severity",
+        "vulnerability_impact",
+        "known_or_suspected_malicious_actor",
+        "further_information",
+    ],
+    "72h": [
+        "notification_type",
+        "report_title",
+        "summary",
+        "manufacturer_or_steward_name",
+        "member_states_available",
+        "product_name",
+        "product_version",
+        "general_information",
+        "general_nature_of_vulnerability",
+        "general_nature_of_exploit",
+        "aev_detected_at",
+        "product_type",
+        "product_class",
+        "product_category",
+        "end_of_support",
+        "component_name",
+        "mitigating_measure_expected_shortly",
+        "user_action_able_to_reduce_impact",
+        "information_sensitivity",
+        "corrective_or_mitigating_measures_taken",
+        "corrective_or_mitigating_measures_users_can_take",
+        "attack_vector",
+        "cve_id",
+        "euvd_id",
+        "corrective_or_mitigating_measure_available_at",
+        "security_update_or_corrective_measure_details",
+        "vulnerability_severity",
+        "vulnerability_impact",
+        "known_or_suspected_malicious_actor",
+        "pec",
+        "pec_delay_reason",
+        "further_information",
+    ],
+    "final": [
+        "notification_type",
+        "report_title",
+        "summary",
+        "manufacturer_or_steward_name",
+        "member_states_available",
+        "product_name",
+        "product_version",
+        "product_type",
+        "product_class",
+        "product_category",
+        "end_of_support",
+        "component_name",
+        "mitigating_measure_expected_shortly",
+        "user_action_able_to_reduce_impact",
+        "information_sensitivity",
+        "corrective_or_mitigating_measures_taken",
+        "corrective_or_mitigating_measures_users_can_take",
+        "attack_vector",
+        "cve_id",
+        "euvd_id",
+        "general_information",
+        "general_nature_of_vulnerability",
+        "general_nature_of_exploit",
+        "corrective_or_mitigating_measure_available_at",
+        "security_update_or_corrective_measure_details",
+        "full_vulnerability_description",
+        "vulnerability_severity",
+        "vulnerability_impact",
+        "aev_detected_at",
+        "known_or_suspected_malicious_actor",
+        "further_information",
+    ],
+}
+
+SI_FIELD_ORDER_BY_MILESTONE = {
+    "24h": [
+        "notification_type",
+        "report_title",
+        "summary",
+        "manufacturer_or_steward_name",
+        "member_states_available",
+        "product_name",
+        "product_version",
+        "suspected_unlawful_or_malicious_acts",
+        "incident_detected_at",
+        "product_type",
+        "product_class",
+        "product_category",
+        "end_of_support",
+        "component_name",
+        "mitigating_measure_expected_shortly",
+        "user_action_able_to_reduce_impact",
+        "information_sensitivity",
+        "corrective_or_mitigating_measures_taken",
+        "corrective_or_mitigating_measures_users_can_take",
+        "attack_vector",
+        "general_incident_information",
+        "applied_and_ongoing_mitigation_measures",
+        "incident_severity",
+        "incident_impact",
+        "likely_threat_or_root_cause",
+        "incident_occurred_at",
+        "initial_incident_assessment",
+    ],
+    "72h": [
+        "notification_type",
+        "report_title",
+        "summary",
+        "manufacturer_or_steward_name",
+        "member_states_available",
+        "product_name",
+        "product_version",
+        "suspected_unlawful_or_malicious_acts",
+        "general_incident_information",
+        "incident_detected_at",
+        "incident_occurred_at",
+        "initial_incident_assessment",
+        "product_type",
+        "product_class",
+        "product_category",
+        "end_of_support",
+        "component_name",
+        "mitigating_measure_expected_shortly",
+        "user_action_able_to_reduce_impact",
+        "information_sensitivity",
+        "corrective_or_mitigating_measures_taken",
+        "corrective_or_mitigating_measures_users_can_take",
+        "attack_vector",
+        "applied_and_ongoing_mitigation_measures",
+        "incident_severity",
+        "incident_impact",
+        "likely_threat_or_root_cause",
+    ],
+    "final": [
+        "notification_type",
+        "report_title",
+        "summary",
+        "manufacturer_or_steward_name",
+        "member_states_available",
+        "product_name",
+        "product_version",
+        "product_type",
+        "product_class",
+        "product_category",
+        "end_of_support",
+        "component_name",
+        "mitigating_measure_expected_shortly",
+        "user_action_able_to_reduce_impact",
+        "information_sensitivity",
+        "corrective_or_mitigating_measures_taken",
+        "corrective_or_mitigating_measures_users_can_take",
+        "attack_vector",
+        "suspected_unlawful_or_malicious_acts",
+        "general_incident_information",
+        "detailed_incident_description",
+        "applied_and_ongoing_mitigation_measures",
+        "incident_severity",
+        "incident_impact",
+        "likely_threat_or_root_cause",
+        "incident_detected_at",
+        "incident_occurred_at",
+        "initial_incident_assessment",
+    ],
+}
+
 REQUIREMENT_NOT_APPLICABLE = "not_applicable"
 REQUIREMENT_COPIED_OR_UPDATED = "copied_or_updated"
 REQUIREMENT_OPTIONAL = "optional"
@@ -296,7 +487,7 @@ PAYLOAD_FIELD_DEFINITIONS = [
         "manual_editable",
         "text",
         {
-            "24h": REQUIREMENT_NOT_APPLICABLE,
+            "24h": REQUIREMENT_OPTIONAL,
             "72h": REQUIREMENT_OPTIONAL,
             "final": REQUIREMENT_OPTIONAL,
         },
@@ -459,11 +650,11 @@ PAYLOAD_FIELD_DEFINITIONS = [
     ),
     _field(
         "pec",
-        "Particular Exceptional Circumstances",
+        "Particular Exceptional Circumstances (PEC)",
         "aev",
         "aev",
         "manual_editable",
-        "textarea",
+        "multi_select",
         {
             "24h": REQUIREMENT_NOT_APPLICABLE,
             "72h": REQUIREMENT_OPTIONAL,
@@ -476,7 +667,7 @@ PAYLOAD_FIELD_DEFINITIONS = [
         "aev",
         "aev",
         "manual_editable",
-        "textarea",
+        "multi_select",
         {
             "24h": REQUIREMENT_NOT_APPLICABLE,
             "72h": REQUIREMENT_OPTIONAL,
@@ -485,7 +676,7 @@ PAYLOAD_FIELD_DEFINITIONS = [
     ),
     _field(
         "further_information",
-        "Further Information",
+        "Please Provide Further Information",
         "aev",
         "aev",
         "manual_editable",
@@ -641,12 +832,22 @@ def _event_matches(field, event_type):
 def get_payload_field_definitions(event_type, milestone_type):
     if milestone_type not in PAYLOAD_MILESTONE_TYPES:
         return []
-    return [
+    fields = [
         field
         for field in PAYLOAD_FIELD_DEFINITIONS
         if _event_matches(field, event_type)
         and field["requirements"][milestone_type] != REQUIREMENT_NOT_APPLICABLE
     ]
+    if event_type == AEV_EVENT:
+        field_order = AEV_FIELD_ORDER_BY_MILESTONE.get(milestone_type)
+    elif event_type == SI_EVENT:
+        field_order = SI_FIELD_ORDER_BY_MILESTONE.get(milestone_type)
+    else:
+        field_order = None
+    if field_order:
+        order_by_key = {key: index for index, key in enumerate(field_order)}
+        fields.sort(key=lambda field: order_by_key.get(field["key"], len(order_by_key)))
+    return fields
 
 
 def get_payload_field_definition_map(event_type, milestone_type):

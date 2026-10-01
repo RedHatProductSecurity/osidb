@@ -135,6 +135,31 @@ class TestSRPMilestoneAutoCreation:
             "Final milestone for KEV should be due 14 days after start"
         )
 
+    def test_existing_report_timer_update_recalculates_default_due_dates(
+        self, create_flaw_report
+    ):
+        """Service-driven timer changes update due dates that still follow defaults."""
+        start_time = timezone.now().replace(microsecond=0)
+        flaw = FlawFactory(
+            major_incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED,
+            major_incident_start_dt=start_time,
+        )
+        srp_report = create_flaw_report(
+            flaw=flaw, incident_state=Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED
+        )
+        milestone_24h = srp_report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+        assert milestone_24h.due_at == start_time + timedelta(hours=24)
+
+        new_start_time = start_time + timedelta(days=2)
+        flaw.major_incident_start_dt = new_start_time
+        flaw.save()
+        create_srp_report(flaw, Flaw.FlawMajorIncident.EXPLOITS_KEV_APPROVED)
+
+        milestone_24h.refresh_from_db()
+        assert milestone_24h.due_at == new_start_time + timedelta(hours=24)
+
     def test_milestone_due_dates_for_severe_incident(self, create_flaw_report):
         """
         Verify correct due dates for Severe Incident milestones:

@@ -6,10 +6,11 @@ Provides REST API serialization for CRA compliance reporting.
 
 import json
 import uuid
+from datetime import timedelta
 
 from django.db import IntegrityError, transaction
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema_field
+from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
 from rest_framework import serializers
 
 from apps.regulatory_reporting.constants import ENISA_STATE_CODES
@@ -106,6 +107,8 @@ class SRPReportMilestoneSerializer(
                 "missing_required_fields",
                 "submitted_at",
                 "owner",
+                "mitigation_created_at",
+                "mitigation_link",
                 "manual_completion_notes",
                 # Tracking fields
                 "created_dt",
@@ -166,15 +169,9 @@ class SRPReportMilestoneSerializer(
                 "additional_details must be a JSON object, not a list or scalar."
             )
         for k, v in value.items():
-            if k == "member_states_available":
-                if not isinstance(v, (list, str)):
-                    raise serializers.ValidationError(
-                        f"additional_details[{k!r}] must be a list or string, "
-                        f"got {type(v).__name__}."
-                    )
-            elif not isinstance(v, str):
+            if not isinstance(v, (list, str)):
                 raise serializers.ValidationError(
-                    f"additional_details[{k!r}] must be a string, "
+                    f"additional_details[{k!r}] must be a list or string, "
                     f"got {type(v).__name__}."
                 )
         return value
@@ -230,11 +227,85 @@ class SRPReportMilestoneSerializer(
         Snapshot rebuild for already-submitted milestones when additional_details
         changes is handled in SRPReportMilestone.save().
         """
+        should_update_aev_final = (
+            instance.milestone_type == SRPReportMilestone.MilestoneType.LEVEL_72H
+            and instance.srp_report.reportable_event_type
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
+            and (
+                "mitigation_created_at" in validated_data
+                or "mitigation_link" in validated_data
+            )
+        )
+        if (
+            instance.milestone_type == SRPReportMilestone.MilestoneType.LEVEL_FINAL
+            and instance.srp_report.reportable_event_type
+            == SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED
+            and "mitigation_created_at" in validated_data
+            and (
+                validated_data["mitigation_created_at"]
+                != instance.mitigation_created_at
+            )
+            and (
+                "due_at" not in validated_data
+                or validated_data["due_at"] == instance.due_at
+            )
+        ):
+            validated_data["due_at"] = self._get_aev_final_due_at(
+                instance,
+                validated_data["mitigation_created_at"],
+            )
+
         validated_data["acl_read"] = instance.acl_read
         validated_data["acl_write"] = instance.acl_write
-        return super(ACLMixinSerializer, self).update(
+        updated = super(ACLMixinSerializer, self).update(
             instance, validated_data, *args, **kwargs
         )
+        if should_update_aev_final:
+            self._update_aev_final_from_72h_mitigation(
+                updated,
+                validated_data,
+            )
+        return updated
+
+    def _update_aev_final_from_72h_mitigation(
+        self,
+        milestone,
+        validated_data,
+    ):
+        final = milestone.srp_report.milestones.filter(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL,
+        ).first()
+        if not final:
+            return
+
+        changed = False
+
+        if "mitigation_created_at" in validated_data:
+            mitigation_created_at = validated_data["mitigation_created_at"]
+            if mitigation_created_at != final.mitigation_created_at:
+                final.mitigation_created_at = mitigation_created_at
+                final.due_at = self._get_aev_final_due_at(
+                    final,
+                    mitigation_created_at,
+                )
+                changed = True
+
+        if (
+            "mitigation_link" in validated_data
+            and validated_data["mitigation_link"] != final.mitigation_link
+        ):
+            final.mitigation_link = validated_data["mitigation_link"]
+            changed = True
+        if changed:
+            final.save()
+
+    @staticmethod
+    def _get_aev_final_due_at(milestone, mitigation_created_at):
+        if mitigation_created_at:
+            return mitigation_created_at + timedelta(days=14)
+        if milestone.srp_report.timer_started_at:
+            return milestone.srp_report.timer_started_at + timedelta(days=14)
+        return None
 
     def to_representation(self, instance):
         due_at = instance.due_at
@@ -427,8 +498,7 @@ class SRPReportCreateSerializer(SRPReportSerializer):
 
     Status is always EMPTY. ACLs are inherited from the flaw in the
     view's perform_create. evidence is required for manual create.
-    srp_reference_id and srp_reference_url are optional. timer_started_at is
-    read-only and remains null until the report transitions to IN_PROGRESS.
+    srp_reference_id, srp_reference_url, and timer_started_at are optional.
     """
 
     flaw_id = serializers.PrimaryKeyRelatedField(
@@ -457,7 +527,7 @@ class SRPReportCreateSerializer(SRPReportSerializer):
         choices=SRPReport.SRPReportStatus.choices,
         read_only=True,
     )
-    timer_started_at = serializers.DateTimeField(read_only=True, allow_null=True)
+    timer_started_at = serializers.DateTimeField(required=False, allow_null=True)
     updated_dt = serializers.DateTimeField(read_only=True)
 
     class Meta(SRPReportSerializer.Meta):
@@ -472,7 +542,6 @@ class SRPReportCreateSerializer(SRPReportSerializer):
             "meta_attr",
             "alerts",
             "status",
-            "timer_started_at",
         ]
 
     @staticmethod
@@ -552,3 +621,10 @@ class SRPReportCreateSerializer(SRPReportSerializer):
                     )
                 }
             ) from exc
+
+
+@extend_schema_serializer(component_name="SRPReportCreate")
+class SRPReportCreateResponseSerializer(SRPReportCreateSerializer):
+    """Schema serializer for manual SRP report create responses."""
+
+    timer_started_at = serializers.DateTimeField(read_only=True, allow_null=True)

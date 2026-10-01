@@ -203,19 +203,24 @@ class TestSRPReportCreate:
         assert response.status_code == status.HTTP_201_CREATED, response.data
         assert response.data["title"] == long_title
 
-    def test_create_report_ignores_timer_started_at(self, authenticated_client):
-        """timer_started_at is read-only on create and stays null for EMPTY."""
+    def test_create_report_accepts_timer_started_at(self, authenticated_client):
+        """timer_started_at can be set on create so milestone due dates exist."""
         flaw = NonReportableFlawFactory()
-        backdated = timezone.now() - timezone.timedelta(days=3)
+        backdated = (timezone.now() - timezone.timedelta(days=3)).replace(microsecond=0)
         response = authenticated_client.post(
             "/regulatory-reporting/api/v1/srp-reports",
             self._create_payload(flaw, timer_started_at=backdated.isoformat()),
             format="json",
         )
         assert response.status_code == status.HTTP_201_CREATED, response.data
-        assert response.data["timer_started_at"] is None
+        assert response.data["timer_started_at"] == backdated.isoformat().replace(
+            "+00:00", "Z"
+        )
         report = SRPReport.objects.get(uuid=response.data["uuid"])
-        assert report.timer_started_at is None
+        assert report.timer_started_at == backdated
+        assert report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        ).due_at == backdated + timezone.timedelta(hours=24)
 
     def test_create_report_missing_evidence_fails(self, authenticated_client):
         """evidence is required for manual create."""
@@ -448,6 +453,87 @@ class TestSRPReportUpdate:
         assert response.data["manual_completion_notes"] == "some notes"
         report.refresh_from_db()
         assert report.manual_completion_notes == "some notes"
+
+    def test_update_timer_started_at_recalculates_default_due_dates(
+        self, authenticated_client, create_flaw_report
+    ):
+        """Timer-derived milestone due dates follow timer changes until manually edited."""
+        report = create_flaw_report()
+        old_timer = report.timer_started_at
+        new_timer = (old_timer + timezone.timedelta(days=2)).replace(microsecond=0)
+
+        response = self._put_report(
+            authenticated_client,
+            report,
+            timer_started_at=new_timer.isoformat(),
+        )
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        milestone = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+        milestone.refresh_from_db()
+        assert milestone.due_at == new_timer + timezone.timedelta(hours=24)
+
+    def test_clear_timer_preserves_aev_final_mitigation_due_at(
+        self, authenticated_client, create_flaw_report
+    ):
+        """Clearing timer keeps AEV final due_at based on mitigation."""
+        report = create_flaw_report()
+        final = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
+        )
+        mitigation_created_at = timezone.now().replace(microsecond=0)
+        mitigation_due_at = mitigation_created_at + timezone.timedelta(days=14)
+        final.mitigation_created_at = mitigation_created_at
+        final.due_at = mitigation_due_at
+        final.save()
+
+        response = self._put_report(
+            authenticated_client,
+            report,
+            evidence="Resetting the timer for regression coverage.",
+            status=SRPReport.SRPReportStatus.EMPTY,
+            timer_started_at=None,
+        )
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        report.refresh_from_db()
+        final.refresh_from_db()
+        assert report.timer_started_at is None
+        assert final.due_at == mitigation_due_at
+
+    @pytest.mark.parametrize(
+        "milestone_status",
+        [
+            SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED,
+            SRPReportMilestone.SRPReportMilestoneStatus.OBSOLETE,
+        ],
+    )
+    def test_update_timer_started_at_skips_completed_milestone_due_dates(
+        self, authenticated_client, create_flaw_report, milestone_status
+    ):
+        """Submitted and obsolete milestone due dates are not recalculated."""
+        report = create_flaw_report()
+        old_timer = report.timer_started_at
+        new_timer = (old_timer + timezone.timedelta(days=2)).replace(microsecond=0)
+        milestone = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_24H
+        )
+        old_due_at = milestone.due_at
+        milestone.status = milestone_status
+        milestone.save()
+
+        response = self._put_report(
+            authenticated_client,
+            report,
+            timer_started_at=new_timer.isoformat(),
+        )
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        milestone.refresh_from_db()
+        assert old_due_at == old_timer + timezone.timedelta(hours=24)
+        assert milestone.due_at == old_due_at
 
 
 @pytest.mark.django_db

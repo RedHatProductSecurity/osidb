@@ -195,6 +195,239 @@ COPIED_OR_UPDATED_FINAL_KEYS = {
 }
 
 
+class TestPayloadFieldDefinitions:
+    def _aev_keys(self, milestone_type):
+        return [
+            field["key"]
+            for field in get_payload_field_definitions(
+                SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
+                milestone_type,
+            )
+        ]
+
+    def _si_keys(self, milestone_type):
+        return [
+            field["key"]
+            for field in get_payload_field_definitions(
+                SRPReport.ReportableEventType.MAJOR_INCIDENT_APPROVED,
+                milestone_type,
+            )
+        ]
+
+    def test_24h_aev_field_order_matches_popup(self):
+        assert self._aev_keys("24h") == [
+            "notification_type",
+            "report_title",
+            "summary",
+            "manufacturer_or_steward_name",
+            "member_states_available",
+            "product_name",
+            "product_version",
+            "aev_detected_at",
+            "product_type",
+            "product_class",
+            "product_category",
+            "end_of_support",
+            "component_name",
+            "mitigating_measure_expected_shortly",
+            "user_action_able_to_reduce_impact",
+            "information_sensitivity",
+            "corrective_or_mitigating_measures_taken",
+            "corrective_or_mitigating_measures_users_can_take",
+            "attack_vector",
+            "cve_id",
+            "euvd_id",
+            "general_information",
+            "corrective_or_mitigating_measure_available_at",
+            "security_update_or_corrective_measure_details",
+            "vulnerability_severity",
+            "vulnerability_impact",
+            "known_or_suspected_malicious_actor",
+            "further_information",
+        ]
+
+    def test_72h_aev_field_order_matches_popup(self):
+        assert self._aev_keys("72h") == [
+            "notification_type",
+            "report_title",
+            "summary",
+            "manufacturer_or_steward_name",
+            "member_states_available",
+            "product_name",
+            "product_version",
+            "general_information",
+            "general_nature_of_vulnerability",
+            "general_nature_of_exploit",
+            "aev_detected_at",
+            "product_type",
+            "product_class",
+            "product_category",
+            "end_of_support",
+            "component_name",
+            "mitigating_measure_expected_shortly",
+            "user_action_able_to_reduce_impact",
+            "information_sensitivity",
+            "corrective_or_mitigating_measures_taken",
+            "corrective_or_mitigating_measures_users_can_take",
+            "attack_vector",
+            "cve_id",
+            "euvd_id",
+            "corrective_or_mitigating_measure_available_at",
+            "security_update_or_corrective_measure_details",
+            "vulnerability_severity",
+            "vulnerability_impact",
+            "known_or_suspected_malicious_actor",
+            "pec",
+            "pec_delay_reason",
+            "further_information",
+        ]
+
+    def test_final_aev_field_order_matches_popup(self):
+        assert self._aev_keys("final") == [
+            "notification_type",
+            "report_title",
+            "summary",
+            "manufacturer_or_steward_name",
+            "member_states_available",
+            "product_name",
+            "product_version",
+            "product_type",
+            "product_class",
+            "product_category",
+            "end_of_support",
+            "component_name",
+            "mitigating_measure_expected_shortly",
+            "user_action_able_to_reduce_impact",
+            "information_sensitivity",
+            "corrective_or_mitigating_measures_taken",
+            "corrective_or_mitigating_measures_users_can_take",
+            "attack_vector",
+            "cve_id",
+            "euvd_id",
+            "general_information",
+            "general_nature_of_vulnerability",
+            "general_nature_of_exploit",
+            "corrective_or_mitigating_measure_available_at",
+            "security_update_or_corrective_measure_details",
+            "full_vulnerability_description",
+            "vulnerability_severity",
+            "vulnerability_impact",
+            "aev_detected_at",
+            "known_or_suspected_malicious_actor",
+            "further_information",
+        ]
+
+    def test_72h_pec_fields_are_multi_select(self):
+        fields = {
+            field["key"]: field
+            for field in get_payload_field_definitions(
+                SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,
+                "72h",
+            )
+        }
+
+        assert fields["pec"]["input_type"] == "multi_select"
+        assert fields["pec_delay_reason"]["input_type"] == "multi_select"
+        assert (
+            fields["further_information"]["label"]
+            == "Please Provide Further Information"
+        )
+
+    def test_24h_si_field_order_matches_popup(self):
+        assert self._si_keys("24h") == [
+            "notification_type",
+            "report_title",
+            "summary",
+            "manufacturer_or_steward_name",
+            "member_states_available",
+            "product_name",
+            "product_version",
+            "suspected_unlawful_or_malicious_acts",
+            "incident_detected_at",
+            "product_type",
+            "product_class",
+            "product_category",
+            "end_of_support",
+            "component_name",
+            "mitigating_measure_expected_shortly",
+            "user_action_able_to_reduce_impact",
+            "information_sensitivity",
+            "corrective_or_mitigating_measures_taken",
+            "corrective_or_mitigating_measures_users_can_take",
+            "attack_vector",
+            "general_incident_information",
+            "applied_and_ongoing_mitigation_measures",
+            "incident_severity",
+            "incident_impact",
+            "likely_threat_or_root_cause",
+            "incident_occurred_at",
+            "initial_incident_assessment",
+        ]
+
+    def test_72h_si_field_order_matches_popup(self):
+        assert self._si_keys("72h") == [
+            "notification_type",
+            "report_title",
+            "summary",
+            "manufacturer_or_steward_name",
+            "member_states_available",
+            "product_name",
+            "product_version",
+            "suspected_unlawful_or_malicious_acts",
+            "general_incident_information",
+            "incident_detected_at",
+            "incident_occurred_at",
+            "initial_incident_assessment",
+            "product_type",
+            "product_class",
+            "product_category",
+            "end_of_support",
+            "component_name",
+            "mitigating_measure_expected_shortly",
+            "user_action_able_to_reduce_impact",
+            "information_sensitivity",
+            "corrective_or_mitigating_measures_taken",
+            "corrective_or_mitigating_measures_users_can_take",
+            "attack_vector",
+            "applied_and_ongoing_mitigation_measures",
+            "incident_severity",
+            "incident_impact",
+            "likely_threat_or_root_cause",
+        ]
+
+    def test_final_si_field_order_matches_popup(self):
+        assert self._si_keys("final") == [
+            "notification_type",
+            "report_title",
+            "summary",
+            "manufacturer_or_steward_name",
+            "member_states_available",
+            "product_name",
+            "product_version",
+            "product_type",
+            "product_class",
+            "product_category",
+            "end_of_support",
+            "component_name",
+            "mitigating_measure_expected_shortly",
+            "user_action_able_to_reduce_impact",
+            "information_sensitivity",
+            "corrective_or_mitigating_measures_taken",
+            "corrective_or_mitigating_measures_users_can_take",
+            "attack_vector",
+            "suspected_unlawful_or_malicious_acts",
+            "general_incident_information",
+            "detailed_incident_description",
+            "applied_and_ongoing_mitigation_measures",
+            "incident_severity",
+            "incident_impact",
+            "likely_threat_or_root_cause",
+            "incident_detected_at",
+            "incident_occurred_at",
+            "initial_incident_assessment",
+        ]
+
+
 # ── 24h Milestone Tests ──
 
 
@@ -1654,7 +1887,7 @@ def _milestone_patch_serializer(milestone, additional_details):
         data={"additional_details": additional_details},
         query_params={},
         method="PATCH",
-        user=SimpleNamespace(groups=SimpleNamespace(all=lambda: [])),
+        user=SimpleNamespace(groups=SimpleNamespace(all=list)),
     )
     return SRPReportMilestoneSerializer(
         milestone,
@@ -1670,7 +1903,7 @@ def _milestone_create_serializer(additional_details):
         data={"additional_details": additional_details},
         query_params={},
         method="POST",
-        user=SimpleNamespace(groups=SimpleNamespace(all=lambda: [])),
+        user=SimpleNamespace(groups=SimpleNamespace(all=list)),
     )
     return SRPReportMilestoneCreateSerializer(
         data={"additional_details": additional_details},
@@ -1720,8 +1953,15 @@ class TestAdditionalDetailsKeyValidation:
         """pec is valid at 72h."""
         report = _create_vulnerability_report()
         m72 = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_72H)
-        ser = _milestone_patch_serializer(m72, {"pec": "delayed"})
+        ser = _milestone_patch_serializer(m72, {"pec": ["delayed"]})
         assert ser.is_valid(), ser.errors
+
+    def test_pec_string_must_be_json_list(self):
+        report = _create_vulnerability_report()
+        m72 = _get_milestone(report, SRPReportMilestone.MilestoneType.LEVEL_72H)
+        ser = _milestone_patch_serializer(m72, {"pec": "delayed"})
+        assert not ser.is_valid()
+        assert "additional_details" in ser.errors
 
     def test_invalid_option_value_rejected(self):
         report = _create_vulnerability_report(
@@ -1763,7 +2003,7 @@ class TestAdditionalDetailsKeyValidation:
 # ── Step 6: Overridable-keys drift guard ──
 
 
-class TestPayloadFieldDefinitions:
+class TestFinalPayloadFieldDefinitions:
     def test_final_aev_required_builder_fields_are_exposed(self):
         fields = get_payload_field_definitions(
             SRPReport.ReportableEventType.EXPLOITS_KEV_APPROVED,

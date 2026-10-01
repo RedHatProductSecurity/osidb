@@ -146,6 +146,8 @@ class TestSRPMilestoneRetrieve:
         assert "created_dt" in data
         assert "updated_dt" in data
         assert "owner" in data
+        assert "mitigation_created_at" in data
+        assert "mitigation_link" in data
         assert "submitted_at" in data
         assert "due_at" in data
         assert "hours_remaining" in data
@@ -418,6 +420,265 @@ class TestSRPMilestoneUpdate:
         assert response.data["manual_completion_notes"] == "some notes"
         milestone.refresh_from_db()
         assert milestone.manual_completion_notes == "some notes"
+
+    def test_update_aev_final_mitigation_fields_sets_due_at(
+        self, authenticated_client, create_flaw_report
+    ):
+        """AEV final due date is 14 days after mitigation availability."""
+        report = create_flaw_report()
+        milestone = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
+        )
+        mitigation_created_at = timezone.now().replace(microsecond=0)
+
+        response = self._put_milestone(
+            authenticated_client,
+            report,
+            milestone,
+            mitigation_created_at=mitigation_created_at.isoformat(),
+            mitigation_link="https://access.redhat.com/security/updates/example",
+        )
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        milestone.refresh_from_db()
+        assert milestone.mitigation_created_at == mitigation_created_at
+        assert (
+            milestone.mitigation_link
+            == "https://access.redhat.com/security/updates/example"
+        )
+        assert milestone.due_at == mitigation_created_at + timedelta(days=14)
+        payload_by_key = {
+            field["key"]: field for field in response.data["payload_fields"]
+        }
+        assert (
+            payload_by_key["corrective_or_mitigating_measure_available_at"]["value"]
+            == mitigation_created_at.isoformat()
+        )
+        assert (
+            payload_by_key["security_update_or_corrective_measure_details"]["value"]
+            == "https://access.redhat.com/security/updates/example"
+        )
+
+    def test_update_aev_72h_mitigation_fields_sets_final_due_at(
+        self, authenticated_client, create_flaw_report
+    ):
+        """AEV 72h mitigation availability updates the final due date."""
+        report = create_flaw_report()
+        milestone = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H
+        )
+        final = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
+        )
+        mitigation_created_at = timezone.now().replace(microsecond=0)
+
+        response = self._put_milestone(
+            authenticated_client,
+            report,
+            milestone,
+            mitigation_created_at=mitigation_created_at.isoformat(),
+            mitigation_link="https://access.redhat.com/security/updates/example",
+        )
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        milestone.refresh_from_db()
+        final.refresh_from_db()
+        assert milestone.mitigation_created_at == mitigation_created_at
+        assert final.mitigation_created_at == mitigation_created_at
+        assert (
+            final.mitigation_link
+            == "https://access.redhat.com/security/updates/example"
+        )
+        assert final.due_at == mitigation_created_at + timedelta(days=14)
+
+    def test_update_aev_72h_mitigation_fields_overwrites_final_values(
+        self, authenticated_client, create_flaw_report
+    ):
+        """AEV final reuses the 72h mitigation date/link, not separate values."""
+        report = create_flaw_report()
+        milestone = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H
+        )
+        final = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
+        )
+        old_mitigation_created_at = timezone.now().replace(microsecond=0)
+        mitigation_created_at = old_mitigation_created_at + timedelta(days=7)
+        final.mitigation_created_at = old_mitigation_created_at
+        final.mitigation_link = "https://access.redhat.com/security/updates/old"
+        final.due_at = old_mitigation_created_at + timedelta(days=14)
+        final.save()
+
+        response = self._put_milestone(
+            authenticated_client,
+            report,
+            milestone,
+            mitigation_created_at=mitigation_created_at.isoformat(),
+            mitigation_link="https://access.redhat.com/security/updates/new",
+        )
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        final.refresh_from_db()
+        assert final.mitigation_created_at == mitigation_created_at
+        assert final.mitigation_link == "https://access.redhat.com/security/updates/new"
+        assert final.due_at == mitigation_created_at + timedelta(days=14)
+
+    def test_update_aev_final_preserves_manual_due_at_when_mitigation_unchanged(
+        self, authenticated_client, create_flaw_report
+    ):
+        """Full PUT should not recalculate final due_at for unchanged mitigation."""
+        report = create_flaw_report()
+        final = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
+        )
+        mitigation_created_at = timezone.now().replace(microsecond=0)
+        manual_due_at = mitigation_created_at + timedelta(days=20)
+        final.mitigation_created_at = mitigation_created_at
+        final.due_at = manual_due_at
+        final.save()
+
+        response = self._put_milestone(
+            authenticated_client,
+            report,
+            final,
+            owner="analyst@example.com",
+        )
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        final.refresh_from_db()
+        assert final.mitigation_created_at == mitigation_created_at
+        assert final.due_at == manual_due_at
+
+    def test_update_aev_72h_preserves_final_manual_due_at_when_mitigation_unchanged(
+        self, authenticated_client, create_flaw_report
+    ):
+        """Full PUT of 72h should not recalculate final due_at for unchanged mitigation."""
+        report = create_flaw_report()
+        m72 = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H
+        )
+        final = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
+        )
+        mitigation_created_at = timezone.now().replace(microsecond=0)
+        manual_due_at = mitigation_created_at + timedelta(days=20)
+        m72.mitigation_created_at = mitigation_created_at
+        m72.mitigation_link = "https://access.redhat.com/security/updates/old"
+        m72.save()
+        final.mitigation_created_at = mitigation_created_at
+        final.mitigation_link = "https://access.redhat.com/security/updates/old"
+        final.due_at = manual_due_at
+        final.save()
+
+        response = self._put_milestone(
+            authenticated_client,
+            report,
+            m72,
+            mitigation_link="https://access.redhat.com/security/updates/new",
+        )
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        final.refresh_from_db()
+        assert final.mitigation_created_at == mitigation_created_at
+        assert final.mitigation_link == "https://access.redhat.com/security/updates/new"
+        assert final.due_at == manual_due_at
+
+    def test_update_aev_72h_unchanged_mitigation_link_does_not_save_final(
+        self, authenticated_client, create_flaw_report
+    ):
+        """Full PUT of 72h avoids saving final when mitigation values are unchanged."""
+        report = create_flaw_report()
+        m72 = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H
+        )
+        final = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
+        )
+        mitigation_created_at = timezone.now().replace(microsecond=0)
+        mitigation_link = "https://access.redhat.com/security/updates/example"
+        m72.mitigation_created_at = mitigation_created_at
+        m72.mitigation_link = mitigation_link
+        m72.save()
+        final.mitigation_created_at = mitigation_created_at
+        final.mitigation_link = mitigation_link
+        final.due_at = mitigation_created_at + timedelta(days=14)
+        final.save()
+        final_updated_dt = final.updated_dt
+
+        response = self._put_milestone(
+            authenticated_client,
+            report,
+            m72,
+            owner="analyst@example.com",
+        )
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        final.refresh_from_db()
+        assert final.updated_dt == final_updated_dt
+        assert final.mitigation_created_at == mitigation_created_at
+        assert final.mitigation_link == mitigation_link
+        assert final.due_at == mitigation_created_at + timedelta(days=14)
+
+    def test_si_final_due_at_starts_when_72h_submitted(
+        self, authenticated_client, create_flaw_report
+    ):
+        """SI final due date starts 30 days after the 72h report is submitted."""
+        report = create_flaw_report(
+            incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+        )
+        m72 = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H
+        )
+        final = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
+        )
+        submitted_at = timezone.now().replace(microsecond=0)
+
+        response = self._put_milestone(
+            authenticated_client,
+            report,
+            m72,
+            status=SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED,
+            submitted_at=submitted_at.isoformat(),
+        )
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        final.refresh_from_db()
+        assert final.due_at == submitted_at + timedelta(days=30)
+
+    def test_si_final_due_at_correction_updates_legacy_timer_default(
+        self, authenticated_client, create_flaw_report
+    ):
+        """Submitted-at corrections update final due_at when it still has timer default."""
+        report = create_flaw_report(
+            incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED
+        )
+        m72 = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_72H
+        )
+        final = report.milestones.get(
+            milestone_type=SRPReportMilestone.MilestoneType.LEVEL_FINAL
+        )
+        initial_submitted_at = report.timer_started_at + timedelta(days=4)
+        corrected_submitted_at = initial_submitted_at + timedelta(days=1)
+        SRPReportMilestone.objects.filter(pk=m72.pk).update(
+            status=SRPReportMilestone.SRPReportMilestoneStatus.SUBMITTED,
+            submitted_at=initial_submitted_at,
+        )
+        m72.refresh_from_db()
+        final.refresh_from_db()
+        assert final.due_at == report.timer_started_at + timedelta(days=30)
+
+        response = self._put_milestone(
+            authenticated_client,
+            report,
+            m72,
+            submitted_at=corrected_submitted_at.isoformat(),
+        )
+
+        assert response.status_code == status.HTTP_200_OK, response.data
+        final.refresh_from_db()
+        assert final.due_at == corrected_submitted_at + timedelta(days=30)
 
 
 @pytest.mark.django_db

@@ -1,0 +1,108 @@
+import pgtrigger.compiler
+import pgtrigger.migrations
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+    dependencies = [
+        (
+            "regulatory_reporting",
+            "0028_remove_additionalinformationrequest_insert_insert_and_more",
+        ),
+    ]
+
+    operations = [
+        pgtrigger.migrations.RemoveTrigger(
+            model_name="srpreportmilestone",
+            name="insert_insert",
+        ),
+        pgtrigger.migrations.RemoveTrigger(
+            model_name="srpreportmilestone",
+            name="update_update",
+        ),
+        pgtrigger.migrations.RemoveTrigger(
+            model_name="srpreportmilestone",
+            name="delete_delete",
+        ),
+        migrations.AddField(
+            model_name="srpreportmilestone",
+            name="mitigation_created_at",
+            field=models.DateTimeField(
+                blank=True,
+                help_text="When the mitigation or patch became available",
+                null=True,
+            ),
+        ),
+        migrations.AddField(
+            model_name="srpreportmilestone",
+            name="mitigation_link",
+            field=models.URLField(
+                blank=True,
+                default="",
+                help_text="Link to the mitigation or patch used for reporting",
+            ),
+            preserve_default=False,
+        ),
+        migrations.AddField(
+            model_name="srpreportmilestoneaudit",
+            name="mitigation_created_at",
+            field=models.DateTimeField(
+                blank=True,
+                help_text="When the mitigation or patch became available",
+                null=True,
+            ),
+        ),
+        migrations.AddField(
+            model_name="srpreportmilestoneaudit",
+            name="mitigation_link",
+            field=models.URLField(
+                blank=True,
+                default="",
+                help_text="Link to the mitigation or patch used for reporting",
+            ),
+            preserve_default=False,
+        ),
+        pgtrigger.migrations.AddTrigger(
+            model_name="srpreportmilestone",
+            trigger=pgtrigger.compiler.Trigger(
+                name="insert_insert",
+                sql=pgtrigger.compiler.UpsertTriggerSql(
+                    func='INSERT INTO "regulatory_reporting_srpreportmilestoneaudit" ("acl_read", "acl_write", "additional_details", "created_dt", "due_at", "last_validated_dt", "manual_completion_notes", "milestone_type", "missing_required_fields", "mitigation_created_at", "mitigation_link", "owner", "pgh_context_id", "pgh_created_at", "pgh_label", "pgh_obj_id", "srp_report_id", "status", "submitted_at", "updated_dt", "uuid") VALUES (NEW."acl_read", NEW."acl_write", NEW."additional_details", NEW."created_dt", NEW."due_at", NEW."last_validated_dt", NEW."manual_completion_notes", NEW."milestone_type", NEW."missing_required_fields", NEW."mitigation_created_at", NEW."mitigation_link", NEW."owner", _pgh_attach_context(), NOW(), \'insert\', NEW."uuid", NEW."srp_report_id", NEW."status", NEW."submitted_at", NEW."updated_dt", NEW."uuid"); RETURN NULL;',
+                    hash="0b2d6948fd3bca25f44b84c5a57989badcdb53f2",  # pragma: allowlist secret
+                    operation="INSERT",
+                    pgid="pgtrigger_insert_insert_53837",
+                    table="regulatory_reporting_srpreportmilestone",
+                    when="AFTER",
+                ),
+            ),
+        ),
+        pgtrigger.migrations.AddTrigger(
+            model_name="srpreportmilestone",
+            trigger=pgtrigger.compiler.Trigger(
+                name="update_update",
+                sql=pgtrigger.compiler.UpsertTriggerSql(
+                    condition='WHEN (OLD."acl_read" IS DISTINCT FROM (NEW."acl_read") OR OLD."acl_write" IS DISTINCT FROM (NEW."acl_write") OR OLD."additional_details" IS DISTINCT FROM (NEW."additional_details") OR OLD."created_dt" IS DISTINCT FROM (NEW."created_dt") OR OLD."due_at" IS DISTINCT FROM (NEW."due_at") OR OLD."embargoed" IS DISTINCT FROM (NEW."embargoed") OR OLD."last_validated_dt" IS DISTINCT FROM (NEW."last_validated_dt") OR OLD."manual_completion_notes" IS DISTINCT FROM (NEW."manual_completion_notes") OR OLD."milestone_type" IS DISTINCT FROM (NEW."milestone_type") OR OLD."missing_required_fields" IS DISTINCT FROM (NEW."missing_required_fields") OR OLD."mitigation_created_at" IS DISTINCT FROM (NEW."mitigation_created_at") OR OLD."mitigation_link" IS DISTINCT FROM (NEW."mitigation_link") OR OLD."owner" IS DISTINCT FROM (NEW."owner") OR OLD."srp_report_id" IS DISTINCT FROM (NEW."srp_report_id") OR OLD."status" IS DISTINCT FROM (NEW."status") OR OLD."submitted_at" IS DISTINCT FROM (NEW."submitted_at") OR OLD."updated_dt" IS DISTINCT FROM (NEW."updated_dt") OR OLD."uuid" IS DISTINCT FROM (NEW."uuid") OR OLD."visibility" IS DISTINCT FROM (NEW."visibility"))',
+                    func='INSERT INTO "regulatory_reporting_srpreportmilestoneaudit" ("acl_read", "acl_write", "additional_details", "created_dt", "due_at", "last_validated_dt", "manual_completion_notes", "milestone_type", "missing_required_fields", "mitigation_created_at", "mitigation_link", "owner", "pgh_context_id", "pgh_created_at", "pgh_label", "pgh_obj_id", "srp_report_id", "status", "submitted_at", "updated_dt", "uuid") VALUES (NEW."acl_read", NEW."acl_write", NEW."additional_details", NEW."created_dt", NEW."due_at", NEW."last_validated_dt", NEW."manual_completion_notes", NEW."milestone_type", NEW."missing_required_fields", NEW."mitigation_created_at", NEW."mitigation_link", NEW."owner", _pgh_attach_context(), NOW(), \'update\', NEW."uuid", NEW."srp_report_id", NEW."status", NEW."submitted_at", NEW."updated_dt", NEW."uuid"); RETURN NULL;',
+                    hash="5b983571fd64e5f3fb867ad93e69f73935bcbaea",  # pragma: allowlist secret
+                    operation="UPDATE",
+                    pgid="pgtrigger_update_update_59a28",
+                    table="regulatory_reporting_srpreportmilestone",
+                    when="AFTER",
+                ),
+            ),
+        ),
+        pgtrigger.migrations.AddTrigger(
+            model_name="srpreportmilestone",
+            trigger=pgtrigger.compiler.Trigger(
+                name="delete_delete",
+                sql=pgtrigger.compiler.UpsertTriggerSql(
+                    func='INSERT INTO "regulatory_reporting_srpreportmilestoneaudit" ("acl_read", "acl_write", "additional_details", "created_dt", "due_at", "last_validated_dt", "manual_completion_notes", "milestone_type", "missing_required_fields", "mitigation_created_at", "mitigation_link", "owner", "pgh_context_id", "pgh_created_at", "pgh_label", "pgh_obj_id", "srp_report_id", "status", "submitted_at", "updated_dt", "uuid") VALUES (OLD."acl_read", OLD."acl_write", OLD."additional_details", OLD."created_dt", OLD."due_at", OLD."last_validated_dt", OLD."manual_completion_notes", OLD."milestone_type", OLD."missing_required_fields", OLD."mitigation_created_at", OLD."mitigation_link", OLD."owner", _pgh_attach_context(), NOW(), \'delete\', OLD."uuid", OLD."srp_report_id", OLD."status", OLD."submitted_at", OLD."updated_dt", OLD."uuid"); RETURN NULL;',
+                    hash="c65d028defe7d262372ae5512cd1a2222b5bf3b8",  # pragma: allowlist secret
+                    operation="DELETE",
+                    pgid="pgtrigger_delete_delete_a9aad",
+                    table="regulatory_reporting_srpreportmilestone",
+                    when="AFTER",
+                ),
+            ),
+        ),
+    ]
