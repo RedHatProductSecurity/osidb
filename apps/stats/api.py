@@ -5,7 +5,7 @@ from django.core.validators import EMPTY_VALUES
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -18,7 +18,7 @@ from osidb.mixins import ACLMixinVisibility
 from osidb.models import Flaw, Impact
 
 from .aggregation import BUCKET_DIMENSIONS, DEFAULT_BOUNDS, DIMENSIONS, count_flaws_by
-from .constants import MAX_BUCKET_BOUNDS
+from .constants import MAX_BUCKET_BOUNDS, StatsAppSettings
 from .filters import StatsFlawFilter
 from .serializers import StatsFlawsResponseSerializer
 
@@ -158,6 +158,12 @@ EXPERIMENTAL_MESSAGE = (
 )
 
 
+class StatsDisabled(APIException):
+    status_code = 423
+    default_detail = "Stats API is disabled."
+    default_code = "stats_disabled"
+
+
 class StatsFlawsView(RudimentaryUserPathLoggingMixin, GenericAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Flaw.objects.all()
@@ -178,6 +184,13 @@ class StatsFlawsView(RudimentaryUserPathLoggingMixin, GenericAPIView):
         # MUST NOT include per-flaw fields; doing so would expose embargoed data to
         # unprivileged callers. Change the response shape only with that in mind.
         # See DIMENSIONS in aggregation.py and the safety-contract tests.
+        #
+        # Feature-flagged off by default until the impact/workflow grouping is
+        # reworked (OSIDB-5695). The guard runs before any query, so no data is
+        # touched while disabled.
+        if not StatsAppSettings().enabled:
+            raise StatsDisabled()
+
         dimensions = parse_group_by(request)
         bounds = parse_bounds(request)
         now = timezone.now()

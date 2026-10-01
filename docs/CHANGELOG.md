@@ -8,7 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add Additional Information Request popup fields to the SRP API (OSIDB-5654)
 - Add experimental read-only stats aggregation endpoint `GET /stats/api/v1beta/flaws`
-  returning `COUNT(DISTINCT flaw)` grouped by chosen dimensions (OSIDB-5290)
+  returning `COUNT(DISTINCT flaw)` grouped by chosen dimensions. Gated behind the
+  `OSIDB_STATS_ENABLED` feature flag and disabled by default pending a security
+  review of impact/workflow grouping; returns 423 while disabled (OSIDB-5290, OSIDB-5695)
 - Add PS update stream `minimal_impact` field defining the lowest impact for tracker filing (OSIDB-4813)
 
 ### Changed
