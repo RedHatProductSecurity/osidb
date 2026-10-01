@@ -830,6 +830,43 @@ class TestBugzillaJiraMixinIntegration:
         assert issue["fields"]["status"]["name"] == "Closed"
         assert issue["fields"]["resolution"]["name"] == "Won't Do"
 
+    @pytest.mark.enable_signals
+    def test_automatic_workflow_state_change_syncs_with_service_account(
+        self,
+        enable_jira_task_sync,
+        monkeypatch,
+    ):
+        """
+        Workflow_state change made by a signal save is synced to Jira with the service account
+        """
+        from unittest import mock
+
+        from osidb.models import WorkflowLabel
+
+        monkeypatch.setattr("apps.taskman.mixins.JIRA_AUTH_TOKEN", "SERVICE_TOKEN")
+        monkeypatch.setattr("apps.taskman.mixins.JIRA_EMAIL", "service@example.com")
+
+        self.setup_workflow()
+
+        flaw = FlawFactory(embargoed=False, task_key="OSIM-1")
+        flaw.refresh_from_db()
+        assert flaw.workflow_state != "DONE"
+
+        with mock.patch.object(Flaw, "tasksync", autospec=True) as mock_tasksync:
+            # the label post_save signal re-saves the flaw without a user token
+            WorkflowLabel.objects.create(flaw=flaw, name="rejected")
+
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+
+        assert any(
+            call.kwargs["jira_token"] == "SERVICE_TOKEN"
+            and call.kwargs["jira_email"] == "service@example.com"
+            and call.kwargs["diff"].get("workflow_state")
+            == {"old": "TRIAGE", "new": "DONE"}
+            for call in mock_tasksync.call_args_list
+        )
+
 
 class TestAlertMixin:
     @freeze_time(tzdatetime(2024, 12, 10, 12, 0, 0))
