@@ -22,7 +22,10 @@ from apps.taskman.constants import (
     TRANSITION_REQUIRED_FIELDS,
 )
 from apps.taskman.mixins import JiraTaskSyncMixin
-from apps.workflows.constants import WORKFLOW_RECLASSIFICATION_START_DATE
+from apps.workflows.constants import (
+    WORKFLOW_RECLASSIFICATION_LABEL,
+    WORKFLOW_RECLASSIFICATION_START_DATE,
+)
 from apps.workflows.workflow import (
     WorkflowModel,
     WorkflowModelManager,
@@ -894,12 +897,12 @@ class Flaw(
 
         return WorkflowLabel.objects.filter(flaw=self, name=label).exists()
 
-    def _skip_reclassification(self):
+    def _done_before_reclassification_cutoff(self):
         """
-        do not re-classify old flaws that are already DONE
+        whether this flaw predates the reclassification cutoff and is DONE
 
-        they were closed under different DONE criteria, so leave them
-        untouched; an unset cutoff date means no time restriction
+        such flaws were closed under different DONE criteria, so by default
+        they are left untouched; an unset cutoff date means no time restriction
         """
         return (
             WORKFLOW_RECLASSIFICATION_START_DATE is not None
@@ -907,6 +910,46 @@ class Flaw(
             and self.created_dt is not None
             and self.created_dt < WORKFLOW_RECLASSIFICATION_START_DATE
         )
+
+    def _skip_reclassification(self):
+        """
+        do not re-classify old flaws that are already DONE, unless they have
+        been explicitly opted back in with the reclassification label
+
+        adding the WORKFLOW_RECLASSIFICATION_LABEL label removes the exclusion so
+        the flaw falls under automatic classification again; removing it re-excludes it
+        """
+        return self._done_before_reclassification_cutoff() and not self.has_label(
+            WORKFLOW_RECLASSIFICATION_LABEL
+        )
+
+    @validator
+    def _validate_reclassification_excluded(self, **kwargs):
+        """
+        warn when the exclusion actually suppresses a classification change
+
+        non-blocking: only raised when an old flaw is excluded *and* automatic
+        classification would otherwise move it to a different workflow/state;
+        if the computed classification matches the current one the exclusion
+        makes no difference and no alert is raised
+        """
+        if (
+            self.task_key
+            and self._skip_reclassification()
+            and self.classify() != self.classification
+        ):
+            self.alert(
+                "flaw_reclassification_excluded",
+                "This flaw was created before the workflow reclassification "
+                f"cutoff ({WORKFLOW_RECLASSIFICATION_START_DATE:%Y-%m-%d}) and "
+                "is excluded from automatic workflow classification, so it is "
+                "kept in its current state instead of being re-classified.",
+                resolution_steps=(
+                    f"Add the '{WORKFLOW_RECLASSIFICATION_LABEL}' workflow "
+                    "label to bring this flaw fully under automatic classification."
+                ),
+                **kwargs,
+            )
 
     @property
     def is_placeholder(self):

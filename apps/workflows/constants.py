@@ -15,3 +15,9 @@ WORKFLOW_DIR = "apps/workflows/workflows"
 WORKFLOW_RECLASSIFICATION_START_DATE = get_env_date(
     "OSIDB_WORKFLOW_RECLASSIFICATION_START_DATE"
 )
+
+# Opt-in workflow label that brings a flaw otherwise excluded by
+# WORKFLOW_RECLASSIFICATION_START_DATE back under automatic workflow
+# classification. Adding the label removes the exclusion for that flaw;
+# removing it re-excludes the flaw.
+WORKFLOW_RECLASSIFICATION_LABEL = "classify"
