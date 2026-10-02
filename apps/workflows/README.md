@@ -148,6 +148,19 @@ Classification also triggers when related models change. Django `post_save` and
 `post_delete` signals on Affect, Tracker, etc. re-save the
 parent flaw (`osidb/signals.py`), which triggers the classification.
 
+When the classification actually changes, `adjust_classification()` emits the
+custom `classification_changed` signal (`apps/workflows/signals.py`) carrying the
+old and new classification. Listening for the signal allows downstream consumers
+to know what the transition was without having to manually compute it.
+
+### resolved_dt
+
+`adjust_classification()` maintains a `resolved_dt` timestamp on the
+`WorkflowModel`: it is stamped with the current time when the instance first
+enters the DONE state and cleared whenever the instance is not in DONE. This
+gives a reliable "when was this finished" marker that follows the automatic
+classification, including regressions out of DONE.
+
 ### Idempotency
 
 Because `classify()` is a pure function of flaw data, calling
@@ -205,6 +218,13 @@ The `reason` object contains:
 For exact requirements and conditions, see the YAML files in
 `apps/workflows/workflows/`. The following describes the design intent.
 
+Several workflows coexist, each capturing a different processing scenario
+(routine automated handling, human triage, embargo, rejection). They are
+evaluated in descending priority order and the first workflow whose conditions
+all pass is selected; the unconditional DEFAULT workflow is the catch-all. The
+subsections below describe the intent of each -- their their complete both
+human and machine readable definitions live in the YAML files.
+
 ### DEFAULT Workflow (`default.yml`)
 
 The default vulnerability workflow. All flaws that do not match
@@ -215,6 +235,20 @@ The DONE state requires human approval via a workflow label. This is
 intentional: DONE represents a state of the *data*, not the state of a process.
 If the approved label is removed or a prior requirement is unfulfilled, the
 flaw automatically regresses to the appropriate state -- DONE can be undone.
+
+### MANUAL Workflow (`manual.yml`)
+
+The MANUAL workflow handles flaws that need human triage rather than the fully
+automated path -- for example when a flaw has been flagged for manual attention
+or its impact warrants it. It takes priority over DEFAULT, so a flaw that
+qualifies is steered onto the human-triage track instead of being processed
+automatically.
+
+This workflow is intended for the cases the automation cannot fully handle.
+However, it does not mean that all the remaining work has to be done manually.
+Whenever the problematic step of the workflow is handled, the analyst can
+un-flag the flaw and it will fall back into the automatic workflow where
+it will continue being processed automatically.
 
 ### EMBARGOED Workflow (`embargoed.yml`)
 
@@ -228,18 +262,19 @@ progresses through its states based on data, but cannot complete until the
 embargo is lifted.
 
 When the embargo is lifted, the `is embargoed` condition fails and the flaw
-falls to the DEFAULT workflow, where it is classified normally and can reach
-DONE through the standard approval process.
+falls to the next matching workflow, where it is classified normally and can
+reach DONE through the standard approval process.
 
 ### REJECTED Workflow (`rejected.yml`)
 
-The REJECTED workflow handles flaws that have been rejected during triage. It
-is driven by a **workflow label** `rejected` on a flaw.
+The REJECTED workflow handles flaws that have been rejected during triage. It is
+driven by a **workflow label** marking the flaw as rejected, whether by a human
+or by automation (such as ACE).
 
-Because REJECTED has the highest priority, it is evaluated first. When a
-*rejected* workflow label exists, the flaw is classified into REJECTED/DONE
-regardless of other data. When the label is removed, the condition fails
-and the flaw classified again.
+Because REJECTED has the highest priority, it is evaluated first. While such a
+label is present, the flaw is classified into REJECTED/DONE regardless of other
+data. When the label is removed, the condition fails and the flaw is classified
+again.
 
 REJECTED is not a state -- it is a workflow. A rejected flaw is classified as
 REJECTED:DONE because DONE represents "fully processed", and a rejected flaw
@@ -261,8 +296,12 @@ ensures that:
 2. A later state cannot narrow visibility set by an earlier one (visibility can
    only widen, never narrow)
 
-ACL adjustment happens automatically. However, only flaws with explicit visibility
-settings in their workflow states will have ACLs automatically adjusted.
+ACL adjustment happens automatically in `adjust_acls()` (called from
+`adjust_classification()`). It looks up the effective visibility for the current
+state and, only if that target is wider than the current ACL, widens the flaw's
+ACLs and propagates the change to nested objects and history. ACLs are therefore
+only ever widened, never narrowed, and only flaws reaching a state that declares
+a `visibility` are affected.
 
 ## Jira Integration
 
@@ -278,6 +317,12 @@ not map Jira status/resolution back to workflow fields.
 
 > The `task_key` guard ensures that only flaws with a Jira task are classified.
 > Flaws without a task (legacy flaws) keep empty workflow fields.
+
+Concrete models may also veto re-classification via the
+`_skip_reclassification()` hook. `Flaw` overrides it to leave already-DONE flaws
+that were created before `WORKFLOW_RECLASSIFICATION_START_DATE` untouched: those
+were closed under earlier DONE criteria and must not be silently reopened by the
+current requirements. An unset cutoff date means no such time restriction.
 
 ## API
 
