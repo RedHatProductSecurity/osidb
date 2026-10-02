@@ -6,7 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
--Move logging of affects query, and reply, to flaw level (OSIDB-5344)
+- Move logging of affects query, and reply, to flaw level (OSIDB-5344)
+- Implement opt-out mechanism for the cut-off based workflow classification exclusion (OSIDB-5476)
 
 ## [5.20.2] - 2026-10-09
 ### Changed

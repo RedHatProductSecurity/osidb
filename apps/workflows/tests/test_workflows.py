@@ -621,3 +621,122 @@ class TestReclassificationDateGuard:
         flaw.adjust_classification(save=False)
 
         assert flaw.workflow_state != "SECONDARY_ASSESSMENT"
+
+    @pytest.mark.enable_signals
+    def test_labeled_old_done_flaw_reclassified(self, monkeypatch):
+        """
+        a pre-cutoff DONE flaw opted in with the reclassification label is
+        brought back under automatic classification
+        """
+        monkeypatch.setattr(
+            flaw_module, "WORKFLOW_RECLASSIFICATION_START_DATE", self.CUTOFF
+        )
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-OLD-DONE-OPTIN",
+            created_dt=make_aware(datetime(2025, 1, 1)),
+        )
+        WorkflowLabel.objects.create(
+            flaw=flaw, name=flaw_module.WORKFLOW_RECLASSIFICATION_LABEL
+        )
+        flaw.classification = {"workflow": "DEFAULT", "state": "DONE"}
+
+        flaw.adjust_classification(save=False)
+
+        assert flaw.workflow_state != "DONE"
+
+    @pytest.mark.enable_signals
+    def test_removing_label_reexcludes_old_done_flaw(self, monkeypatch):
+        """
+        removing the reclassification label re-excludes a pre-cutoff DONE flaw
+        from automatic classification
+        """
+        monkeypatch.setattr(
+            flaw_module, "WORKFLOW_RECLASSIFICATION_START_DATE", self.CUTOFF
+        )
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-OLD-DONE-OPTOUT",
+            created_dt=make_aware(datetime(2025, 1, 1)),
+        )
+        label = WorkflowLabel.objects.create(
+            flaw=flaw, name=flaw_module.WORKFLOW_RECLASSIFICATION_LABEL
+        )
+        label.delete()
+        flaw.classification = {"workflow": "DEFAULT", "state": "DONE"}
+
+        flaw.adjust_classification(save=False)
+
+        assert flaw.workflow_state == "DONE"
+
+    @pytest.mark.enable_signals
+    def test_excluded_flaw_gets_alert_when_change_suppressed(self, monkeypatch):
+        """
+        an excluded pre-cutoff DONE flaw carries the alert only when the
+        exclusion actually suppresses a classification change
+        """
+        monkeypatch.setattr(
+            flaw_module, "WORKFLOW_RECLASSIFICATION_START_DATE", self.CUTOFF
+        )
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-OLD-DONE-ALERT",
+            created_dt=make_aware(datetime(2025, 1, 1)),
+        )
+        flaw.classification = {"workflow": "DEFAULT", "state": "DONE"}
+        # automatic classification would move it elsewhere, but it is suppressed
+        monkeypatch.setattr(
+            flaw, "classify", lambda: {"workflow": "DEFAULT", "state": "TRIAGE"}
+        )
+        flaw.save()
+
+        assert flaw.valid_alerts.filter(name="flaw_reclassification_excluded").exists()
+
+    @pytest.mark.enable_signals
+    def test_excluded_flaw_no_alert_when_no_change(self, monkeypatch):
+        """
+        an excluded pre-cutoff DONE flaw whose computed classification matches
+        the current one does not carry the alert - the exclusion changes nothing
+        """
+        monkeypatch.setattr(
+            flaw_module, "WORKFLOW_RECLASSIFICATION_START_DATE", self.CUTOFF
+        )
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-OLD-DONE-NODIFF",
+            created_dt=make_aware(datetime(2025, 1, 1)),
+        )
+        flaw.classification = {"workflow": "DEFAULT", "state": "DONE"}
+        # automatic classification agrees with the current state
+        monkeypatch.setattr(
+            flaw, "classify", lambda: {"workflow": "DEFAULT", "state": "DONE"}
+        )
+        flaw.save()
+
+        assert not flaw.valid_alerts.filter(
+            name="flaw_reclassification_excluded"
+        ).exists()
+
+    @pytest.mark.enable_signals
+    def test_labeled_flaw_has_no_exclusion_alert(self, monkeypatch):
+        """an opted-in flaw does not carry the exclusion alert"""
+        monkeypatch.setattr(
+            flaw_module, "WORKFLOW_RECLASSIFICATION_START_DATE", self.CUTOFF
+        )
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-OLD-DONE-NOALERT",
+            created_dt=make_aware(datetime(2025, 1, 1)),
+        )
+        WorkflowLabel.objects.create(
+            flaw=flaw, name=flaw_module.WORKFLOW_RECLASSIFICATION_LABEL
+        )
+        flaw.classification = {"workflow": "DEFAULT", "state": "DONE"}
+        monkeypatch.setattr(
+            flaw, "classify", lambda: {"workflow": "DEFAULT", "state": "TRIAGE"}
+        )
+        flaw.save()
+
+        assert not flaw.valid_alerts.filter(
+            name="flaw_reclassification_excluded"
+        ).exists()
