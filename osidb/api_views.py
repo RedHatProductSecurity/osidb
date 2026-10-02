@@ -2671,9 +2671,18 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
             .values_list("tracker_id", flat=True)
             .distinct()
         )
+        affect_ids = (
+            affect_table["model"]
+            .objects.filter(flaw_id=params["pgh_obj_id"])
+            .values("pgh_obj_id")
+            .distinct()
+        )
         return {
             "flaw_id": params["pgh_obj_id"],
             "affect_table": affect_table,
+            "affect_cvss_table": audit_table_for_model(AffectCVSS),
+            "affect_ids": affect_ids,
+            "flaw_cvss_table": audit_table_for_model(FlawCVSS),
             "tracker_table": audit_table_for_model(Tracker),
             "tracker_ids": tracker_ids,
         }
@@ -2690,6 +2699,24 @@ class AuditView(RudimentaryUserPathLoggingMixin, ReadOnlyModelViewSet):
                 ),
             )
         ]
+        if related_context["flaw_cvss_table"] is not None:
+            querysets.append(
+                (
+                    related_context["flaw_cvss_table"],
+                    related_context["flaw_cvss_table"]["model"].objects.filter(
+                        flaw_id=related_context["flaw_id"]
+                    ),
+                )
+            )
+        if related_context["affect_cvss_table"] is not None:
+            querysets.append(
+                (
+                    related_context["affect_cvss_table"],
+                    related_context["affect_cvss_table"]["model"].objects.filter(
+                        affect_id__in=related_context["affect_ids"]
+                    ),
+                )
+            )
         if (
             related_context["tracker_table"] is not None
             and related_context["tracker_ids"]

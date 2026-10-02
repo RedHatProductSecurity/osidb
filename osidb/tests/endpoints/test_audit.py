@@ -8,7 +8,9 @@ from django.conf import settings
 from osidb.core import set_user_acls
 from osidb.models import Affect, PsModule, Tracker
 from osidb.tests.factories import (
+    AffectCVSSFactory,
     AffectFactory,
+    FlawCVSSFactory,
     FlawFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
@@ -206,6 +208,55 @@ class TestEndpointsAudit:
         ]
         assert delete_events
         assert delete_events[0]["pgh_data"]["flaw_id"] == str(flaw.uuid)
+
+    def test_audit_includes_flaw_cvss_history_from_flaw_context(
+        self, auth_client, test_api_uri
+    ):
+        """GET /audit can expose flaw CVSS history from the flaw context."""
+        flaw = FlawFactory(embargoed=False)
+        cvss = FlawCVSSFactory(flaw=flaw)
+
+        response = auth_client().get(
+            f"{test_api_uri}/audit?include_relation_events=true"
+            f"&pgh_obj_model=osidb.Flaw&pgh_obj_id={flaw.uuid}"
+        )
+
+        assert response.status_code == 200
+        cvss_events = [
+            result
+            for result in response.json()["results"]
+            if result["pgh_obj_model"] == "osidb.FlawCVSS"
+            and result["pgh_obj_id"] == str(cvss.uuid)
+        ]
+        assert cvss_events
+        assert cvss_events[0]["pgh_label"] == "insert"
+        assert cvss_events[0]["pgh_slug"].startswith("osidb.FlawCVSSAudit:")
+        assert cvss_events[0]["pgh_data"]["flaw_id"] == str(flaw.uuid)
+
+    def test_audit_includes_affect_cvss_history_from_flaw_context(
+        self, auth_client, test_api_uri
+    ):
+        """GET /audit can expose affect CVSS history from the flaw context."""
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw)
+        cvss = AffectCVSSFactory(affect=affect)
+
+        response = auth_client().get(
+            f"{test_api_uri}/audit?include_relation_events=true"
+            f"&pgh_obj_model=osidb.Flaw&pgh_obj_id={flaw.uuid}"
+        )
+
+        assert response.status_code == 200
+        cvss_events = [
+            result
+            for result in response.json()["results"]
+            if result["pgh_obj_model"] == "osidb.AffectCVSS"
+            and result["pgh_obj_id"] == str(cvss.uuid)
+        ]
+        assert cvss_events
+        assert cvss_events[0]["pgh_label"] == "insert"
+        assert cvss_events[0]["pgh_slug"].startswith("osidb.AffectCVSSAudit:")
+        assert cvss_events[0]["pgh_data"]["affect_id"] == str(affect.uuid)
 
     def test_audit_includes_tracker_history_from_flaw_context(
         self, auth_client, test_api_uri
