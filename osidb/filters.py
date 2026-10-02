@@ -1533,7 +1533,8 @@ class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFil
 class AffectFilter(
     InFilterSet, DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet
 ):
-    DISTINCT_FIELDS_PREFIXES = ("flaw__", "affects__")
+    # Flaw and tracker are foreign keys; only CVSS joins can multiply affects.
+    DISTINCT_FIELDS_PREFIXES = ("cvss_scores__",)
 
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
     embargoed = BooleanFilter(field_name="embargoed")
@@ -1651,6 +1652,14 @@ class AffectFilter(
         """True: created_by != updated_by (creator is not the last editor)."""
         q = ~Q(updated_by=models.F("created_by"))
         return queryset.filter(q) if value else queryset.exclude(q)
+
+    def include_fields_filter(self, queryset, name, value):
+        queryset = super().include_fields_filter(queryset, name, value)
+        if "ps_product" not in value.split(","):
+            queryset.query.set_annotation_mask(
+                set(queryset.query.annotation_select) - {"ps_product_name"}
+            )
+        return queryset
 
 
 class TrackerFilter(

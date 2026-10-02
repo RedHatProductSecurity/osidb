@@ -1,11 +1,16 @@
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
 import pytest
 from django.conf import settings
+from django.contrib.auth.models import Group, User
 from django.core.exceptions import ValidationError
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from rest_framework import status
 
 from osidb.core import set_user_acls
+from osidb.filters import AffectFilter
 from osidb.models import Affect, AffectCVSS, Tracker
 from osidb.models.ps_constants import UbiPackage
 from osidb.tests.factories import (
@@ -157,6 +162,174 @@ class TestEndpointsAffects:
     """
     tests specific to v2/affects endpoint
     """
+
+    def test_default_pagination_orders_ties_and_counts_visible_affects(
+        self, auth_client, test_api_v2_uri
+    ):
+        early = datetime(2024, 1, 1, tzinfo=UTC)
+        late = early + timedelta(days=1)
+        flaw = FlawFactory(embargoed=False)
+        affects = [
+            AffectFactory(flaw=flaw, created_dt=created_dt)
+            for created_dt in (late, early, early)
+        ]
+        expected = [
+            str(affect.uuid)
+            for affect in sorted(
+                affects, key=lambda affect: (affect.created_dt, affect.uuid)
+            )
+        ]
+        url = f"{test_api_v2_uri}/affects"
+
+        first = auth_client().get(f"{url}?limit=2")
+        second = auth_client().get(f"{url}?limit=2&offset=2")
+
+        assert first.status_code == second.status_code == status.HTTP_200_OK
+        assert first.data["count"] == second.data["count"] == 3
+        assert [row["uuid"] for row in first.data["results"]] == expected[:2]
+        assert [row["uuid"] for row in second.data["results"]] == expected[2:]
+
+    @pytest.mark.parametrize("with_cvss_filter", [False, True])
+    def test_filtered_pagination_distinct_only_for_cvss(
+        self, auth_client, test_api_v2_uri, with_cvss_filter
+    ):
+        flaw = FlawFactory(embargoed=False, workflow_state="PRE_SECONDARY_ASSESSMENT")
+        affects = [
+            AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                created_dt=datetime(2024, 1, 1, tzinfo=UTC),
+            )
+            for _ in range(3)
+        ]
+        params = {
+            "affectedness": "AFFECTED",
+            "embargoed": "False",
+            "flaw__workflow_state": "PRE_SECONDARY_ASSESSMENT",
+            "include_fields": "flaw,uuid",
+            "limit": 2,
+            "resolution": "DELEGATED",
+            "tracker__isnull": "True",
+        }
+        if with_cvss_filter:
+            for affect in affects:
+                for version in (
+                    AffectCVSS.CVSSVersion.VERSION3,
+                    AffectCVSS.CVSSVersion.VERSION4,
+                ):
+                    AffectCVSSFactory(
+                        affect=affect,
+                        issuer=AffectCVSS.CVSSIssuer.REDHAT,
+                        version=version,
+                    )
+            params["cvss_scores__issuer"] = AffectCVSS.CVSSIssuer.REDHAT
+
+        filters = AffectFilter(params, queryset=Affect.objects.all())
+        assert filters.is_valid(), filters.errors
+        assert filters.qs.query.distinct is with_cvss_filter
+        assert list(filters.qs.values_list("uuid", flat=True)) == sorted(
+            affect.uuid for affect in affects
+        )
+
+        expected_uuids = [
+            str(affect.uuid)
+            for affect in sorted(
+                affects, key=lambda affect: (affect.created_dt, affect.uuid)
+            )
+        ]
+        client = auth_client()
+        for offset in (0, 2, 29550):
+            response = client.get(
+                f"{test_api_v2_uri}/affects", {**params, "offset": offset}
+            )
+            assert response.status_code == status.HTTP_200_OK
+            body = response.json()
+            assert body["count"] == 3
+            assert [row["uuid"] for row in body["results"]] == expected_uuids[
+                offset : offset + 2
+            ]
+            assert all(row["flaw"] == str(flaw.uuid) for row in body["results"])
+
+    def test_include_fields_omits_unused_product_annotation(
+        self, auth_client, test_api_v2_uri
+    ):
+        affect = AffectFactory(flaw=FlawFactory(embargoed=False))
+        url = f"{test_api_v2_uri}/affects"
+
+        for fields, selected in (("flaw", False), ("ps_product", True)):
+            filters = AffectFilter(
+                {"include_fields": fields}, queryset=Affect.objects.all()
+            )
+            assert filters.is_valid(), filters.errors
+            assert ("ps_product_name" in filters.qs.query.annotation_select) is selected
+
+            with CaptureQueriesContext(connection) as queries:
+                response = auth_client().get(url, {"include_fields": fields})
+            page_queries = [
+                query["sql"]
+                for query in queries
+                if 'FROM "osidb_affect"' in query["sql"] and "LIMIT" in query["sql"]
+            ]
+            assert len(page_queries) == 1
+            assert ('FROM "osidb_psmodule"' in page_queries[0]) is selected
+            assert response.status_code == status.HTTP_200_OK
+            assert response.data["count"] == 1
+            assert response.data["results"] == [
+                {fields: affect.flaw_id if fields == "flaw" else affect.ps_product}
+            ]
+
+    def test_cvss_and_flaw_filters_with_explicit_order(
+        self, auth_client, test_api_v2_uri
+    ):
+        flaw = FlawFactory(embargoed=False, workflow_state="PRE_SECONDARY_ASSESSMENT")
+        affects = [
+            AffectFactory(flaw=flaw, ps_component=component) for component in ("a", "b")
+        ]
+        for affect in affects:
+            for version in (
+                AffectCVSS.CVSSVersion.VERSION3,
+                AffectCVSS.CVSSVersion.VERSION4,
+            ):
+                AffectCVSSFactory(
+                    affect=affect,
+                    issuer=AffectCVSS.CVSSIssuer.REDHAT,
+                    version=version,
+                )
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/affects",
+            {
+                "flaw__workflow_state": "PRE_SECONDARY_ASSESSMENT",
+                "cvss_scores__issuer": AffectCVSS.CVSSIssuer.REDHAT,
+                "order": "-ps_component",
+                "include_fields": "uuid",
+                "limit": 1,
+                "offset": 1,
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 2
+        assert response.data["results"] == [{"uuid": str(affects[0].uuid)}]
+
+    @pytest.mark.enable_rls
+    def test_filtered_pagination_respects_rls(self, auth_client, test_api_v2_uri):
+        set_user_acls(settings.ALL_GROUPS)
+        public = AffectFactory(flaw=FlawFactory(embargoed=False))
+        AffectFactory(flaw=FlawFactory(embargoed=True))
+
+        client = auth_client()
+        user = User.objects.get(username="testuser")
+        user.groups.set(
+            Group.objects.get_or_create(name=name)[0]
+            for name in settings.PUBLIC_READ_GROUPS
+        )
+        response = client.get(
+            f"{test_api_v2_uri}/affects", {"include_fields": "uuid", "limit": 1}
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 1
+        assert response.data["results"] == [{"uuid": str(public.uuid)}]
 
     @pytest.mark.enable_signals
     def test_get_affect_with_cvss(self, auth_client, test_api_v2_uri):
