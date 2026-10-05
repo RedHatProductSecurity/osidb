@@ -17,26 +17,26 @@ def _has_nonempty_components(components):
     return any(c and str(c).strip() for c in (components or []))
 
 
-def _enqueue_ace(flaw_id):
+def _enqueue_ace(flaw_id, trigger):
     """Enqueue the ACE Celery task via transaction.on_commit."""
 
     def enqueue_sync():
         from apps.ace.tasks import sync_flaw_affects_from_newcli
 
         # Celery adds .delay at import time; static checkers do not see it
-        sync_flaw_affects_from_newcli.delay(flaw_id)  # type: ignore[attr-defined]
+        sync_flaw_affects_from_newcli.delay(flaw_id, trigger=trigger)  # type: ignore[attr-defined]
 
     transaction.on_commit(enqueue_sync)
 
 
-def _enqueue_hummingbird(flaw_id):
+def _enqueue_hummingbird(flaw_id, trigger):
     """Enqueue the Hummingbird Celery task via transaction.on_commit."""
 
     def enqueue_sync():
         from apps.ace.tasks import sync_hummingbird_affects
 
         # Celery adds .delay at import time; static checkers do not see it
-        sync_hummingbird_affects.delay(flaw_id)  # type: ignore[attr-defined]
+        sync_hummingbird_affects.delay(flaw_id, trigger=trigger)  # type: ignore[attr-defined]
 
     transaction.on_commit(enqueue_sync)
 
@@ -82,7 +82,7 @@ def schedule_sync_flaw_affects_on_components_change(sender, instance, **kwargs) 
     if not _has_nonempty_components(instance.components):
         return
 
-    _enqueue_ace(str(instance.uuid))
+    _enqueue_ace(str(instance.uuid), "flaw components changed")
 
 
 @receiver(classification_changed, sender=Flaw)
@@ -118,7 +118,7 @@ def schedule_sync_flaw_affects_on_classification_change(
     if not _has_nonempty_components(instance.components):
         return
 
-    _enqueue_ace(str(instance.uuid))
+    _enqueue_ace(str(instance.uuid), "flaw moved into eligible workflow state")
 
 
 @receiver(pre_save, sender=Flaw)
@@ -151,7 +151,7 @@ def schedule_sync_hummingbird_affects_on_components_change(
 
     if instance._state.adding:
         # New flaw with components: trigger hummingbird
-        _enqueue_hummingbird(str(instance.uuid))
+        _enqueue_hummingbird(str(instance.uuid), "flaw created with components")
         return
 
     # Existing flaw: check if components actually changed (use set comparison to ignore order)
@@ -161,4 +161,4 @@ def schedule_sync_hummingbird_affects_on_components_change(
     if old_set == new_set:
         return
 
-    _enqueue_hummingbird(str(instance.uuid))
+    _enqueue_hummingbird(str(instance.uuid), "flaw components changed")

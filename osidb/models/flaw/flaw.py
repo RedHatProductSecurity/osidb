@@ -284,6 +284,8 @@ class Flaw(
     meta_attr = HStoreField(default=dict)
     # aegis metadata
     aegis_meta = JSONField(default=dict, blank=True)
+    # assist metadata
+    assist_meta = JSONField(null=True, blank=True, default=None)
 
     nist_cvss_validation = models.CharField(
         choices=FlawNistCvssValidation.choices, max_length=20, blank=True
