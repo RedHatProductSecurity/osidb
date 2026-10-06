@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
@@ -159,9 +160,9 @@ class TestEndpointsAffects:
     """
 
     def test_list_count_distinct_affects(self, auth_client, test_api_v2_uri):
-        affect = AffectFactory()
+        affect = AffectFactory(created_dt=datetime(2020, 1, 1, tzinfo=timezone.utc))
         other = AffectFactory()
-        later = AffectFactory()
+        later = AffectFactory(created_dt=datetime(2020, 1, 2, tzinfo=timezone.utc))
         AffectCVSSFactory(
             affect=affect,
             version=AffectCVSS.CVSSVersion.VERSION3,
