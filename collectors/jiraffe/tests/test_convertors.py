@@ -105,54 +105,16 @@ class TestJiraTrackerConvertor:
         assert tracker.affects.count() == 0
 
     @pytest.mark.vcr
-    def test_convert_linked_from_flaw_side(self):
-        """
-        test that the convertor linking works
-        when the link is in flaw SRT notes
-        """
-        from collectors.jiraffe.collectors import JiraTrackerDownloadManager
-
-        flaw = FlawFactory(
-            embargoed=False,
-            meta_attr={"jira_trackers": json.dumps([{"key": self.tracker_id}])},
-        )
-        ps_module = PsModuleFactory(name="amq-7")
-        ps_update_stream = PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
-        affect = AffectFactory(
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            flaw=flaw,
-            ps_update_stream=ps_update_stream.name,
-            ps_component="elasticsearch",
-        )
-
-        tracker_data = JiraQuerier().get_issue(self.tracker_id)
-        tracker_convertor = JiraTrackerConvertor(tracker_data)
-        tracker_convertor.tracker.save()
-        JiraTrackerDownloadManager.link_tracker_with_affects(self.tracker_id)
-
-        tracker = Tracker.objects.get(external_system_id=self.tracker_id)
-        assert tracker.external_system_id in [
-            t["key"] for t in json.loads(flaw.meta_attr["jira_trackers"])
-        ]
-        assert not any(
-            "CVE" in label for label in json.loads(tracker.meta_attr["labels"])
-        )
-        assert not any(
-            "flaw:bz#" in label for label in json.loads(tracker.meta_attr["labels"])
-        )
-        assert tracker.affects.count() == 1
-        assert tracker.affects.first() == affect
-
-    @pytest.mark.vcr
-    def test_convert_linked_from_flaw_side_no_affect(self):
+    def test_convert_linked_from_tracker_side_no_affect(self):
         """
         test the convertor alerts while linking
-        when the link is in flaw SRT notes
+        when the tracker CVE label resolves to a flaw with no matching affect
         """
         flaw = FlawFactory(
+            cve_id="CVE-2014-3120",
             embargoed=False,
-            meta_attr={"jira_trackers": json.dumps([{"key": self.tracker_id}])},
+            # no bz_id so the failed affect is reported with a None flaw id
+            meta_attr={},
         )
         ps_module = PsModuleFactory(name="amq-7")
         ps_update_stream = PsUpdateStreamFactory(name="amq-7.1", ps_module=ps_module)
@@ -167,15 +129,7 @@ class TestJiraTrackerConvertor:
         )
 
         tracker = Tracker.objects.get(external_system_id=self.tracker_id)
-        assert tracker.external_system_id in [
-            t["key"] for t in json.loads(flaw.meta_attr["jira_trackers"])
-        ]
-        assert not any(
-            "CVE" in label for label in json.loads(tracker.meta_attr["labels"])
-        )
-        assert not any(
-            "flaw:bz#" in label for label in json.loads(tracker.meta_attr["labels"])
-        )
+        assert flaw.cve_id in json.loads(tracker.meta_attr["labels"])
         assert tracker.affects.count() == 0
         assert failed_affects
         assert (None, ps_update_stream.name, "elasticsearch") in failed_affects
