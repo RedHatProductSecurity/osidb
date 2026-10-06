@@ -1533,7 +1533,7 @@ class AffectV1Filter(DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFil
 class AffectFilter(
     InFilterSet, DistinctFilterSet, IncludeFieldsFilterSet, ExcludeFieldsFilterSet
 ):
-    DISTINCT_FIELDS_PREFIXES = ("flaw__", "affects__")
+    DISTINCT_FIELDS_PREFIXES = ("flaw__", "affects__", "cvss_scores__")
 
     cvss_scores__cvss_version = CharFilter(field_name="cvss_scores__version")
     embargoed = BooleanFilter(field_name="embargoed")

@@ -158,6 +158,46 @@ class TestEndpointsAffects:
     tests specific to v2/affects endpoint
     """
 
+    def test_list_count_distinct_affects(self, auth_client, test_api_v2_uri):
+        affect = AffectFactory()
+        other = AffectFactory()
+        later = AffectFactory()
+        AffectCVSSFactory(
+            affect=affect,
+            version=AffectCVSS.CVSSVersion.VERSION3,
+            issuer=AffectCVSS.CVSSIssuer.REDHAT,
+        )
+        AffectCVSSFactory(
+            affect=affect,
+            version=AffectCVSS.CVSSVersion.VERSION4,
+            issuer=AffectCVSS.CVSSIssuer.REDHAT,
+        )
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/affects?cvss_scores__issuer={AffectCVSS.CVSSIssuer.REDHAT}&limit=1"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 1
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["uuid"] == str(affect.uuid)
+
+        AffectCVSSFactory(
+            affect=later,
+            version=AffectCVSS.CVSSVersion.VERSION3,
+            issuer=AffectCVSS.CVSSIssuer.REDHAT,
+        )
+        url = f"{test_api_v2_uri}/affects?cvss_scores__issuer={AffectCVSS.CVSSIssuer.REDHAT}&limit=1"
+        response = auth_client().get(f"{url}&offset=1")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 2
+        assert [item["uuid"] for item in response.data["results"]] == [str(later.uuid)]
+
+        response = auth_client().get(
+            f"{test_api_v2_uri}/affects?uuid={other.uuid}&limit=1&offset=1"
+        )
+        assert response.data["count"] == 1
+        assert response.data["results"] == []
+
     @pytest.mark.enable_signals
     def test_get_affect_with_cvss(self, auth_client, test_api_v2_uri):
         """retrieve specific affect with affectcvss from endpoint"""
