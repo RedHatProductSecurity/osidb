@@ -90,6 +90,7 @@ from osidb.models.audit_history import (
 )
 from osidb.models.flaw.comment import FlawComment
 from osidb.models.flaw.cvss import FlawCVSS
+from osidb.pagination import AffectLimitOffsetPagination
 from osidb.sync_manager import SyncManager
 
 from .acls import ACL
@@ -1582,6 +1583,7 @@ class AffectView(
     ).all()
     serializer_class = AffectSerializer
     filterset_class = AffectFilter
+    pagination_class = AffectLimitOffsetPagination
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
 

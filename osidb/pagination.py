@@ -15,3 +15,10 @@ class HardLimitOffsetPagination(LimitOffsetPagination):
     def get_limit(self, request):
         limit = super().get_limit(request)
         return min(limit, self.hard_limit) if limit else self.limit
+
+
+class AffectLimitOffsetPagination(HardLimitOffsetPagination):
+    """Count distinct affect IDs without selecting the page's annotations."""
+
+    def get_count(self, queryset):
+        return queryset.order_by().values("pk").distinct().count()
