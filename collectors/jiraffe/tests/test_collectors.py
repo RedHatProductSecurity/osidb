@@ -239,25 +239,15 @@ class TestJiraTrackerCollector:
         linked to an affect which should preserve the linking
         """
         tracker_id = "ENTMQ-755"
-        flaw1 = FlawFactory(
+        flaw = FlawFactory(
+            cve_id="CVE-2014-3120",
             embargoed=False,
-            meta_attr={"jira_trackers": json.dumps([{"key": tracker_id}])},
-        )
-        flaw2 = FlawFactory(
-            embargoed=False,
-            meta_attr={"jira_trackers": json.dumps([{"key": tracker_id}])},
         )
         ps_module = PsModuleFactory(bts_name="jboss", name="module")
         ps_update_stream = PsUpdateStreamFactory(name="stream", ps_module=ps_module)
-        affect1 = AffectFactory(
+        affect = AffectFactory(
             affectedness=Affect.AffectAffectedness.AFFECTED,
-            flaw=flaw1,
-            ps_update_stream=ps_update_stream.name,
-            ps_component="component",
-        )
-        affect2 = AffectFactory(
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            flaw=flaw2,
+            flaw=flaw,
             ps_update_stream=ps_update_stream.name,
             ps_component="component",
         )
@@ -265,7 +255,7 @@ class TestJiraTrackerCollector:
             ps_update_stream=ps_update_stream.name,
             type=Tracker.TrackerType.JIRA,
             external_system_id=tracker_id,
-            affects=[affect1, affect2],
+            affects=[affect],
             updated_dt=datetime.strptime("1970-01-01T00:00:00Z", BZ_DT_FMT),
         )
         collector = JiraTrackerCollector()
@@ -277,7 +267,7 @@ class TestJiraTrackerCollector:
         assert Tracker.objects.count() == 1
         tracker = Tracker.objects.first()
         assert tracker.external_system_id == tracker_id
-        assert tracker.affects.count() == 2
+        assert tracker.affects.count() == 1
         assert all(tracker == affect.tracker for affect in Affect.objects.all())
 
 

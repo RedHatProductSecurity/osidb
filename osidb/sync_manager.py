@@ -970,15 +970,7 @@ class JiraTrackerDownloadManager(SyncManager):
 
         flaws = set()
 
-        # 1) linking from the flaw side
-        for flaw in Flaw.objects.filter(meta_attr__jira_trackers__contains=tracker_id):
-            # we need to double check the tracker ID
-            # as eg. OSIDB-123 is contained in OSIDB-1234
-            for item in json.loads(flaw.meta_attr["jira_trackers"]):
-                if tracker_id == item["key"]:
-                    flaws.add(flaw)
-
-        # 2) linking from the tracker side
+        # linking from the tracker side
         for label in json.loads(tracker.meta_attr["labels"]):
             if CVE_RE_STR.match(label):
                 try:

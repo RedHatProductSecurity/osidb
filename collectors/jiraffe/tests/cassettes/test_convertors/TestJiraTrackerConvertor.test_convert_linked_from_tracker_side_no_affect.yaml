@@ -39,7 +39,7 @@ interactions:
         "customfield_12312848": null, "customfield_12315950": null, "customfield_12310940":
         null, "lastViewed": null, "customfield_12313140": null, "priority": {"self":
         "https://example.com/rest/api/2/priority/3", "iconUrl": "https://example.com/images/icons/priorities/major.svg",
-        "name": "Major", "id": "3"}, "labels": ["Security", "SecurityTracking", "component:elasticsearch"],
+        "name": "Major", "id": "3"}, "labels": ["CVE-2014-3120", "Security", "SecurityTracking", "component:elasticsearch"],
         "customfield_12311640": null, "customfield_12311244": null, "customfield_12311245":
         null, "customfield_12311641": null, "customfield_12311242": null, "aggregatetimeoriginalestimate":
         null, "timeestimate": null, "versions": [{"self": "https://example.com/rest/api/2/version/12323365",
