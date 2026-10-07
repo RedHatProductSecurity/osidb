@@ -79,20 +79,7 @@ class AffectManager(TrackingMixinManager):
     """affect manager"""
 
     def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .prefetch_related(
-                "tracker",
-            )
-            .annotate(
-                ps_product_name=models.Subquery(
-                    PsModule.objects.filter(name=models.OuterRef("ps_module")).values(
-                        "ps_product__name"
-                    )
-                )
-            )
-        )
+        return super().get_queryset().prefetch_related("tracker")
 
     @staticmethod
     def create_affect(flaw, ps_update_stream, ps_component, **extra_fields):
