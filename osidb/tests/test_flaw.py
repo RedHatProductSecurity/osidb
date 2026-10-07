@@ -558,7 +558,9 @@ class TestFlaw:
             ("", None),
         ],
     )
-    def test_ps_product_affect(self, ps_module_name, ps_product_name):
+    def test_ps_product_affect(
+        self, ps_module_name, ps_product_name, django_assert_num_queries
+    ):
         """
         Test that the ps_product property in Affect correctly maps to the
         one given by the ps_module of the Affect.
@@ -572,7 +574,10 @@ class TestFlaw:
         else:
             ps_update_stream = PsUpdateStreamFactory(ps_module=None)
             affect = AffectFactory(ps_update_stream=ps_update_stream.name)
-        assert affect.ps_product == ps_product_name
+        affect = Affect.objects.get(pk=affect.pk)
+        assert "ps_product_name" not in affect.__dict__
+        with django_assert_num_queries(2 if ps_module_name else 1):
+            assert affect.ps_product == ps_product_name
 
     @pytest.mark.enable_signals
     def test_not_affected_justification_auto_remove(self):
