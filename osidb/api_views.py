@@ -75,6 +75,7 @@ from osidb.models import (
     FlawLabel,
     ProductFamilyLabel,
     ProductFamilyLabelDefinition,
+    PsModule,
     PsUpdateStream,
     Tracker,
 )
@@ -768,6 +769,27 @@ class BulkHistoryMixin(ReadOnlyModelViewSet):
             )
             previous_data_by_obj_id[row["pgh_obj_id"]] = pgh_data
 
+    @staticmethod
+    def _batch_ps_products(objects):
+        affects = []
+        for obj in objects:
+            if isinstance(obj, Affect):
+                affects.append(obj)
+            elif isinstance(obj, Flaw):
+                affects.extend(
+                    getattr(obj, "_prefetched_objects_cache", {}).get("affects", ())
+                )
+
+        names = {affect.ps_module for affect in affects if affect.ps_module}
+        if names:
+            products = dict(
+                PsModule.objects.filter(name__in=names).values_list(
+                    "name", "ps_product__name"
+                )
+            )
+            for affect in affects:
+                affect.ps_product_name = products.get(affect.ps_module)
+
     def list(self, request, *args, **kwargs):
         # Override list to bulk-fetch history for all objects.
         # This prevents N+1 queries when requesting history for multiple objects.
@@ -779,8 +801,11 @@ class BulkHistoryMixin(ReadOnlyModelViewSet):
         else:
             objects = queryset
 
+        objects = list(objects)
+        self._batch_ps_products(objects)
+
         if request.query_params.get("include_history", False):
-            objects_list = list(objects)
+            objects_list = objects
             history_cache = self._build_history_cache(objects_list)
             context = self.get_serializer_context()
             context["history_cache"] = history_cache
@@ -797,6 +822,7 @@ class BulkHistoryMixin(ReadOnlyModelViewSet):
         # This prevents N+1 queries when requesting history for an object with many related models.
 
         instance = self.get_object()
+        self._batch_ps_products([instance])
 
         if request.query_params.get("include_history", False):
             history_cache = self._build_history_cache([instance])
