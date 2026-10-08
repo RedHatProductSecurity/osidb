@@ -161,6 +161,136 @@ class TestAtomicRollbackOnFailure:
 
         workflow_framework._workflows = []
 
+    @pytest.mark.django_db
+    def test_visibility_auto_adjustment_skips_nested_when_db_acl_already_widened(
+        self,
+        internal_read_groups,
+        internal_write_groups,
+        public_read_groups,
+        public_write_groups,
+    ):
+        """A stale writer must not repeat nested ACL updates after another writer commits."""
+        from apps.workflows.models import Workflow
+        from apps.workflows.workflow import WorkflowFramework
+
+        workflow_framework = WorkflowFramework()
+        workflow_framework._workflows = []
+        workflow_framework.register_workflow(
+            Workflow(
+                {
+                    "name": "DEFAULT",
+                    "description": "test workflow",
+                    "priority": 0,
+                    "conditions": [],
+                    "states": [
+                        {
+                            "name": "NEW",
+                            "requirements": [],
+                            "jira_state": "New",
+                            "jira_resolution": None,
+                        },
+                        {
+                            "name": "PUBLIC_STATE",
+                            "requirements": [],
+                            "jira_state": "To Do",
+                            "jira_resolution": None,
+                            "visibility": "PUBLIC",
+                        },
+                    ],
+                }
+            )
+        )
+
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-1",
+            acl_read=internal_read_groups,
+            acl_write=internal_write_groups,
+        )
+        stale_flaw = type(flaw).objects.get(pk=flaw.pk)
+
+        type(flaw).objects.filter(pk=flaw.pk).update(
+            acl_read=public_read_groups,
+            acl_write=public_write_groups,
+        )
+
+        stale_flaw.workflow_name = "DEFAULT"
+        stale_flaw.workflow_state = "PUBLIC_STATE"
+        assert stale_flaw.is_internal
+
+        with (
+            patch.object(stale_flaw, "set_acls_nested") as set_acls_nested,
+            patch.object(stale_flaw, "set_acls_history") as set_acls_history,
+        ):
+            stale_flaw.adjust_acls()
+
+        set_acls_nested.assert_not_called()
+        set_acls_history.assert_not_called()
+        assert stale_flaw.acl_read == public_read_groups
+        assert stale_flaw.acl_write == public_write_groups
+
+        workflow_framework._workflows = []
+
+    @pytest.mark.django_db
+    def test_visibility_auto_adjustment_persists_root_acl_from_stale_widened_instance(
+        self,
+        internal_read_groups,
+        internal_write_groups,
+        public_read_groups,
+        public_write_groups,
+    ):
+        """Persist the root ACL before propagating from a stale widened instance."""
+        from apps.workflows.models import Workflow
+        from apps.workflows.workflow import WorkflowFramework
+
+        workflow_framework = WorkflowFramework()
+        workflow_framework._workflows = []
+        workflow_framework.register_workflow(
+            Workflow(
+                {
+                    "name": "DEFAULT",
+                    "description": "test workflow",
+                    "priority": 0,
+                    "conditions": [],
+                    "states": [
+                        {
+                            "name": "NEW",
+                            "requirements": [],
+                            "jira_state": "New",
+                            "jira_resolution": None,
+                        },
+                        {
+                            "name": "PUBLIC_STATE",
+                            "requirements": [],
+                            "jira_state": "To Do",
+                            "jira_resolution": None,
+                            "visibility": "PUBLIC",
+                        },
+                    ],
+                }
+            )
+        )
+
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-1",
+            acl_read=internal_read_groups,
+            acl_write=internal_write_groups,
+        )
+        stale_flaw = type(flaw).objects.get(pk=flaw.pk)
+        stale_flaw.acl_read = public_read_groups
+        stale_flaw.acl_write = public_write_groups
+        stale_flaw.workflow_name = "DEFAULT"
+        stale_flaw.workflow_state = "PUBLIC_STATE"
+
+        stale_flaw.adjust_acls()
+
+        flaw.refresh_from_db()
+        assert flaw.acl_read == public_read_groups
+        assert flaw.acl_write == public_write_groups
+
+        workflow_framework._workflows = []
+
 
 class TestCollectObjectsForAclUpdate:
     """Verify _collect_objects_for_acl_update handles all relation types correctly."""

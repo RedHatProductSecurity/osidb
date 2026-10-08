@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Jira trackers are now linked to affects solely from the tracker side (Jira labels);
   linking from the flaw side (`meta_attr["jira_trackers"]`) has been removed (OSIDB-5721)
+- Reduce redundant ACL propagation during workflow visibility updates (OSIDB-5732)
 
 ## [5.20.0] - 2026-10-01
 ### Changed

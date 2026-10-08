@@ -742,7 +742,10 @@ class ACLMixin(models.Model):
             )
 
             with pgtrigger.ignore(f"{ref.pgh_model}:append_only"):
-                model_audit.update(
+                model_audit.exclude(
+                    acl_read=acl_read,
+                    acl_write=acl_write,
+                ).update(
                     acl_read=acl_read,
                     acl_write=acl_write,
                 )
@@ -817,16 +820,19 @@ class ACLMixin(models.Model):
             )
             with pgtrigger.ignore(f"{audit_model._meta.label}:append_only"):
                 for target_id_chunk in batched(safe_target_ids, max_chunk_size):
-                    audit_model.objects.filter(pgh_obj_id__in=target_id_chunk).update(
+                    audit_model.objects.filter(pgh_obj_id__in=target_id_chunk).exclude(
                         acl_read=acl_read,
                         acl_write=acl_write,
-                    )
+                    ).update(acl_read=acl_read, acl_write=acl_write)
 
     def _update_audit_history_acls(
         self, audit_model, audit_queryset, acl_read, acl_write
     ):
         with pgtrigger.ignore(f"{audit_model._meta.label}:append_only"):
-            audit_queryset.update(
+            audit_queryset.exclude(
+                acl_read=acl_read,
+                acl_write=acl_write,
+            ).update(
                 acl_read=acl_read,
                 acl_write=acl_write,
             )
@@ -843,7 +849,7 @@ class ACLMixin(models.Model):
                 queryset = queryset.exclude(
                     **{f"{relation.related_name}__embargoed": True}
                 )
-        return queryset.values_list("pk", flat=True).distinct()
+        return queryset.order_by("pk").values_list("pk", flat=True).distinct()
 
     def unembargo(self):
         """
@@ -933,7 +939,9 @@ class ACLMixin(models.Model):
 
         now = timezone.now().replace(microsecond=0)
 
-        for model_class, object_ids in objects_to_update.items():
+        for model_class, object_ids in sorted(
+            objects_to_update.items(), key=lambda item: item[0]._meta.label_lower
+        ):
             if not object_ids:
                 continue
 
@@ -944,10 +952,25 @@ class ACLMixin(models.Model):
             if issubclass(model_class, TrackingMixin):
                 update_kwargs["updated_dt"] = now
 
-            for pk_chunk in batched(object_ids, max_chunk_size):
-                model_class.objects.filter(pk__in=pk_chunk).update(**update_kwargs)
+            changed_pks = []
+            for pk_chunk in batched(sorted(object_ids, key=str), max_chunk_size):
+                queryset = model_class.objects.filter(pk__in=pk_chunk).exclude(
+                    acl_read=acl_read,
+                    acl_write=acl_write,
+                )
+                pk_chunk_to_update = list(
+                    queryset.order_by("pk").values_list("pk", flat=True)
+                )
+                if not pk_chunk_to_update:
+                    continue
 
-            for pk in object_ids:
+                model_class.objects.filter(pk__in=pk_chunk_to_update).exclude(
+                    acl_read=acl_read,
+                    acl_write=acl_write,
+                ).update(**update_kwargs)
+                changed_pks.extend(pk_chunk_to_update)
+
+            for pk in changed_pks:
                 model_class(pk=pk).set_acls_history(acl_read, acl_write)
 
     def _collect_objects_for_acl_update(self, objects_to_update, visited):
