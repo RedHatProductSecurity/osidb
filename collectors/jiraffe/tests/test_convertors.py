@@ -7,14 +7,16 @@ import pytest
 from collectors.jiraffe.convertors import (
     JiraTaskConvertor,
     JiraTrackerConvertor,
+    TrackerSaver,
 )
 from collectors.jiraffe.core import JiraQuerier
-from osidb.models import Affect, Flaw, Tracker
+from osidb.models import Affect, Flaw, Impact, Tracker, WorkflowLabel
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
+    TrackerFactory,
 )
 
 pytestmark = pytest.mark.unit
@@ -388,4 +390,192 @@ class TestJiraTaskConvertor:
         assert flaw.task_key == self.task_id
         assert flaw.task_updated_dt == datetime.datetime(
             2025, 9, 8, 9, 25, 14, 404000, tzinfo=datetime.timezone.utc
+        )
+
+
+class TestTrackerSaver:
+    """
+    tests for the download-side TrackerSaver (collectors.jiraffe.convertors)
+    shared by the Jira and Bugzilla tracker download paths
+    """
+
+    def test_save_preserves_existing_affect_links(self):
+        """
+        re-saving a tracker during a download must NOT unlink its affects
+
+        regression: TrackerSaver.save() used to call affects.set([]), which
+        cleared every link until the follow-up link_tracker_with_affects()
+        relinked them. That transient unlinking flipped the flaw's has_trackers
+        check to False and demoted its workflow state, polluting the audit
+        history with meaningless DONE <-> PRE_SECONDARY_ASSESSMENT transitions
+        on every sync.
+        """
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            flaw=FlawFactory(embargoed=False),
+            ps_update_stream=ps_update_stream.name,
+            ps_component="component",
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=False,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+        assert tracker.affects.count() == 1
+
+        # simulate a periodic re-download: the convertor builds a TrackerSaver
+        # with no explicit affects (they are reconciled separately afterwards
+        # via link_tracker_with_affects -> relink_affects)
+        TrackerSaver(tracker, [], []).save()
+
+        affect.refresh_from_db()
+        tracker.refresh_from_db()
+        assert affect.tracker == tracker
+        assert tracker.affects.count() == 1
+
+    def test_save_leaves_unlinked_tracker_unlinked(self):
+        """
+        saving a tracker that has no affect linked must be a clean no-op
+
+        companion to test_save_preserves_existing_affect_links: this exercises
+        the other side of the `if self.affects:` guard in TrackerSaver.save().
+        In the normal download path self.affects is empty, so for a tracker
+        that has no affect linked yet save() must not blow up on the empty set
+        and must not invent a link - the actual linking is done afterwards by
+        link_tracker_with_affects(). A regression to affects.set([]) would also
+        pass here, so this just pins down the no-crash / no-spurious-link
+        behaviour of the empty branch.
+        """
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            flaw=FlawFactory(embargoed=False),
+            ps_update_stream=ps_update_stream.name,
+            ps_component="component",
+        )
+        # a tracker with no affect cannot be created directly (the
+        # "must be associated with an affect" validator rejects it), so create
+        # it linked and then unlink to reach the unlinked-in-DB state a failed
+        # link would leave behind
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=False,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+        tracker.affects.remove(affect)
+        affect.refresh_from_db()
+        assert tracker.affects.count() == 0
+        assert affect.tracker is None
+
+        # simulate a periodic re-download of a tracker that has no affect link;
+        # the convertor builds a TrackerSaver with no explicit affects. save()
+        # uses raise_validation_error=False, so the missing-affect validation
+        # degrades to an alert rather than raising
+        TrackerSaver(tracker, [], []).save()
+
+        affect.refresh_from_db()
+        tracker.refresh_from_db()
+        assert affect.tracker is None
+        assert tracker.affects.count() == 0
+
+    @pytest.mark.enable_signals
+    def test_download_does_not_ping_pong_workflow_state(self):
+        """
+        reproduce the production workflow ping-pong and prove the fix stops it
+
+        A flaw sitting in DONE (approved, all affects resolved and tracked)
+        used to bounce DONE <-> PRE_SECONDARY_ASSESSMENT on every tracker
+        download. Each per-tracker download task ran TrackerSaver.save(), which
+        cleared the tracker's affect link via affects.set([]) before a later
+        step relinked it. While one tracker's affect was transiently unlinked,
+        saving another tracker of the same flaw fired the
+        update_local_updated_dt_tracker signal, which re-saved and
+        re-classified the flaw; has_trackers was momentarily False so the flaw
+        dropped out of DONE and popped back once relinked - spamming the audit
+        trail with meaningless transitions.
+
+        This simulates two concurrent per-tracker downloads interleaving. The
+        direct regression guard is asserting that each TrackerSaver.save() keeps
+        its affect link: against the old affects.set([]) behaviour the link is
+        gone immediately after save() and the assertion fails. We additionally
+        assert the flaw never leaves DONE as an end-to-end sanity check.
+        """
+        event_model = Flaw.pgh_event_model
+
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        tracker_type = Tracker.BTS2TYPE[ps_module.bts_name]
+
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-PINGPONG",
+            impact=Impact.MODERATE,
+            cwe_id="CWE-1",
+            cve_description="random cve_description",
+        )
+
+        def _affect_with_tracker(component):
+            affect = AffectFactory(
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                flaw=flaw,
+                ps_update_stream=ps_update_stream.name,
+                ps_component=component,
+            )
+            tracker = TrackerFactory(
+                affects=[affect],
+                embargoed=False,
+                ps_update_stream=ps_update_stream.name,
+                type=tracker_type,
+            )
+            return affect, tracker
+
+        affect1, tracker1 = _affect_with_tracker("component-1")
+        affect2, tracker2 = _affect_with_tracker("component-2")
+
+        # approve and settle into DONE
+        WorkflowLabel.objects.create(flaw=flaw, name="approved")
+        flaw.adjust_classification()
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+
+        # ignore everything recorded while climbing to DONE
+        baseline_ids = set(
+            event_model.objects.filter(pgh_obj_id=flaw.uuid).values_list(
+                "pgh_id", flat=True
+            )
+        )
+
+        # simulate two per-tracker download tasks interleaving: both run their
+        # TrackerSaver.save() (the point where the old code unlinked the
+        # affects) before the follow-up step relinks them. The link must survive
+        # each save() - the old affects.set([]) would have cleared it here.
+        TrackerSaver(tracker1, [], []).save()
+        assert tracker1.affects.filter(pk=affect1.pk).exists()
+        TrackerSaver(tracker2, [], []).save()
+        assert tracker2.affects.filter(pk=affect2.pk).exists()
+        # the sync managers reconcile the links afterwards via relink_affects()
+        tracker1.relink_affects([affect1])
+        tracker1.save(auto_timestamps=False, raise_validation_error=False)
+        tracker2.relink_affects([affect2])
+        tracker2.save(auto_timestamps=False, raise_validation_error=False)
+
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+
+        recorded_states = set(
+            event_model.objects.filter(pgh_obj_id=flaw.uuid)
+            .exclude(pgh_id__in=baseline_ids)
+            .values_list("workflow_state", flat=True)
+        )
+        assert recorded_states <= {"DONE"}, (
+            "tracker download produced spurious workflow transitions: "
+            f"{sorted(recorded_states)}"
         )
