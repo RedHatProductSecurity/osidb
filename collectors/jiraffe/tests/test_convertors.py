@@ -7,14 +7,16 @@ import pytest
 from collectors.jiraffe.convertors import (
     JiraTaskConvertor,
     JiraTrackerConvertor,
+    TrackerSaver,
 )
 from collectors.jiraffe.core import JiraQuerier
-from osidb.models import Affect, Flaw, Tracker
+from osidb.models import Affect, Flaw, Impact, Tracker, WorkflowLabel
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
+    TrackerFactory,
 )
 
 pytestmark = pytest.mark.unit
@@ -388,4 +390,140 @@ class TestJiraTaskConvertor:
         assert flaw.task_key == self.task_id
         assert flaw.task_updated_dt == datetime.datetime(
             2025, 9, 8, 9, 25, 14, 404000, tzinfo=datetime.timezone.utc
+        )
+
+
+class TestTrackerSaver:
+    """
+    tests for the download-side TrackerSaver (collectors.jiraffe.convertors)
+    shared by the Jira and Bugzilla tracker download paths
+    """
+
+    def test_save_preserves_existing_affect_links(self):
+        """
+        re-saving a tracker during a download must NOT unlink its affects
+
+        regression: TrackerSaver.save() used to call affects.set([]), which
+        cleared every link until the follow-up link_tracker_with_affects()
+        relinked them. That transient unlinking flipped the flaw's has_trackers
+        check to False and demoted its workflow state, polluting the audit
+        history with meaningless DONE <-> PRE_SECONDARY_ASSESSMENT transitions
+        on every sync.
+        """
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            flaw=FlawFactory(embargoed=False),
+            ps_update_stream=ps_update_stream.name,
+            ps_component="component",
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=False,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+        assert tracker.affects.count() == 1
+
+        # simulate a periodic re-download: the convertor builds a TrackerSaver
+        # with no explicit affects (they are reconciled separately afterwards
+        # via link_tracker_with_affects -> relink_affects)
+        TrackerSaver(tracker, [], []).save()
+
+        affect.refresh_from_db()
+        tracker.refresh_from_db()
+        assert affect.tracker == tracker
+        assert tracker.affects.count() == 1
+
+    @pytest.mark.enable_signals
+    def test_download_does_not_ping_pong_workflow_state(self):
+        """
+        reproduce the production workflow ping-pong and prove the fix stops it
+
+        A flaw sitting in DONE (approved, all affects resolved and tracked)
+        used to bounce DONE <-> PRE_SECONDARY_ASSESSMENT on every tracker
+        download. Each per-tracker download task ran TrackerSaver.save(), which
+        cleared the tracker's affect link via affects.set([]) before a later
+        step relinked it. While one tracker's affect was transiently unlinked,
+        saving another tracker of the same flaw fired the
+        update_local_updated_dt_tracker signal, which re-saved and
+        re-classified the flaw; has_trackers was momentarily False so the flaw
+        dropped out of DONE and popped back once relinked - spamming the audit
+        trail with meaningless transitions.
+
+        This simulates two concurrent per-tracker downloads interleaving and
+        asserts the flaw never leaves DONE and no PRE_SECONDARY_ASSESSMENT
+        event is recorded. Against the old affects.set([]) behaviour it fails:
+        a PRE_SECONDARY_ASSESSMENT event appears in the flaw's history.
+        """
+        event_model = Flaw.pgh_event_model
+
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        tracker_type = Tracker.BTS2TYPE[ps_module.bts_name]
+
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-PINGPONG",
+            impact=Impact.MODERATE,
+            cwe_id="CWE-1",
+            cve_description="random cve_description",
+        )
+
+        def _affect_with_tracker(component):
+            affect = AffectFactory(
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                flaw=flaw,
+                ps_update_stream=ps_update_stream.name,
+                ps_component=component,
+            )
+            tracker = TrackerFactory(
+                affects=[affect],
+                embargoed=False,
+                ps_update_stream=ps_update_stream.name,
+                type=tracker_type,
+            )
+            return affect, tracker
+
+        affect1, tracker1 = _affect_with_tracker("component-1")
+        affect2, tracker2 = _affect_with_tracker("component-2")
+
+        # approve and settle into DONE
+        WorkflowLabel.objects.create(flaw=flaw, name="approved")
+        flaw.adjust_classification()
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+
+        # ignore everything recorded while climbing to DONE
+        baseline_ids = set(
+            event_model.objects.filter(pgh_obj_id=flaw.uuid).values_list(
+                "pgh_id", flat=True
+            )
+        )
+
+        # simulate two per-tracker download tasks interleaving: both run their
+        # TrackerSaver.save() (the point where the old code unlinked the
+        # affects) before the follow-up step relinks them
+        TrackerSaver(tracker1, [], []).save()
+        TrackerSaver(tracker2, [], []).save()
+        # the sync managers reconcile the links afterwards via relink_affects()
+        tracker1.relink_affects([affect1])
+        tracker1.save(auto_timestamps=False, raise_validation_error=False)
+        tracker2.relink_affects([affect2])
+        tracker2.save(auto_timestamps=False, raise_validation_error=False)
+
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+
+        recorded_states = set(
+            event_model.objects.filter(pgh_obj_id=flaw.uuid)
+            .exclude(pgh_id__in=baseline_ids)
+            .values_list("workflow_state", flat=True)
+        )
+        assert recorded_states <= {"DONE"}, (
+            "tracker download produced spurious workflow transitions: "
+            f"{sorted(recorded_states)}"
         )

@@ -153,9 +153,18 @@ class TrackerSaver:
                 raise_validation_error=False,
                 **kwargs,
             )
-            # re-create all affect links
-            # in case some were removed
-            self.tracker.affects.set(self.affects)
+            # Affect links are reconciled separately right after the
+            # download by link_tracker_with_affects() -> relink_affects().
+            # We must NOT clear and re-add them here: in the normal download
+            # path self.affects is empty, so affects.set() would unlink every
+            # affect and only the follow-up step would relink them. That
+            # transient unlinking flips can temporarily mess with the workflow
+            # classification producing a stream of re-classification ping-pong.
+            # Only reconcile here when explicit affects were supplied,
+            # and even then use the minimal-diff relink_affects()
+            # so unchanged links are left alone.
+            if self.affects:
+                self.tracker.relink_affects(self.affects)
 
             # store alerts
             for alert in self.alerts:
