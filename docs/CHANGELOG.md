@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Jira OSIM task now syncs when the flaw workflow state changes automatically (OSIDB-5331)
 
+### Fixed
+- Fixed deadlocks by locking related affects and trackers before applying cascaded updates. (OSIDB-5456)
+
 ## [5.18.2] - 2026-09-18
 ### Fixed
 - Updated cvss library to latest version (3.6.0) and updated existing CVSSv4 scores
