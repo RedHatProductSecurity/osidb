@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `OSIDB_STATS_ENABLED` feature flag and disabled by default pending a security
   review of impact/workflow grouping; returns 423 while disabled (OSIDB-5290, OSIDB-5695)
 - Add PS update stream `minimal_impact` field defining the lowest impact for tracker filing (OSIDB-4813)
+- Add CVSS and label history to audit endpoint as child entities (OSIDB-5686)
 
 ### Changed
 - Change default,collectors queues for high/low priority queues (OSIDB-5513)
