@@ -106,7 +106,7 @@ def ps_stream_with_impact_threshold():
             default_to_ps_module=ps_module,
             moderate_to_ps_module=ps_module,
             unacked_to_ps_module=None,
-            minimal_impact=impact,
+            impact=impact,
         )
 
     return _make
