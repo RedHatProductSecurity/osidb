@@ -575,14 +575,14 @@ class Affect(
         ps_update_stream = PsUpdateStream.objects.filter(
             name=self.ps_update_stream
         ).first()
-        if ps_update_stream is None or not ps_update_stream.minimal_impact:
+        if ps_update_stream is None or not ps_update_stream.impact:
             return
 
-        if self.aggregated_impact < Impact(ps_update_stream.minimal_impact):
+        if self.aggregated_impact < Impact(ps_update_stream.impact):
             message = (
                 f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is "
                 f"AFFECTED:DELEGATED: impact {self.aggregated_impact.value or 'NOVALUE'} is below "
-                f"the minimum impact '{ps_update_stream.minimal_impact}' configured for the stream."
+                f"the minimum impact '{ps_update_stream.impact}' configured for the stream."
             )
 
             # only warn for affects that were already AFFECTED:DELEGATED before
@@ -977,13 +977,13 @@ class Affect(
             # AFFECTED/DEFER — impact below the stream's configured minimum impact.
             # A stream may declare the lowest impact for which trackers are filed;
             # affects below that threshold are deferred (no tracker).
-            if ps_update_stream_obj.minimal_impact and impact < Impact(
-                ps_update_stream_obj.minimal_impact
+            if ps_update_stream_obj.impact and impact < Impact(
+                ps_update_stream_obj.impact
             ):
                 self.resolution = self.AffectResolution.DEFER
                 self.affectedness_explanation = (
                     f"Impact {impact.value or 'NOVALUE'} is below the minimum impact "
-                    f"'{ps_update_stream_obj.minimal_impact}' configured for stream "
+                    f"'{ps_update_stream_obj.impact}' configured for stream "
                     f"'{self.ps_update_stream}'. Resolution set to DEFER as no trackers "
                     "are filed below the stream's impact threshold."
                 )

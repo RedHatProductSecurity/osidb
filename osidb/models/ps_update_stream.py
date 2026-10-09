@@ -69,7 +69,7 @@ class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
 
     # lowest impact for which trackers should be filed for this stream;
     # blank means no threshold - the standard impact rules apply.
-    minimal_impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
+    impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
 
     # related PS Module
     ps_module = models.ForeignKey(

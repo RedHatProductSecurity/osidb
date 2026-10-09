@@ -284,7 +284,7 @@ class TestAffect:
         ps_update_stream = PsUpdateStreamFactory(
             ps_module=ps_module,
             active_to_ps_module=ps_module,
-            minimal_impact=Impact.CRITICAL,
+            impact=Impact.CRITICAL,
         )
         flaw = FlawFactory(impact=Impact.IMPORTANT)
         with pytest.raises(ValidationError) as exc_info:
@@ -308,7 +308,7 @@ class TestAffect:
         ps_update_stream = PsUpdateStreamFactory(
             ps_module=ps_module,
             active_to_ps_module=ps_module,
-            minimal_impact="",
+            impact="",
         )
         flaw = FlawFactory(impact=Impact.CRITICAL)
         affect = AffectFactory(
@@ -320,7 +320,7 @@ class TestAffect:
         )
 
         # the stream raises its minimum impact above the existing affect's impact
-        ps_update_stream.minimal_impact = Impact.CRITICAL
+        ps_update_stream.impact = Impact.CRITICAL
         ps_update_stream.save()
 
         # re-saving the existing affect must not raise ...
@@ -340,7 +340,7 @@ class TestAffect:
         ps_update_stream = PsUpdateStreamFactory(
             ps_module=ps_module,
             active_to_ps_module=ps_module,
-            minimal_impact=Impact.CRITICAL,
+            impact=Impact.CRITICAL,
         )
         flaw = FlawFactory(impact=Impact.IMPORTANT)
         # created below the threshold but not delegated, so it is allowed
@@ -368,7 +368,7 @@ class TestAffect:
         ps_update_stream = PsUpdateStreamFactory(
             ps_module=ps_module,
             active_to_ps_module=ps_module,
-            minimal_impact=Impact.IMPORTANT,
+            impact=Impact.IMPORTANT,
         )
         flaw = FlawFactory(impact=Impact.CRITICAL)
         # created delegated above the threshold, so it is allowed
@@ -396,7 +396,7 @@ class TestAffect:
         ps_update_stream = PsUpdateStreamFactory(
             ps_module=ps_module,
             active_to_ps_module=ps_module,
-            minimal_impact=Impact.IMPORTANT,
+            impact=Impact.IMPORTANT,
         )
         flaw = FlawFactory(impact=Impact.CRITICAL)
         # should not raise
@@ -415,7 +415,7 @@ class TestAffect:
         ps_update_stream = PsUpdateStreamFactory(
             ps_module=ps_module,
             active_to_ps_module=ps_module,
-            minimal_impact="",
+            impact="",
         )
         flaw = FlawFactory(impact=Impact.LOW)
         # should not raise - without a threshold the standard rules apply

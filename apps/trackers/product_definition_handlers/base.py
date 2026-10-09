@@ -31,8 +31,8 @@ class ProductDefinitionRules:
 
         # Do not offer streams whose configured minimum impact is above the
         # affect's aggregated impact - no tracker should be filed below the threshold.
-        if ps_update_stream.minimal_impact and affect.aggregated_impact < Impact(
-            ps_update_stream.minimal_impact
+        if ps_update_stream.impact and affect.aggregated_impact < Impact(
+            ps_update_stream.impact
         ):
             return None
 
