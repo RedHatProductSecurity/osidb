@@ -728,12 +728,16 @@ class TestTrackerAPI:
         ] == sorted(labels_new)
         assert tracker_new.meta_attr["jira_issuetype"] == "Bug"
 
-        # Not linked yet
-        assert tracker_new.affects.count() == 0
+        # the affect link established when the tracker was created is preserved
+        # through the download - the collector no longer clears and relinks it,
+        # which previously bounced the flaw's workflow state back and forth
+        assert tracker_new.affects.count() == 1
+        assert tracker_new.affects.first() == affect
 
+        # relinking is idempotent and keeps the existing link
         JiraTrackerDownloadManager.link_tracker_with_affects(tracker_id)
 
-        # Linked
+        # Still linked
         assert tracker_new.affects.count() == 1
         assert tracker_new.affects.first() == affect
         assert not tracker_new.alerts.exists()
