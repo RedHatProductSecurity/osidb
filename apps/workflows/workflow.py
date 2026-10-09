@@ -10,7 +10,7 @@ from os import listdir
 from os.path import join
 
 import yaml
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from osidb.acls import ACL
@@ -307,8 +307,37 @@ class WorkflowModel(models.Model):
         target = WorkflowFramework().get_effective_visibility(
             self.workflow_name, self.workflow_state
         )
-        if not target or self.current_acl >= target:
+        if not target:
             return
-        self.widen_acls(target)
-        self.set_acls_nested()
-        self.set_acls_history()
+
+        # Serialize ACL widening on the root row before touching related rows.
+        with transaction.atomic():
+            current = None
+            if self.pk is not None:
+                try:
+                    current = (
+                        type(self)
+                        ._base_manager.select_for_update()
+                        .only("acl_read", "acl_write")
+                        .get(pk=self.pk)
+                    )
+                except type(self).DoesNotExist:
+                    pass
+
+            if current is not None:
+                self.acl_read = list(current.acl_read)
+                self.acl_write = list(current.acl_write)
+                if self.current_acl >= target:
+                    return
+
+            if self.current_acl < target:
+                self.widen_acls(target)
+
+            if current is not None:
+                type(self)._base_manager.filter(pk=self.pk).update(
+                    acl_read=self.acl_read,
+                    acl_write=self.acl_write,
+                )
+
+            self.set_acls_nested()
+            self.set_acls_history()
