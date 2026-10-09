@@ -48,7 +48,7 @@ def signal_pghistory_context(
 
     Uses `signal` / `signal_sender` keys so nested celery `action` metadata is
     preserved. When no parent context exists, also sets action/user so the UI
-    does not show a bare "system"/None context.
+    does not show a bare "system"/None writer.
     """
     metadata = {
         "source": "signal",
@@ -157,14 +157,25 @@ def update_flaw_fields(sender, instance, **kwargs):
 @receiver(post_save, sender=BULabel)
 @receiver(post_save, sender=CollaboratorLabel)
 @receiver(post_save, sender=ProductFamilyLabel)
+@receiver(post_save, sender=FlawCVSS)
+def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
+    # Reload from DB so we never write back stale in-memory state (fixes race
+    # where a concurrent classification change is reverted by FlawCVSS post_save).
+    instance.flaw.refresh_from_db()
+    with signal_pghistory_context(
+        "flaw_dependant_update_local_updated_dt", sender=sender, instance=instance
+    ):
+        instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
+
+
 @receiver(post_save, sender=WorkflowLabel)
 @receiver(
     post_delete, sender=FlawLabel
 )  # cascade deletion of multi-table inheritance fires from the parent
-@receiver(post_save, sender=FlawCVSS)
-def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
+def flaw_label_update_local_updated_dt(sender, instance, **kwargs):
+    instance.flaw.refresh_from_db()
     with signal_pghistory_context(
-        "flaw_dependant_update_local_updated_dt", sender=sender, instance=instance
+        "flaw_label_update_local_updated_dt", sender=sender, instance=instance
     ):
         instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
 
@@ -186,7 +197,7 @@ def update_local_updated_dt_tracker(sender, instance, **kwargs):
         ):
             flaw.save(
                 auto_timestamps=False,
-                no_alerts=True,  # recreating alerts from nested entities can cause deadlocks
+                no_alerts=True,
                 raise_validation_error=False,
             )
 

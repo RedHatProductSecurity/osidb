@@ -8,7 +8,7 @@ import pytest
 from django.utils.timezone import make_aware, now
 
 from apps.workflows.workflow import WorkflowFramework
-from osidb.models import Affect, Impact, WorkflowLabel
+from osidb.models import Affect, Flaw, FlawCVSS, Impact, WorkflowLabel
 from osidb.models.flaw import flaw as flaw_module
 from osidb.tests.factories import AffectFactory, FlawFactory, TrackerFactory
 
@@ -398,6 +398,88 @@ class TestDefaultWorkflow:
         flaw.impact = Impact.LOW
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+
+
+class TestAutoRejectedRaceCondition:
+    """
+    Regression test for OSIDB-5330.
+
+    When osidb-bot updates a flaw's base fields and CVSS scores in two
+    separate API requests, the FlawCVSS post_save signal fires with a
+    stale in-memory flaw. Without refresh_from_db(), the signal's
+    flaw.save() writes back stale field values — overwriting changes made
+    by concurrent updates.
+
+    The key scenario: if the stale flaw has workflow_state="DONE" and
+    is old enough, _skip_reclassification() returns True, so the stale
+    workflow fields get written without being corrected by
+    auto_adjust_classification.
+    """
+
+    @pytest.mark.enable_signals
+    def test_cvss_save_with_stale_flaw_preserves_workflow_resolved_dt(
+        self, monkeypatch
+    ):
+        """
+        Reproduce OSIDB-5330: ACE auto-rejects a flaw (REJECTED/DONE, setting
+        resolved_dt), then osidb-bot sends CVSS in a concurrent request with
+        a stale flaw reference that still has resolved_dt=None.
+
+        The bug: without refresh_from_db(), the stale resolved_dt=None would
+        overwrite the timestamp set when entering DONE. While
+        auto_adjust_classification re-computes REJECTED/DONE from DB labels,
+        if reclassification is skipped (old flaw + _skip_reclassification),
+        the stale workflow fields would be written as-is.
+
+        Test both scenarios: one where reclassification runs (resolved_dt is
+        re-stamped, hiding the bug) and one where it's skipped (stale
+        resolved_dt=None overwrites the DB).
+        """
+        # Scenario 1: Old flaw where reclassification is skipped
+        old_cutoff = make_aware(datetime(2025, 1, 1))
+        monkeypatch.setattr(
+            flaw_module, "WORKFLOW_RECLASSIFICATION_START_DATE", old_cutoff
+        )
+
+        old_flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-OLD",
+            created_dt=make_aware(datetime(2024, 1, 1)),  # Before cutoff
+        )
+        # Force DONE state
+        old_flaw.workflow_name = "DEFAULT"
+        old_flaw.workflow_state = "DONE"
+        old_flaw.resolved_dt = make_aware(datetime(2024, 6, 1))
+        old_flaw.save(auto_timestamps=False, raise_validation_error=False)
+
+        # Load stale reference
+        stale_old_flaw = Flaw.objects.get(uuid=old_flaw.uuid)
+        original_resolved_dt = stale_old_flaw.resolved_dt
+
+        # Concurrent update: change resolved_dt
+        Flaw.objects.filter(uuid=old_flaw.uuid).update(
+            resolved_dt=make_aware(datetime(2024, 7, 1))
+        )
+
+        # stale_old_flaw still has old resolved_dt
+        assert stale_old_flaw.resolved_dt == original_resolved_dt
+
+        # Save FlawCVSS with stale flaw. Since the flaw is old + DONE,
+        # _skip_reclassification() returns True, so stale resolved_dt
+        # would overwrite DB without refresh_from_db().
+        cvss = FlawCVSS(
+            flaw=stale_old_flaw,
+            issuer=FlawCVSS.CVSSIssuer.REDHAT,
+            version=FlawCVSS.CVSSVersion.VERSION3,
+            vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+            acl_read=stale_old_flaw.acl_read,
+            acl_write=stale_old_flaw.acl_write,
+        )
+        cvss.save()
+
+        # refresh_from_db() prevents the stale writeback
+        db_flaw = Flaw.objects.get(uuid=old_flaw.uuid)
+        assert db_flaw.resolved_dt == make_aware(datetime(2024, 7, 1))
 
 
 class TestManualWorkflow:

@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 -Move logging of affects query, and reply, to flaw level (OSIDB-5344)
 
+### Fixed
+- Avoid reverting auto-rejected flaws (OSIDB-5330)
+
 ## [5.20.2] - 2026-10-09
 ### Changed
 - Reduce redundant ACL propagation during workflow visibility updates (OSIDB-5732)

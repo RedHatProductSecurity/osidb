@@ -122,8 +122,6 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         model, data = [i for i in main_model.items()][0]
         flaw = model(**data, **shared_flaw)
         flaw.save(raise_validation_error=False)
-        # reported_dt is set according to created_dt, which is set after flaw.save()
-        flaw.reported_dt = flaw.created_dt
 
         # creates related models (e.g. FlawCVSS)
         for model, list_of_data in related_models.items():
@@ -143,6 +141,11 @@ class Snippet(ACLMixin, AlertMixin, TrackingMixin):
         self.flaw = flaw
         self.save()
 
+        # reported_dt must be set after related models are created because
+        # their post_save signals refresh the flaw from DB, which would
+        # overwrite any in-memory-only field changes
+        flaw.refresh_from_db()
+        flaw.reported_dt = flaw.created_dt
         flaw.save(
             bz_api_key=BZ_API_KEY,
             raise_validation_error=False,
