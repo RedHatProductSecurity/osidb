@@ -1422,7 +1422,7 @@ class TestStreamImpactThreshold:
             ps_module=ps_module,
             active_to_ps_module=ps_module,
             default_to_ps_module=ps_module,
-            minimal_impact=Impact.CRITICAL,
+            impact=Impact.CRITICAL,
         )
         # the flaw stays CRITICAL while the affect impact is downgraded, so the
         # gate must key off the affect's aggregated impact - not the flaw impact
