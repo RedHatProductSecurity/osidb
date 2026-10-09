@@ -108,6 +108,19 @@ def _in_param(
     )
 
 
+def _empty_param(name: str, description: str) -> OpenApiParameter:
+    """A comma-separated ``__isempty`` filter parameter."""
+    return OpenApiParameter(
+        name,
+        type={"type": "boolean"},
+        location=OpenApiParameter.QUERY,
+        required=False,
+        description=description,
+        style="form",
+        explode=False,
+    )
+
+
 STATS_PARAMETERS: list[OpenApiParameter] = [
     OpenApiParameter(
         "group_by",
@@ -145,8 +158,10 @@ STATS_PARAMETERS: list[OpenApiParameter] = [
     _in_param("impact__not_in", "Drop these impacts.", Impact.values),
     _in_param("workflow_state__in", "Keep only these workflow states."),
     _in_param("workflow_state__not_in", "Drop these workflow states."),
+    _empty_param("workflow_state__isempty", "Keep only empty workflow states."),
     _in_param("workflow_name__in", "Keep only these workflow names."),
     _in_param("workflow_name__not_in", "Drop these workflow names."),
+    _empty_param("workflow_name__isempty", "Keep only empty workflow name."),
     _in_param("ps_product__in", "Keep flaws with >=1 affect in these products."),
     _in_param("ps_product__not_in", "Drop flaws with >=1 affect in these products."),
 ]

@@ -15903,6 +15903,13 @@ paths:
         explode: false
         style: form
       - in: query
+        name: workflow_name__isempty
+        schema:
+          type: boolean
+        description: Keep only empty workflow name.
+        explode: false
+        style: form
+      - in: query
         name: workflow_name__not_in
         schema:
           type: array
@@ -15918,6 +15925,13 @@ paths:
           items:
             type: string
         description: Keep only these workflow states.
+        explode: false
+        style: form
+      - in: query
+        name: workflow_state__isempty
+        schema:
+          type: boolean
+        description: Keep only empty workflow states.
         explode: false
         style: form
       - in: query

@@ -260,6 +260,24 @@ class TestStatsFlawsFilters:
         body = response.json()
         assert body["meta"]["filters"] == {}
 
+    def test_workflow_state_is_empty_filter(self, auth_client):
+        FlawFactory(workflow_state="", embargoed=False)
+        FlawFactory(workflow_state="test", embargoed=False)
+        response = auth_client().get(
+            f"{STATS_URI}?workflow_state__isempty=1&group_by=impact"
+        )
+        body = response.json()
+        assert body["meta"]["total_flaws"] == 1
+
+    def test_workflow_name_is_empty_filter(self, auth_client):
+        FlawFactory(workflow_name="", embargoed=False)
+        FlawFactory(workflow_name="test", embargoed=False)
+        response = auth_client().get(
+            f"{STATS_URI}?workflow_name__isempty=1&group_by=impact"
+        )
+        body = response.json()
+        assert body["meta"]["total_flaws"] == 1
+
 
 class TestStatsFlawsSafetyContract:
     def test_dimensions_allowlist_is_pinned(self):
