@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Move logging of affects query, and reply, to flaw level (OSIDB-5344)
 - Implement opt-out mechanism for the cut-off based workflow classification exclusion (OSIDB-5476)
 - Added filters for checking if the workflow state or name are empty (OSIDB-5730)
+- Extend stats API with tracker counts (OSIDB-5664)
 
 ### Fixed
 - Do not clear and re-add tracker affect links on every sync (OSIDB-5475)

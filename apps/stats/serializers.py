@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 
-class StatsMetaSerializer(serializers.Serializer):
+class StatsFlawsMetaSerializer(serializers.Serializer):
     total_flaws = serializers.IntegerField()
     sum_group_counts = serializers.IntegerField()
     group_by = serializers.ListField(child=serializers.CharField())
@@ -12,6 +12,19 @@ class StatsMetaSerializer(serializers.Serializer):
     generated_at = serializers.DateTimeField()
 
 
+class StatsTrackersMetaSerializer(serializers.Serializer):
+    total_trackers = serializers.IntegerField()
+    sum_group_counts = serializers.IntegerField()
+    group_by = serializers.ListField(child=serializers.CharField())
+    filters = serializers.DictField()
+    generated_at = serializers.DateTimeField()
+
+
 class StatsFlawsResponseSerializer(serializers.Serializer):
     groups = serializers.ListField(child=serializers.DictField())
-    meta = StatsMetaSerializer()
+    meta = StatsFlawsMetaSerializer()
+
+
+class StatsTrackersResponseSerializer(serializers.Serializer):
+    groups = serializers.ListField(child=serializers.DictField())
+    meta = StatsTrackersMetaSerializer()
