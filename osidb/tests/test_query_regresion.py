@@ -484,7 +484,7 @@ class TestQuerySetRegression:
         assert response.status_code == 200
 
         # Promote to PRE_SECONDARY_ASSESSMENT using async task sync
-        # this one runs the nested set_acls_nested and set_acls_history calls
+        # this one runs the nested set_acls_nested calls
 
         with assertNumQueriesLessThan(expected_queries):
             response = auth_client().post(
