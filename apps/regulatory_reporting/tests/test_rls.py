@@ -349,6 +349,32 @@ class TestAuditTablesRLS:
             == 1
         )
 
+    def test_srp_report_audit_acls_follow_report_release(self):
+        """SRPReport audit rows are visible via RLS delegation to the source object."""
+        SRPReportAudit = apps.get_model("regulatory_reporting", "SRPReportAudit")
+
+        set_user_acls(settings.ALL_GROUPS)
+        report = SRPReportFactory(flaw__embargoed=True)
+        event = SRPReportAudit.objects.get(pgh_obj=report.pk, pgh_label="insert")
+        original_acl_read = list(event.acl_read)
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
+        with transaction.atomic():
+            assert SRPReportAudit.objects.filter(pgh_id=event.pgh_id).count() == 0
+
+        set_user_acls(settings.ALL_GROUPS)
+        report.unembargo()
+
+        # the audit row's own ACLs are untouched: the table is append-only
+        # (no UPDATE policy), so delegation is the only way visibility
+        # can follow the source object's new, public ACLs.
+        event.refresh_from_db()
+        assert event.acl_read == original_acl_read
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
+        with transaction.atomic():
+            assert SRPReportAudit.objects.filter(pgh_id=event.pgh_id).count() == 1
+
     def test_srp_report_milestone_audit_is_append_only(self):
         SRPReportMilestoneAudit = apps.get_model(
             "regulatory_reporting", "SRPReportMilestoneAudit"
@@ -371,6 +397,37 @@ class TestAuditTablesRLS:
             ).count()
             == 1
         )
+
+    def test_srp_report_milestone_audit_acls_follow_milestone_release(self):
+        """SRPReportMilestone audit rows are visible via RLS delegation to the source object."""
+        SRPReportMilestoneAudit = apps.get_model(
+            "regulatory_reporting", "SRPReportMilestoneAudit"
+        )
+
+        set_user_acls(settings.ALL_GROUPS)
+        milestone = SRPReportMilestoneFactory(srp_report__flaw__embargoed=True)
+        event = SRPReportMilestoneAudit.objects.get(
+            pgh_obj=milestone.pk, pgh_label="insert"
+        )
+        original_acl_read = list(event.acl_read)
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
+        with transaction.atomic():
+            assert (
+                SRPReportMilestoneAudit.objects.filter(pgh_id=event.pgh_id).count() == 0
+            )
+
+        set_user_acls(settings.ALL_GROUPS)
+        milestone.unembargo()
+
+        event.refresh_from_db()
+        assert event.acl_read == original_acl_read
+
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
+        with transaction.atomic():
+            assert (
+                SRPReportMilestoneAudit.objects.filter(pgh_id=event.pgh_id).count() == 1
+            )
 
     def test_additional_information_request_audit_is_append_only(self):
         AdditionalInformationRequestAudit = apps.get_model(
