@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+- implement affect-based trigger to keep BU labels in sync (OSIDB-5710)
+
+### Changed
+- Restrict the BU labels from being created/updated/deleted through API (OSIDB-5709)
+
 ## [5.23.2] - 2026-11-12
 ### Changed
 - Deprecate the tracker `sync_to_bz` parameter: it remains accepted but has no effect;
@@ -55,7 +61,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Require a verified mapping before trusting multi-name component lists that are not trusted pairs (OSIDB-5677)
-- Restrict the BU labels from being created/updated/deleted through API (OSIDB-5709)
 
 ### Fixed
 - Normalize lowercase stream impact values in product definitions collector (OSIDB-5785)
