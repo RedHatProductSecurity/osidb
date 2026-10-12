@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Reduce redundant ACL propagation during workflow visibility updates (OSIDB-5732)
 
+- Extend stats API with tracker counts
+
 ## [5.20.1] - 2026-10-06
 ### Changed
 - Jira trackers are now linked to affects solely from the tracker side (Jira labels);

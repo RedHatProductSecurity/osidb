@@ -57,3 +57,39 @@ class StatsFlawFilter(OSIDBFilterSet):
         if not value:
             return queryset
         return queryset.exclude(affects__ps_module__in=self._modules_for(value))
+
+
+class StatsTrackerFilter(OSIDBFilterSet):
+    visibility__in = ChoiceInFilter(
+        field_name="visibility", lookup_expr="in", choices=ACLMixinVisibility.choices
+    )
+    visibility__not_in = ChoiceInFilter(
+        field_name="visibility",
+        lookup_expr="in",
+        choices=ACLMixinVisibility.choices,
+        exclude=True,
+    )
+    ps_product__in = CharInFilter(method="filter_ps_product_in")
+    ps_product__not_in = CharInFilter(method="filter_ps_product_not_in")
+
+    @staticmethod
+    def _modules_for(products: list[str]) -> QuerySet:
+        return PsModule.objects.filter(ps_product__short_name__in=products).values_list(
+            "name", flat=True
+        )
+
+    def filter_ps_product_in(
+        self, queryset: QuerySet, name: str, value: list[str]
+    ) -> QuerySet:
+        if not value:
+            return queryset
+        return queryset.filter(
+            affects__ps_module__in=self._modules_for(value)
+        ).distinct()
+
+    def filter_ps_product_not_in(
+        self, queryset: QuerySet, name: str, value: list[str]
+    ) -> QuerySet:
+        if not value:
+            return queryset
+        return queryset.exclude(affects__ps_module__in=self._modules_for(value))
