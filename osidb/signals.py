@@ -222,11 +222,13 @@ def create_flaw_labels(sender, instance, created, **kwargs):
         ProductFamilyLabel.create_from_affect(instance)
     else:
         ProductFamilyLabel.update_relevance(instance.flaw)
+    BULabel.sync_for_flaw(instance.flaw)
 
 
 @receiver(post_delete, sender=Affect)
 def delete_flaw_labels(sender, instance, **kwargs):
     ProductFamilyLabel.update_relevance(instance.flaw)
+    BULabel.sync_for_flaw(instance.flaw)
 
 
 @receiver(pre_save, sender=Affect)
