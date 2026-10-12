@@ -730,20 +730,20 @@ class ACLMixin(models.Model):
 
     def unembargo(self):
         """
-        unembargo the whole instance context internally
+        Unembargo this instance and all its related ACL-managed objects.
 
-        in the Bugzilla world a lot of OSIDB entities are actually parts
-        of the flaw bug and we will update them by a single query afterwards
+        Instead of recursively calling .save() on every related object
+        individually (which causes ~250 saves with signal handlers and
+        non-deterministic row lock ordering leading to OSIDB-5456 deadlocks),
+        this saves only the root object and then delegates to set_acls_nested()
+        which performs a single bulk UPDATE per model class.
         """
-        # Since ACLMixin is used across related classes, each must be permitted to implement their own
-        # visibility logic. Bailing out allows for unique visibility handling across such classes
         isnt_embargoed = not self.is_embargoed
         cant_unembargo = hasattr(self, "can_unembargo") and not self.can_unembargo()
         if isnt_embargoed or cant_unembargo:
             return
 
         with transaction.atomic():
-            # unembargo
             self.set_acls(ACL.PUBLIC)
 
             kwargs = {}
@@ -757,31 +757,7 @@ class ACLMixin(models.Model):
                 kwargs["auto_timestamps"] = False
 
             self.save(**kwargs)
-
-            # chain all the related instances in reverse relationships (o2m, m2m)
-            # as we only care for the ACLs which are unified
-            for related_instance in chain.from_iterable(
-                getattr(self, name).all()
-                for name in [
-                    related.related_name
-                    for related in self._meta.related_objects
-                    # only the models with ACLs are subject of this
-                    # related_name is None for polymorphic back-pointers (no usable accessor)
-                    if issubclass(related.related_model, ACLMixin)
-                    and related.related_name is not None
-                ]
-            ):
-                # continue deeper into the related context
-                related_instance.unembargo()
-
-            # chain related instances in forward relationships (m2o, o2o)
-            for field in self._meta.concrete_fields:
-                if isinstance(
-                    field, (models.ForeignKey, models.OneToOneField)
-                ) and issubclass(field.related_model, ACLMixin):
-                    related_instance = getattr(self, field.name)
-                    if related_instance:
-                        related_instance.unembargo()
+            self.set_acls_nested()
 
     def set_public_nested(self, max_chunk_size=5000):
         """
@@ -806,12 +782,51 @@ class ACLMixin(models.Model):
         acl_read = list(acl_read if acl_read is not None else self.acl_read)
         acl_write = list(acl_write if acl_write is not None else self.acl_write)
 
+        from osidb.models import Flaw
+        from osidb.models.affect import Affect
+        from osidb.models.tracker import Tracker
+
+        root_flaw_pk = self.pk if isinstance(self, Flaw) else None
+
         objects_to_update = defaultdict(set)
         visited = set()
-        self._collect_objects_for_acl_update(objects_to_update, visited)
+        self._collect_objects_for_acl_update(
+            objects_to_update, visited, root_flaw_pk=root_flaw_pk
+        )
 
         if not any(objects_to_update.values()):
             return
+
+        # Guard against widening Affects that belong to other flaws.
+        # The traversal walks through shared Trackers and collects
+        # cross-flaw Affects; keep only those belonging to this flaw.
+        if Affect in objects_to_update and objects_to_update[Affect]:
+            if root_flaw_pk is not None:
+                own_affect_pks = set(
+                    Affect.objects.filter(
+                        pk__in=objects_to_update[Affect],
+                        flaw_id=root_flaw_pk,
+                    ).values_list("pk", flat=True)
+                )
+                objects_to_update[Affect] = own_affect_pks
+
+        # Guard against prematurely widening Trackers that are shared with
+        # other embargoed Flaws.  A Tracker linked to Affects from multiple
+        # Flaws must stay embargoed as long as ANY of its parent Affects
+        # (from Flaws NOT being updated in this operation) are still
+        # embargoed.
+        if Tracker in objects_to_update and objects_to_update[Tracker]:
+            if root_flaw_pk is not None:
+                blocked_tracker_pks = set(
+                    Affect.objects.filter(
+                        tracker_id__in=objects_to_update[Tracker],
+                        embargoed=True,
+                    )
+                    .exclude(flaw_id=root_flaw_pk)
+                    .values_list("tracker_id", flat=True)
+                    .distinct()
+                )
+                objects_to_update[Tracker] -= blocked_tracker_pks
 
         now = timezone.now().replace(microsecond=0)
 
@@ -828,6 +843,7 @@ class ACLMixin(models.Model):
             if issubclass(model_class, TrackingMixin):
                 update_kwargs["updated_dt"] = now
 
+            updated_pks = []
             for pk_chunk in batched(sorted(object_ids, key=str), max_chunk_size):
                 queryset = model_class.objects.filter(pk__in=pk_chunk).exclude(
                     acl_read=acl_read,
@@ -843,19 +859,41 @@ class ACLMixin(models.Model):
                     acl_read=acl_read,
                     acl_write=acl_write,
                 ).update(**update_kwargs)
+                updated_pks.extend(pk_chunk_to_update)
 
-    def _collect_objects_for_acl_update(self, objects_to_update, visited):
+            if updated_pks:
+                for instance in model_class.objects.filter(pk__in=updated_pks):
+                    models.signals.post_save.send(
+                        sender=model_class,
+                        instance=instance,
+                        created=False,
+                        update_fields=list(update_kwargs.keys()),
+                    )
+
+    def _collect_objects_for_acl_update(
+        self, objects_to_update, visited, root_flaw_pk=None
+    ):
         """
         Recursively collect all related objects that need to have their ACLs
         updated. The Flaw itself is not collected as it's saved separately.
 
         Uses a defaultdict(set) keyed by model class to collect pks.
         Uses a set of (type, pk) to prevent infinite recursion.
+
+        When root_flaw_pk is set, the traversal will not cross flaw
+        boundaries: foreign Flaws and Affects belonging to other Flaws
+        are skipped so their children are never collected.
         """
         from osidb.models import Flaw
 
         if self.pk is None:
             return
+
+        if root_flaw_pk is not None:
+            if isinstance(self, Flaw) and self.pk != root_flaw_pk:
+                return
+            if hasattr(self, "flaw_id") and self.flaw_id != root_flaw_pk:
+                return
 
         visit_key = (type(self), self.pk)
 
@@ -879,7 +917,9 @@ class ACLMixin(models.Model):
                 )
             ]
         ):
-            related_instance._collect_objects_for_acl_update(objects_to_update, visited)
+            related_instance._collect_objects_for_acl_update(
+                objects_to_update, visited, root_flaw_pk=root_flaw_pk
+            )
         for field in self._meta.concrete_fields:
             if isinstance(
                 field, (models.ForeignKey, models.OneToOneField)
@@ -887,7 +927,7 @@ class ACLMixin(models.Model):
                 related_instance = getattr(self, field.name)
                 if related_instance:
                     related_instance._collect_objects_for_acl_update(
-                        objects_to_update, visited
+                        objects_to_update, visited, root_flaw_pk=root_flaw_pk
                     )
 
 
