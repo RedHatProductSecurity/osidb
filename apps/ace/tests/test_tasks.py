@@ -281,13 +281,33 @@ def test_sync_sets_assist_meta(monkeypatch, ace_enabled, urllib3_results, mock_q
 
     for affect in flaw.affects.all():
         meta = affect.assist_meta
-        assert isinstance(meta, dict)
-        assert "tool_name" in meta
-        assert "tool_input" in meta
-        assert "tool_output" in meta
-        assert "tool_trigger" in meta
-        assert "urllib3" in meta["tool_input"]
-        assert "urllib3" in meta["tool_trigger"]
+        assert "osv_status" in meta
+        assert "osv_version_checked" in meta
+        assert "osv_range_used" in meta
+        # moved to flaw level
+        assert "tool_input" not in meta
+        assert "tool_trigger" not in meta
+
+
+def test_sync_sets_flaw_assist_meta(
+    monkeypatch, ace_enabled, urllib3_results, mock_querier
+):
+    """The query, all results and the trigger are logged on the flaw."""
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"urllib3": urllib3_results})
+    )
+    sync_flaw_affects_from_newcli(str(flaw.uuid), trigger="test trigger")
+    flaw.refresh_from_db()
+    ace_meta = flaw.assist_meta["ace"]
+    assert ace_meta["trigger"] == "test trigger"
+    assert "tool_name" in ace_meta
+    assert len(ace_meta["queries"]) == 1
+    query = ace_meta["queries"][0]
+    assert "urllib3" in query["tool_input"]
+    assert len(query["results"]) == len(urllib3_results)
 
 
 def test_sync_respects_ps_modules_setting(monkeypatch, ace_enabled, urllib3_results):
@@ -1533,6 +1553,40 @@ def test_handle_chromium_with_advisory(monkeypatch, chromium_streams):
 
 
 @pytest.mark.django_db
+def test_handle_chromium_keeps_concurrent_assist_meta(monkeypatch, chromium_streams):
+    """Chromium save must not overwrite assist_meta written by a concurrent task."""
+    from apps.ace.tasks import _handle_chromium
+    from osidb.models.flaw.reference import FlawReference
+
+    flaw = FlawFactory(components=["chromium"], impact="LOW", embargoed=False)
+    monkeypatch.setattr(
+        "apps.ace.tasks._parse_chrome_advisory",
+        lambda url, cve: {
+            "title": "chromium-browser: Use after free in USB",
+            "cve_description": "A use after free flaw was found in USB.",
+            "impact": "IMPORTANT",
+        },
+    )
+    # Add a reference so the advisory path triggers
+    FlawReference(
+        flaw=flaw,
+        url="https://chromereleases.googleblog.com/2025/04/test.html",
+        type=FlawReference.FlawReferenceType.EXTERNAL,
+        acl_read=flaw.acl_read,
+        acl_write=flaw.acl_write,
+    ).save(raise_validation_error=False)
+    # another task writes assist_meta after this instance was loaded
+    Flaw.objects.filter(pk=flaw.pk).update(
+        auto_timestamps=False, assist_meta={"ace": {"trigger": "other task"}}
+    )
+
+    _handle_chromium(flaw)
+    flaw.refresh_from_db()
+    assert flaw.assist_meta == {"ace": {"trigger": "other task"}}
+    assert flaw.title == "chromium-browser: Use after free in USB"
+
+
+@pytest.mark.django_db
 def test_handle_chromium_idempotent(chromium_streams):
     from apps.ace.tasks import _handle_chromium
 
@@ -1619,6 +1673,23 @@ def test_handle_go_stdlib_preserves_existing_affects(
     _handle_go_stdlib(flaw, "net/http", ["hummingbird-1"], [])
 
     assert flaw.affects.filter(ps_component="golang-existing").exists()
+
+
+@pytest.mark.django_db
+def test_handle_go_stdlib_sets_flaw_assist_meta(monkeypatch, mock_querier):
+    from apps.ace.tasks import _handle_go_stdlib
+
+    flaw = FlawFactory(components=["golang", "net/http"], embargoed=False)
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", mock_querier({}))
+
+    _handle_go_stdlib(flaw, "net/http", ["hummingbird-1"], [], trigger="test trigger")
+
+    flaw.refresh_from_db()
+    go_meta = flaw.assist_meta["go_stdlib"]
+    assert go_meta["trigger"] == "test trigger"
+    assert "tool_name" in go_meta
+    assert len(go_meta["queries"]) >= 1
+    assert "phase4_created" in go_meta
 
 
 @pytest.mark.django_db
@@ -2241,6 +2312,32 @@ def test_hummingbird_sync_no_workflow_gate(
     assert flaw.affects.count() == len(urllib3_results)
 
 
+def test_hummingbird_sync_sets_flaw_assist_meta(
+    monkeypatch, ace_enabled, urllib3_results, mock_querier
+):
+    """
+    Hummingbird logs its query and trigger on the flaw under its own key,
+    without touching entries written by other workflows.
+    """
+    from apps.ace.tasks import sync_hummingbird_affects
+
+    flaw = FlawFactory(
+        components=["urllib3"], workflow_name="DEFAULT", workflow_state="NEW"
+    )
+    Flaw.objects.filter(uuid=flaw.uuid).update(assist_meta={"ace": {"trigger": "kept"}})
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"urllib3": urllib3_results})
+    )
+    sync_hummingbird_affects(str(flaw.uuid), trigger="first trigger")
+    sync_hummingbird_affects(str(flaw.uuid), trigger="second trigger")
+    flaw.refresh_from_db()
+    assert flaw.assist_meta["ace"] == {"trigger": "kept"}
+    hb_meta = flaw.assist_meta["hummingbird"]
+    assert hb_meta["trigger"] == "second trigger"
+    assert len(hb_meta["queries"]) == 1
+    assert "urllib3" in hb_meta["queries"][0]["tool_input"]
+
+
 def test_hummingbird_sync_skips_blocklisted_component(
     monkeypatch, ace_enabled, mock_querier
 ):
@@ -2528,7 +2625,7 @@ def test_ace_assist_meta_records_exclusion(
     monkeypatch, ace_enabled, result, mock_querier
 ):
     """
-    ACE affects' assist_meta["tool_input"] must record the exclude clause
+    The flaw-level assist_meta["ace"] query must record the exclude clause
     when exclude_products is non-empty.
     """
     flaw = FlawFactory(
@@ -2544,8 +2641,8 @@ def test_ace_assist_meta_records_exclusion(
 
     sync_flaw_affects_from_newcli(str(flaw.uuid))
 
-    affect = flaw.affects.first()
-    tool_input = affect.assist_meta["tool_input"]
+    flaw.refresh_from_db()
+    tool_input = flaw.assist_meta["ace"]["queries"][0]["tool_input"]
 
     # Should include the exclude clause
     assert ".exclude(products=['hummingbird-1'])" in tool_input

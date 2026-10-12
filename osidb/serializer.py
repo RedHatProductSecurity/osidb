@@ -2418,6 +2418,7 @@ class FlawSerializer(
                 "comments",
                 "meta_attr",
                 "aegis_meta",
+                "assist_meta",
                 "package_versions",
                 "acknowledgments",
                 "references",
@@ -2430,6 +2431,7 @@ class FlawSerializer(
             + AlertMixinSerializer.Meta.fields
             + HistoryMixinSerializer.Meta.fields
         )
+        read_only_fields = ["assist_meta"]
 
     def validate_embargoed(self, embargoed: bool):
         if embargoed:

@@ -431,12 +431,15 @@ def _handle_chromium(flaw: Flaw) -> dict[str, int]:
         }
 
     # Update flaw with advisory information
+    update_fields = ["statement", "updated_dt"]
     flaw.statement = CHROMIUM_STATEMENT
     if advisory.get("title"):
         flaw.title = advisory["title"]
+        update_fields.append("title")
     if advisory.get("cve_description"):
         flaw.cve_description = advisory["cve_description"]
-    flaw.save(raise_validation_error=False)
+        update_fields.append("cve_description")
+    flaw.save(raise_validation_error=False, update_fields=update_fields)
 
     # Impact is only used for CVSS calculation, but ACE should not set the flaw's impact directly
     cvss_added = False
@@ -483,6 +486,7 @@ def _handle_go_stdlib(
     ps_modules: list[str],
     upstream_purls: list[dict],
     exclude_products: list[str] | None = None,
+    trigger: str = "unknown",
 ) -> dict[str, int]:
     """
     Handle Go stdlib CVEs with a 4-phase affect creation workflow.
@@ -498,6 +502,7 @@ def _handle_go_stdlib(
         "skipped_existing": 0,
         "marked_notaffected": 0,
     }
+    query_log: list[dict] = []
 
     def _run_phase(phase_description, results, query_name=""):
         stats = _sync_affects_from_results(
@@ -509,6 +514,7 @@ def _handle_go_stdlib(
             upstream_purls=upstream_purls,
             resolved_name=query_name or component,
             exclude_products=exclude_products,
+            trigger=trigger,
         )
         for key in stats:
             totals[key] += stats[key]
@@ -527,6 +533,7 @@ def _handle_go_stdlib(
             builds_only=True,
             no_community=True,
             exclude_products=exclude_products,
+            query_log=query_log,
         )
         _run_phase("Phase 1 (golang builds)", results, query_name="golang")
     except Exception as exc:
@@ -541,6 +548,7 @@ def _handle_go_stdlib(
             build_type="rpm",
             no_community=True,
             exclude_products=exclude_products,
+            query_log=query_log,
         )
         _run_phase("Phase 2 (RPMs)", results)
     except Exception as exc:
@@ -556,6 +564,7 @@ def _handle_go_stdlib(
             one_component=True,
             no_community=True,
             exclude_products=exclude_products,
+            query_log=query_log,
         )
         _run_phase("Phase 3 (containers)", results)
     except Exception as exc:
@@ -611,7 +620,31 @@ def _handle_go_stdlib(
         phase4_created,
     )
 
+    if query_log or phase4_created:
+        _write_flaw_assist_meta(
+            flaw,
+            "go_stdlib",
+            {
+                "tool_name": tool_name,
+                "trigger": trigger,
+                "queries": query_log,
+                "phase4_created": phase4_created,
+            },
+        )
+
     return totals
+
+
+def _write_flaw_assist_meta(flaw: Flaw, workflow: str, data: dict) -> None:
+    """Store data under `workflow` in flaw.assist_meta, keeping other workflows' keys."""
+    with transaction.atomic():
+        locked = Flaw.objects.select_for_update().get(uuid=flaw.uuid)
+        assist_meta = dict(locked.assist_meta or {})
+        assist_meta[workflow] = data
+        Flaw.objects.filter(uuid=flaw.uuid).update(
+            assist_meta=assist_meta, auto_timestamps=False
+        )
+    flaw.assist_meta = assist_meta
 
 
 def _query_newtopia(
@@ -623,6 +656,7 @@ def _query_newtopia(
     one_component: bool = False,
     no_community: bool = False,
     exclude_products: list[str] | None = None,
+    query_log: list | None = None,
 ) -> list:
     nq = NewtopiaQuerier()  # type: ignore[misc]
     qs = nq.search(
@@ -639,7 +673,23 @@ def _query_newtopia(
         qs = qs.exclude(products=exclude_products)
     if one_component:
         qs = qs.deduplicate(aggressive=True)
-    return qs.all()
+    desc = (
+        f"NewtopiaQuerier().search([{flaw_component!r}], strict=True, "
+        f"ecosystem={ecosystem!r}, builds_only={builds_only!r}, "
+        f"no_community={no_community!r})"
+    )
+    if build_type:
+        desc += f".filter(build_type={build_type!r})"
+    desc += f".filter(products={ps_modules!r})"
+    if exclude_products:
+        desc += f".exclude(products={exclude_products!r})"
+    if one_component:
+        desc += ".deduplicate(aggressive=True)"
+    desc += ".all()"
+    results = list(qs.all())
+    if query_log is not None:
+        query_log.append({"tool_input": desc, "results": [repr(r) for r in results]})
+    return results
 
 
 def _ace_tool_name() -> str:
@@ -759,6 +809,7 @@ def _sync_affects_from_results(
     resolved_name: str = "",
     apply_labels: bool = True,
     exclude_products: list[str] | None = None,
+    trigger: str = "unknown",
 ) -> dict[str, int]:
     """Create affects on ``flaw`` for each entry in ``results``.
 
@@ -777,7 +828,6 @@ def _sync_affects_from_results(
     skipped_existing = 0
     marked_notaffected = 0
     flaw_has_high_cvss_score = flaw.has_high_cvss_score
-    tool_name = _ace_tool_name()
 
     pkg_info = match_component_to_upstream(
         flaw_component, upstream_purls or [], ecosystem=ecosystem
@@ -827,21 +877,6 @@ def _sync_affects_from_results(
                 created_by="AffectCreationEngine",
                 updated_by="AffectCreationEngine",
                 assist_meta={
-                    "tool_name": tool_name,
-                    "tool_input": (
-                        f"NewtopiaQuerier().search([{flaw_component!r}], ecosystem={ecosystem!r}, strict=True)"
-                        f".filter(products={ps_modules!r})"
-                        + (
-                            f".exclude(products={exclude_products!r})"
-                            if exclude_products
-                            else ""
-                        )
-                        + ".all()"
-                    ),
-                    "tool_output": repr(result),
-                    "tool_trigger": (
-                        f"flaw.components updated (component: {flaw_component!r})"
-                    ),
                     "osv_range_used": range_str,
                     "osv_version_checked": version_checked,
                     "osv_status": osv_status.value,
@@ -881,7 +916,9 @@ def _sync_affects_from_results(
 
 @app.task(queue="high")
 @bypass_rls
-def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
+def sync_flaw_affects_from_newcli(
+    flaw_id: str, trigger: str = "unknown"
+) -> dict[str, Any]:
     """
     For each entry in ``Flaw.components``, query lib_newtopia and create affects for each
     result: ``ps_update_stream`` and ``purl`` are taken from the result objects returned by
@@ -962,6 +999,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
         )
         totals["pre_filtered"] += 1
         return totals
+    query_log: list[dict] = []
 
     for flaw_component, ecosystem, pre_filter in pre_filter_results:
         _apply_label(flaw, pre_filter.label, reason=pre_filter.reason)
@@ -977,6 +1015,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
                     ps_modules,
                     upstream_purls,
                     exclude_products=exclude_ps_modules,
+                    trigger=trigger,
                 )
             else:
                 stats = {}
@@ -1001,6 +1040,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
                 ps_modules,
                 ecosystem=ecosystem,
                 exclude_products=exclude_ps_modules,
+                query_log=query_log,
             )
             stats = _sync_affects_from_results(
                 flaw,
@@ -1011,9 +1051,21 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
                 upstream_purls=upstream_purls,
                 resolved_name=resolved_name,
                 exclude_products=exclude_ps_modules,
+                trigger=trigger,
             )
             for key in stats:
                 totals[key] += stats[key]
+
+    if query_log:
+        _write_flaw_assist_meta(
+            flaw,
+            "ace",
+            {
+                "tool_name": _ace_tool_name(),
+                "trigger": trigger,
+                "queries": query_log,
+            },
+        )
 
     logger.info(
         "sync_flaw_affects_from_newcli flaw=%s components=%s %s",
@@ -1026,7 +1078,7 @@ def sync_flaw_affects_from_newcli(flaw_id: str) -> dict[str, Any]:
 
 @app.task(queue="high")
 @bypass_rls
-def sync_hummingbird_affects(flaw_id: str) -> dict[str, Any]:
+def sync_hummingbird_affects(flaw_id: str, trigger: str = "unknown") -> dict[str, Any]:
     """
     Create hummingbird affects for a flaw based on its components.
 
@@ -1081,6 +1133,7 @@ def sync_hummingbird_affects(flaw_id: str) -> dict[str, Any]:
     upstream_purls: list[dict] = osv_data.upstream_purls if osv_data else []
     component_ecosystems = osv_data.component_ecosystems if osv_data else {}
     aegis_ecosystems = _aegis_ecosystems(flaw)
+    query_log: list[dict] = []
 
     for flaw_component in components:
         component_lower = flaw_component.strip().lower()
@@ -1108,7 +1161,10 @@ def sync_hummingbird_affects(flaw_id: str) -> dict[str, Any]:
         for ecosystem in ecosystems:
             for resolved_name in resolved:
                 results = _query_newtopia(
-                    resolved_name, hummingbird_ps_modules, ecosystem=ecosystem
+                    resolved_name,
+                    hummingbird_ps_modules,
+                    ecosystem=ecosystem,
+                    query_log=query_log,
                 )
                 stats = _sync_affects_from_results(
                     flaw,
@@ -1119,9 +1175,21 @@ def sync_hummingbird_affects(flaw_id: str) -> dict[str, Any]:
                     upstream_purls=upstream_purls,
                     resolved_name=resolved_name,
                     apply_labels=False,
+                    trigger=trigger,
                 )
                 for key in stats:
                     totals[key] += stats[key]
+
+    if query_log:
+        _write_flaw_assist_meta(
+            flaw,
+            "hummingbird",
+            {
+                "tool_name": _ace_tool_name(),
+                "trigger": trigger,
+                "queries": query_log,
+            },
+        )
 
     logger.info(
         "sync_hummingbird_affects flaw=%s components=%s %s",

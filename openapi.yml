@@ -17509,6 +17509,11 @@ components:
             $ref: '#/components/schemas/Comment'
           readOnly: true
         aegis_meta: {}
+        assist_meta:
+          oneOf:
+          - {}
+          - type: 'null'
+          readOnly: true
         package_versions:
           type: array
           items:
@@ -17592,6 +17597,7 @@ components:
       - acknowledgments
       - affects
       - alerts
+      - assist_meta
       - classification
       - comment_zero
       - comments
@@ -18530,6 +18536,11 @@ components:
             $ref: '#/components/schemas/Comment'
           readOnly: true
         aegis_meta: {}
+        assist_meta:
+          oneOf:
+          - {}
+          - type: 'null'
+          readOnly: true
         package_versions:
           type: array
           items:
@@ -18613,6 +18624,7 @@ components:
       - acknowledgments
       - affects
       - alerts
+      - assist_meta
       - classification
       - comment_zero
       - comments
@@ -19101,6 +19113,11 @@ components:
             $ref: '#/components/schemas/Comment'
           readOnly: true
         aegis_meta: {}
+        assist_meta:
+          oneOf:
+          - {}
+          - type: 'null'
+          readOnly: true
         package_versions:
           type: array
           items:
@@ -19178,6 +19195,7 @@ components:
       - acknowledgments
       - affects
       - alerts
+      - assist_meta
       - classification
       - comment_zero
       - comments
