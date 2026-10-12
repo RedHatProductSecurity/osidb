@@ -206,11 +206,20 @@ def create_flaw_labels(sender, instance, created, **kwargs):
         ProductFamilyLabel.create_from_affect(instance)
     else:
         ProductFamilyLabel.update_relevance(instance.flaw)
+    BULabel.sync_for_flaw(instance.flaw)
+
+    # the affect moved from another flaw, BU labels need a sync too
+    old_flaw_id = getattr(instance, "_old_flaw_id", None)
+    if old_flaw_id and old_flaw_id != instance.flaw_id:
+        old_flaw = Flaw.objects.filter(pk=old_flaw_id).first()
+        if old_flaw:
+            BULabel.sync_for_flaw(old_flaw)
 
 
 @receiver(post_delete, sender=Affect)
 def delete_flaw_labels(sender, instance, **kwargs):
     ProductFamilyLabel.update_relevance(instance.flaw)
+    BULabel.sync_for_flaw(instance.flaw)
 
 
 @receiver(pre_save, sender=Affect)

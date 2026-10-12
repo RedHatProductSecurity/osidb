@@ -329,6 +329,16 @@ class Affect(
         else:
             self.ps_module = None
 
+        # remember the former flaw so its BU labels can be synced
+        # when the affect moves to another flaw
+        self._old_flaw_id = None
+        if not self._state.adding:
+            self._old_flaw_id = (
+                Affect.objects.filter(uuid=self.uuid)
+                .values_list("flaw_id", flat=True)
+                .first()
+            )
+
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):

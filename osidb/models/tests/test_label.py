@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from freezegun import freeze_time
 
+from osidb.models.affect import Affect
 from osidb.models.flaw.label import (
     AliasLabel,
     BULabel,
@@ -522,6 +523,315 @@ class TestBULabel:
         label.refresh_from_db()
 
         assert label.state == BULabel.State.DONE
+
+    @pytest.mark.parametrize(
+        "affects,expected",
+        [
+            (
+                [
+                    (Affect.AffectAffectedness.NEW, Affect.AffectResolution.NOVALUE),
+                    (
+                        Affect.AffectAffectedness.AFFECTED,
+                        Affect.AffectResolution.WONTFIX,
+                    ),
+                ],
+                BULabel.State.NEW,
+            ),
+            (
+                [
+                    (
+                        Affect.AffectAffectedness.AFFECTED,
+                        Affect.AffectResolution.DELEGATED,
+                    ),
+                ],
+                BULabel.State.NEW,
+            ),
+            (
+                [
+                    (
+                        Affect.AffectAffectedness.NOTAFFECTED,
+                        Affect.AffectResolution.NOVALUE,
+                    ),
+                    (
+                        Affect.AffectAffectedness.NOTAFFECTED,
+                        Affect.AffectResolution.NOVALUE,
+                    ),
+                ],
+                BULabel.State.SKIP,
+            ),
+            (
+                [
+                    (
+                        Affect.AffectAffectedness.AFFECTED,
+                        Affect.AffectResolution.WONTFIX,
+                    ),
+                    (
+                        Affect.AffectAffectedness.NOTAFFECTED,
+                        Affect.AffectResolution.NOVALUE,
+                    ),
+                ],
+                BULabel.State.DONE,
+            ),
+            (
+                [
+                    (Affect.AffectAffectedness.NEW, Affect.AffectResolution.WONTFIX),
+                    (
+                        Affect.AffectAffectedness.NOTAFFECTED,
+                        Affect.AffectResolution.NOVALUE,
+                    ),
+                ],
+                BULabel.State.DONE,
+            ),
+        ],
+        ids=[
+            "unresolved_new",
+            "delegated",
+            "all_not_affected",
+            "resolved_with_affected",
+            "resolved_without_affected",
+        ],
+    )
+    def test_compute_state(self, affects, expected):
+        built = [
+            AffectFactory.build(affectedness=affectedness, resolution=resolution)
+            for affectedness, resolution in affects
+        ]
+        assert BULabel.compute_state(built) == expected
+
+    @staticmethod
+    def _make_stream(team):
+        """PS update stream of a PS module whose product has the given team"""
+        ps_module = PsModuleFactory(name=f"{team}-module", ps_product__team=team)
+        return PsUpdateStreamFactory(name=f"{team}-stream", ps_module=ps_module)
+
+    @staticmethod
+    def _make_affect(
+        flaw,
+        stream,
+        component="test-component",
+        affectedness=Affect.AffectAffectedness.NEW,
+        resolution=Affect.AffectResolution.NOVALUE,
+    ):
+        return AffectFactory(
+            flaw=flaw,
+            ps_module=stream.ps_module.name,
+            ps_component=component,
+            ps_update_stream=stream.name,
+            affectedness=affectedness,
+            resolution=resolution,
+        )
+
+    def test_sync_for_flaw_creates_label(self):
+        """Test that a BU label is created for the team of an affect"""
+        BULabelDefinition.objects.create(name="team-a")
+        flaw = FlawFactory(embargoed=False)
+        self._make_affect(flaw, self._make_stream("team-a"))
+        BULabel.sync_for_flaw(flaw)
+        label = BULabel.objects.get(flaw=flaw, name="team-a")
+        assert label.state == BULabel.State.NEW
+        assert label.contributor == ""
+        assert list(label.acl_read) == list(flaw.acl_read)
+        assert list(label.acl_write) == list(flaw.acl_write)
+
+    def test_sync_for_flaw_is_idempotent(self):
+        """Test that syncing twice does not duplicate the label"""
+        BULabelDefinition.objects.create(name="team-a")
+        flaw = FlawFactory(embargoed=False)
+        self._make_affect(flaw, self._make_stream("team-a"))
+        BULabel.sync_for_flaw(flaw)
+        BULabel.sync_for_flaw(flaw)
+        assert BULabel.objects.filter(flaw=flaw).count() == 1
+
+    def test_sync_for_flaw_updates_state_and_keeps_owner(self):
+        """Test that a state change keeps the contributor"""
+        BULabelDefinition.objects.create(name="team-a")
+        flaw = FlawFactory(embargoed=False)
+        affect = self._make_affect(flaw, self._make_stream("team-a"))
+        BULabel.sync_for_flaw(flaw)
+        label = BULabel.objects.get(flaw=flaw, name="team-a")
+        label.contributor = "owner@example.com"
+        label.save()
+        Affect.objects.filter(pk=affect.pk).update(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.WONTFIX,
+        )
+        BULabel.sync_for_flaw(flaw)
+        label.refresh_from_db()
+        assert label.state == BULabel.State.DONE
+        assert label.contributor == "owner@example.com"
+
+    def test_sync_for_flaw_without_definition(self):
+        """Test that a team without a BU label definition is skipped"""
+        flaw = FlawFactory(embargoed=False)
+        self._make_affect(flaw, self._make_stream("team-x"))
+        BULabel.sync_for_flaw(flaw)
+        assert not BULabel.objects.filter(flaw=flaw).exists()
+
+    def test_sync_for_flaw_blank_team(self):
+        """Test that an affect whose product has no team creates no label"""
+        flaw = FlawFactory(embargoed=False)
+        self._make_affect(flaw, self._make_stream(""))
+        BULabel.sync_for_flaw(flaw)
+        assert not BULabel.objects.filter(flaw=flaw).exists()
+
+    def test_sync_for_flaw_deleting_last_affect(self):
+        """Test that the label is deleted with the last affect of the team"""
+        BULabelDefinition.objects.create(name="team-a")
+        flaw = FlawFactory(embargoed=False)
+        affect = self._make_affect(flaw, self._make_stream("team-a"))
+        BULabel.sync_for_flaw(flaw)
+        assert BULabel.objects.filter(flaw=flaw, name="team-a").exists()
+        affect.delete()
+        BULabel.sync_for_flaw(flaw)
+        assert not BULabel.objects.filter(flaw=flaw).exists()
+
+    def test_sync_for_flaw_deleting_one_of_two_affects(self):
+        """Test that the label stays while the team still has an affect"""
+        BULabelDefinition.objects.create(name="team-a")
+        flaw = FlawFactory(embargoed=False)
+        stream = self._make_stream("team-a")
+        affect = self._make_affect(flaw, stream, component="comp-1")
+        self._make_affect(flaw, stream, component="comp-2")
+        BULabel.sync_for_flaw(flaw)
+        affect.delete()
+        BULabel.sync_for_flaw(flaw)
+        assert BULabel.objects.filter(flaw=flaw, name="team-a").exists()
+
+    def test_sync_for_flaw_two_teams(self):
+        """Test that each team gets its own label state"""
+        BULabelDefinition.objects.create(name="team-a")
+        BULabelDefinition.objects.create(name="team-b")
+        flaw = FlawFactory(embargoed=False)
+        self._make_affect(flaw, self._make_stream("team-a"))
+        self._make_affect(
+            flaw,
+            self._make_stream("team-b"),
+            affectedness=Affect.AffectAffectedness.NOTAFFECTED,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        BULabel.sync_for_flaw(flaw)
+        assert BULabel.objects.get(flaw=flaw, name="team-a").state == BULabel.State.NEW
+        assert BULabel.objects.get(flaw=flaw, name="team-b").state == BULabel.State.SKIP
+
+    def test_sync_for_flaw_name_taken_by_other_label_type(self):
+        """Test that a name used by another label type does not break the sync"""
+        BULabelDefinition.objects.create(name="team-a")
+        flaw = FlawFactory(embargoed=False)
+        AliasLabel.objects.create(flaw=flaw, name="team-a")
+        self._make_affect(flaw, self._make_stream("team-a"))
+        BULabel.sync_for_flaw(flaw)
+        assert not BULabel.objects.filter(flaw=flaw).exists()
+
+    @pytest.mark.enable_signals
+    def test_affect_creation_syncs_bu_label(self):
+        """Test that creating an affect creates the BU label"""
+        BULabelDefinition.objects.create(name="team-a")
+        flaw = FlawFactory(embargoed=False)
+        self._make_affect(flaw, self._make_stream("team-a"))
+        label = BULabel.objects.get(flaw=flaw, name="team-a")
+        assert label.state == BULabel.State.NEW
+
+    @pytest.mark.enable_signals
+    def test_affect_update_syncs_bu_label(self):
+        """Test that resolving the affect moves the BU label to DONE"""
+        BULabelDefinition.objects.create(name="team-a")
+        flaw = FlawFactory(embargoed=False)
+        affect = self._make_affect(flaw, self._make_stream("team-a"))
+        affect.affectedness = Affect.AffectAffectedness.AFFECTED
+        affect.resolution = Affect.AffectResolution.WONTFIX
+        affect.save()
+        label = BULabel.objects.get(flaw=flaw, name="team-a")
+        assert label.state == BULabel.State.DONE
+
+    @pytest.mark.enable_signals
+    def test_affect_deletion_syncs_bu_label(self):
+        """Test that deleting the last affect removes the BU label"""
+        BULabelDefinition.objects.create(name="team-a")
+        flaw = FlawFactory(embargoed=False)
+        affect = self._make_affect(flaw, self._make_stream("team-a"))
+        assert BULabel.objects.filter(flaw=flaw, name="team-a").exists()
+        affect.delete()
+        assert not BULabel.objects.filter(flaw=flaw).exists()
+
+    @pytest.mark.enable_signals
+    def test_flaw_deletion_with_bu_labels(self):
+        """Test that deleting a flaw with BU labels raises no error"""
+        BULabelDefinition.objects.create(name="team-a")
+        flaw = FlawFactory(embargoed=False)
+        self._make_affect(flaw, self._make_stream("team-a"))
+        assert BULabel.objects.filter(flaw=flaw).exists()
+        flaw.delete()
+        assert not BULabel.objects.filter(flaw_id=flaw.uuid).exists()
+
+    @pytest.mark.enable_signals
+    def test_affect_moved_to_another_flaw_syncs_both(self):
+        """Test that moving an affect updates the BU labels of both flaws"""
+        BULabelDefinition.objects.create(name="team-a")
+        old_flaw = FlawFactory(embargoed=False, impact="CRITICAL")
+        new_flaw = FlawFactory(embargoed=False, impact="CRITICAL")
+        affect = self._make_affect(old_flaw, self._make_stream("team-a"))
+        assert BULabel.objects.filter(flaw=old_flaw, name="team-a").exists()
+        affect = Affect.objects.get(pk=affect.pk)
+        affect.flaw = new_flaw
+        affect.save()
+        assert not BULabel.objects.filter(flaw=old_flaw).exists()
+        assert BULabel.objects.filter(flaw=new_flaw, name="team-a").exists()
+
+    @pytest.mark.enable_signals
+    def test_affect_stream_change_moves_label_to_new_team(self):
+        """Test that changing the PS update stream changes the team's label"""
+        BULabelDefinition.objects.create(name="team-a")
+        BULabelDefinition.objects.create(name="team-b")
+        flaw = FlawFactory(embargoed=False)
+        affect = self._make_affect(flaw, self._make_stream("team-a"))
+        assert BULabel.objects.filter(flaw=flaw, name="team-a").exists()
+        affect.ps_update_stream = self._make_stream("team-b").name
+        affect.save()
+        assert not BULabel.objects.filter(flaw=flaw, name="team-a").exists()
+        assert BULabel.objects.filter(flaw=flaw, name="team-b").exists()
+
+    @pytest.mark.enable_signals
+    def test_bulk_create_affects_syncs_bu_label(
+        self, auth_client, test_api_v2_uri, bugzilla_token, jira_token
+    ):
+        """BU label appears after the bulk affect creation"""
+        team = "team-a"
+        BULabelDefinition.objects.create(name=team)
+        stream = self._make_stream(team)
+        flaw = FlawFactory(embargoed=False)
+        for i in range(2):
+            AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.NEW,
+                ps_module=stream.ps_module.name,
+                ps_update_stream=stream.name,
+                ps_component=f"component{i}",
+            )
+        nonbulk_response = auth_client().get(
+            f"{test_api_v2_uri}/affects?flaw__cve_id={flaw.cve_id}"
+        )
+        assert nonbulk_response.status_code == 200
+        bulk_request = []
+        for aff in nonbulk_response.json()["results"]:
+            tmp_aff = dict(aff)
+            for field in ("uuid", "created_dt", "updated_dt", "resolved_dt", "alerts"):
+                del tmp_aff[field]
+            bulk_request.append(tmp_aff)
+        # the delete signal drops the label with the last affect
+        Affect.objects.all().delete()
+        assert BULabel.objects.filter(flaw=flaw).count() == 0
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            bulk_request,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 200
+        labels = BULabel.objects.filter(flaw=flaw)
+        assert labels.count() == 1
+        assert labels.first().name == team
+        assert labels.first().state == BULabel.State.NEW
 
 
 class TestLabelDefinitions:
