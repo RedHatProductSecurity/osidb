@@ -193,7 +193,7 @@ class SRPReportMilestone(SRPReportBase):
             if not self._state.adding:
                 prev = (
                     type(self)
-                    .objects.select_for_update()
+                    .objects.select_for_update(no_key=True)
                     .filter(pk=self.pk)
                     .values("status", "submitted_at", "additional_details")
                     .first()
