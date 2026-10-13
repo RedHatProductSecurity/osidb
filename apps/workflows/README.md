@@ -167,6 +167,25 @@ Because `classify()` is a pure function of flaw data, calling
 `adjust_classification()` multiple times with the same data produces the same
 result. There is no risk of double-promoting or oscillating states.
 
+### Reclassification Exclusion for Old Flaws
+
+Flaws created before the `OSIDB_WORKFLOW_RECLASSIFICATION_START_DATE` cutoff that
+are already in the `DONE` workflow state are excluded from automatic
+(re)classification. They were closed under historical `DONE` criteria, so
+re-classifying them would reopen them; the exclusion keeps them frozen. An unset
+cutoff means no time restriction and all flaws are subject to classification.
+
+This exclusion is **opt-out per flaw** via a workflow label. Adding the
+`classify` workflow label to an excluded flaw removes the exclusion, bringing the
+flaw fully under automatic classification again -- this is how an incorrectly
+classified old flaw is corrected. Removing the label re-excludes the flaw.
+Post-cutoff flaws are unaffected and always follow normal classification.
+
+When the exclusion actually suppresses a change -- i.e. automatic classification
+would move the flaw to a different workflow/state but is held back -- the flaw
+carries a non-blocking alert explaining the exclusion and noting that adding the
+`classify` label will opt it back in.
+
 ### Classification Change Tracking
 
 Every classification change is automatically recorded with human-readable
