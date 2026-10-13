@@ -304,6 +304,9 @@ class WorkflowModel(models.Model):
         return WorkflowFramework().jira_status(self)
 
     def adjust_acls(self):
+        if getattr(self, "_acls_already_propagated", False):
+            return
+
         target = WorkflowFramework().get_effective_visibility(
             self.workflow_name, self.workflow_state
         )
