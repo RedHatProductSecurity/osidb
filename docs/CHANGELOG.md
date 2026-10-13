@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Require a verified mapping before trusting multi-name component lists that are not trusted pairs (OSIDB-5677)
+- Restrict the BU labels from being created/updated/deleted through API (OSIDB-5709)
 
 ### Fixed
 - Normalize lowercase stream impact values in product definitions collector (OSIDB-5785)
