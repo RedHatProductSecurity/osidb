@@ -240,7 +240,10 @@ class TestEndpointsTrackers:
         self, auth_client, test_api_v2_uri, monkeypatch
     ):
         """Attribute each batch Flaw save only to its own changed Affect."""
-        flaws = [FlawFactory(task_key=f"OSIDB-{key}") for key in (5866, 5867)]
+        flaws = [
+            FlawFactory(task_key=f"OSIDB-{key}", embargoed=False)
+            for key in (5866, 5867)
+        ]
         stream = PsUpdateStreamFactory(ps_module=PsModuleFactory(bts_name="bugzilla"))
         affects = [
             AffectFactory(
