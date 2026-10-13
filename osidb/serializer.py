@@ -2078,6 +2078,10 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
                     )
                 }
             )
+        if label_type == FlawLabel.LabelType.BU:
+            raise serializers.ValidationError(
+                {"label": "BU labels cannot be created through the API."}
+            )
 
         model_class = FlawLabel.TYPE_TO_MODEL.get(label_type)
         if model_class is None:
@@ -2103,8 +2107,17 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
             raise serializers.ValidationError(
                 {"label": "Label name cannot be changed."}
             )
-
         validated_data.pop("type", None)
+
+        if instance.type == FlawLabel.LabelType.BU:
+            for key, value in validated_data.items():
+                if key == "contributor":
+                    continue
+                if value != getattr(instance, key):
+                    raise serializers.ValidationError(
+                        {"label": "Only the contributor of a BU label can be changed."}
+                    )
+
         self._strip_unsupported_fields(type(instance), validated_data)
 
         return super().update(instance, validated_data)
@@ -2216,6 +2229,11 @@ class FlawLabelSerializer(TrackingMixinSerializer):
                 }
             )
 
+        if label_type == FlawLabel.LabelType.BU:
+            raise serializers.ValidationError(
+                {"name": "BU labels cannot be created through the API."}
+            )
+
         model_class = FlawLabel.TYPE_TO_MODEL.get(label_type)
         if model_class is None:
             raise serializers.ValidationError(
@@ -2236,8 +2254,17 @@ class FlawLabelSerializer(TrackingMixinSerializer):
         if validated_data.get("name") != instance.name:
             raise serializers.ValidationError({"name": "Label name cannot be changed."})
 
-        validated_data.pop("type", None)
         self._strip_unsupported_fields(type(instance), validated_data)
+
+        if instance.type == FlawLabel.LabelType.BU:
+            for key, value in validated_data.items():
+                if key == "contributor":
+                    continue
+                if value != getattr(instance, key):
+                    raise serializers.ValidationError(
+                        {"name": "Only the contributor of a BU label can be changed."}
+                    )
+        validated_data.pop("type", None)
 
         return super().update(instance, validated_data)
 
