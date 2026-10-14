@@ -931,6 +931,30 @@ class Affect(
         is_community = ps_module_obj.ps_product.is_community
         impact = self.aggregated_impact
 
+        # ELS coverage is package-specific, even for IMPORTANT/CRITICAL flaws.
+        # Match the resulting downstream package, not the raw CVE display name.
+        if self.ps_update_stream == "rhel-6-els":
+            from collectors.component_mapping.els import rhel6_els_in_scope
+
+            in_scope = rhel6_els_in_scope(self.ps_component)
+            if in_scope is None:
+                self.affectedness = self.AffectAffectedness.NEW
+                self.resolution = self.AffectResolution.NOVALUE
+                self.affectedness_explanation = (
+                    "RHEL 6 ELS package coverage could not be determined. "
+                    "The inclusion list or downstream component is unavailable; manual review is required."
+                )
+                self._auto_resolved = True
+                return
+            if not in_scope:
+                self.resolution = self.AffectResolution.OOSS
+                self.affectedness_explanation = (
+                    f"Package '{self.ps_component}' is not in the RHEL 6 ELS inclusion list "
+                    "or its RHEL 6 source/binary package equivalents. Resolution set to OOSS."
+                )
+                self._auto_resolved = True
+                return
+
         # AFFECTED/OOSS — LOW/MODERATE and stream not in full support scope
         if impact in (Impact.LOW, Impact.MODERATE):
             if is_community:

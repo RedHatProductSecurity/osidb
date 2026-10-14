@@ -69,3 +69,12 @@ class RejectedComponent(models.Model):
 
     class Meta:
         app_label = "component_mapping"
+
+
+class Rhel6ElsPackage(models.Model):
+    """Published ELS names and their RHEL 6 source/binary equivalents."""
+
+    name = models.CharField(max_length=512, unique=True)
+
+    class Meta:
+        app_label = "component_mapping"

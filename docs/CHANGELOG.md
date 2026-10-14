@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 -Move logging of affects query, and reply, to flaw level (OSIDB-5344)
 
+### Fixed
+- Honor the RHEL 6 ELS package inclusion list when automatically resolving affects,
+  using release-specific source/binary relationships and manual triage when coverage
+  data is unavailable (OSIDB-5450)
+
 ## [5.20.2] - 2026-10-09
 ### Changed
 - Reduce redundant ACL propagation during workflow visibility updates (OSIDB-5732)

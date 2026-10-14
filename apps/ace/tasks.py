@@ -895,13 +895,19 @@ def _sync_affects_from_results(
                 )
                 affect._auto_resolved = True
                 marked_notaffected += 1
-            elif osv_status is OsvStatus.NO_VERSION:
+            elif osv_status in (OsvStatus.NO_VERSION, OsvStatus.UNKNOWN):
                 affect.affectedness = Affect.AffectAffectedness.NEW
                 affect.resolution = Affect.AffectResolution.NOVALUE
                 if apply_labels:
                     _apply_label(flaw, LABEL_MANUAL_TRIAGE)
             else:
                 affect.auto_resolve(flaw_has_high_cvss_score=flaw_has_high_cvss_score)
+                if (
+                    apply_labels
+                    and ps_update_stream == "rhel-6-els"
+                    and affect.affectedness == Affect.AffectAffectedness.NEW
+                ):
+                    _apply_label(flaw, LABEL_MANUAL_TRIAGE)
 
             affect.save(raise_validation_error=False)
             created += 1
