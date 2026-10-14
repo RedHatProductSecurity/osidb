@@ -18,6 +18,7 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
+from collectors.component_mapping.models import PackageScope
 from osidb.acls import ACL
 from osidb.mixins import (
     ACLMixin,
@@ -930,6 +931,29 @@ class Affect(
         self.affectedness = self.AffectAffectedness.AFFECTED
         is_community = ps_module_obj.ps_product.is_community
         impact = self.aggregated_impact
+
+        # Scope lists are exhaustive and prepared upstream, including any aliases.
+        # Streams without a configured list retain the normal resolution rules.
+        if (
+            PackageScope.objects.filter(ps_update_stream=self.ps_update_stream)
+            .exclude(components__contains=[(self.ps_component or "").lower()])
+            .exists()
+        ):
+            if not self.ps_component:
+                self.affectedness = self.AffectAffectedness.NEW
+                self.resolution = self.AffectResolution.NOVALUE
+                self.affectedness_explanation = (
+                    "Package scope cannot be determined without a downstream component. "
+                    "Affectedness set to NEW pending manual review."
+                )
+            else:
+                self.resolution = self.AffectResolution.OOSS
+                self.affectedness_explanation = (
+                    f"Package '{self.ps_component}' is outside the component inclusion list "
+                    f"for stream '{self.ps_update_stream}'. Resolution set to OOSS."
+                )
+            self._auto_resolved = True
+            return
 
         # AFFECTED/OOSS — LOW/MODERATE and stream not in full support scope
         if impact in (Impact.LOW, Impact.MODERATE):

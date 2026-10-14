@@ -69,3 +69,13 @@ class RejectedComponent(models.Model):
 
     class Meta:
         app_label = "component_mapping"
+
+
+class PackageScope(models.Model):
+    """Exhaustive component inclusion list for an update stream."""
+
+    ps_update_stream = models.CharField(max_length=100, unique=True)
+    components = models.JSONField(default=list)
+
+    class Meta:
+        app_label = "component_mapping"

@@ -9,6 +9,7 @@ from .models import (
     BlocklistEntry,
     ComponentMapEntry,
     CrossEcosystemName,
+    PackageScope,
     RejectedComponent,
     SemiStrictReviewEntry,
     StrictNpmPackage,
@@ -157,8 +158,41 @@ def _sync_rejected_components(data: dict) -> int:
     return len(entries)
 
 
+def _sync_package_scope(data: dict) -> int:
+    """Replace stream inclusion lists prepared by the data source."""
+    if not isinstance(data, dict):
+        raise ValueError("Package scope must map update streams to component lists")
+    entries = []
+    for stream, components in data.items():
+        if (
+            not isinstance(stream, str)
+            or not stream
+            or len(stream) > 100
+            or stream != stream.strip()
+        ):
+            raise ValueError("Invalid package scope update stream")
+        if not isinstance(components, list) or any(
+            not isinstance(name, str)
+            or not name
+            or len(name) > 512
+            or name != name.strip()
+            for name in components
+        ):
+            raise ValueError("Package scope components must be non-empty names")
+        entries.append(
+            PackageScope(
+                ps_update_stream=stream,
+                components=_dedup_lower_list(components),
+            )
+        )
+    PackageScope.objects.all().delete()
+    PackageScope.objects.bulk_create(entries)
+    return len(entries)
+
+
 @transaction.atomic
 def sync_component_mapping(data: dict) -> dict[str, int]:
+    """Atomically replace the reference lists supplied by the bundle."""
     return {
         "blocklist": _sync_blocklist(data.get("blocklist", {})),
         "component_map": _sync_component_map(data.get("component_map", {})),
@@ -179,4 +213,5 @@ def sync_component_mapping(data: dict) -> dict[str, int]:
         "rejected_components": _sync_rejected_components(
             data.get("rejected_components", {})
         ),
+        "package_scope": _sync_package_scope(data.get("package_scope", {})),
     }
