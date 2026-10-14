@@ -8,7 +8,7 @@ from datetime import datetime
 from importlib.metadata import distributions
 from types import SimpleNamespace
 from typing import Any, Type, cast
-from urllib.parse import urljoin, urlparse
+from urllib.parse import parse_qs, urljoin, urlparse
 from uuid import uuid4
 
 import pghistory
@@ -2297,7 +2297,8 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
 
     def _get_target_url(self, request):
         path_value = _validate_jira_relative_path(request.GET.get("path"))
-        target_url = f"{JIRA_SERVER.rstrip('/')}{path_value}"
+        parsed_path = urlparse(path_value)
+        target_url = f"{JIRA_SERVER.rstrip('/')}{parsed_path.path}"
         jira_url = urlparse(JIRA_SERVER)
         parsed_target = urlparse(target_url)
 
@@ -2309,6 +2310,17 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
             raise ValidationError({"path": JIRA_RELATIVE_PATH_ERROR})
 
         return target_url
+
+    def _get_target_params(self, request):
+        params = request.GET.copy()
+        params.pop("path", None)
+        embedded_params = parse_qs(
+            urlparse(request.GET.get("path", "")).query, keep_blank_values=True
+        )
+        embedded_params.pop("path", None)
+        for key, values in embedded_params.items():
+            params.setlist(key, values)
+        return params.lists()
 
     def _set_authorization_header(self, request, headers):
         authorization = request.headers.get("Authorization")
@@ -2332,8 +2344,7 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
             "Accept-Encoding": "gzip, deflate, br, zstd",
             "User-Agent": "OSIM",
         }
-        params = request.GET.copy()
-        params.pop("path", None)
+        params = self._get_target_params(request)
         self._set_authorization_header(request, headers)
 
         response = requests.get(
@@ -2343,7 +2354,9 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
             headers=headers,
             timeout=30,
         )
-        return Response(response.json(), status=response.status_code)
+        return Response(
+            response.json() if response.content else None, status=response.status_code
+        )
 
     def post(self, request, *args, **kwargs):
         """perform JIRA stage HTTP POST"""
@@ -2355,8 +2368,7 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
             "Accept-Encoding": "gzip, deflate, br, zstd",
             "User-Agent": "OSIM",
         }
-        params = request.GET.copy()
-        params.pop("path", None)
+        params = self._get_target_params(request)
         self._set_authorization_header(request, headers)
 
         response = requests.post(
@@ -2367,7 +2379,9 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
             headers=headers,
             timeout=60,
         )
-        return Response(response.json(), status=response.status_code)
+        return Response(
+            response.json() if response.content else None, status=response.status_code
+        )
 
     def put(self, request, *args, **kwargs):
         """perform JIRA stage HTTP PUT"""
@@ -2379,18 +2393,20 @@ class JiraStageForwarderView(RudimentaryUserPathLoggingMixin, APIView):
             "Accept-Encoding": "gzip, deflate, br, zstd",
             "User-Agent": "OSIM",
         }
+        params = self._get_target_params(request)
         self._set_authorization_header(request, headers)
 
         response = requests.put(
             target_url,
             data=request.body,
             proxies=self.proxies,
+            params=params,
             headers=headers,
             timeout=60,
         )
 
         return Response(
-            response.json() if response.text else None, status=response.status_code
+            response.json() if response.content else None, status=response.status_code
         )
 
     def options(self, request, *args, **kwargs):
