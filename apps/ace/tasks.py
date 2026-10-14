@@ -915,6 +915,11 @@ def _sync_affects_from_results(
                 marked_notaffected += 1
             elif osv_status is OsvStatus.AFFECTED:
                 affect.auto_resolve(flaw_has_high_cvss_score=flaw_has_high_cvss_score)
+                if (
+                    apply_labels
+                    and affect.affectedness == Affect.AffectAffectedness.NEW
+                ):
+                    _apply_label(flaw, LABEL_MANUAL_TRIAGE)
             else:
                 affect.affectedness = Affect.AffectAffectedness.NEW
                 affect.resolution = Affect.AffectResolution.NOVALUE
