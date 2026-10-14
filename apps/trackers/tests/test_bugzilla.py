@@ -46,7 +46,7 @@ class TestTrackerBugzillaQueryBuilder:
                 ps_component="component",
             )
             affects.append(affect)
-            flaw_ids.append(str(affect.flaw.bz_id))
+            flaw_ids.append(affect.flaw.bz_id)
 
         tracker = TrackerFactory(
             affects=affects,

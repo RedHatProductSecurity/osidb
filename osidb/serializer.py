@@ -2328,6 +2328,12 @@ class FlawSerializer(
     )
 
     cve_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    bz_id = serializers.IntegerField(
+        read_only=True,
+        allow_null=True,
+        min_value=0,
+        max_value=9223372036854775807,
+    )
     trackers = FlawAffectsTrackersField(source="*", read_only=True)
     affects = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
@@ -2347,11 +2353,23 @@ class FlawSerializer(
     @extend_schema_field(
         {
             "type": "object",
-            "properties": {key: {"type": "string"} for key in META_ATTR_KEYS},
+            "properties": {
+                **{key: {"type": "string"} for key in META_ATTR_KEYS if key != "bz_id"},
+                "bz_id": {
+                    "type": "string",
+                    "deprecated": True,
+                    "description": "Deprecated. Use the top-level bz_id field instead.",
+                },
+            },
         }
     )
     def get_meta_attr(self, obj):
-        return super().get_meta_attr(obj)
+        meta_attr = dict(super().get_meta_attr(obj))
+        if obj.bz_id is not None and (
+            "*" in self._include_meta_attr or "bz_id" in self._include_meta_attr
+        ):
+            meta_attr["bz_id"] = str(obj.bz_id)
+        return meta_attr
 
     def get_requires_cve_description(self, obj):
         return obj.FlawRequiresCVEDescription.NOVALUE
@@ -2396,6 +2414,7 @@ class FlawSerializer(
             [
                 "uuid",
                 "cve_id",
+                "bz_id",
                 "impact",
                 "components",
                 "title",
@@ -2431,7 +2450,7 @@ class FlawSerializer(
             + AlertMixinSerializer.Meta.fields
             + HistoryMixinSerializer.Meta.fields
         )
-        read_only_fields = ["assist_meta"]
+        read_only_fields = ["assist_meta", "bz_id"]
 
     def validate_embargoed(self, embargoed: bool):
         if embargoed:

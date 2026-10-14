@@ -111,6 +111,7 @@ class TestJiraTrackerConvertor:
         when the tracker CVE label resolves to a flaw with no matching affect
         """
         flaw = FlawFactory(
+            bz_id=None,
             cve_id="CVE-2014-3120",
             embargoed=False,
             # no bz_id so the failed affect is reported with a None flaw id

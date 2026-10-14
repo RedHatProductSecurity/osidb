@@ -213,7 +213,7 @@ class TestFlaw:
     def test_create_flaw_method(self):
         Flaw.objects.all().delete()
         flaw1 = Flaw.objects.create_flaw(
-            bz_id="12345",
+            bz_id=12345,
             cwe_id="CWE-1",
             title="first",
             unembargo_dt=tzdatetime(2000, 1, 1),
@@ -229,9 +229,10 @@ class TestFlaw:
         AffectFactory(flaw=flaw1)
 
         assert Flaw.objects.count() == 1
-        assert Flaw.objects.first().meta_attr["bz_id"] == "12345"
+        assert Flaw.objects.first().bz_id == 12345
+        assert "bz_id" not in Flaw.objects.first().meta_attr
         Flaw.objects.create_flaw(
-            bz_id="12345",
+            bz_id=12345,
             title="second",
             comment_zero="comment_zero",
             impact=Impact.LOW,

@@ -25,7 +25,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
 
     @property
     def blocks(self):
-        return json.loads(self.meta_attr.get("blocks", "[]"))
+        return [int(block) for block in json.loads(self.meta_attr.get("blocks", "[]"))]
 
     def update_blocks(self, add, remove):
         add_blocks = set(self.blocks) | set(add)
@@ -73,11 +73,10 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         """
         # there may be multiple flaws in OSIDB with the same Bugzilla ID
         flaw_ids = list(
-            set(
-                flaw.meta_attr["bz_id"]
-                for flaw in self.flaws
-                if "bz_id" in flaw.meta_attr
-            )
+            self.tracker.affects.filter(flaw__bz_id__isnull=False)
+            .order_by()
+            .values_list("flaw__bz_id", flat=True)
+            .distinct()
         )
 
         if self.is_creating:
@@ -90,11 +89,11 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
             # filter out any potential other-than-flaw bugs which might
             # have been randomly linked to the tracker by engineering
             # for whatever reason not to remove their relation
-            old_flaw_ids = [
-                bz_id
-                for bz_id in self.blocks
-                if Flaw.objects.filter(meta_attr__bz_id=bz_id).exists()
-            ]
+            old_flaw_ids = list(
+                Flaw.objects.filter(bz_id__in=self.blocks).values_list(
+                    "bz_id", flat=True
+                )
+            )
 
             add_flaw_ids, remove_flaw_ids = self._lists2diffs(flaw_ids, old_flaw_ids)
             self._query["blocks"] = {

@@ -397,6 +397,7 @@ class Command(BaseCommand):
 
             flaw = Flaw(
                 cve_id=cve_id,
+                bz_id=10000 + i,
                 title=title,
                 comment_zero=f"Comment zero for {cve_id or 'sample'}",
                 impact=impact,
@@ -412,7 +413,6 @@ class Command(BaseCommand):
                 acl_write=acl_write,
                 unembargo_dt=None if embargoed else now,
                 meta_attr={
-                    "bz_id": str(10000 + i),
                     "last_change_time": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "test": "1",
                 },
