@@ -12,6 +12,7 @@ from rest_framework.serializers import as_serializer_error
 from rest_framework.views import exception_handler as drf_exception_handler
 from rest_framework.views import set_rollback
 
+from apps.bbsync.exceptions import ProductDataError
 from apps.taskman.exceptions import JiraTaskErrorException
 from apps.trackers.exceptions import (
     AmbiguousFieldNameError,
@@ -82,6 +83,8 @@ def exception_handler(exc, context):
         RecoverableBZImportException,
         # User mapping
         JiraUserMappingException,
+        # BBSync
+        ProductDataError,
     )
 
     if isinstance(exc, KNOWN_EXCEPTIONS):
