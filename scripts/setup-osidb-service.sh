@@ -16,8 +16,10 @@ echo
 sleep 2
 
 
-
-python3 manage.py migrate --settings config.settings_local
+# Run migrations as the BYPASSRLS manage user.
+# settings_local.py honours OSIDB_DB_USER / OSIDB_DB_PASSWORD env-var overrides.
+OSIDB_DB_USER=osidb_manage_user OSIDB_DB_PASSWORD=passw0rd \
+    python3 manage.py migrate --settings config.settings_local
 
 # Leave this running even if the server is killed later.
 while true; do
