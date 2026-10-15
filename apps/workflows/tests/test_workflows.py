@@ -2,13 +2,18 @@
 workflow definitions validation tests
 """
 
+import threading
+import time
 from datetime import datetime
 
 import pytest
+from django.conf import settings
+from django.db import connection, transaction
 from django.utils.timezone import make_aware, now
 
 from apps.workflows.workflow import WorkflowFramework
-from osidb.models import Affect, Impact, WorkflowLabel
+from osidb.core import set_user_acls
+from osidb.models import Affect, Flaw, Impact, WorkflowLabel
 from osidb.models.flaw import flaw as flaw_module
 from osidb.tests.factories import AffectFactory, FlawFactory, TrackerFactory
 
@@ -621,3 +626,164 @@ class TestReclassificationDateGuard:
         flaw.adjust_classification(save=False)
 
         assert flaw.workflow_state != "SECONDARY_ASSESSMENT"
+
+
+class TestWorkflowSaveTransactionBoundary:
+    """
+    WorkflowModel.save() wraps super().save() in a transaction so the row lock
+    taken by adjust_classification() in the pre_save is held through the actual
+    write. That transaction must NOT span the external Bugzilla/Jira sync, or
+    the row lock would be held across network I/O (lock contention / slow
+    responses). This relies on the sync mixins sitting ABOVE WorkflowModel in
+    the MRO, so their post-super().save() sync runs after the transaction
+    commits. Guard that ordering - a reorder would still pass the functional
+    tests but silently hold locks across I/O in production.
+    """
+
+    def test_sync_mixins_precede_workflow_model_in_mro(self):
+        from apps.bbsync.mixins import BugzillaSyncMixin
+        from apps.taskman.mixins import JiraTaskSyncMixin
+        from apps.workflows.workflow import WorkflowModel
+
+        mro = Flaw.__mro__
+        workflow_model_index = mro.index(WorkflowModel)
+        for sync_mixin in (BugzillaSyncMixin, JiraTaskSyncMixin):
+            assert mro.index(sync_mixin) < workflow_model_index, (
+                f"{sync_mixin.__name__} must precede WorkflowModel in Flaw's MRO "
+                "so its external I/O runs after WorkflowModel.save()'s transaction "
+                "commits, keeping the classification row lock off the network call"
+            )
+
+
+class TestClassificationRace:
+    """
+    Regression test for the classification race condition where a concurrent
+    save could move an auto-rejected flaw back out of REJECTED/DONE (a lost
+    update on the workflow_name/workflow_state fields).
+
+    adjust_classification() takes a row lock and re-bases/re-computes the
+    classification under it, so the last committer always observes the other
+    transaction's committed label and REJECTED/DONE wins.
+    """
+
+    @staticmethod
+    def _flaw_row_lock_waiters():
+        """number of backends (other than this one) blocked writing a flaw row"""
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT count(*) FROM pg_stat_activity "
+                "WHERE wait_event_type = 'Lock' AND pid <> pg_backend_pid() "
+                "AND query ILIKE '%osidb_flaw%'"
+            )
+            return cursor.fetchone()[0]
+
+    @pytest.mark.enable_signals
+    @pytest.mark.django_db(transaction=True)
+    def test_concurrent_auto_reject_is_not_clobbered(self):
+        """
+        While one transaction auto-rejects a flaw (creates the terminal label
+        and reclassifies to REJECTED/DONE), a second concurrent save that read
+        the flaw before the auto-rejection committed must not overwrite it back
+        to DEFAULT/<state>.
+
+        This reproduces the production race: without serialization the second
+        save computes its classification from a pre-auto-rejection snapshot
+        (no label visible) and its row UPDATE, committing last, clobbers the
+        REJECTED/DONE written by the first transaction.
+
+        The second ("bot") save skips alert recreation (``no_alerts=True``) so
+        it blocks only on the flaw row lock - otherwise both saves would
+        contend on the same alert unique index first, serializing them and
+        masking the workflow-field race under test.
+        """
+        set_user_acls(settings.ALL_GROUPS)
+
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-CONCURRENT",
+            owner="analyst@redhat.com",
+            cwe_id="CWE-79",
+            impact=Impact.MODERATE,
+        )
+        AffectFactory(flaw=flaw)
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state != "DONE"
+        flaw_pk = flaw.pk
+
+        # the "bot" holds a copy read before the auto-rejection
+        bot_flaw = Flaw.objects.get(pk=flaw_pk)
+
+        errors: dict[str, BaseException] = {}
+        system_holds_lock = threading.Event()
+        system_can_commit = threading.Event()
+
+        def system_worker():
+            """auto-reject the flaw and hold the row lock until released"""
+            try:
+                set_user_acls(settings.ALL_GROUPS)
+                with transaction.atomic():
+                    # creating the terminal label reclassifies the flaw to
+                    # REJECTED/DONE via the post_save signal, taking (and
+                    # holding) the flaw row lock until this transaction commits
+                    WorkflowLabel.objects.create(
+                        flaw=Flaw.objects.get(pk=flaw_pk), name="auto-rejected"
+                    )
+                    system_holds_lock.set()
+                    system_can_commit.wait(timeout=10)
+            except BaseException as exc:  # noqa: BLE001
+                errors["system"] = exc
+                system_holds_lock.set()
+            finally:
+                connection.close()
+
+        def bot_worker():
+            """persist the stale copy concurrently (an unrelated edit)"""
+            try:
+                set_user_acls(settings.ALL_GROUPS)
+                bot_flaw.title = f"{bot_flaw.title} (edited)"
+                bot_flaw.save(raise_validation_error=False, no_alerts=True)
+            except BaseException as exc:  # noqa: BLE001
+                errors["bot"] = exc
+            finally:
+                connection.close()
+
+        system_thread = threading.Thread(target=system_worker)
+        system_thread.start()
+        assert system_holds_lock.wait(timeout=10)
+        assert "system" not in errors
+
+        bot_thread = threading.Thread(target=bot_worker)
+        bot_thread.start()
+
+        # wait until the bot is blocked trying to write the flaw row, so that
+        # its classification was necessarily computed before the auto-rejection
+        # committed, then let the auto-rejection commit
+        deadline = time.time() + 10
+        blocked = False
+        while time.time() < deadline:
+            if self._flaw_row_lock_waiters() >= 1:
+                blocked = True
+                break
+            time.sleep(0.05)
+        system_can_commit.set()
+
+        system_thread.join(timeout=15)
+        bot_thread.join(timeout=15)
+
+        # prove the intended interleaving actually happened: the bot must have
+        # blocked on the flaw row lock (otherwise the race was not exercised),
+        # and both workers must have finished (a hung worker would leave errors
+        # empty and report a misleading pass)
+        assert blocked, "bot writer never blocked on the flaw row lock"
+        assert not system_thread.is_alive()
+        assert not bot_thread.is_alive()
+        assert not errors, errors
+
+        final = Flaw.objects.get(pk=flaw_pk)
+        # the auto-rejected conclusion must stick despite the concurrent save
+        assert final.workflow_name == "REJECTED"
+        assert final.workflow_state == "DONE"
+        # the concurrent edit is still applied (the save was not lost, only its
+        # stale classification was corrected)
+        assert final.title.endswith("(edited)")
