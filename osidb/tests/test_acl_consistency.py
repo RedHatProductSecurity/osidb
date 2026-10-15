@@ -218,14 +218,10 @@ class TestAtomicRollbackOnFailure:
         stale_flaw.workflow_state = "PUBLIC_STATE"
         assert stale_flaw.is_internal
 
-        with (
-            patch.object(stale_flaw, "set_acls_nested") as set_acls_nested,
-            patch.object(stale_flaw, "set_acls_history") as set_acls_history,
-        ):
+        with patch.object(stale_flaw, "set_acls_nested") as set_acls_nested:
             stale_flaw.adjust_acls()
 
         set_acls_nested.assert_not_called()
-        set_acls_history.assert_not_called()
         assert stale_flaw.acl_read == public_read_groups
         assert stale_flaw.acl_write == public_write_groups
 

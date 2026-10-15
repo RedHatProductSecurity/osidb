@@ -2,9 +2,12 @@ from datetime import datetime, timezone
 from itertools import chain
 
 import pytest
+from django.conf import settings
+from django.db import transaction
 from freezegun import freeze_time
 from rest_framework import status
 
+from osidb.core import set_user_acls
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -183,11 +186,13 @@ class TestEndpointsFlawsUnembargo:
                 for instance in chain(*[model.objects.all() for model in models])
             )
 
-            for model in models[:-1]:
-                for instance in model.objects.all():
-                    for audit_event in instance.events.all():
-                        assert audit_event.acl_read == public_read_groups
-                        assert audit_event.acl_write == public_write_groups
+            # RLS policies now delegate to source objects so audit rows
+            # are visible despite their own ACLs staying at the original values
+            set_user_acls(settings.PUBLIC_READ_GROUPS)
+            with transaction.atomic():
+                for model in models[:-1]:
+                    for instance in model.objects.all():
+                        assert instance.events.count() > 0
 
     @freeze_time(datetime(2020, 10, 10, tzinfo=timezone.utc))
     def test_combined(self, auth_client, test_api_uri):
