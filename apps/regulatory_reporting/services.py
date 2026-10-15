@@ -135,7 +135,9 @@ def create_srp_report(flaw_instance: Flaw, incident_state: Flaw.FlawMajorInciden
         )
 
     with transaction.atomic():
-        locked_flaw = Flaw.objects.select_for_update().get(pk=flaw_instance.pk)
+        locked_flaw = Flaw.objects.select_for_update(no_key=True).get(
+            pk=flaw_instance.pk
+        )
         if locked_flaw.major_incident_state != incident_state:
             raise ValueError(
                 f"incident_state {incident_state!r} does not match persisted "

@@ -311,7 +311,9 @@ class OSVCollector(Collector):
 
                     # The idea is to add upstream info for newly collected OSV vulns
                     flaw = (
-                        Flaw.objects.select_for_update().filter(cve_id=cve_id).first()
+                        Flaw.objects.select_for_update(no_key=True)
+                        .filter(cve_id=cve_id)
+                        .first()
                     )
 
                     if flaw:

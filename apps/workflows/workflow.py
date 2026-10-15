@@ -317,7 +317,7 @@ class WorkflowModel(models.Model):
                 try:
                     current = (
                         type(self)
-                        ._base_manager.select_for_update()
+                        ._base_manager.select_for_update(no_key=True)
                         .only("acl_read", "acl_write")
                         .get(pk=self.pk)
                     )

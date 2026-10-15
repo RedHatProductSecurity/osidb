@@ -19,7 +19,7 @@ class Command(BaseCommand):
 
     @bypass_rls
     def handle(self, *args, **options):
-        affects_to_change = Affect.objects.select_for_update().filter(
+        affects_to_change = Affect.objects.select_for_update(no_key=True).filter(
             ps_module=options["ps_module"],
             ps_component=options["from_component"],
         )
@@ -44,7 +44,7 @@ class Command(BaseCommand):
                 affect.save(raise_validation_error=False)
                 self.stdout.write(self.style.SUCCESS("OK"))
 
-                trackers = affect.trackers.select_for_update().all()
+                trackers = affect.trackers.select_for_update(no_key=True).all()
                 for tracker in trackers:
                     self.stdout.write(
                         f" => Updating related Tracker ({tracker.uuid}, {tracker.external_system_id})...",

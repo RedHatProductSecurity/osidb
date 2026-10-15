@@ -638,7 +638,7 @@ def _handle_go_stdlib(
 def _write_flaw_assist_meta(flaw: Flaw, workflow: str, data: dict) -> None:
     """Store data under `workflow` in flaw.assist_meta, keeping other workflows' keys."""
     with transaction.atomic():
-        locked = Flaw.objects.select_for_update().get(uuid=flaw.uuid)
+        locked = Flaw.objects.select_for_update(no_key=True).get(uuid=flaw.uuid)
         assist_meta = dict(locked.assist_meta or {})
         assist_meta[workflow] = data
         Flaw.objects.filter(uuid=flaw.uuid).update(
