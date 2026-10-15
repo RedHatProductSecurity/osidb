@@ -2504,6 +2504,7 @@ class FlawSerializer(
         # based on the raw ACLs as it was not yet updated
         if old_flaw.is_embargoed and self._is_public(new_flaw, validated_data):
             new_flaw.unembargo()
+            new_flaw._acls_already_propagated = True
 
         # Force Jira task creation if requested
         request = self.context.get("request")
