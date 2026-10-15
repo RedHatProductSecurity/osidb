@@ -150,19 +150,27 @@ def update_flaw_fields(sender, instance, **kwargs):
     update_major_incident_start_dt(instance)
 
 
-@receiver(post_save, sender=FlawReference)
-@receiver(post_save, sender=FlawAcknowledgment)
 @receiver(post_save, sender=FlawComment)
 @receiver(post_save, sender=AliasLabel)
 @receiver(post_save, sender=BULabel)
 @receiver(post_save, sender=CollaboratorLabel)
 @receiver(post_save, sender=ProductFamilyLabel)
+def flaw_metadata_update_local_updated_dt(sender, instance, **kwargs):
+    # these nested entities feed neither flaw workflow classification nor any
+    # flaw-level alert so only the denormalized local_updated_dt needs refreshing
+    Flaw.objects.filter(uuid=instance.flaw_id).update(local_updated_dt=timezone.now())
+
+
+@receiver(post_save, sender=FlawReference)
+@receiver(post_save, sender=FlawAcknowledgment)
+@receiver(post_save, sender=FlawCVSS)
 @receiver(post_save, sender=WorkflowLabel)
 @receiver(
     post_delete, sender=FlawLabel
 )  # cascade deletion of multi-table inheritance fires from the parent
-@receiver(post_save, sender=FlawCVSS)
 def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
+    # these nested entities either feed flaw-level validators/alerts
+    # or drive workflow so the full flaw save is necessary
     with signal_pghistory_context(
         "flaw_dependant_update_local_updated_dt", sender=sender, instance=instance
     ):
@@ -193,11 +201,11 @@ def update_local_updated_dt_tracker(sender, instance, **kwargs):
 
 @receiver(post_save, sender=AffectCVSS)
 def updated_local_updated_dt_affectcvss(sender, instance, **kwargs):
-    instance.affect.flaw.refresh_from_db()
-    with signal_pghistory_context(
-        "updated_local_updated_dt_affectcvss", sender=sender, instance=instance
-    ):
-        instance.affect.flaw.save(auto_timestamps=False, raise_validation_error=False)
+    # AffectCVSS feeds neither flaw workflow classification nor any
+    # flaw-level alert so only the denormalized local_updated_dt needs refreshing
+    Flaw.objects.filter(uuid=instance.affect.flaw_id).update(
+        local_updated_dt=timezone.now()
+    )
 
 
 @receiver(post_save, sender=Affect)
