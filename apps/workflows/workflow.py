@@ -231,15 +231,10 @@ class WorkflowModel(models.Model):
 
     def adjust_classification(self, save=True):
         """
-        this method will identify and adjust to the higher state the instance can be
-
-        this is the automatic way to update state, currently we are adopting a manual
-        state change, please consider using promote method from this mixin instead
+        identify and adjust the right workflow:state the instance should be classified
+        to and automatically track classification changes with human-readable reasoning
 
         workflow model is by default saved on change which can be turned off by argument
-
-        Automatically tracks classification changes in classification_meta with
-        human-readable reasoning.
         """
         # Only classify if there is a task associated, otherwise workflow fields
         # should remain empty
@@ -250,55 +245,91 @@ class WorkflowModel(models.Model):
         if self._skip_reclassification():
             return
 
-        # Store old classification before computing new one
-        old_classification = self.classification
-
-        # Compute new classification
-        classification = self.classify()
-
-        if classification == old_classification:
-            # no change to be stored
+        # Guard against re-entrancy so the self.save() call below does not re-classify
+        if getattr(self, "_adjusting_classification", False):
             return
+        self._adjusting_classification = True
 
-        # Classification changed - track it
-        add_classification_change(
-            self,
-            create_change_record(
-                old_classification,
-                classification,
-                instance=self,
-                framework=WorkflowFramework(),
-            ),
-        )
-
-        # Update instance fields
-        self.classification = classification
-
-        # Stamp resolved_dt when entering DONE, clear it whenever not DONE
-        was_done = old_classification["state"] == "DONE"
-        is_done = classification["state"] == "DONE"
-        if is_done and not was_done:
-            self.resolved_dt = timezone.now()
-        elif not is_done:
-            self.resolved_dt = None
-
-        self.adjust_acls()  # possibly adjust ACLs too
-
-        # Notify listeners that classification changed (e.g. ACE).
         # Import here to avoid circular import: signals.py imports WorkflowModel.
         from apps.workflows.signals import classification_changed
 
-        classification_changed.send(
-            sender=type(self),
-            instance=self,
-            old_classification=old_classification,
-            new_classification=classification,
-        )
+        try:
+            # Classify in a transaction to prevent race condition
+            with transaction.atomic():
+                # Store old classification before computing new one
+                old_classification = self.classification
+                if self.pk is not None:
+                    try:
+                        current = (
+                            type(self)
+                            ._base_manager.select_for_update()
+                            .only(
+                                "workflow_name",
+                                "workflow_state",
+                                "classification_meta",
+                                "resolved_dt",
+                            )
+                            .get(pk=self.pk)
+                        )
+                    except type(self).DoesNotExist:
+                        current = None
 
-        if not save:
-            return
+                    if current is not None:
+                        self.workflow_name = current.workflow_name
+                        self.workflow_state = current.workflow_state
+                        self.classification_meta = current.classification_meta
+                        self.resolved_dt = current.resolved_dt
+                        old_classification = {
+                            "workflow": current.workflow_name,
+                            "state": current.workflow_state,
+                        }
 
-        self.save()
+                # Compute new classification
+                classification = self.classify()
+
+                if classification == old_classification:
+                    # no change to be stored
+                    self.classification = old_classification
+                    return
+
+                # Classification changed - track it
+                add_classification_change(
+                    self,
+                    create_change_record(
+                        old_classification,
+                        classification,
+                        instance=self,
+                        framework=WorkflowFramework(),
+                    ),
+                )
+
+                # Update instance fields
+                self.classification = classification
+
+                # Stamp resolved_dt when entering DONE, clear it whenever not DONE
+                was_done = old_classification["state"] == "DONE"
+                is_done = classification["state"] == "DONE"
+                if is_done and not was_done:
+                    self.resolved_dt = timezone.now()
+                elif not is_done:
+                    self.resolved_dt = None
+
+                self.adjust_acls()  # possibly adjust ACLs too
+
+                # Notify listeners that classification changed (e.g. ACE).
+                classification_changed.send(
+                    sender=type(self),
+                    instance=self,
+                    old_classification=old_classification,
+                    new_classification=classification,
+                )
+
+                if not save:
+                    return
+
+                self.save()
+        finally:
+            self._adjusting_classification = False
 
     def jira_status(self):
         return WorkflowFramework().jira_status(self)
