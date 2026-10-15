@@ -175,6 +175,17 @@ class WorkflowModel(models.Model):
             models.Index(fields=["owner"]),
         ]
 
+    def save(self, *args, **kwargs):
+        """
+        Wrap the write in a transaction so the row lock taken by
+        adjust_classification() in the pre_save is held through the UPDATE and
+        a concurrent writer cannot clobber the classification. External sync
+        (Bugzilla/Jira) runs in outer mixins after super().save(), i.e. outside
+        this transaction, so no lock is held across network I/O.
+        """
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+
     def classify(self):
         """computed workflow classification"""
         result = WorkflowFramework().classify(self)

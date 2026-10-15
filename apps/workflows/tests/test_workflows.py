@@ -628,6 +628,33 @@ class TestReclassificationDateGuard:
         assert flaw.workflow_state != "SECONDARY_ASSESSMENT"
 
 
+class TestWorkflowSaveTransactionBoundary:
+    """
+    WorkflowModel.save() wraps super().save() in a transaction so the row lock
+    taken by adjust_classification() in the pre_save is held through the actual
+    write. That transaction must NOT span the external Bugzilla/Jira sync, or
+    the row lock would be held across network I/O (lock contention / slow
+    responses). This relies on the sync mixins sitting ABOVE WorkflowModel in
+    the MRO, so their post-super().save() sync runs after the transaction
+    commits. Guard that ordering - a reorder would still pass the functional
+    tests but silently hold locks across I/O in production.
+    """
+
+    def test_sync_mixins_precede_workflow_model_in_mro(self):
+        from apps.bbsync.mixins import BugzillaSyncMixin
+        from apps.taskman.mixins import JiraTaskSyncMixin
+        from apps.workflows.workflow import WorkflowModel
+
+        mro = Flaw.__mro__
+        workflow_model_index = mro.index(WorkflowModel)
+        for sync_mixin in (BugzillaSyncMixin, JiraTaskSyncMixin):
+            assert mro.index(sync_mixin) < workflow_model_index, (
+                f"{sync_mixin.__name__} must precede WorkflowModel in Flaw's MRO "
+                "so its external I/O runs after WorkflowModel.save()'s transaction "
+                "commits, keeping the classification row lock off the network call"
+            )
+
+
 class TestClassificationRace:
     """
     Regression test for the classification race condition where a concurrent
