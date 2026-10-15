@@ -600,7 +600,7 @@ class FlawFilter(
 
     query = CharFilter(method="query_filter")
 
-    bz_id = NumberFilter(field_name="meta_attr__bz_id", lookup_expr="exact")
+    bz_id = NumberFilter(method="bz_id_filter")
     tracker_ids = CharInFilter(
         field_name="affects__tracker__external_system_id",
         lookup_expr="in",
@@ -705,6 +705,9 @@ class FlawFilter(
 
     def query_filter(self, queryset, name, value):
         return apply_search(queryset, value, schema=FlawQLSchema).distinct()
+
+    def bz_id_filter(self, queryset, name, value):
+        return queryset.filter(bz_id=value)
 
     def changed_after_filter(self, queryset, name, value):
         """

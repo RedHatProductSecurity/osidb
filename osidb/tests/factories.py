@@ -193,10 +193,10 @@ class FlawFactory(BaseFactory):
             else settings.PUBLIC_WRITE_GROUPS
         )
     )
+    bz_id = factory.Sequence(lambda n: 12345 + n)
     # valid flaw is expected to have certain meta attributes present
     meta_attr = factory.LazyAttribute(
         lambda c: {
-            "bz_id": getattr(c, "bz_id", "12345"),
             "last_change_time": (
                 c.updated_dt
                 if isinstance(c.updated_dt, str)
@@ -209,7 +209,6 @@ class FlawFactory(BaseFactory):
     @classmethod
     def _build(cls, model_class, *args, **kwargs):
         kwargs.pop("embargoed")
-        kwargs.pop("bz_id", None)
         return super()._build(model_class, *args, **kwargs)
 
     @classmethod

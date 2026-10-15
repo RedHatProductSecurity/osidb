@@ -125,13 +125,16 @@ class TestGenerateBasics:
         """
         component = "space"
         title = "cucumber"
+        bz_id = 123
         FlawFactory(
+            bz_id=bz_id,
             components=[component],
             cve_id=cve_id1,
             embargoed=embargoed,
             title=title,
         )
         flaw = FlawFactory(
+            bz_id=bz_id,
             components=[component],
             cve_id=cve_id2,
             embargoed=embargoed,
@@ -251,10 +254,7 @@ class TestGenerateBasics:
                 meta_attr={"bz_id": "123", "bz_component": "vulnerability-draft"},
             )
         else:
-            flaw = FlawFactory(
-                workflow_state=workflow_state,
-                meta_attr={},
-            )
+            flaw = FlawFactory(workflow_state=workflow_state, bz_id=None, meta_attr={})
 
         bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["component"] == result
@@ -276,6 +276,7 @@ class TestGenerateBasics:
             flaw = FlawFactory(
                 workflow_state="DONE",
                 workflow_name="REJECTED",
+                bz_id=None,
                 meta_attr={},
             )
 
@@ -313,7 +314,7 @@ class TestGenerateBasics:
         """
         test generating of CVE ID alias on creation
         """
-        flaw = FlawFactory(cve_id="CVE-2000-1001", meta_attr={})
+        flaw = FlawFactory(bz_id=None, cve_id="CVE-2000-1001", meta_attr={})
 
         bbq = FlawBugzillaQueryBuilder(flaw)
         assert bbq.query["alias"] == ["CVE-2000-1001"]
@@ -326,7 +327,9 @@ class TestGenerateBasics:
         snippet = SnippetFactory(
             source=Snippet.Source.OSV, ext_id="GHSA-0001", cve_id=None
         )
-        flaw = FlawFactory(cve_id=None, meta_attr={"external_ids": ["GHSA-0001"]})
+        flaw = FlawFactory(
+            bz_id=None, cve_id=None, meta_attr={"external_ids": ["GHSA-0001"]}
+        )
         snippet.flaw = flaw
         snippet.save()
 
@@ -341,7 +344,7 @@ class TestGenerateGroups:
         test that when creating a public flaw
         there are no or empty groups in BZ query
         """
-        flaw = FlawFactory(embargoed=False, meta_attr={})
+        flaw = FlawFactory(bz_id=None, embargoed=False, meta_attr={})
         FlawCommentFactory(flaw=flaw)
         ps_module = PsModuleFactory(
             bts_groups={
@@ -374,7 +377,7 @@ class TestGenerateGroups:
         test that when creating an embargoed flaw
         there are expected groups in BZ query
         """
-        flaw = FlawFactory(embargoed=True, meta_attr={})
+        flaw = FlawFactory(bz_id=None, embargoed=True, meta_attr={})
         FlawCommentFactory(flaw=flaw)
         ps_module = PsModuleFactory(
             bts_groups={
@@ -525,6 +528,7 @@ class TestGenerateGroups:
         there is only "redhat" group in BZ query
         """
         flaw = FlawFactory(
+            bz_id=None,
             acl_read=[
                 uuid.UUID(acl) for acl in generate_acls(settings.INTERNAL_READ_GROUPS)
             ],

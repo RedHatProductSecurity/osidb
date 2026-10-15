@@ -57,7 +57,7 @@ class TestAuditFlaw:
         # create a flaw with an affect
         Flaw.objects.all().delete()
         flaw1 = Flaw.objects.create_flaw(
-            bz_id="12345",
+            bz_id=12345,
             cwe_id="CWE-1",
             title="first",
             unembargo_dt=datetime(2020, 1, 1, tzinfo=timezone.utc),

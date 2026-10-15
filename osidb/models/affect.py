@@ -356,7 +356,7 @@ class Affect(
         """
         from osidb.constants import BZ_ID_SENTINEL
 
-        bz_id = self.flaw.meta_attr.get("bz_id")
+        bz_id = self.flaw.bz_id
         if bz_id and int(bz_id) <= BZ_ID_SENTINEL:
             if self.is_unknown:
                 self.alert(
@@ -378,7 +378,7 @@ class Affect(
         """
         from osidb.constants import BZ_ID_SENTINEL
 
-        bz_id = self.flaw.meta_attr.get("bz_id")
+        bz_id = self.flaw.bz_id
         if bz_id and int(bz_id) > BZ_ID_SENTINEL:
             if self.is_unknown:
                 raise ValidationError(

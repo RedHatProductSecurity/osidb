@@ -2914,6 +2914,7 @@ paths:
         name: bz_id
         schema:
           type: number
+        description: Filter Flaws by Bugzilla ID.
       - in: query
         name: changed_after
         schema:
@@ -10711,6 +10712,7 @@ paths:
         name: bz_id
         schema:
           type: number
+        description: Filter Flaws by Bugzilla ID.
       - in: query
         name: changed_after
         schema:
@@ -17432,6 +17434,14 @@ components:
           type:
           - string
           - 'null'
+        bz_id:
+          type:
+          - integer
+          - 'null'
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          readOnly: true
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -17598,6 +17608,7 @@ components:
       - affects
       - alerts
       - assist_meta
+      - bz_id
       - classification
       - comment_zero
       - comments
@@ -18458,6 +18469,14 @@ components:
           type:
           - string
           - 'null'
+        bz_id:
+          type:
+          - integer
+          - 'null'
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          readOnly: true
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -18625,6 +18644,7 @@ components:
       - affects
       - alerts
       - assist_meta
+      - bz_id
       - classification
       - comment_zero
       - comments
@@ -19036,6 +19056,14 @@ components:
           type:
           - string
           - 'null'
+        bz_id:
+          type:
+          - integer
+          - 'null'
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          readOnly: true
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -19196,6 +19224,7 @@ components:
       - affects
       - alerts
       - assist_meta
+      - bz_id
       - classification
       - comment_zero
       - comments

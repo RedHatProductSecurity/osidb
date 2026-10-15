@@ -135,10 +135,10 @@ class TestBBSyncIntegration:
             Flaw.objects.get(uuid=created_uuid).comment_zero == "foobar"
         )  # DB field not overwritten
         assert (
-            flaw.bz_id == "2293325"
+            flaw.bz_id == 2293325
         )  # the in-memory representation was updated in-place
         assert (
-            Flaw.objects.get(uuid=created_uuid).bz_id == "2293325"
+            Flaw.objects.get(uuid=created_uuid).bz_id == 2293325
         )  # DB was updated as well
 
         response = auth_client().get(f"{test_api_uri}/flaws/{created_uuid}")
@@ -973,7 +973,7 @@ class TestBBSyncSaveIntegration:
         """
         flaw = FlawFactory(cve_id=None, embargoed=False, meta_attr={"bz_id": None})
         assert not flaw.bz_id
-        assert flaw.meta_attr == {"bz_id": None}
+        assert "bz_id" not in flaw.meta_attr
 
         # fake Bugzilla connection to just return static ID
         # to pretend that the flaw countrerpart was created
@@ -996,8 +996,9 @@ class TestBBSyncSaveIntegration:
 
         flaw = Flaw.objects.get(uuid=flaw.uuid)
 
-        assert flaw.bz_id == "123"
-        assert len(flaw.meta_attr) == 4
+        assert flaw.bz_id == 123
+        assert len(flaw.meta_attr) == 3
+        assert "bz_id" not in flaw.meta_attr
         for item in ["alias", "cc", "groups"]:
             assert item in flaw.meta_attr and flaw.meta_attr[item] == "[]"
 

@@ -479,6 +479,14 @@ query_id_type_param = OpenApiParameter(
     ),
 )
 
+flaw_bz_id_filter_param = OpenApiParameter(
+    name="bz_id",
+    required=False,
+    type=OpenApiTypes.NUMBER,
+    location=OpenApiParameter.QUERY,
+    description="Filter Flaws by Bugzilla ID.",
+)
+
 # Manual schema specification since the auto-schema generation gets override by the class
 flaw_index_response_schema = {
     "type": "object",
@@ -871,6 +879,7 @@ class FlawIntrospectionView(RudimentaryUserPathLoggingMixin, APIView):
 @extend_schema_view(
     list=extend_schema(
         parameters=[
+            flaw_bz_id_filter_param,
             OpenApiParameter(
                 "tracker_ids",
                 type={"type": "array", "items": {"type": "string"}},
@@ -1077,6 +1086,11 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
 
 @include_meta_attr_extend_schema_view
 @include_exclude_fields_extend_schema_view
+@extend_schema_view(
+    list=extend_schema(
+        parameters=[flaw_bz_id_filter_param],
+    ),
+)
 class FlawV1View(FlawView):
     """View for the flaw model adapted to affects v1"""
 

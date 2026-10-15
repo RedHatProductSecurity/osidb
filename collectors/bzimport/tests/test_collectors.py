@@ -36,8 +36,8 @@ class TestBugzillaQuerier:
         PackageFactory(flaw=flaw2)
         FlawCommentFactory(flaw=flaw2)
 
-        flaw1 = Flaw.objects.filter(meta_attr__bz_id="321").first()
-        flaw2 = Flaw.objects.filter(meta_attr__bz_id="123").first()
+        flaw1 = Flaw.objects.filter(bz_id=321).first()
+        flaw2 = Flaw.objects.filter(bz_id=123).first()
         affect = Affect.objects.first()
         package_version = Package.objects.first()
         comment = FlawComment.objects.first()
@@ -59,8 +59,8 @@ class TestBugzillaQuerier:
             ("321", None),
         ]
 
-        flaw1 = Flaw.objects.filter(meta_attr__bz_id="321").first()
-        flaw2 = Flaw.objects.filter(meta_attr__bz_id="123").first()
+        flaw1 = Flaw.objects.filter(bz_id=321).first()
+        flaw2 = Flaw.objects.filter(bz_id=123).first()
         affect = Affect.objects.first()
         package_version = Package.objects.first()
         comment = FlawComment.objects.first()

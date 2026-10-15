@@ -728,11 +728,11 @@ class TestEndpointsFlaws:
         body = response.json()
         assert body["count"] == 0
 
-        meta_attr = {"bz_id": 123456}
+        bz_id = 123456
 
-        FlawFactory(meta_attr=meta_attr)
+        FlawFactory(bz_id=bz_id)
 
-        response = auth_client().get(f"{test_api_uri}/flaws?bz_id={meta_attr['bz_id']}")
+        response = auth_client().get(f"{test_api_uri}/flaws?bz_id={bz_id}")
         assert response.status_code == 200
         assert response.json()["count"] == 1
 
@@ -1229,7 +1229,7 @@ class TestEndpointsFlaws:
                 "include_meta_attr=test_key_1,test_key_2,bad_key",
                 {"test_key_1", "test_key_2"},
             ),
-            ("include_meta_attr=*", {f"test_key_{i}" for i in range(5)}),
+            ("include_meta_attr=*", {f"test_key_{i}" for i in range(5)} | {"bz_id"}),
         ],
     )
     def test_list_flaws_include_meta_attr(
@@ -1282,7 +1282,7 @@ class TestEndpointsFlaws:
             (
                 "include_meta_attr=*,affects.*,affects.tracker.*",
                 {
-                    "flaw": {f"test_key_{i}" for i in range(5)},
+                    "flaw": {f"test_key_{i}" for i in range(5)} | {"bz_id"},
                     "affect": {f"test_key_{i}" for i in range(5)},
                     "tracker": {f"test_key_{i}" for i in range(5)},
                 },
@@ -1342,7 +1342,7 @@ class TestEndpointsFlaws:
                 "include_meta_attr=test_key_1,test_key_2,bad_key",
                 {"test_key_1", "test_key_2"},
             ),
-            ("include_meta_attr=*", {f"test_key_{i}" for i in range(5)}),
+            ("include_meta_attr=*", {f"test_key_{i}" for i in range(5)} | {"bz_id"}),
         ],
     )
     def test_flaw_include_meta_attr(
@@ -1394,7 +1394,7 @@ class TestEndpointsFlaws:
             (
                 "include_meta_attr=*,affects.*,affects.tracker.*",
                 {
-                    "flaw": {f"test_key_{i}" for i in range(5)},
+                    "flaw": {f"test_key_{i}" for i in range(5)} | {"bz_id"},
                     "affect": {f"test_key_{i}" for i in range(5)},
                     "tracker": {f"test_key_{i}" for i in range(5)},
                 },

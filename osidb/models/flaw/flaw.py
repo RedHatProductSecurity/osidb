@@ -53,6 +53,10 @@ from osidb.validators import no_future_date, validate_cwe_id
 logger = logging.getLogger(__name__)
 
 
+def _normalize_bz_id(value):
+    return int(value) if value not in (None, "") else None
+
+
 class FlawManager(TrackingMixinManager, WorkflowModelManager):
     """flaw manager"""
 
@@ -64,26 +68,28 @@ class FlawManager(TrackingMixinManager, WorkflowModelManager):
 
         full match means that we match on both Bugzilla and CVE ID
         """
+        if "meta_attr" in extra_fields and extra_fields["meta_attr"] is not None:
+            extra_fields["meta_attr"] = dict(extra_fields["meta_attr"])
+            extra_fields["meta_attr"].pop("bz_id", None)
+        bz_id = _normalize_bz_id(bz_id)
+
         try:
             cve_id = extra_fields.get("cve_id")
             if full_match:
-                flaw = Flaw.objects.get(cve_id=cve_id, meta_attr__bz_id=bz_id)
+                flaw = Flaw.objects.get(cve_id=cve_id, bz_id=bz_id)
             else:
                 # flaws are primarily identified by Bugzilla ID
                 # as it is constant while the CVE ID may change
                 # however we eventually try both as if the source
                 # is multi-CVE flaw the Bugzilla ID is not unique
-                flaws = Flaw.objects.filter(meta_attr__bz_id=bz_id)
+                flaws = Flaw.objects.filter(bz_id=bz_id)
                 flaw = flaws.get() if flaws.count() == 1 else flaws.get(cve_id=cve_id)
 
             for attr, value in extra_fields.items():
                 setattr(flaw, attr, value)
             return flaw
         except ObjectDoesNotExist:
-            # set Bugzilla ID as meta attribute
-            meta_attr = extra_fields.get("meta_attr", {})
-            meta_attr["bz_id"] = bz_id
-            extra_fields["meta_attr"] = meta_attr
+            extra_fields["bz_id"] = bz_id
             return Flaw(**extra_fields)
 
     @staticmethod
@@ -114,7 +120,8 @@ class FlawManager(TrackingMixinManager, WorkflowModelManager):
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),
     pghistory.DeleteEvent(),
-    exclude="last_validated_dt,local_updated_dt,meta_attr,classification_meta,search_vector",
+    # bz_id was historically stored in meta_attr, which is excluded from history.
+    exclude="last_validated_dt,local_updated_dt,bz_id,meta_attr,classification_meta,search_vector",
     model_name="FlawAudit",
 )
 class Flaw(
@@ -282,6 +289,8 @@ class Flaw(
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)
+    # Keep nullable semantics from the legacy hstore key.
+    bz_id = models.PositiveBigIntegerField(blank=True, null=True)
     # aegis metadata
     aegis_meta = JSONField(default=dict, blank=True)
     # assist metadata
@@ -322,6 +331,11 @@ class Flaw(
                 models.Index(fields=["-cve_id"]),
                 GinIndex(fields=["acl_read"]),
                 models.Index(fields=["-local_updated_dt"]),
+                models.Index(
+                    fields=["bz_id"],
+                    condition=models.Q(bz_id__isnull=False),
+                    name="osidb_flaw_bz_id_idx",
+                ),
                 models.Index(fields=["uuid", "local_updated_dt"]),
                 models.Index(
                     fields=["cve_id", "local_updated_dt"],
@@ -336,10 +350,13 @@ class Flaw(
         return str(self.uuid)
 
     def save(self, *args, **kwargs):
+        self._consume_legacy_meta_attr_bz_id()
+
         # Automatically convert empty string values to null, since validation is skipped for
         # empty strings
         if self.cve_id == "":
             self.cve_id = None
+        self.bz_id = _normalize_bz_id(self.bz_id)
 
         # provide the save diff as an argument
         # so we can freely save and still have it
@@ -356,6 +373,17 @@ class Flaw(
             kwargs["diff"] = diff
 
         super().save(*args, **kwargs)
+
+    def _consume_legacy_meta_attr_bz_id(self):
+        """Accept legacy meta_attr["bz_id"] input while keeping bz_id as source of truth."""
+        if self.meta_attr is None:
+            self.meta_attr = {}
+
+        if "bz_id" not in self.meta_attr:
+            return
+
+        legacy_bz_id = self.meta_attr.pop("bz_id")
+        self.bz_id = _normalize_bz_id(legacy_bz_id)
 
     @validator
     def _validate_major_incident_state_reset(self, **kwargs) -> None:
@@ -920,20 +948,6 @@ class Flaw(
         )
 
     @property
-    def bz_id(self):
-        """
-        shortcut to get underlying Bugzilla bug ID
-        """
-        return self.meta_attr.get("bz_id", None)
-
-    @bz_id.setter
-    def bz_id(self, value):
-        """
-        shortcut to set underlying Bugzilla bug ID
-        """
-        self.meta_attr["bz_id"] = value
-
-    @property
     def api_url(self):
         """return osidb api url"""
         return f"/api/{OSIDB_API_VERSION}/{self.uuid}"
@@ -1071,7 +1085,7 @@ class Flaw(
 
         if not self.task_key:
             # old pre-OSIDB flaws without tasks are ignored by default
-            if force_creation or not self.meta_attr.get("bz_id"):
+            if force_creation or not self.bz_id:
                 update_task = True
 
         elif diff is not None:
