@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 -Move logging of affects query, and reply, to flaw level (OSIDB-5344)
+-Align DELETE response status and metadata contracts (OSIDB-5599)
 
 ## [5.20.2] - 2026-10-09
 ### Changed

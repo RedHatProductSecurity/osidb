@@ -2377,21 +2377,7 @@ paths:
       - {}
       responses:
         '204':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
+          description: No response body
         '400':
           content:
             application/json:
@@ -5430,21 +5416,7 @@ paths:
       deprecated: true
       responses:
         '204':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
+          description: No response body
   /osidb/api/v1/flaws/{flaw_id}/package_versions:
     get:
       operationId: osidb_api_v1_flaws_package_versions_list
@@ -9788,21 +9760,7 @@ paths:
       - OsidbTokenAuthentication: []
       responses:
         '204':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
+          description: No response body
   /osidb/api/v2/affects/{uuid}:
     get:
       operationId: osidb_api_v2_affects_retrieve
@@ -12406,21 +12364,7 @@ paths:
       - OsidbTokenAuthentication: []
       responses:
         '204':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
+          description: No response body
   /osidb/api/v2/flaws/{flaw_id}/labels:
     get:
       operationId: osidb_api_v2_flaws_labels_list
@@ -12624,21 +12568,7 @@ paths:
       - OsidbTokenAuthentication: []
       responses:
         '204':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
+          description: No response body
   /osidb/api/v2/flaws/{id}:
     get:
       operationId: osidb_api_v2_flaws_retrieve
@@ -14079,21 +14009,7 @@ paths:
       - OsidbTokenAuthentication: []
       responses:
         '204':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
+          description: No response body
         '503':
           content:
             application/json:
@@ -14207,21 +14123,7 @@ paths:
       - OsidbTokenAuthentication: []
       responses:
         '204':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
+          description: No response body
   /regulatory-reporting/api/v1/flaws/{flaw_id}/srp-reports:
     get:
       operationId: regulatory_reporting_api_v1_flaws_srp_reports_list
