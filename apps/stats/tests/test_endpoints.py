@@ -4,7 +4,7 @@ import pytest
 from django.conf import settings
 from django.utils import timezone
 
-from apps.stats.aggregation import DIMENSIONS
+from apps.stats.aggregation import FLAW_DIMENSIONS
 from osidb.core import set_user_acls
 from osidb.models import Impact
 from osidb.tests.factories import (
@@ -271,7 +271,7 @@ class TestStatsFlawsSafetyContract:
         cannot leak embargoed flaw identity (no cve_id/title/component/free text)
         before updating this set.
         """
-        assert set(DIMENSIONS) == {
+        assert set(FLAW_DIMENSIONS) == {
             "impact",
             "workflow_state",
             "workflow_name",

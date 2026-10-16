@@ -26,12 +26,17 @@ BUCKET_DIMENSIONS: list[str] = ["age_bucket", "embargo_duration_bucket"]
 # identifiers or free text (cve_id, title, description, ps_component, ...) — that
 # would let an unprivileged caller enumerate embargoed flaws via count=1 groups.
 # Changing this set is a security decision; the pinning test must be updated too.
-DIMENSIONS: list[str] = [
+FLAW_DIMENSIONS: list[str] = [
     "impact",
     "workflow_state",
     "workflow_name",
     "ps_product",
 ] + BUCKET_DIMENSIONS
+
+TRACKER_DIMENSIONS: list[str] = [
+    "visibility",
+    "ps_product",
+]
 
 
 def bucket_labels(bounds: list[int]) -> list[str]:
