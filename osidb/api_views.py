@@ -2165,9 +2165,12 @@ class FlawLabelV1View(
     def destroy(self, request, *args, **kwargs):
         require_flaw_write_or_404(self.get_flaw())
         instance = self.get_object()
-        if instance.type == FlawLabel.LabelType.PRODUCT_FAMILY:
+        if instance.type in (
+            FlawLabel.LabelType.PRODUCT_FAMILY,
+            FlawLabel.LabelType.BU,
+        ):
             raise PermissionDenied(
-                {"label": "Product family labels cannot be deleted."}
+                {"label": "Product family and BU labels cannot be deleted."}
             )
         return super().destroy(request, *args, **kwargs)
 
@@ -2204,8 +2207,13 @@ class FlawLabelView(
     def destroy(self, request, *args, **kwargs):
         require_flaw_write_or_404(self.get_flaw())
         instance = self.get_object()
-        if instance.type == FlawLabel.LabelType.PRODUCT_FAMILY:
-            raise PermissionDenied({"name": "Product family labels cannot be deleted."})
+        if instance.type in (
+            FlawLabel.LabelType.PRODUCT_FAMILY,
+            FlawLabel.LabelType.BU,
+        ):
+            raise PermissionDenied(
+                {"name": "Product family and BU labels cannot be deleted."}
+            )
         return super().destroy(request, *args, **kwargs)
 
 
