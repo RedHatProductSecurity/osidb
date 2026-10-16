@@ -4,12 +4,14 @@ from django.db import transaction
 from requests_gssapi import HTTPSPNEGOAuth
 
 from .constants import COMPONENT_MAPPING_REPO_BRANCH, COMPONENT_MAPPING_REPO_URL
+from .els import rhel6_els_names
 from .models import (
     AmbiguousNpmPackage,
     BlocklistEntry,
     ComponentMapEntry,
     CrossEcosystemName,
     RejectedComponent,
+    Rhel6ElsPackage,
     SemiStrictReviewEntry,
     StrictNpmPackage,
     StrictPackage,
@@ -159,7 +161,15 @@ def _sync_rejected_components(data: dict) -> int:
 
 @transaction.atomic
 def sync_component_mapping(data: dict) -> dict[str, int]:
-    return {
+    """Atomically sync a bundle, retaining ELS coverage when its section is absent."""
+    # Older artifacts omit this section. Keep the last known-good list during
+    # rollout; on first install an empty table means unknown, never out of scope.
+    els_names = (
+        rhel6_els_names(data["rhel6_els_packages"])
+        if "rhel6_els_packages" in data
+        else None
+    )
+    counts = {
         "blocklist": _sync_blocklist(data.get("blocklist", {})),
         "component_map": _sync_component_map(data.get("component_map", {})),
         "strict_packages": _sync_strict_packages(data.get("strict_packages", {})),
@@ -180,3 +190,10 @@ def sync_component_mapping(data: dict) -> dict[str, int]:
             data.get("rejected_components", {})
         ),
     }
+    if els_names is not None:
+        Rhel6ElsPackage.objects.all().delete()
+        Rhel6ElsPackage.objects.bulk_create(
+            [Rhel6ElsPackage(name=name) for name in sorted(els_names)]
+        )
+        counts["rhel6_els_packages"] = len(els_names)
+    return counts
