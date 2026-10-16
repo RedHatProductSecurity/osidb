@@ -13,7 +13,10 @@ def response_metadata_postprocess_hook(result, generator, **kwargs):
 
     for path in result.get("paths", {}).values():
         for operation in path.values():
-            for response in operation.get("responses", {}).values():
+            for status_code, response in operation.get("responses", {}).items():
+                # 204 responses have no body, so they get no response metadata
+                if str(status_code) == "204":
+                    continue
                 # we must copy the schema due to the way that drf-spectacular
                 # generates some of them (multiple references to the same obj)
                 schema = (
