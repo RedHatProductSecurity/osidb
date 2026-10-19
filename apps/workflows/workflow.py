@@ -6,6 +6,7 @@ Workflows Framework
 """
 
 import logging
+from contextlib import nullcontext
 from os import listdir
 from os.path import join
 
@@ -175,6 +176,16 @@ class WorkflowModel(models.Model):
             models.Index(fields=["owner"]),
         ]
 
+    def save(self, *args, **kwargs):
+        """
+        Run super().save() in a transaction so the row lock adjust_classification()
+        takes in the pre_save is held through the UPDATE, preventing a concurrent
+        writer from clobbering the classification. Bugzilla/Jira sync runs in outer
+        mixins after super().save(), so the lock is never held across network I/O.
+        """
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+
     def classify(self):
         """computed workflow classification"""
         result = WorkflowFramework().classify(self)
@@ -231,15 +242,12 @@ class WorkflowModel(models.Model):
 
     def adjust_classification(self, save=True):
         """
-        this method will identify and adjust to the higher state the instance can be
+        identify and set the right workflow:state for the instance, recording each
+        change with human-readable reasoning; saves on change unless save=False
 
-        this is the automatic way to update state, currently we are adopting a manual
-        state change, please consider using promote method from this mixin instead
-
-        workflow model is by default saved on change which can be turned off by argument
-
-        Automatically tracks classification changes in classification_meta with
-        human-readable reasoning.
+        With save=False the caller must persist the instance inside an already-open
+        transaction: this method locks the row to re-base and recompute, and that
+        lock must stay held through the caller's write to avoid a concurrent clobber.
         """
         # Only classify if there is a task associated, otherwise workflow fields
         # should remain empty
@@ -250,55 +258,96 @@ class WorkflowModel(models.Model):
         if self._skip_reclassification():
             return
 
-        # Store old classification before computing new one
-        old_classification = self.classification
-
-        # Compute new classification
-        classification = self.classify()
-
-        if classification == old_classification:
-            # no change to be stored
+        # Guard against re-entrancy so the self.save() call below does not re-classify
+        if getattr(self, "_adjusting_classification", False):
             return
+        self._adjusting_classification = True
 
-        # Classification changed - track it
-        add_classification_change(
-            self,
-            create_change_record(
-                old_classification,
-                classification,
-                instance=self,
-                framework=WorkflowFramework(),
-            ),
-        )
-
-        # Update instance fields
-        self.classification = classification
-
-        # Stamp resolved_dt when entering DONE, clear it whenever not DONE
-        was_done = old_classification["state"] == "DONE"
-        is_done = classification["state"] == "DONE"
-        if is_done and not was_done:
-            self.resolved_dt = timezone.now()
-        elif not is_done:
-            self.resolved_dt = None
-
-        self.adjust_acls()  # possibly adjust ACLs too
-
-        # Notify listeners that classification changed (e.g. ACE).
         # Import here to avoid circular import: signals.py imports WorkflowModel.
         from apps.workflows.signals import classification_changed
 
-        classification_changed.send(
-            sender=type(self),
-            instance=self,
-            old_classification=old_classification,
-            new_classification=classification,
-        )
+        # The row lock below must stay held until the new classification is
+        # committed. With save=True we persist via self.save(), so we own the
+        # transaction; with save=False the caller persists and must already hold a
+        # transaction, so we join it rather than open (and prematurely close) ours.
+        lock_scope = transaction.atomic() if save else nullcontext()
 
-        if not save:
-            return
+        try:
+            with lock_scope:
+                # Store old classification before computing new one
+                old_classification = self.classification
+                if self.pk is not None:
+                    try:
+                        current = (
+                            type(self)
+                            ._base_manager.select_for_update(no_key=True)
+                            .only(
+                                "workflow_name",
+                                "workflow_state",
+                                "classification_meta",
+                                "resolved_dt",
+                            )
+                            .get(pk=self.pk)
+                        )
+                    except type(self).DoesNotExist:
+                        current = None
 
-        self.save()
+                    if current is not None:
+                        self.workflow_name = current.workflow_name
+                        self.workflow_state = current.workflow_state
+                        self.classification_meta = current.classification_meta
+                        self.resolved_dt = current.resolved_dt
+                        old_classification = {
+                            "workflow": current.workflow_name,
+                            "state": current.workflow_state,
+                        }
+
+                # Compute new classification
+                classification = self.classify()
+
+                if classification == old_classification:
+                    # no change to be stored
+                    self.classification = old_classification
+                    return
+
+                # Classification changed - track it
+                add_classification_change(
+                    self,
+                    create_change_record(
+                        old_classification,
+                        classification,
+                        instance=self,
+                        framework=WorkflowFramework(),
+                    ),
+                )
+
+                # Update instance fields
+                self.classification = classification
+
+                # Stamp resolved_dt when entering DONE, clear it whenever not DONE
+                was_done = old_classification["state"] == "DONE"
+                is_done = classification["state"] == "DONE"
+                if is_done and not was_done:
+                    self.resolved_dt = timezone.now()
+                elif not is_done:
+                    self.resolved_dt = None
+
+                self.adjust_acls()  # possibly adjust ACLs too
+
+                # Notify listeners that classification changed (e.g. ACE).
+                classification_changed.send(
+                    sender=type(self),
+                    instance=self,
+                    old_classification=old_classification,
+                    new_classification=classification,
+                )
+
+                if not save:
+                    return
+
+                self.save()
+        finally:
+            self._adjusting_classification = False
 
     def jira_status(self):
         return WorkflowFramework().jira_status(self)
