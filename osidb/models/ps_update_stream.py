@@ -69,7 +69,17 @@ class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
 
     # lowest impact for which trackers should be filed for this stream;
     # blank means no threshold - the standard impact rules apply.
-    minimal_impact = models.CharField(choices=Impact.choices, max_length=20, blank=True)
+    # NOTE: this field replaces the old `minimal_impact` field, whose name did
+    # not match the product definitions field and which was never populated.
+    # TODO: the dead `minimal_impact` DB column is intentionally kept for one
+    # release for rollback safety (see migration 0275_psupdatestream_impact).
+    # It is already gone from the model state, so drop it in a later release
+    # with a database-only operation (e.g. RunSQL
+    # "ALTER TABLE osidb_psupdatestream DROP COLUMN minimal_impact") rather than
+    # a RemoveField, which would target a field that no longer exists in state.
+    impact = models.CharField(
+        choices=Impact.choices, max_length=20, blank=True, db_default=""
+    )
 
     # related PS Module
     ps_module = models.ForeignKey(
