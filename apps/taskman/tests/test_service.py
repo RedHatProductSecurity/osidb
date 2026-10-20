@@ -36,7 +36,7 @@ class TestTaskmanService(object):
 
         response1 = taskman.create_or_update_task(flaw=flaw)
         assert response1 == "OSIM-14332"
-        flaw.adjust_classification(save=False)
+        flaw.adjust_classification()
 
         old_title = flaw.title
         new_title = f"{old_title} edited title"

@@ -310,6 +310,7 @@ class TestE2E:
         set_user_acls(settings.ALL_GROUPS)
         flaw.refresh_from_db()
         flaw.adjust_classification()
+        flaw.save()
 
         # 6.3) validate classification was applied
         response = auth_client().get(
@@ -545,6 +546,7 @@ class TestE2E:
         set_user_acls(settings.ALL_GROUPS)
         flaw1.refresh_from_db()
         flaw1.adjust_classification()
+        flaw1.save()
         flaw1._create_or_update_task(jira_token)
         assert flaw1.workflow_state == "DONE"
 
@@ -590,7 +592,7 @@ class TestE2E:
         from osidb.models import WorkflowLabel
 
         WorkflowLabel.objects.create(flaw=flaw2, name="rejected")
-        flaw2.adjust_classification(save=False)
+        flaw2.adjust_classification()
         flaw2.save(raise_validation_error=False)
         flaw2._create_or_update_task(jira_token)
         assert flaw2.workflow_name == "REJECTED"

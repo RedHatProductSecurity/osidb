@@ -574,7 +574,7 @@ class TestReclassificationDateGuard:
         # force DONE despite the flaw not qualifying for it
         flaw.classification = {"workflow": "DEFAULT", "state": "DONE"}
 
-        flaw.adjust_classification(save=False)
+        flaw.adjust_classification()
 
         assert flaw.workflow_state == "DONE"
 
@@ -590,8 +590,12 @@ class TestReclassificationDateGuard:
             created_dt=make_aware(datetime(2026, 8, 10)),
         )
         flaw.classification = {"workflow": "DEFAULT", "state": "DONE"}
+        # persist the forced state so adjust_classification()'s DB re-base sees it
+        Flaw.objects.filter(pk=flaw.pk).update(
+            workflow_name="DEFAULT", workflow_state="DONE"
+        )
 
-        flaw.adjust_classification(save=False)
+        flaw.adjust_classification()
 
         assert flaw.workflow_state != "DONE"
 
@@ -605,8 +609,12 @@ class TestReclassificationDateGuard:
             created_dt=make_aware(datetime(2020, 1, 1)),
         )
         flaw.classification = {"workflow": "DEFAULT", "state": "DONE"}
+        # persist the forced state so adjust_classification()'s DB re-base sees it
+        Flaw.objects.filter(pk=flaw.pk).update(
+            workflow_name="DEFAULT", workflow_state="DONE"
+        )
 
-        flaw.adjust_classification(save=False)
+        flaw.adjust_classification()
 
         assert flaw.workflow_state != "DONE"
 
@@ -622,8 +630,12 @@ class TestReclassificationDateGuard:
             created_dt=make_aware(datetime(2025, 1, 1)),
         )
         flaw.classification = {"workflow": "DEFAULT", "state": "SECONDARY_ASSESSMENT"}
+        # persist the forced state so adjust_classification()'s DB re-base sees it
+        Flaw.objects.filter(pk=flaw.pk).update(
+            workflow_name="DEFAULT", workflow_state="SECONDARY_ASSESSMENT"
+        )
 
-        flaw.adjust_classification(save=False)
+        flaw.adjust_classification()
 
         assert flaw.workflow_state != "SECONDARY_ASSESSMENT"
 
@@ -645,8 +657,12 @@ class TestReclassificationDateGuard:
             flaw=flaw, name=flaw_module.WORKFLOW_RECLASSIFICATION_LABEL
         )
         flaw.classification = {"workflow": "DEFAULT", "state": "DONE"}
+        # persist the forced state so adjust_classification()'s DB re-base sees it
+        Flaw.objects.filter(pk=flaw.pk).update(
+            workflow_name="DEFAULT", workflow_state="DONE"
+        )
 
-        flaw.adjust_classification(save=False)
+        flaw.adjust_classification()
 
         assert flaw.workflow_state != "DONE"
 
@@ -670,7 +686,7 @@ class TestReclassificationDateGuard:
         label.delete()
         flaw.classification = {"workflow": "DEFAULT", "state": "DONE"}
 
-        flaw.adjust_classification(save=False)
+        flaw.adjust_classification()
 
         assert flaw.workflow_state == "DONE"
 

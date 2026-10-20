@@ -1163,7 +1163,7 @@ class Flaw(
             # of its own, so open one here; the Jira call above stays outside it to
             # keep network I/O off the lock.
             with transaction.atomic():
-                self.adjust_classification(save=False)
+                self.adjust_classification()
                 Flaw.objects.filter(uuid=self.uuid).update(
                     task_key=self.task_key,
                     workflow_name=self.workflow_name,

@@ -392,7 +392,7 @@ class TestEndpoints(object):
             major_incident_state=Flaw.FlawMajorIncident.MAJOR_INCIDENT_APPROVED,
             task_key="TASK-123",  # Required for workflow classification
         )
-        flaw.adjust_classification(save=False)
+        flaw.adjust_classification()
         flaw.save(raise_validation_error=False)
         AffectFactory(flaw=flaw)
 
