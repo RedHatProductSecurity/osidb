@@ -48,6 +48,15 @@ lint-schema: osidb collectors apps check-testenv
 
 
 #***********************************
+### Regenerate openapi.yml using locked dependencies
+#***********************************
+.PHONY : update-schema
+update-schema: osidb collectors apps check-testenv
+	@echo ">regenerating OpenAPI schema"
+	$(tox) -e schema-update
+
+
+#***********************************
 ### Static typecheck with mypy
 #***********************************
 .PHONY : typecheck
