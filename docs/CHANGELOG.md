@@ -4,10 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [5.21.0] - 2026-10-21
 ### Added
 - Move logging of affects query, and reply, to flaw level (OSIDB-5344)
 - Implement opt-out mechanism for the cut-off based workflow classification exclusion (OSIDB-5476)
+- Expose read-only `assist_meta` field on the Flaw API for carrying tool-assisted (ACE) affect-creation metadata (OSIDB-5344)
+- Add flaw and affect CVSS history to the audit endpoint as child entities (#1502)
 
 ### Fixed
 - Do not clear and re-add tracker affect links on every sync (OSIDB-5475)
