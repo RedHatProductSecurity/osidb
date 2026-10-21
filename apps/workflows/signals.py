@@ -11,4 +11,4 @@ classification_changed = Signal()
 @receiver(pre_save)
 def auto_adjust_classification(sender, instance, **kwargs):
     if issubclass(sender, WorkflowModel):
-        instance.adjust_classification(save=False)
+        instance.adjust_classification()

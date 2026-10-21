@@ -1157,12 +1157,20 @@ class Flaw(
         # creation
         if not self.task_key:
             self.task_key = jtq.create_or_update_task(self)
-            self.adjust_classification(save=False)
-            Flaw.objects.filter(uuid=self.uuid).update(
-                task_key=self.task_key,
-                workflow_name=self.workflow_name,
-                workflow_state=self.workflow_state,
-            )
+            # Keep the adjust_classification() row lock held through the update()
+            # so a concurrent writer (e.g. ACE applying a terminal reject label)
+            # cannot clobber it. The async task-sync path has no outer transaction
+            # of its own, so open one here; the Jira call above stays outside it to
+            # keep network I/O off the lock.
+            with transaction.atomic():
+                self.adjust_classification()
+                Flaw.objects.filter(uuid=self.uuid).update(
+                    task_key=self.task_key,
+                    workflow_name=self.workflow_name,
+                    workflow_state=self.workflow_state,
+                    classification_meta=self.classification_meta,
+                    resolved_dt=self.resolved_dt,
+                )
         else:
             jtq.create_or_update_task(self)
 

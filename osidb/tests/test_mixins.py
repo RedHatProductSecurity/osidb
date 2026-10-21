@@ -715,7 +715,7 @@ class TestBugzillaJiraMixinIntegration:
         flaw = Flaw.objects.get(uuid=flaw.uuid)
 
         # Flaw remains in TRIAGE
-        flaw.adjust_classification(save=False)
+        flaw.adjust_classification()
         flaw.save(
             jira_token=jira_token,
             jira_email=jira_email,
@@ -733,7 +733,7 @@ class TestBugzillaJiraMixinIntegration:
         from osidb.models import WorkflowLabel
 
         WorkflowLabel.objects.create(flaw=flaw, name="rejected")
-        flaw.adjust_classification(save=False)
+        flaw.adjust_classification()
         flaw.save(
             jira_token=jira_token,
             jira_email=jira_email,
@@ -799,7 +799,7 @@ class TestBugzillaJiraMixinIntegration:
 
         flaw = Flaw.objects.get(pk=created_uuid)
         # Flaw remains in TRIAGE
-        flaw.adjust_classification(save=False)
+        flaw.adjust_classification()
         flaw.save(
             jira_token=jira_token,
             jira_email=jira_email,
@@ -818,7 +818,7 @@ class TestBugzillaJiraMixinIntegration:
         from osidb.models import WorkflowLabel
 
         WorkflowLabel.objects.create(flaw=flaw, name="rejected")
-        flaw.adjust_classification(save=False)
+        flaw.adjust_classification()
         flaw.save(
             jira_token=jira_token,
             jira_email=jira_email,
