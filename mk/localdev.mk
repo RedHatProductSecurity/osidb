@@ -161,15 +161,6 @@ bash-local: check-venv-active
 
 
 #***********************************
-### Update generated API docs extracted from Django
-#***********************************
-.PHONY : update-schema
-update-schema:
-	@echo ">updating openapi.yml"
-	./scripts/schema-check.sh
-
-
-#***********************************
 ### Update .secrets.baseline using detect-secrets
 #***********************************
 .PHONY : update-secrets
