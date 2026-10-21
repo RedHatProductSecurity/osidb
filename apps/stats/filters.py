@@ -3,6 +3,7 @@ from django.db.models import QuerySet
 from osidb.filters import (
     CharInFilter,
     ChoiceInFilter,
+    EmptyOrNullStringFilter,
     OSIDBFilterSet,
 )
 from osidb.mixins import ACLMixinVisibility
@@ -23,10 +24,12 @@ class StatsFlawFilter(OSIDBFilterSet):
     workflow_state__not_in = CharInFilter(
         field_name="workflow_state", lookup_expr="in", exclude=True
     )
+    workflow_state__isempty = EmptyOrNullStringFilter(field_name="workflow_state")
     workflow_name__in = CharInFilter(field_name="workflow_name", lookup_expr="in")
     workflow_name__not_in = CharInFilter(
         field_name="workflow_name", lookup_expr="in", exclude=True
     )
+    workflow_name__isempty = EmptyOrNullStringFilter(field_name="workflow_name")
     impact__in = ChoiceInFilter(
         field_name="impact", lookup_expr="in", choices=Impact.choices
     )
