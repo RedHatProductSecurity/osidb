@@ -38,7 +38,6 @@ from osidb.models import (
     UpstreamData,
 )
 from osidb.models.affect import (
-    AFFECTEDNESS_UNRESOLVED_RESOLUTIONS,
     AFFECTEDNESS_VALID_RESOLUTIONS,
 )
 
@@ -254,8 +253,8 @@ class AffectFactory(BaseFactory):
     resolved_dt = factory.LazyAttribute(
         lambda a: (
             factory.Faker("date_time", tzinfo=UTC)
-            if a.affectedness not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS
-            or a.resolution not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS[a.affectedness]
+            if a.affectedness != Affect.UNRESOLVED["affectedness"]
+            or a.resolution != Affect.UNRESOLVED["resolution"]
             else None
         )
     )
