@@ -4,7 +4,7 @@ import pytest
 from django.db import models
 
 from osidb.helpers import get_model_fields
-from osidb.models import PsContact, PsModule, PsProduct, PsUpdateStream
+from osidb.models import Impact, PsContact, PsModule, PsProduct, PsUpdateStream
 
 from ..constants import PROPERTIES_MAP
 from ..core import (
@@ -152,6 +152,15 @@ class TestProductDefinitionsCollection:
 
         # Check fields population
         self.check_fields_population(PsUpdateStream, "name", ps_update_streams)
+
+    def test_ps_update_streams_sync_impact(self):
+        """
+        test that the lowercase product definitions impact
+        is normalized to the uppercase OSIDB Impact choice
+        """
+        sync_ps_update_streams({"rhel-10.0": {"impact": "critical"}})
+
+        assert PsUpdateStream.objects.get(name="rhel-10.0").impact == Impact.CRITICAL
 
     @pytest.mark.default_cassette(PRODUCT_DEFINITIONS_CASSETTE)
     @pytest.mark.vcr

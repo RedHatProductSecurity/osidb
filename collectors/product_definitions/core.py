@@ -101,6 +101,10 @@ def sync_ps_update_streams(data: dict):
             for key, value in stream_data.items()
             if key in ps_update_stream_fields
         }
+        # product definitions use lowercase impact values
+        # while OSIDB Impact choices are uppercase
+        if "impact" in filtered_stream_data:
+            filtered_stream_data["impact"] = filtered_stream_data["impact"].upper()
 
         PsUpdateStream.objects.create(name=stream_name, **filtered_stream_data)
 
