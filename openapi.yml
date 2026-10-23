@@ -15868,6 +15868,93 @@ paths:
                     version:
                       type: string
           description: ''
+  /stats/api/v1beta/trackers:
+    get:
+      operationId: stats_api_v1beta_trackers_retrieve
+      description: '**Experimental.** This endpoint is experimental and may change
+        or be removed without notice. Do not build hard dependencies on its shape
+        or behavior.'
+      summary: '[Experimental] Aggregated tracker statistics'
+      parameters:
+      - in: query
+        name: group_by
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ps_product
+        description: 'Required. Comma-separated dimensions to group by. Allowed: ps_product.'
+        required: true
+        explode: false
+        style: form
+      - in: query
+        name: ps_product__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Keep trackers with ps streams containing these products.
+        explode: false
+        style: form
+      - in: query
+        name: ps_product__not_in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Drop trackers with ps streams containing these products.
+        explode: false
+        style: form
+      - in: query
+        name: visibility__in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - EMBARGOED
+            - INTERNAL
+            - PUBLIC
+        description: Keep only trackers with these visibilities.
+        explode: false
+        style: form
+      - in: query
+        name: visibility__not_in
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - EMBARGOED
+            - INTERNAL
+            - PUBLIC
+        description: Drop trackers with these visibilities.
+        explode: false
+        style: form
+      tags:
+      - stats
+      security:
+      - OsidbTokenAuthentication: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/StatsTrackersResponse'
+                - type: object
+                  properties:
+                    dt:
+                      type: string
+                      format: date-time
+                    env:
+                      type: string
+                    revision:
+                      type: string
+                    version:
+                      type: string
+          description: ''
   /trackers/api/v1/file:
     post:
       operationId: trackers_api_v1_file_create
@@ -20755,20 +20842,7 @@ components:
       - SKIP
       - DONE
       type: string
-    StatsFlawsResponse:
-      type: object
-      properties:
-        groups:
-          type: array
-          items:
-            type: object
-            additionalProperties: {}
-        meta:
-          $ref: '#/components/schemas/StatsMeta'
-      required:
-      - groups
-      - meta
-    StatsMeta:
+    StatsFlawsMeta:
       type: object
       properties:
         total_flaws:
@@ -20795,6 +20869,55 @@ components:
       - group_by
       - sum_group_counts
       - total_flaws
+    StatsFlawsResponse:
+      type: object
+      properties:
+        groups:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        meta:
+          $ref: '#/components/schemas/StatsFlawsMeta'
+      required:
+      - groups
+      - meta
+    StatsTrackersMeta:
+      type: object
+      properties:
+        total_trackers:
+          type: integer
+        sum_group_counts:
+          type: integer
+        group_by:
+          type: array
+          items:
+            type: string
+        filters:
+          type: object
+          additionalProperties: {}
+        generated_at:
+          type: string
+          format: date-time
+      required:
+      - filters
+      - generated_at
+      - group_by
+      - sum_group_counts
+      - total_trackers
+    StatsTrackersResponse:
+      type: object
+      properties:
+        groups:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        meta:
+          $ref: '#/components/schemas/StatsTrackersMeta'
+      required:
+      - groups
+      - meta
     StreamComponent:
       type: object
       properties:

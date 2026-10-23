@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import datetime, timedelta
 from typing import Any, Callable
 
@@ -14,7 +15,7 @@ from django.db.models import (
     When,
 )
 
-from osidb.models import PsModule
+from osidb.models import PsModule, PsUpdateStream
 
 DEFAULT_BOUNDS: list[int] = [7, 30, 90]
 # label for flaws whose affects map to no known product (or that have no affects)
@@ -26,12 +27,16 @@ BUCKET_DIMENSIONS: list[str] = ["age_bucket", "embargo_duration_bucket"]
 # identifiers or free text (cve_id, title, description, ps_component, ...) — that
 # would let an unprivileged caller enumerate embargoed flaws via count=1 groups.
 # Changing this set is a security decision; the pinning test must be updated too.
-DIMENSIONS: list[str] = [
+FLAW_DIMENSIONS: list[str] = [
     "impact",
     "workflow_state",
     "workflow_name",
     "ps_product",
 ] + BUCKET_DIMENSIONS
+
+TRACKER_DIMENSIONS: list[str] = [
+    "ps_product",
+]
 
 
 def bucket_labels(bounds: list[int]) -> list[str]:
@@ -43,7 +48,7 @@ def bucket_labels(bounds: list[int]) -> list[str]:
     return labels + [f"{bounds[-1] + 1}+"]
 
 
-def _annotate_dimensions(
+def _annotate_flaw_dimensions(
     queryset: QuerySet, dimensions: list[str], bounds: list[int], now: datetime
 ) -> QuerySet:
     if "ps_product" in dimensions:
@@ -115,8 +120,30 @@ def count_flaws_by(
 ) -> list[dict[str, Any]]:
     """COUNT(DISTINCT flaw) grouped by dimensions, deterministically ordered."""
     groups = (
-        _annotate_dimensions(queryset, dimensions, bounds, now)
+        _annotate_flaw_dimensions(queryset, dimensions, bounds, now)
         .values(*dimensions)
         .annotate(count=Count("pk", distinct=True))
     )
     return sorted(groups, key=_sort_key(dimensions, bounds))
+
+
+def count_trackers_by(queryset, dimensions):
+    sql_dims = ["ps_update_stream" if d == "ps_product" else d for d in dimensions]
+    rows = queryset.values(*sql_dims).annotate(count=Count("pk"))
+
+    if "ps_product" not in dimensions:
+        return sorted(rows, key=lambda row: tuple(row[d] for d in dimensions))
+
+    stream_to_prod = dict(
+        PsUpdateStream.objects.values_list("name", "ps_module__ps_product__short_name")
+    )
+    counts = Counter()
+    for row in rows:
+        stream = row.pop("ps_update_stream")
+        row["ps_product"] = stream_to_prod.get(stream) or UNMAPPED_PS_PRODUCT
+        counts[tuple(row[d] for d in dimensions)] += row["count"]
+
+    return [
+        {**dict(zip(dimensions, key)), "count": count}
+        for key, count in sorted(counts.items())
+    ]
