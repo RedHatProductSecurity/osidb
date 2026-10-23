@@ -1112,11 +1112,7 @@ class Affect(
         check and return whether the given affect is considered resolved
         and should have a resolution date
         """
-        return (
-            self.affectedness not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS
-            or self.resolution
-            not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS[self.affectedness]
-        )
+        return affect_is_resolved(self)
 
     @property
     def is_rhscl(self) -> bool:
@@ -1321,11 +1317,7 @@ class AffectV1(AffectExploitExtensionMixin):
         check and return whether the given affect is considered resolved
         and should have a resolution date
         """
-        return (
-            self.affectedness not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS
-            or self.resolution
-            not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS[self.affectedness]
-        )
+        return affect_is_resolved(self)
 
     @property
     def is_rhscl(self) -> bool:
@@ -1435,15 +1427,22 @@ class AffectCVSS(CVSS):
             tracker.save(jira_token=jira_token, jira_email=jira_email)
 
 
-# List of all states an Affect is considered open/not resolved
-AFFECTEDNESS_UNRESOLVED_RESOLUTIONS = {
-    Affect.AffectAffectedness.NEW: [
-        Affect.AffectResolution.NOVALUE,
-    ],
-    Affect.AffectAffectedness.AFFECTED: [
-        Affect.AffectResolution.DELEGATED,
-    ],
+# an affect is unresolved only when NEW without any resolution
+AFFECT_UNRESOLVED = {
+    "affectedness": Affect.AffectAffectedness.NEW,
+    "resolution": Affect.AffectResolution.NOVALUE,
 }
+
+
+def affect_is_resolved(affect) -> bool:
+    """
+    whether work on the given affect is done
+    """
+    return (
+        affect.affectedness != AFFECT_UNRESOLVED["affectedness"]
+        or affect.resolution != AFFECT_UNRESOLVED["resolution"]
+    )
+
 
 AFFECTEDNESS_VALID_RESOLUTIONS = {
     Affect.AffectAffectedness.NEW: [

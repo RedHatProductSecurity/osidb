@@ -26,7 +26,7 @@ class TestAffect:
             (
                 Affect.AffectAffectedness.AFFECTED,
                 Affect.AffectResolution.DELEGATED,
-                False,
+                True,
             ),
             (Affect.AffectAffectedness.NEW, Affect.AffectResolution.WONTFIX, True),
             (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.WONTFIX, True),
@@ -41,7 +41,7 @@ class TestAffect:
             (
                 Affect.AffectAffectedness.AFFECTED,
                 Affect.AffectResolution.DELEGATED,
-                False,
+                True,
             ),
             (Affect.AffectAffectedness.NEW, Affect.AffectResolution.WONTFIX, True),
             (Affect.AffectAffectedness.AFFECTED, Affect.AffectResolution.WONTFIX, True),

@@ -1012,13 +1012,12 @@ class Flaw(
 
     @property
     def has_affects_resolved(self):
-        """check that all affects have been analysed"""
-        from osidb.models import Affect
+        """
+        check that all affects have been resolved - work done
+        """
+        from osidb.models.affect import AFFECT_UNRESOLVED
 
-        return not self.affects.filter(
-            affectedness=Affect.AffectAffectedness.NEW,
-            resolution=Affect.AffectResolution.NOVALUE,
-        ).exists()
+        return not self.affects.filter(**AFFECT_UNRESOLVED).exists()
 
     @property
     def has_trackers(self):
