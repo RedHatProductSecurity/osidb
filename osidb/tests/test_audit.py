@@ -143,6 +143,7 @@ class TestAuditFlaw:
         # track returns just events on the specific entity
         assert pghistory.models.Events.objects.tracks(flaw1).count() == 2
 
+    @pytest.mark.enable_rls
     def test_access_flawevent(
         self,
         public_read_groups,
@@ -153,6 +154,7 @@ class TestAuditFlaw:
         internal_write_groups,
     ):
         """Test that public user cannot access flaw events as per ACLs"""
+        set_user_acls(settings.ALL_GROUPS)
         ps_module = PsModuleFactory(bts_name="jboss")
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
 
@@ -228,6 +230,7 @@ class TestAuditFlaw:
         with transaction.atomic():
             assert pghistory.models.Events.objects.tracks(affect_cvss).count() == 0
 
+    @pytest.mark.enable_rls
     def test_affect_audit_acls_follow_flaw_release(
         self,
         public_read_groups,
@@ -235,7 +238,8 @@ class TestAuditFlaw:
         embargoed_read_groups,
         embargoed_write_groups,
     ):
-        """Affect audit rows must be released with the parent flaw."""
+        """Affect audit rows are visible via RLS delegation to the source object."""
+        set_user_acls(settings.ALL_GROUPS)
         flaw = FlawFactory(embargoed=True)
         affect = AffectFactory(flaw=flaw)
         affect_audit_model = audit_model_for_model(Affect)
@@ -258,10 +262,12 @@ class TestAuditFlaw:
         flaw.unembargo_dt = datetime(2000, 1, 1, tzinfo=timezone.utc)
         flaw.unembargo()
 
+        # audit row's own ACLs are NOT updated (RLS delegates to the source object)
         affect_event.refresh_from_db()
-        assert affect_event.acl_read == public_read_groups
-        assert affect_event.acl_write == public_write_groups
+        assert affect_event.acl_read == embargoed_read_groups
+        assert affect_event.acl_write == embargoed_write_groups
 
+        # but the row IS visible to public users via RLS policy delegation
         set_user_acls(settings.PUBLIC_READ_GROUPS)
         with transaction.atomic():
             assert (
@@ -269,14 +275,16 @@ class TestAuditFlaw:
                 == 1
             )
 
-    def test_deleted_affect_audit_acls_follow_flaw_release(
+    @pytest.mark.enable_rls
+    def test_deleted_affect_audit_acls_fallback_when_source_deleted(
         self,
         public_read_groups,
         public_write_groups,
         embargoed_read_groups,
         embargoed_write_groups,
     ):
-        """Deleted affect audit rows must be released with the parent flaw."""
+        """Deleted affect audit rows fall back to own ACLs when source is gone."""
+        set_user_acls(settings.ALL_GROUPS)
         flaw = FlawFactory(embargoed=True)
         affect = AffectFactory(flaw=flaw)
         affect_id = affect.uuid
@@ -302,15 +310,17 @@ class TestAuditFlaw:
         flaw.unembargo_dt = datetime(2000, 1, 1, tzinfo=timezone.utc)
         flaw.unembargo()
 
+        # source affect is deleted so RLS falls back to audit row's own ACLs
         affect_event.refresh_from_db()
-        assert affect_event.acl_read == public_read_groups
-        assert affect_event.acl_write == public_write_groups
+        assert affect_event.acl_read == embargoed_read_groups
+        assert affect_event.acl_write == embargoed_write_groups
 
+        # row stays hidden from public users (source deleted, fallback to embargoed ACLs)
         set_user_acls(settings.PUBLIC_READ_GROUPS)
         with transaction.atomic():
             assert (
                 affect_audit_model.objects.filter(pgh_id=affect_event.pgh_id).count()
-                == 1
+                == 0
             )
 
     def test_audit_api_cleansing(self, auth_client, test_api_uri):
