@@ -4,6 +4,7 @@ serialize flaw model
 
 import logging
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Iterable, List, Tuple, Type
 
@@ -1348,8 +1349,28 @@ class AffectPostSerializer(AffectSerializer):
     pass
 
 
+class AffectPutSerializer(AffectSerializer):
+    # extra serializer for update (PUT/PATCH) requests
+    # to prohibit the users from changing the parent flaw
+    flaw = serializers.PrimaryKeyRelatedField(
+        queryset=Flaw.objects.all(), required=False
+    )
+
+    def to_internal_value(self, data):
+        # ignore any submitted parent flaw entirely: strip it from the input
+        # before field validation so a nonexistent / deleted / malformed flaw
+        # ID does not reject the request (the affect is permanently bound to
+        # its flaw). The flaw field stays defined on the serializer so the
+        # unique-together validator falls back to the stored parent flaw on
+        # updates instead of validating against the submitted one.
+        if isinstance(data, Mapping) and "flaw" in data:
+            data = data.copy()
+            data.pop("flaw")
+        return super().to_internal_value(data)
+
+
 @extend_schema_serializer()
-class AffectBulkPutSerializer(AffectSerializer):
+class AffectBulkPutSerializer(AffectPutSerializer):
     # extra serializer for a single instance within a bulk PUT request
     # as it needs UUID to be a part of each Affect's object.
     META_ATTR_KEYS = tuple(AffectSerializer.META_ATTR_KEYS + ("uuid",))

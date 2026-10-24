@@ -1716,9 +1716,13 @@ class TestEndpointsAffectsUpdateTrackers:
             assert response.status_code == status.HTTP_200_OK
             assert mock_save.called == triggered
 
-    def test_trigger_affect_flaw_change(self, auth_client, test_api_v2_uri):
+    def test_ignore_affect_flaw_change(self, auth_client, test_api_v2_uri):
         """
-        test that the tracker update is triggered when an affect-flaw link is modified
+        test that an attempt to re-link an affect to a different flaw is ignored
+
+        an affect is permanently bound to its flaw, so a differing flaw in the
+        request body is silently dropped and the affect stays linked to its
+        original flaw
         """
         flaw1 = FlawFactory(impact="MODERATE")
         ps_module = PsModuleFactory()
@@ -1739,14 +1743,14 @@ class TestEndpointsAffectsUpdateTrackers:
         flaw2 = FlawFactory(embargoed=flaw1.embargoed, impact="MODERATE")
         affect_data = {
             "embargoed": flaw2.embargoed,
-            "flaw": flaw2.uuid,  # re-link the affect
+            "flaw": flaw2.uuid,  # attempt to re-link the affect
             "ps_component": affect.ps_component,
             "ps_update_stream": affect.ps_update_stream,
             "purl": _affect_purl_for_api(affect),
             "updated_dt": affect.updated_dt,
         }
 
-        with patch.object(Tracker, "save") as mock_save:
+        with patch.object(Tracker, "save"):
             response = auth_client().put(
                 f"{test_api_v2_uri}/affects/{affect.uuid}",
                 affect_data,
@@ -1754,8 +1758,163 @@ class TestEndpointsAffectsUpdateTrackers:
                 HTTP_BUGZILLA_API_KEY="SECRET",
                 HTTP_JIRA_API_KEY="SECRET",
             )
+            # the re-link is ignored, the update itself succeeds
             assert response.status_code == status.HTTP_200_OK
-            assert mock_save.called
+            assert response.json()["flaw"] == str(flaw1.uuid)
+
+        # the affect stays linked to its original flaw
+        response = auth_client().get(f"{test_api_v2_uri}/affects/{affect.uuid}")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["flaw"] == str(flaw1.uuid)
+
+    def test_keep_affect_flaw_unchanged(self, auth_client, test_api_v2_uri):
+        """
+        test that an update echoing back the affect's current flaw is accepted
+        """
+        flaw = FlawFactory(impact="MODERATE")
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            impact="MODERATE",
+        )
+        affect_data = {
+            "embargoed": flaw.embargoed,
+            "flaw": flaw.uuid,  # same flaw - allowed
+            "ps_component": affect.ps_component,
+            "ps_update_stream": affect.ps_update_stream,
+            "purl": _affect_purl_for_api(affect),
+            "impact": "LOW",
+            "updated_dt": affect.updated_dt,
+        }
+
+        response = auth_client().put(
+            f"{test_api_v2_uri}/affects/{affect.uuid}",
+            affect_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        # the impact update takes effect in the response and in the DB
+        assert response.json()["impact"] == "LOW"
+        affect.refresh_from_db()
+        assert affect.impact == "LOW"
+
+    def test_ignore_affect_flaw_change_with_unique_conflict(
+        self, auth_client, test_api_v2_uri
+    ):
+        """
+        test that re-linking is ignored even when the submitted flaw already has
+        an affect with the same update stream and component
+
+        the submitted flaw must be discarded before DRF's unique-together
+        validator runs, otherwise the validator checks the submitted flaw and
+        rejects an otherwise valid update
+        """
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        flaw1 = FlawFactory(impact="MODERATE")
+        affect = AffectFactory(
+            flaw=flaw1,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="shared-component",
+            impact="MODERATE",
+        )
+
+        # another flaw already owns an affect on the very same stream + component
+        flaw2 = FlawFactory(embargoed=flaw1.embargoed, impact="MODERATE")
+        AffectFactory(
+            flaw=flaw2,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="shared-component",
+        )
+
+        affect_data = {
+            "embargoed": flaw2.embargoed,
+            "flaw": flaw2.uuid,  # attempt to re-link to the conflicting flaw
+            "ps_component": affect.ps_component,
+            "ps_update_stream": affect.ps_update_stream,
+            "purl": _affect_purl_for_api(affect),
+            "impact": "LOW",
+            "updated_dt": affect.updated_dt,
+        }
+
+        response = auth_client().put(
+            f"{test_api_v2_uri}/affects/{affect.uuid}",
+            affect_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        # the submitted flaw is dropped before the unique-together check, so the
+        # update succeeds and the affect stays linked to its original flaw
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["flaw"] == str(flaw1.uuid)
+        assert response.json()["impact"] == "LOW"
+        affect.refresh_from_db()
+        assert affect.flaw == flaw1
+        assert affect.impact == "LOW"
+
+    @pytest.mark.parametrize(
+        "bogus_flaw",
+        [
+            "ffffffff-ffff-ffff-ffff-ffffffffffff",  # nonexistent flaw UUID
+            "not-a-uuid",  # malformed flaw ID
+        ],
+    )
+    def test_ignore_affect_flaw_change_with_bogus_flaw(
+        self, auth_client, test_api_v2_uri, bogus_flaw
+    ):
+        """
+        test that an invalid submitted flaw does not reject the update
+
+        the submitted parent flaw is ignored entirely, so a nonexistent or
+        malformed flaw ID must be stripped before field validation rather than
+        aborting the request
+        """
+        flaw = FlawFactory(impact="MODERATE")
+        ps_module = PsModuleFactory()
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            impact="MODERATE",
+        )
+        affect_data = {
+            "embargoed": flaw.embargoed,
+            "flaw": bogus_flaw,  # invalid flaw - must be ignored, not rejected
+            "ps_component": affect.ps_component,
+            "ps_update_stream": affect.ps_update_stream,
+            "purl": _affect_purl_for_api(affect),
+            "impact": "LOW",
+            "updated_dt": affect.updated_dt,
+        }
+
+        response = auth_client().put(
+            f"{test_api_v2_uri}/affects/{affect.uuid}",
+            affect_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        # the invalid flaw is dropped before validation; the update succeeds and
+        # the affect stays linked to its original flaw
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["flaw"] == str(flaw.uuid)
+        affect.refresh_from_db()
+        assert affect.flaw == flaw
+        assert affect.impact == "LOW"
 
 
 class TestEndpointsAffectsPurl:

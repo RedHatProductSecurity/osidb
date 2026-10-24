@@ -9860,13 +9860,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AffectRequest'
+              $ref: '#/components/schemas/AffectPutRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/AffectRequest'
+              $ref: '#/components/schemas/AffectPutRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/AffectRequest'
+              $ref: '#/components/schemas/AffectPutRequest'
         required: true
       security:
       - OsidbTokenAuthentication: []
@@ -9876,7 +9876,7 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/Affect'
+                - $ref: '#/components/schemas/AffectPut'
                 - type: object
                   properties:
                     dt:
@@ -16511,7 +16511,6 @@ components:
             it is used to detect mit-air collisions.
       required:
       - embargoed
-      - flaw
       - ps_update_stream
       - updated_dt
       - uuid
@@ -16785,14 +16784,17 @@ components:
       - embargoed
       - flaw
       - ps_update_stream
-    AffectReportData:
+    AffectPut:
       type: object
+      description: Affect serializer
       properties:
-        ps_update_stream:
+        uuid:
           type: string
-        ps_component:
+          format: uuid
+          readOnly: true
+        flaw:
           type: string
-          maxLength: 255
+          format: uuid
         affectedness:
           oneOf:
           - $ref: '#/components/schemas/AffectednessEnum'
@@ -16801,12 +16803,127 @@ components:
           oneOf:
           - $ref: '#/components/schemas/ResolutionEnum'
           - $ref: '#/components/schemas/BlankEnum'
+        ps_update_stream:
+          type: string
+        ps_module:
+          type: string
+          readOnly: true
+        cve_id:
+          type: string
+          readOnly: true
+        ps_product:
+          type: string
+          readOnly: true
+        ps_component:
+          type:
+          - string
+          - 'null'
+          default: ''
+          maxLength: 255
+        impact:
+          oneOf:
+          - $ref: '#/components/schemas/ImpactEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         tracker:
-          $ref: '#/components/schemas/TrackerReportData'
+          oneOf:
+          - $ref: '#/components/schemas/Tracker'
+          - type: 'null'
+          readOnly: true
+        delegated_resolution:
+          type: string
+          readOnly: true
+        cvss_scores:
+          type: array
+          items:
+            $ref: '#/components/schemas/AffectCVSS'
+          readOnly: true
+        purl:
+          type:
+          - string
+          - 'null'
+          default: ''
+        subpackage_purls:
+          type: array
+          items:
+            type: string
+        not_affected_justification:
+          oneOf:
+          - $ref: '#/components/schemas/NotAffectedJustificationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        delegated_not_affected_justification:
+          readOnly: true
+          oneOf:
+          - $ref: '#/components/schemas/DelegatedNotAffectedJustificationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        affectedness_explanation:
+          type: string
+          readOnly: true
+        resolved_dt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          readOnly: true
+        labels:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        created_by:
+          type: string
+          readOnly: true
+        updated_by:
+          type: string
+          readOnly: true
+        assist_meta:
+          oneOf:
+          - {}
+          - type: 'null'
+        embargoed:
+          type: boolean
+          description: The embargoed boolean attribute is technically read-only as
+            it just indirectly modifies the ACLs but is mandatory as it controls the
+            access to the resource.
+        visibility:
+          allOf:
+          - $ref: '#/components/schemas/VisibilityEnum'
+          readOnly: true
+          description: The visibility level of the resource based on ACL read groups.
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          readOnly: true
+        created_dt:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_dt:
+          type: string
+          format: date-time
+          description: The updated_dt timestamp attribute is mandatory on update as
+            it is used to detect mit-air collisions.
       required:
-      - ps_component
+      - affectedness_explanation
+      - alerts
+      - created_by
+      - created_dt
+      - cve_id
+      - cvss_scores
+      - delegated_not_affected_justification
+      - delegated_resolution
+      - embargoed
+      - labels
+      - ps_module
+      - ps_product
       - ps_update_stream
-    AffectRequest:
+      - resolved_dt
+      - tracker
+      - updated_by
+      - updated_dt
+      - uuid
+      - visibility
+    AffectPutRequest:
       type: object
       description: Affect serializer
       properties:
@@ -16863,9 +16980,29 @@ components:
             it is used to detect mit-air collisions.
       required:
       - embargoed
-      - flaw
       - ps_update_stream
       - updated_dt
+    AffectReportData:
+      type: object
+      properties:
+        ps_update_stream:
+          type: string
+        ps_component:
+          type: string
+          maxLength: 255
+        affectedness:
+          oneOf:
+          - $ref: '#/components/schemas/AffectednessEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        resolution:
+          oneOf:
+          - $ref: '#/components/schemas/ResolutionEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        tracker:
+          $ref: '#/components/schemas/TrackerReportData'
+      required:
+      - ps_component
+      - ps_update_stream
     AffectV1:
       type: object
       description: Read-only serializer for the AffectV1 database view.
