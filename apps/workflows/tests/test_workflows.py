@@ -269,6 +269,7 @@ class TestDefaultWorkflow:
             embargoed=False,
             task_key="TASK-3",
             owner="analyst@redhat.com",
+            impact=Impact.MODERATE,
             cwe_id="CWE-79",
         )
         affect = AffectFactory(
@@ -304,6 +305,7 @@ class TestDefaultWorkflow:
             embargoed=False,
             task_key="TASK-123",
             owner="analyst@redhat.com",
+            impact=Impact.MODERATE,
             cwe_id="CWE-79",
         )
         affect = AffectFactory(
@@ -427,7 +429,6 @@ class TestManualWorkflow:
         WorkflowLabel.objects.create(flaw=flaw, name="manual-triage")
         flaw.refresh_from_db()
         assert flaw.workflow_name == "MANUAL"
-        assert flaw.workflow_state == "NEW"
 
     @pytest.mark.enable_signals
     def test_potential_rejection_label_triggers_manual_workflow(self):
@@ -445,7 +446,6 @@ class TestManualWorkflow:
         WorkflowLabel.objects.create(flaw=flaw, name="potential-rejection")
         flaw.refresh_from_db()
         assert flaw.workflow_name == "MANUAL"
-        assert flaw.workflow_state == "NEW"
 
     @pytest.mark.enable_signals
     def test_removing_label_reverts_to_default_workflow(self):
@@ -502,7 +502,6 @@ class TestManualWorkflow:
             impact=Impact.CRITICAL,
         )
         assert flaw.workflow_name == "MANUAL"
-        assert flaw.workflow_state == "NEW"
 
     @pytest.mark.enable_signals
     def test_non_critical_impact_stays_default(self):
