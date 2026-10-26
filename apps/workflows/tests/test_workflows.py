@@ -85,101 +85,6 @@ class TestDefaultWorkflow:
     """
 
     @pytest.mark.enable_signals
-    def test_default_workflow_full_traversal(self):
-        """
-        Walk a flaw through NEW → TRIAGE → ANALYSIS → PRE_SECONDARY_ASSESSMENT →
-        SECONDARY_ASSESSMENT → DONE, verifying each requirement gates progression.
-
-        Note: title and comment_zero must be non-empty at creation time due to
-        Django's model-level blank=False constraint. These fields are tested
-        for regression in test_default_workflow_regression instead.
-        """
-        # Start with a minimal flaw — title/comment_zero required by Django,
-        # all other fields left empty to test as gates
-        flaw = FlawFactory(
-            embargoed=False,
-            task_key="TASK-1",
-            owner="",
-            source="",
-            impact="",
-            components=[],
-            reported_dt=None,
-            cwe_id="",
-            cve_description="",
-        )
-        assert flaw.workflow_name == "DEFAULT"
-        assert flaw.workflow_state == "NEW"
-
-        # --- NEW → TRIAGE: requires components, CWE, impact, reported_dt,
-        #     source, title, and (impact is low OR has cve_description) ---
-
-        # add requirements one by one, verify flaw stays in NEW until all present
-        flaw.source = "INTERNET"
-        flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "NEW"
-
-        flaw.components = ["kernel"]
-        flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "NEW"
-
-        flaw.cwe_id = "CWE-79"
-        flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "NEW"
-
-        flaw.impact = Impact.MODERATE
-        flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "NEW"
-
-        flaw.reported_dt = flaw.created_dt
-        flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "NEW"
-
-        # title is already set by FlawFactory, still missing the OR condition
-        # (impact is low OR has cve_description) — MODERATE impact needs cve_description
-        flaw.cve_description = "A vulnerability in the kernel"
-        flaw.save(raise_validation_error=False)
-        assert flaw.workflow_state == "TRIAGE"
-
-        # --- TRIAGE → ANALYSIS: requires affects ---
-
-        # creating an affect triggers reclassification via signal
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.NEW,
-            resolution=Affect.AffectResolution.NOVALUE,
-        )
-        assert flaw.workflow_state == "ANALYSIS"
-
-        # --- ANALYSIS → PRE_SECONDARY_ASSESSMENT: requires affects resolved ---
-
-        affect.affectedness = Affect.AffectAffectedness.AFFECTED
-        affect.resolution = Affect.AffectResolution.DELEGATED
-        affect.save(raise_validation_error=False)
-        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
-
-        # --- PRE_SECONDARY_ASSESSMENT → SECONDARY_ASSESSMENT: requires trackers ---
-
-        # file a tracker and link it to the affect — signal triggers reclassification
-        tracker = TrackerFactory.build(
-            embargoed=False,
-            ps_update_stream=affect.ps_update_stream,
-        )
-        tracker.save()
-        affect.tracker = tracker
-        affect.save(raise_validation_error=False)
-        assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
-
-        # --- SECONDARY_ASSESSMENT → DONE: requires label approved ---
-
-        # creating the label triggers reclassification via signal
-        WorkflowLabel.objects.create(
-            flaw=flaw,
-            name="approved",
-        )
-        assert flaw.workflow_state == "DONE"
-        assert flaw.workflow_name == "DEFAULT"
-
-    @pytest.mark.enable_signals
     def test_default_workflow_regression(self):
         """
         Verify that removing a previously-satisfied requirement causes
@@ -533,6 +438,264 @@ class TestManualWorkflow:
         flaw.impact = Impact.MODERATE
         flaw.save(raise_validation_error=False)
         assert flaw.workflow_name == "DEFAULT"
+
+
+class TestWorkflowFullTraversal:
+    """
+    End-to-end traversals of each workflow, walking a flaw through every state
+    and verifying that requirements gate each transition correctly.
+
+    Child model operations (creating affects, linking trackers, creating labels)
+    automatically trigger flaw reclassification via signals — no explicit
+    flaw.save() needed after them.
+    """
+
+    @pytest.mark.enable_signals
+    def test_default_workflow_full_traversal(self):
+        """
+        Walk a flaw through NEW → TRIAGE → ANALYSIS → PRE_SECONDARY_ASSESSMENT →
+        SECONDARY_ASSESSMENT → DONE, verifying each requirement gates progression.
+
+        Note: title and comment_zero must be non-empty at creation time due to
+        Django's model-level blank=False constraint. These fields are tested
+        for regression in TestDefaultWorkflow.test_default_workflow_regression.
+        """
+        # Start with a minimal flaw — title/comment_zero required by Django,
+        # all other fields left empty to test as gates
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-1",
+            owner="",
+            source="",
+            impact="",
+            components=[],
+            reported_dt=None,
+            cwe_id="",
+            cve_description="",
+        )
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state == "NEW"
+
+        # --- NEW → TRIAGE: requires components, CWE, impact, reported_dt,
+        #     source, title, and (impact is low OR has cve_description) ---
+
+        # add requirements one by one, verify flaw stays in NEW until all present
+        flaw.source = "INTERNET"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "NEW"
+
+        flaw.components = ["kernel"]
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "NEW"
+
+        flaw.cwe_id = "CWE-79"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "NEW"
+
+        flaw.impact = Impact.MODERATE
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "NEW"
+
+        flaw.reported_dt = flaw.created_dt
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "NEW"
+
+        # title is already set by FlawFactory, still missing the OR condition
+        # (impact is low OR has cve_description) — MODERATE impact needs cve_description
+        flaw.cve_description = "A vulnerability in the kernel"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "TRIAGE"
+
+        # --- TRIAGE → ANALYSIS: requires affects ---
+
+        # creating an affect triggers reclassification via signal
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        assert flaw.workflow_state == "ANALYSIS"
+
+        # --- ANALYSIS → PRE_SECONDARY_ASSESSMENT: requires affects resolved ---
+
+        affect.affectedness = Affect.AffectAffectedness.AFFECTED
+        affect.resolution = Affect.AffectResolution.DELEGATED
+        affect.save(raise_validation_error=False)
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+
+        # --- PRE_SECONDARY_ASSESSMENT → SECONDARY_ASSESSMENT: requires trackers ---
+
+        # file a tracker and link it to the affect — signal triggers reclassification
+        tracker = TrackerFactory.build(
+            embargoed=False,
+            ps_update_stream=affect.ps_update_stream,
+        )
+        tracker.save()
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
+        assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
+
+        # --- SECONDARY_ASSESSMENT → DONE: requires label approved ---
+
+        # creating the label triggers reclassification via signal
+        WorkflowLabel.objects.create(
+            flaw=flaw,
+            name="approved",
+        )
+        assert flaw.workflow_state == "DONE"
+        assert flaw.workflow_name == "DEFAULT"
+
+    @pytest.mark.enable_signals
+    def test_manual_workflow_full_traversal(self):
+        """
+        Walk a MANUAL flaw through NEW → TRIAGE → ANALYSIS →
+        PRE_SECONDARY_ASSESSMENT → DONE, verifying the reorganized MANUAL
+        workflow gates progression the same way as DEFAULT.
+
+        Because DONE now has empty requirements, a flaw that satisfies
+        SECONDARY_ASSESSMENT (has trackers) also satisfies DONE and lands
+        directly in DONE — SECONDARY_ASSESSMENT is kinda useless now but
+        there is not yet an agreement to remove it so it is preserved.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-MANUAL-TRAVERSAL",
+            owner="",
+            source="",
+            impact="",
+            components=[],
+            reported_dt=None,
+            cwe_id="",
+            cve_description="",
+        )
+        # an empty flaw starts in the DEFAULT
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state == "NEW"
+
+        # the manual-triage label forces the MANUAL workflow
+        WorkflowLabel.objects.create(flaw=flaw, name="manual-triage")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "MANUAL"
+        assert flaw.workflow_state == "NEW"
+
+        # --- NEW → TRIAGE: data requirements ---
+        flaw.source = "INTERNET"
+        flaw.components = ["kernel"]
+        flaw.cwe_id = "CWE-79"
+        flaw.impact = Impact.MODERATE
+        flaw.reported_dt = flaw.created_dt
+        flaw.cve_description = "A vulnerability in the kernel"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_name == "MANUAL"
+        assert flaw.workflow_state == "TRIAGE"
+
+        # --- TRIAGE → ANALYSIS: requires affects ---
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        assert flaw.workflow_state == "ANALYSIS"
+
+        # --- ANALYSIS → PRE_SECONDARY_ASSESSMENT: requires affects resolved ---
+        affect.affectedness = Affect.AffectAffectedness.AFFECTED
+        affect.resolution = Affect.AffectResolution.DELEGATED
+        affect.save(raise_validation_error=False)
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+
+        # --- filing trackers satisfies SECONDARY_ASSESSMENT and, since DONE has
+        #     no further requirements, the flaw advances straight to DONE ---
+        tracker = TrackerFactory.build(
+            embargoed=False,
+            ps_update_stream=affect.ps_update_stream,
+        )
+        tracker.save()
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
+        assert flaw.workflow_name == "MANUAL"
+        assert flaw.workflow_state == "DONE"
+
+    @pytest.mark.enable_signals
+    def test_embargoed_workflow_full_traversal(self):
+        """
+        Walk an EMBARGOED flaw through NEW → TRIAGE → ANALYSIS →
+        PRE_SECONDARY_ASSESSMENT → SECONDARY_ASSESSMENT, mirroring DEFAULT.
+
+        The EMBARGOED DONE requires the flaw to no longer be embargoed, which
+        conflicts with the workflow condition, so an embargoed flaw can never
+        reach DONE — it rests in SECONDARY_ASSESSMENT until it is unembargoed
+        and falls off this workflow.
+        """
+        flaw = FlawFactory(
+            embargoed=True,
+            task_key="TASK-EMBARGOED-TRAVERSAL",
+            owner="",
+            source="",
+            impact="",
+            components=[],
+            reported_dt=None,
+            cwe_id="",
+            cve_description="",
+        )
+        assert flaw.workflow_name == "EMBARGOED"
+        assert flaw.workflow_state == "NEW"
+
+        # --- NEW → TRIAGE: data requirements (no owner required) ---
+        flaw.source = "INTERNET"
+        flaw.components = ["kernel"]
+        flaw.cwe_id = "CWE-79"
+        flaw.impact = Impact.MODERATE
+        flaw.reported_dt = flaw.created_dt
+        flaw.cve_description = "A vulnerability in the kernel"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "TRIAGE"
+
+        # --- TRIAGE → ANALYSIS: requires affects ---
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        assert flaw.workflow_state == "ANALYSIS"
+
+        # --- ANALYSIS → PRE_SECONDARY_ASSESSMENT: requires affects resolved ---
+        affect.affectedness = Affect.AffectAffectedness.AFFECTED
+        affect.resolution = Affect.AffectResolution.DELEGATED
+        affect.save(raise_validation_error=False)
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+
+        # --- PRE_SECONDARY_ASSESSMENT → SECONDARY_ASSESSMENT: requires trackers.
+        #     DONE requires the flaw to be unembargoed, which conflicts with the
+        #     EMBARGOED condition, so the flaw rests in SECONDARY_ASSESSMENT ---
+        tracker = TrackerFactory.build(
+            embargoed=True,
+            ps_update_stream=affect.ps_update_stream,
+        )
+        tracker.save()
+        affect.tracker = tracker
+        affect.save(raise_validation_error=False)
+        assert flaw.workflow_name == "EMBARGOED"
+        assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
+
+    @pytest.mark.enable_signals
+    def test_rejected_workflow_full_traversal(self):
+        """
+        The REJECTED workflow has a single DONE state with no requirements.
+        A flaw labelled rejected (or auto-rejected) is classified straight
+        into REJECTED/DONE regardless of how much data it has.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-REJECTED-TRAVERSAL",
+            impact=Impact.MODERATE,
+        )
+        assert flaw.workflow_name == "DEFAULT"
+
+        # the rejected label forces the REJECTED workflow, whose only state is DONE
+        WorkflowLabel.objects.create(flaw=flaw, name="rejected")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "REJECTED"
+        assert flaw.workflow_state == "DONE"
 
 
 class TestNoClassification:
