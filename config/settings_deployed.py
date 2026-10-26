@@ -87,7 +87,8 @@ DATABASES = {
             "gssencmode": "disable",
             # this is a hack due to our inability to set a custom parameter either at
             # the database or role level in managed databases such as AWS RDS
-            "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000",
+            # Set search_path to osidb_admin schema to ensure migrations and app use same schema
+            "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000 -c search_path=osidb_admin,public",
         },
         "CONN_MAX_AGE": 120,
     },
@@ -104,7 +105,8 @@ DATABASES = {
             "gssencmode": "disable",
             # this is a hack due to our inability to set a custom parameter either at
             # the database or role level in managed databases such as AWS RDS
-            "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000",
+            # Set search_path to osidb_admin schema to ensure migrations and app use same schema
+            "options": "-c osidb.acl=00000000-0000-0000-0000-000000000000 -c search_path=osidb_admin,public",
         },
         "CONN_MAX_AGE": 120,
     },

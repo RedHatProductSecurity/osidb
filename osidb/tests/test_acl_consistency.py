@@ -9,11 +9,14 @@ from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
+from django.db.models.query import QuerySet
 
 from osidb.models import Affect, AliasLabel, Tracker
 from osidb.tests.factories import (
     AffectFactory,
+    FlawCommentFactory,
     FlawFactory,
+    FlawReferenceFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
@@ -24,12 +27,12 @@ class TestAtomicRollbackOnFailure:
     """Verify transactions rollback correctly when failures occur during ACL updates."""
 
     @pytest.mark.django_db
-    def test_rollback_when_recursive_unembargo_fails(
+    def test_rollback_when_bulk_unembargo_fails(
         self,
         embargoed_read_groups,
         embargoed_write_groups,
     ):
-        """When recursive unembargo of nested entity fails, all changes rollback."""
+        """When bulk ACL update during unembargo fails, all changes rollback."""
         ps_module = PsModuleFactory()
         ps_stream = PsUpdateStreamFactory(ps_module=ps_module)
 
@@ -61,16 +64,23 @@ class TestAtomicRollbackOnFailure:
         original_flaw_acls = (list(flaw.acl_read), list(flaw.acl_write))
         original_affect_acls = (list(affect.acl_read), list(affect.acl_write))
         original_tracker_acls = (list(tracker.acl_read), list(tracker.acl_write))
-        original_unembargo = Affect.unembargo
 
-        def failing_unembargo_on_affect(self):
-            # Fail when unembargo is called on an Affect
-            if isinstance(self, Affect):
-                raise Exception("Simulated failure during recursive unembargo")
-            return original_unembargo(self)
+        # Patch QuerySet.update to fail only for the Tracker update. The Affect
+        # update (and the Alert bulk-update it triggers) has already been
+        # applied at that point, so this tests rollback of a partial bulk
+        # update. Selecting by model rather than call order keeps this test
+        # correct regardless of how many other QuerySet.update() calls
+        # set_acls_nested() makes before reaching Tracker (e.g. the Alert
+        # propagation update).
+        original_update = QuerySet.update
 
-        with patch.object(Affect, "unembargo", failing_unembargo_on_affect):
-            with pytest.raises(Exception, match="Simulated failure during recursive"):
+        def failing_update(self_qs, **kwargs):
+            if self_qs.model is Tracker:
+                raise Exception("Simulated failure during bulk ACL update")
+            return original_update(self_qs, **kwargs)
+
+        with patch.object(QuerySet, "update", failing_update):
+            with pytest.raises(Exception, match="Simulated failure during bulk ACL"):
                 flaw.unembargo_dt = datetime(2000, 1, 1, tzinfo=timezone.utc)
                 flaw.unembargo()
 
@@ -218,14 +228,10 @@ class TestAtomicRollbackOnFailure:
         stale_flaw.workflow_state = "PUBLIC_STATE"
         assert stale_flaw.is_internal
 
-        with (
-            patch.object(stale_flaw, "set_acls_nested") as set_acls_nested,
-            patch.object(stale_flaw, "set_acls_history") as set_acls_history,
-        ):
+        with patch.object(stale_flaw, "set_acls_nested") as set_acls_nested:
             stale_flaw.adjust_acls()
 
         set_acls_nested.assert_not_called()
-        set_acls_history.assert_not_called()
         assert stale_flaw.acl_read == public_read_groups
         assert stale_flaw.acl_write == public_write_groups
 
@@ -349,11 +355,11 @@ class TestCollectObjectsForAclUpdate:
     ):
         """
         Regression test for: TypeError: attribute name must be string, not 'NoneType'
-        in the unembargo() path (same root cause as set_acls_nested).
+        in the set_acls_nested / _collect_objects_for_acl_update path.
 
-        unembargo() iterates _meta.related_objects to recursively unembargo related
-        ACLMixin instances, but polymorphic back-pointers have related_name=None,
-        causing getattr(self, None).all() to crash.
+        Polymorphic back-pointers have related_name=None; iterating
+        _meta.related_objects must skip them to avoid
+        getattr(self, None).all() crashes.
         """
         from datetime import datetime
         from datetime import timezone as dt_timezone
@@ -376,3 +382,150 @@ class TestCollectObjectsForAclUpdate:
 
         flaw.refresh_from_db()
         assert flaw.is_public
+
+    @pytest.mark.django_db
+    def test_unembargo_does_not_widen_other_flaws_children(
+        self,
+        embargoed_read_groups,
+        embargoed_write_groups,
+        public_read_groups,
+        public_write_groups,
+    ):
+        """
+        Two embargoed flaws share a tracker. Unembargoing flaw1 must not
+        widen ACLs on flaw2's comments, references, or any other children.
+        """
+        ps_module = PsModuleFactory()
+        ps_stream = PsUpdateStreamFactory(ps_module=ps_module)
+
+        flaw1 = FlawFactory(
+            embargoed=True,
+            acl_read=embargoed_read_groups,
+            acl_write=embargoed_write_groups,
+        )
+        flaw2 = FlawFactory(
+            embargoed=True,
+            acl_read=embargoed_read_groups,
+            acl_write=embargoed_write_groups,
+        )
+
+        affect1 = AffectFactory(
+            flaw=flaw1,
+            ps_module=ps_module.name,
+            ps_update_stream=ps_stream.name,
+            ps_component="comp-a",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            acl_read=embargoed_read_groups,
+            acl_write=embargoed_write_groups,
+        )
+        affect2 = AffectFactory(
+            flaw=flaw2,
+            ps_module=ps_module.name,
+            ps_update_stream=ps_stream.name,
+            ps_component="comp-a",
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            acl_read=embargoed_read_groups,
+            acl_write=embargoed_write_groups,
+        )
+
+        shared_tracker = TrackerFactory(
+            affects=[affect1, affect2],
+            embargoed=True,
+            ps_update_stream=ps_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+            acl_read=embargoed_read_groups,
+            acl_write=embargoed_write_groups,
+        )
+
+        flaw2_comment = FlawCommentFactory(
+            flaw=flaw2,
+            acl_read=embargoed_read_groups,
+            acl_write=embargoed_write_groups,
+        )
+        flaw2_reference = FlawReferenceFactory(
+            flaw=flaw2,
+            acl_read=embargoed_read_groups,
+            acl_write=embargoed_write_groups,
+        )
+
+        # flaw1_comment does not use CustomQuerySetUpdatedDt, flaw1_reference
+        # does -- cover both when checking that unembargo() does not bump
+        # nested updated_dt (mid-air collision prevention).
+        flaw1_comment = FlawCommentFactory(
+            flaw=flaw1,
+            acl_read=embargoed_read_groups,
+            acl_write=embargoed_write_groups,
+        )
+        flaw1_reference = FlawReferenceFactory(
+            flaw=flaw1,
+            acl_read=embargoed_read_groups,
+            acl_write=embargoed_write_groups,
+        )
+        pre_unembargo_updated_dts = {
+            obj: obj.updated_dt for obj in (affect1, flaw1_comment, flaw1_reference)
+        }
+
+        # Alerts are attached via a GenericRelation, so they are not
+        # collected by _collect_objects_for_acl_update and need their own
+        # propagation in set_acls_nested(). Cover that here: alert1 (on
+        # affect1/flaw1) must become public, alert2 (on affect2/flaw2) must
+        # stay embargoed.
+        from django.contrib.contenttypes.models import ContentType
+
+        from osidb.mixins import Alert
+
+        affect_ct = ContentType.objects.get_for_model(Affect)
+        alert1 = Alert.objects.create(
+            name="alert1",
+            description="d",
+            content_type=affect_ct,
+            object_id=str(affect1.uuid),
+            acl_read=embargoed_read_groups,
+            acl_write=embargoed_write_groups,
+        )
+        alert2 = Alert.objects.create(
+            name="alert2",
+            description="d",
+            content_type=affect_ct,
+            object_id=str(affect2.uuid),
+            acl_read=embargoed_read_groups,
+            acl_write=embargoed_write_groups,
+        )
+
+        pre_flaw1_updated_dt = flaw1.updated_dt
+        pre_flaw1_local_updated_dt = flaw1.local_updated_dt
+
+        flaw1.unembargo_dt = datetime(2000, 1, 1, tzinfo=timezone.utc)
+        flaw1.unembargo()
+
+        # flaw1 and its nested objects should be public, with their
+        # updated_dt left untouched
+        flaw1.refresh_from_db()
+        assert flaw1.is_public
+        assert flaw1.updated_dt == pre_flaw1_updated_dt
+        # local_updated_dt is bumped once to reflect that the nested tree
+        # changed, replacing the old per-child post_save dispatch
+        assert flaw1.local_updated_dt != pre_flaw1_local_updated_dt
+        for obj, pre_updated_dt in pre_unembargo_updated_dts.items():
+            obj.refresh_from_db()
+            assert obj.acl_read == public_read_groups
+            assert obj.updated_dt == pre_updated_dt
+
+        alert1.refresh_from_db()
+        assert alert1.acl_read == public_read_groups
+        alert2.refresh_from_db()
+        assert alert2.acl_read == embargoed_read_groups
+
+        # flaw2 and its children must remain embargoed
+        flaw2.refresh_from_db()
+        assert flaw2.acl_read == embargoed_read_groups
+        affect2.refresh_from_db()
+        assert affect2.acl_read == embargoed_read_groups
+        flaw2_comment.refresh_from_db()
+        assert flaw2_comment.acl_read == embargoed_read_groups
+        flaw2_reference.refresh_from_db()
+        assert flaw2_reference.acl_read == embargoed_read_groups
+
+        # shared tracker stays embargoed (flaw2 still embargoed)
+        shared_tracker.refresh_from_db()
+        assert shared_tracker.acl_read == embargoed_read_groups

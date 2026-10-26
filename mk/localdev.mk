@@ -48,7 +48,8 @@ stop-local:
 migrations-create:
 	@if ! $(compose) exec osidb-service bash -c '( { curl -f http://127.0.0.1:8000/osidb/healthy >/dev/null 2>&1 || exit 1 ; } )' 2>/dev/null ; then make compose-up ; fi
 	@echo ">creating migrations in osidb-service"
-	$(compose) exec osidb-service python3 manage.py makemigrations --settings config.settings_local
+	$(compose) exec -e OSIDB_DB_USER=osidb_manage_user -e OSIDB_DB_PASSWORD=passw0rd \
+		osidb-service python3 manage.py makemigrations --settings config.settings_local
 
 
 #***********************************
@@ -59,7 +60,8 @@ migrations-create:
 migrations-apply:
 	@if ! $(compose) exec osidb-service bash -c '( { curl -f http://127.0.0.1:8000/osidb/healthy >/dev/null 2>&1 || exit 1 ; } )' 2>/dev/null ; then make compose-up ; fi
 	@echo ">appyling migrations in osidb-service"
-	$(compose) exec osidb-service python3 manage.py migrate --settings config.settings_local
+	$(compose) exec -e OSIDB_DB_USER=osidb_manage_user -e OSIDB_DB_PASSWORD=passw0rd \
+		osidb-service python3 manage.py migrate --settings config.settings_local
 
 
 #***********************************
@@ -158,15 +160,6 @@ command-local: check-venv-active
 .PHONY : bash-local
 bash-local: check-venv-active
 	OSIDB_DB_PORT=$$( $(compose) port osidb-data 5432 | awk -F':' '{ print $$NF }' ) && export OSIDB_DB_PORT && source .env && export OSIDB_DB_PASSWORD && bash
-
-
-#***********************************
-### Update generated API docs extracted from Django
-#***********************************
-.PHONY : update-schema
-update-schema:
-	@echo ">updating openapi.yml"
-	./scripts/schema-check.sh
 
 
 #***********************************

@@ -6,7 +6,6 @@ from itertools import batched, chain
 
 import pghistory
 import pgtrigger
-from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -729,146 +728,23 @@ class ACLMixin(models.Model):
                     + ("embargoed" if self.flaw.is_embargoed else "public")
                 )
 
-    def set_acls_history(self, acl_read=None, acl_write=None):
-        """
-        set the history ACLs to match the given or current instance ACLs
-        """
-        acl_read = list(acl_read if acl_read is not None else self.acl_read)
-        acl_write = list(acl_write if acl_write is not None else self.acl_write)
-        refs = pghistory.models.Events.objects.tracks(self).all()
-        for ref in refs:
-            model_audit = apps.get_model(ref.pgh_model).objects.filter(
-                pgh_id=ref.pgh_id
-            )
-
-            with pgtrigger.ignore(f"{ref.pgh_model}:append_only"):
-                model_audit.exclude(
-                    acl_read=acl_read,
-                    acl_write=acl_write,
-                ).update(
-                    acl_read=acl_read,
-                    acl_write=acl_write,
-                )
-
-        self._set_related_acls_history(acl_read, acl_write)
-
-    def _set_related_acls_history(self, acl_read, acl_write, max_chunk_size=5000):
-        """Set ACLs on audited rows related through ACL-managed models."""
-        if self.pk is None:
-            return
-
-        from osidb.models.audit_history import audit_model_for_model
-
-        target_ids_by_model = defaultdict(set)
-        for relation in self._meta.related_objects:
-            relation_field = getattr(relation, "field", None)
-            related_model = relation.related_model
-            if (
-                relation.related_name is None
-                or relation.related_name == "+"
-                or relation.related_name == "snippets"
-                or getattr(relation, "hidden", False)
-                or not isinstance(
-                    relation_field, (models.ForeignKey, models.OneToOneField)
-                )
-                or not issubclass(related_model, ACLMixin)
-            ):
-                continue
-
-            audit_model = audit_model_for_model(related_model)
-            if audit_model is None:
-                continue
-
-            audit_field_names = {
-                field.attname for field in audit_model._meta.concrete_fields
-            }
-            relation_field_name = relation_field.attname
-            if relation_field_name not in audit_field_names:
-                continue
-
-            audit_queryset = audit_model.objects.filter(
-                **{relation_field_name: self.pk}
-            )
-            self._update_audit_history_acls(
-                audit_model, audit_queryset, acl_read, acl_write
-            )
-
-            for field in related_model._meta.concrete_fields:
-                if (
-                    field.attname == relation_field_name
-                    or not isinstance(field, (models.ForeignKey, models.OneToOneField))
-                    or field.attname not in audit_field_names
-                    or not issubclass(field.related_model, ACLMixin)
-                    or field.related_model._meta.concrete_model
-                    == self._meta.concrete_model
-                ):
-                    continue
-
-                target_ids_by_model[field.related_model].update(
-                    audit_queryset.exclude(**{f"{field.attname}__isnull": True})
-                    .values_list(field.attname, flat=True)
-                    .distinct()
-                )
-
-        for target_model, target_ids in target_ids_by_model.items():
-            audit_model = audit_model_for_model(target_model)
-            if audit_model is None:
-                continue
-
-            safe_target_ids = self._safe_related_acl_history_target_ids(
-                target_model, target_ids
-            )
-            with pgtrigger.ignore(f"{audit_model._meta.label}:append_only"):
-                for target_id_chunk in batched(safe_target_ids, max_chunk_size):
-                    audit_model.objects.filter(pgh_obj_id__in=target_id_chunk).exclude(
-                        acl_read=acl_read,
-                        acl_write=acl_write,
-                    ).update(acl_read=acl_read, acl_write=acl_write)
-
-    def _update_audit_history_acls(
-        self, audit_model, audit_queryset, acl_read, acl_write
-    ):
-        with pgtrigger.ignore(f"{audit_model._meta.label}:append_only"):
-            audit_queryset.exclude(
-                acl_read=acl_read,
-                acl_write=acl_write,
-            ).update(
-                acl_read=acl_read,
-                acl_write=acl_write,
-            )
-
-    def _safe_related_acl_history_target_ids(self, target_model, target_ids):
-        queryset = target_model.objects.filter(pk__in=target_ids)
-        for relation in target_model._meta.related_objects:
-            if (
-                relation.related_name is not None
-                and relation.related_name != "+"
-                and not getattr(relation, "hidden", False)
-                and issubclass(relation.related_model, ACLMixin)
-            ):
-                queryset = queryset.exclude(
-                    **{f"{relation.related_name}__embargoed": True}
-                )
-        return queryset.order_by("pk").values_list("pk", flat=True).distinct()
-
     def unembargo(self):
         """
-        unembargo the whole instance context internally
+        Unembargo this instance and all its related ACL-managed objects.
 
-        in the Bugzilla world a lot of OSIDB entities are actually parts
-        of the flaw bug and we will update them by a single query afterwards
+        Instead of recursively calling .save() on every related object
+        individually (which causes ~250 saves with signal handlers and
+        non-deterministic row lock ordering leading to OSIDB-5456 deadlocks),
+        this saves only the root object and then delegates to set_acls_nested()
+        which performs a single bulk UPDATE per model class.
         """
-        # Since ACLMixin is used across related classes, each must be permitted to implement their own
-        # visibility logic. Bailing out allows for unique visibility handling across such classes
         isnt_embargoed = not self.is_embargoed
         cant_unembargo = hasattr(self, "can_unembargo") and not self.can_unembargo()
         if isnt_embargoed or cant_unembargo:
             return
 
         with transaction.atomic():
-            # unembargo
             self.set_acls(ACL.PUBLIC)
-            self.set_acls_history()
 
             kwargs = {}
             if issubclass(type(self), AlertMixin):
@@ -881,31 +757,12 @@ class ACLMixin(models.Model):
                 kwargs["auto_timestamps"] = False
 
             self.save(**kwargs)
-
-            # chain all the related instances in reverse relationships (o2m, m2m)
-            # as we only care for the ACLs which are unified
-            for related_instance in chain.from_iterable(
-                getattr(self, name).all()
-                for name in [
-                    related.related_name
-                    for related in self._meta.related_objects
-                    # only the models with ACLs are subject of this
-                    # related_name is None for polymorphic back-pointers (no usable accessor)
-                    if issubclass(related.related_model, ACLMixin)
-                    and related.related_name is not None
-                ]
-            ):
-                # continue deeper into the related context
-                related_instance.unembargo()
-
-            # chain related instances in forward relationships (m2o, o2o)
-            for field in self._meta.concrete_fields:
-                if isinstance(
-                    field, (models.ForeignKey, models.OneToOneField)
-                ) and issubclass(field.related_model, ACLMixin):
-                    related_instance = getattr(self, field.name)
-                    if related_instance:
-                        related_instance.unembargo()
+            # mirror the auto_timestamps=False above: the old recursive
+            # unembargo() never bumped a descendant's updated_dt either (each
+            # level applied the same auto_timestamps=False to its own save()),
+            # so a client holding a pre-unembargo updated_dt for a nested
+            # object would not hit TrackingMixin's mid-air collision check
+            self.set_acls_nested(auto_timestamps=False)
 
     def set_public_nested(self, max_chunk_size=5000):
         """
@@ -919,25 +776,71 @@ class ACLMixin(models.Model):
             max_chunk_size=max_chunk_size,
         )
 
-    def set_acls_nested(self, acl_read=None, acl_write=None, max_chunk_size=5000):
+    def set_acls_nested(
+        self, acl_read=None, acl_write=None, max_chunk_size=5000, auto_timestamps=True
+    ):
         """
         Propagate ACLs to all related objects. Uses the given ACLs or
         falls back to the current instance's ACLs.
 
         Collects all related objects that need updating and performs
         chunked queryset updates to minimize database queries.
+
+        auto_timestamps mirrors TrackingMixin.save(): when False, the
+        updated_dt of nested TrackingMixin objects is left untouched instead
+        of being bumped to now.
         """
         acl_read = list(acl_read if acl_read is not None else self.acl_read)
         acl_write = list(acl_write if acl_write is not None else self.acl_write)
 
+        from osidb.models import Flaw
+        from osidb.models.affect import Affect
+        from osidb.models.tracker import Tracker
+
+        root_flaw_pk = self.pk if isinstance(self, Flaw) else None
+
         objects_to_update = defaultdict(set)
         visited = set()
-        self._collect_objects_for_acl_update(objects_to_update, visited)
+        self._collect_objects_for_acl_update(
+            objects_to_update, visited, root_flaw_pk=root_flaw_pk
+        )
 
         if not any(objects_to_update.values()):
             return
 
+        # Guard against widening Affects that belong to other flaws.
+        # The traversal walks through shared Trackers and collects
+        # cross-flaw Affects; keep only those belonging to this flaw.
+        if Affect in objects_to_update and objects_to_update[Affect]:
+            if root_flaw_pk is not None:
+                own_affect_pks = set(
+                    Affect.objects.filter(
+                        pk__in=objects_to_update[Affect],
+                        flaw_id=root_flaw_pk,
+                    ).values_list("pk", flat=True)
+                )
+                objects_to_update[Affect] = own_affect_pks
+
+        # Guard against prematurely widening Trackers that are shared with
+        # other embargoed Flaws.  A Tracker linked to Affects from multiple
+        # Flaws must stay embargoed as long as ANY of its parent Affects
+        # (from Flaws NOT being updated in this operation) are still
+        # embargoed.
+        if Tracker in objects_to_update and objects_to_update[Tracker]:
+            if root_flaw_pk is not None:
+                blocked_tracker_pks = set(
+                    Affect.objects.filter(
+                        tracker_id__in=objects_to_update[Tracker],
+                        embargoed=True,
+                    )
+                    .exclude(flaw_id=root_flaw_pk)
+                    .values_list("tracker_id", flat=True)
+                    .distinct()
+                )
+                objects_to_update[Tracker] -= blocked_tracker_pks
+
         now = timezone.now().replace(microsecond=0)
+        any_updated = False
 
         for model_class, object_ids in sorted(
             objects_to_update.items(), key=lambda item: item[0]._meta.label_lower
@@ -950,13 +853,41 @@ class ACLMixin(models.Model):
 
             update_kwargs = {"acl_read": acl_read, "acl_write": acl_write}
             if issubclass(model_class, TrackingMixin):
-                update_kwargs["updated_dt"] = now
+                # Several models' default manager uses
+                # CustomQuerySetUpdatedDt, whose update() auto-injects
+                # updated_dt=now() whenever it is absent from kwargs. Passing
+                # models.F("updated_dt") keeps this a true no-op (and is a
+                # harmless explicit no-op for the models that don't use that
+                # queryset either) while still opting out of the bump.
+                update_kwargs["updated_dt"] = (
+                    now if auto_timestamps else models.F("updated_dt")
+                )
 
-            changed_pks = []
+            updated_pks = []
             for pk_chunk in batched(sorted(object_ids, key=str), max_chunk_size):
-                queryset = model_class.objects.filter(pk__in=pk_chunk).exclude(
-                    acl_read=acl_read,
-                    acl_write=acl_write,
+                # Sorting pk_chunk only orders the Python-side list; it does
+                # not constrain the lock order of the plain SELECT below or
+                # of the bulk UPDATE further down, since Postgres is free to
+                # scan/lock a `pk IN (...)` match in whatever order its query
+                # plan picks (e.g. bitmap heap scans visit rows in physical,
+                # not logical, order). Two concurrent callers touching
+                # overlapping rows could then lock them in different orders
+                # and deadlock -- the exact OSIDB-5456 failure mode this
+                # bulk approach is meant to remove. select_for_update()
+                # combined with order_by("pk") makes Postgres lock the rows
+                # in pk order up front (via an index scan on the pk index),
+                # so the later bulk UPDATE -- which only touches rows this
+                # same transaction already holds the lock on -- can't
+                # introduce a different lock order. no_key=True since this
+                # only ever updates non-key columns (acl_read, acl_write,
+                # updated_dt), matching the select_for_update() usage
+                # elsewhere in the codebase. skip_locked is deliberately not
+                # used: skipping a locked-but-not-yet-updated row would leave
+                # it with stale ACLs instead of just being slower.
+                queryset = (
+                    model_class.objects.select_for_update(no_key=True)
+                    .filter(pk__in=pk_chunk)
+                    .exclude(acl_read=acl_read, acl_write=acl_write)
                 )
                 pk_chunk_to_update = list(
                     queryset.order_by("pk").values_list("pk", flat=True)
@@ -968,23 +899,80 @@ class ACLMixin(models.Model):
                     acl_read=acl_read,
                     acl_write=acl_write,
                 ).update(**update_kwargs)
-                changed_pks.extend(pk_chunk_to_update)
+                updated_pks.extend(pk_chunk_to_update)
 
-            for pk in changed_pks:
-                model_class(pk=pk).set_acls_history(acl_read, acl_write)
+                # Alert is attached via a GenericRelation (content_type +
+                # object_id), so it is never visited by
+                # _collect_objects_for_acl_update and its own acl_read/
+                # acl_write would otherwise go stale here. Propagate
+                # explicitly for now, chunked the same way as the update
+                # above so this stays bounded by max_chunk_size too.
+                #
+                # Longer term, Alert is a strong candidate for the same
+                # treatment given to the audit tables in
+                # osidb/migrations/0276_rls_audit_delegation.py: have its RLS
+                # policies delegate to the parent object's ACL (via a
+                # SECURITY DEFINER lookup keyed on content_type/object_id)
+                # instead of storing/propagating its own ACL columns. An
+                # Alert is rarely, if ever, meaningful outside the context of
+                # its parent, so delegating removes this whole class of bug.
+                if issubclass(model_class, AlertMixin):
+                    Alert.objects.filter(
+                        content_type=ContentType.objects.get_for_model(model_class),
+                        object_id__in=[str(pk) for pk in pk_chunk_to_update],
+                    ).update(acl_read=acl_read, acl_write=acl_write)
 
-    def _collect_objects_for_acl_update(self, objects_to_update, visited):
+            if updated_pks:
+                any_updated = True
+
+        # Deliberately not re-dispatching post_save per updated row here: doing
+        # so would re-save the parent Flaw once per child (via the
+        # *_update_local_updated_dt receivers in signals.py), reintroducing
+        # the O(n) save pattern this bulk approach replaces. The one effect
+        # those receivers provide that matters here -- keeping the root
+        # Flaw's local_updated_dt (used by the changed_after/changed_before
+        # API filters) in sync with its nested entities -- is applied once
+        # below instead. updated_dt=F("updated_dt") keeps this a no-op for
+        # Flaw's own mid-air collision timestamp (see comment above).
+        #
+        # Note this also means any *other* pre_save/post_save side effect on
+        # a bulk-updated model (label maintenance, denormalized fields,
+        # impact tracking, etc.) does not run here, same as it already
+        # doesn't for the pre_save side given QuerySet.update() bypasses
+        # Django signals entirely. As of writing, every such receiver on the
+        # affected models is gated on a field this bulk ACL-only update never
+        # touches, so none has a missing side effect in practice -- but a
+        # future receiver that reacts to acl_read/acl_write specifically
+        # would need its own bulk-safe handling here.
+        if any_updated and root_flaw_pk is not None:
+            Flaw.objects.filter(pk=root_flaw_pk).update(
+                local_updated_dt=now, updated_dt=models.F("updated_dt")
+            )
+
+    def _collect_objects_for_acl_update(
+        self, objects_to_update, visited, root_flaw_pk=None
+    ):
         """
         Recursively collect all related objects that need to have their ACLs
         updated. The Flaw itself is not collected as it's saved separately.
 
         Uses a defaultdict(set) keyed by model class to collect pks.
         Uses a set of (type, pk) to prevent infinite recursion.
+
+        When root_flaw_pk is set, the traversal will not cross flaw
+        boundaries: foreign Flaws and Affects belonging to other Flaws
+        are skipped so their children are never collected.
         """
         from osidb.models import Flaw
 
         if self.pk is None:
             return
+
+        if root_flaw_pk is not None:
+            if isinstance(self, Flaw) and self.pk != root_flaw_pk:
+                return
+            if hasattr(self, "flaw_id") and self.flaw_id != root_flaw_pk:
+                return
 
         visit_key = (type(self), self.pk)
 
@@ -1008,7 +996,9 @@ class ACLMixin(models.Model):
                 )
             ]
         ):
-            related_instance._collect_objects_for_acl_update(objects_to_update, visited)
+            related_instance._collect_objects_for_acl_update(
+                objects_to_update, visited, root_flaw_pk=root_flaw_pk
+            )
         for field in self._meta.concrete_fields:
             if isinstance(
                 field, (models.ForeignKey, models.OneToOneField)
@@ -1016,7 +1006,7 @@ class ACLMixin(models.Model):
                 related_instance = getattr(self, field.name)
                 if related_instance:
                     related_instance._collect_objects_for_acl_update(
-                        objects_to_update, visited
+                        objects_to_update, visited, root_flaw_pk=root_flaw_pk
                     )
 
 

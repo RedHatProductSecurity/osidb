@@ -2,9 +2,12 @@ from datetime import datetime, timezone
 from itertools import chain
 
 import pytest
+from django.conf import settings
+from django.db import transaction
 from freezegun import freeze_time
 from rest_framework import status
 
+from osidb.core import set_user_acls
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -79,6 +82,7 @@ class TestEndpointsFlawsUnembargo:
             assert not Affect.objects.first().is_embargoed
             assert not Flaw.objects.first().is_embargoed
 
+    @pytest.mark.enable_rls
     @freeze_time(datetime(2020, 10, 10, tzinfo=timezone.utc))
     def test_complex(
         self,
@@ -92,6 +96,7 @@ class TestEndpointsFlawsUnembargo:
         """
         test that a complex flaw context can be correctly unembargoed
         """
+        set_user_acls(settings.ALL_GROUPS)
         flaw = FlawFactory(
             embargoed=True,
             unembargo_dt=datetime(2030, 10, 10, tzinfo=timezone.utc),
@@ -151,6 +156,49 @@ class TestEndpointsFlawsUnembargo:
             )
         )
 
+        models = [
+            Flaw,
+            FlawAcknowledgment,
+            FlawComment,
+            FlawCVSS,
+            FlawReference,
+            Affect,
+            AffectCVSS,
+            Tracker,
+            Package,
+        ]
+        # Capture the instances now, while every object is visible, so the
+        # audit-event assertions below can reuse these Python objects instead
+        # of re-querying the source tables under a restricted ACL (which
+        # would hide them entirely while the flaw is still embargoed).
+        instances_by_model = {model: list(model.objects.all()) for model in models[:-1]}
+
+        # Capture the pgh_id of every event that exists *before* unembargo.
+        # unembargo() saves the root object and bulk-updates the ACLs of the
+        # related ACLMixin instances (set_acls_nested). The pghistory update
+        # triggers still fire, so each row gets a brand-new "update" event
+        # whose own acl_read is already public at insert time. Asserting
+        # plain `events.count() > 0` afterwards would pass
+        # on that new event alone, regardless of whether these specific,
+        # originally-embargoed events became visible via delegation. So we
+        # check that these exact pre-unembargo ids are still visible,
+        # rather than that *some* event is visible.
+        pre_unembargo_event_ids = {
+            instance: set(instance.events.values_list("pgh_id", flat=True))
+            for instances in instances_by_model.values()
+            for instance in instances
+        }
+        assert all(pre_unembargo_event_ids.values())
+
+        # RLS policies delegate to source objects, so while the flaw is still
+        # embargoed a public reader must not see any audit event for it either
+        set_user_acls(settings.PUBLIC_READ_GROUPS)
+        with transaction.atomic():
+            for instances in instances_by_model.values():
+                for instance in instances:
+                    assert instance.events.count() == 0
+
+        set_user_acls(settings.ALL_GROUPS)
         with freeze_time(datetime(2030, 10, 10, tzinfo=timezone.utc)):
             flaw_data = {
                 "comment_zero": flaw.comment_zero,
@@ -167,27 +215,22 @@ class TestEndpointsFlawsUnembargo:
                 HTTP_JIRA_API_KEY="SECRET",
             )
             assert response.status_code == status.HTTP_200_OK
-            models = [
-                Flaw,
-                FlawAcknowledgment,
-                FlawComment,
-                FlawCVSS,
-                FlawReference,
-                Affect,
-                AffectCVSS,
-                Tracker,
-                Package,
-            ]
             assert not any(
                 instance.is_embargoed
                 for instance in chain(*[model.objects.all() for model in models])
             )
 
-            for model in models[:-1]:
-                for instance in model.objects.all():
-                    for audit_event in instance.events.all():
-                        assert audit_event.acl_read == public_read_groups
-                        assert audit_event.acl_write == public_write_groups
+            # RLS policies now delegate to source objects so the events that
+            # existed while the flaw was still embargoed are visible, despite
+            # their own ACLs staying at the original (embargoed) values.
+            set_user_acls(settings.PUBLIC_READ_GROUPS)
+            with transaction.atomic():
+                for instances in instances_by_model.values():
+                    for instance in instances:
+                        visible_event_ids = set(
+                            instance.events.values_list("pgh_id", flat=True)
+                        )
+                        assert pre_unembargo_event_ids[instance] <= visible_event_ids
 
     @freeze_time(datetime(2020, 10, 10, tzinfo=timezone.utc))
     def test_combined(self, auth_client, test_api_uri):
