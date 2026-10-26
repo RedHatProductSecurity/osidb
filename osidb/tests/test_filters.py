@@ -552,6 +552,7 @@ class TestInFilterSet:
         FlawFactory(embargoed=False, aegis_meta={"processed": True})
         FlawFactory(embargoed=False, aegis_meta={"processed": False})
         FlawFactory(embargoed=False, aegis_meta={"processed": False})
+        FlawFactory(embargoed=False, aegis_meta={"processed": False})
         FlawFactory(embargoed=False)
 
         response = auth_client().get(f"{test_api_v2_uri}/flaws?aegis_processed=True")
@@ -562,7 +563,7 @@ class TestInFilterSet:
         response = auth_client().get(f"{test_api_v2_uri}/flaws?aegis_processed=False")
         assert response.status_code == status.HTTP_200_OK
         results = response.json()
-        assert results["count"] == 3
+        assert results["count"] == 4
 
 
 class TestPURLFilter:

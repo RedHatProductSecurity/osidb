@@ -902,6 +902,11 @@ class FlawFilter(
     order = DistinctOrderingFilter(fields=order_fields)
 
     def aegis_processed_filter(self, queryset, name, value):
+        """
+        Checks to see if the flaw was processed by Aegis or not. The JSON value in the metadata
+        that records this is a boolean-or-absent varient, so we only check for True, False, or
+        an absent value (i.e. no explicit NULL)
+        """
         if value:
             q = Q(aegis_meta__processed=True)
         else:
