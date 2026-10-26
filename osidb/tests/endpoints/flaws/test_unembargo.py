@@ -174,10 +174,11 @@ class TestEndpointsFlawsUnembargo:
         instances_by_model = {model: list(model.objects.all()) for model in models[:-1]}
 
         # Capture the pgh_id of every event that exists *before* unembargo.
-        # unembargo() saves the root object and recursively saves every
-        # related ACLMixin instance, so each of them gets a brand-new
-        # "update" event whose own acl_read is already public at insert
-        # time. Asserting plain `events.count() > 0` afterwards would pass
+        # unembargo() saves the root object and bulk-updates the ACLs of the
+        # related ACLMixin instances (set_acls_nested). The pghistory update
+        # triggers still fire, so each row gets a brand-new "update" event
+        # whose own acl_read is already public at insert time. Asserting
+        # plain `events.count() > 0` afterwards would pass
         # on that new event alone, regardless of whether these specific,
         # originally-embargoed events became visible via delegation. So we
         # check that these exact pre-unembargo ids are still visible,
