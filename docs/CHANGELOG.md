@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added filters for checking if the workflow state or name are empty (OSIDB-5730)
 
+### Changed
+- align manual workflows (also embargoed) with multi-team distribution
+
 ### Fixed
 - Normalize lowercase stream impact values in product definitions collector (OSIDB-5785)
 
