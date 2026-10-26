@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Added filters for checking if the workflow state or name are empty (OSIDB-5730)
+- Added filter (aegis_processed) for flaws processed by Aegis/osidb-bot (OSIDB-4817)
 
 ### Fixed
 - Normalize lowercase stream impact values in product definitions collector (OSIDB-5785)
@@ -25,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Do not clear and re-add tracker affect links on every sync (OSIDB-5475)
 - rename PsUpdateStream.minimal_impact to impact so it gets loaded
 - Fix a classification race condition and fix affected flaws (OSIDB-5330)
+- Normalize lowercase stream impact values in product definitions collector (OSIDB-5785)
+
+### Changed
+- Skip response metadata for 204 responses in the OpenAPI schema (OSIDB-5599)
 
 ## [5.20.2] - 2026-10-09
 ### Changed

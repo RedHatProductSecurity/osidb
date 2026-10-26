@@ -2541,6 +2541,10 @@ paths:
         explode: false
         style: form
       - in: query
+        name: aegis_processed
+        schema:
+          type: boolean
+      - in: query
         name: affects__affectedness
         schema:
           type: string
@@ -10195,6 +10199,10 @@ paths:
         description: Multiple values may be separated by commas.
         explode: false
         style: form
+      - in: query
+        name: aegis_processed
+        schema:
+          type: boolean
       - in: query
         name: affects__affectedness
         schema:

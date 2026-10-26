@@ -544,6 +544,26 @@ class TestInFilterSet:
         results = response.json()["results"]
         assert len(results) > 0
 
+    def test_aegis_processed_filter(self, auth_client, test_api_v2_uri):
+        """
+        Test passing non-DB fields without raising error
+        """
+        FlawFactory(embargoed=False, aegis_meta={"processed": True})
+        FlawFactory(embargoed=False, aegis_meta={"processed": True})
+        FlawFactory(embargoed=False, aegis_meta={"processed": False})
+        FlawFactory(embargoed=False, aegis_meta={"processed": False})
+        FlawFactory(embargoed=False)
+
+        response = auth_client().get(f"{test_api_v2_uri}/flaws?aegis_processed=True")
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()
+        assert results["count"] == 2
+
+        response = auth_client().get(f"{test_api_v2_uri}/flaws?aegis_processed=False")
+        assert response.status_code == status.HTTP_200_OK
+        results = response.json()
+        assert results["count"] == 3
+
 
 class TestPURLFilter:
     """

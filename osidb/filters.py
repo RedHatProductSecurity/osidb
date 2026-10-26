@@ -618,6 +618,9 @@ class FlawFilter(
     cve_description = CharFilter(field_name="cve_description", method="search_helper")
     statement = CharFilter(field_name="statement", method="search_helper")
     embargoed = BooleanFilter(field_name="embargoed")
+    aegis_processed = BooleanFilter(
+        field_name="aegis_processed", method="aegis_processed_filter"
+    )
     visibility = ChoiceFilter(
         field_name="visibility", choices=ACLMixinVisibility.choices
     )
@@ -897,6 +900,15 @@ class FlawFilter(
         + list(DEPRECATED_ORDER_FIELDS)
     )
     order = DistinctOrderingFilter(fields=order_fields)
+
+    def aegis_processed_filter(self, queryset, name, value):
+        if value:
+            q = Q(aegis_meta__processed=True)
+        else:
+            q_null = Q(aegis_meta__processed__isnull=True)
+            q_false = Q(aegis_meta__processed=False)
+            q = q_null | q_false
+        return queryset.filter(q)
 
     search_helper = staticmethod(search_helper)
     # Set the class method to be the same as the imported method (and make it static, to avoid breaking on a self param)
