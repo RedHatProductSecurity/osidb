@@ -374,4 +374,3 @@ class WorkflowModel(models.Model):
                 )
 
             self.set_acls_nested()
-            self.set_acls_history()

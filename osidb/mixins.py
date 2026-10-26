@@ -6,7 +6,6 @@ from itertools import batched, chain
 
 import pghistory
 import pgtrigger
-from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -729,128 +728,6 @@ class ACLMixin(models.Model):
                     + ("embargoed" if self.flaw.is_embargoed else "public")
                 )
 
-    def set_acls_history(self, acl_read=None, acl_write=None):
-        """
-        set the history ACLs to match the given or current instance ACLs
-        """
-        acl_read = list(acl_read if acl_read is not None else self.acl_read)
-        acl_write = list(acl_write if acl_write is not None else self.acl_write)
-        refs = pghistory.models.Events.objects.tracks(self).all()
-        for ref in refs:
-            model_audit = apps.get_model(ref.pgh_model).objects.filter(
-                pgh_id=ref.pgh_id
-            )
-
-            with pgtrigger.ignore(f"{ref.pgh_model}:append_only"):
-                model_audit.exclude(
-                    acl_read=acl_read,
-                    acl_write=acl_write,
-                ).update(
-                    acl_read=acl_read,
-                    acl_write=acl_write,
-                )
-
-        self._set_related_acls_history(acl_read, acl_write)
-
-    def _set_related_acls_history(self, acl_read, acl_write, max_chunk_size=5000):
-        """Set ACLs on audited rows related through ACL-managed models."""
-        if self.pk is None:
-            return
-
-        from osidb.models.audit_history import audit_model_for_model
-
-        target_ids_by_model = defaultdict(set)
-        for relation in self._meta.related_objects:
-            relation_field = getattr(relation, "field", None)
-            related_model = relation.related_model
-            if (
-                relation.related_name is None
-                or relation.related_name == "+"
-                or relation.related_name == "snippets"
-                or getattr(relation, "hidden", False)
-                or not isinstance(
-                    relation_field, (models.ForeignKey, models.OneToOneField)
-                )
-                or not issubclass(related_model, ACLMixin)
-            ):
-                continue
-
-            audit_model = audit_model_for_model(related_model)
-            if audit_model is None:
-                continue
-
-            audit_field_names = {
-                field.attname for field in audit_model._meta.concrete_fields
-            }
-            relation_field_name = relation_field.attname
-            if relation_field_name not in audit_field_names:
-                continue
-
-            audit_queryset = audit_model.objects.filter(
-                **{relation_field_name: self.pk}
-            )
-            self._update_audit_history_acls(
-                audit_model, audit_queryset, acl_read, acl_write
-            )
-
-            for field in related_model._meta.concrete_fields:
-                if (
-                    field.attname == relation_field_name
-                    or not isinstance(field, (models.ForeignKey, models.OneToOneField))
-                    or field.attname not in audit_field_names
-                    or not issubclass(field.related_model, ACLMixin)
-                    or field.related_model._meta.concrete_model
-                    == self._meta.concrete_model
-                ):
-                    continue
-
-                target_ids_by_model[field.related_model].update(
-                    audit_queryset.exclude(**{f"{field.attname}__isnull": True})
-                    .values_list(field.attname, flat=True)
-                    .distinct()
-                )
-
-        for target_model, target_ids in target_ids_by_model.items():
-            audit_model = audit_model_for_model(target_model)
-            if audit_model is None:
-                continue
-
-            safe_target_ids = self._safe_related_acl_history_target_ids(
-                target_model, target_ids
-            )
-            with pgtrigger.ignore(f"{audit_model._meta.label}:append_only"):
-                for target_id_chunk in batched(safe_target_ids, max_chunk_size):
-                    audit_model.objects.filter(pgh_obj_id__in=target_id_chunk).exclude(
-                        acl_read=acl_read,
-                        acl_write=acl_write,
-                    ).update(acl_read=acl_read, acl_write=acl_write)
-
-    def _update_audit_history_acls(
-        self, audit_model, audit_queryset, acl_read, acl_write
-    ):
-        with pgtrigger.ignore(f"{audit_model._meta.label}:append_only"):
-            audit_queryset.exclude(
-                acl_read=acl_read,
-                acl_write=acl_write,
-            ).update(
-                acl_read=acl_read,
-                acl_write=acl_write,
-            )
-
-    def _safe_related_acl_history_target_ids(self, target_model, target_ids):
-        queryset = target_model.objects.filter(pk__in=target_ids)
-        for relation in target_model._meta.related_objects:
-            if (
-                relation.related_name is not None
-                and relation.related_name != "+"
-                and not getattr(relation, "hidden", False)
-                and issubclass(relation.related_model, ACLMixin)
-            ):
-                queryset = queryset.exclude(
-                    **{f"{relation.related_name}__embargoed": True}
-                )
-        return queryset.order_by("pk").values_list("pk", flat=True).distinct()
-
     def unembargo(self):
         """
         unembargo the whole instance context internally
@@ -868,7 +745,6 @@ class ACLMixin(models.Model):
         with transaction.atomic():
             # unembargo
             self.set_acls(ACL.PUBLIC)
-            self.set_acls_history()
 
             kwargs = {}
             if issubclass(type(self), AlertMixin):
@@ -952,26 +828,11 @@ class ACLMixin(models.Model):
             if issubclass(model_class, TrackingMixin):
                 update_kwargs["updated_dt"] = now
 
-            changed_pks = []
             for pk_chunk in batched(sorted(object_ids, key=str), max_chunk_size):
-                queryset = model_class.objects.filter(pk__in=pk_chunk).exclude(
-                    acl_read=acl_read,
-                    acl_write=acl_write,
-                )
-                pk_chunk_to_update = list(
-                    queryset.order_by("pk").values_list("pk", flat=True)
-                )
-                if not pk_chunk_to_update:
-                    continue
-
-                model_class.objects.filter(pk__in=pk_chunk_to_update).exclude(
+                model_class.objects.filter(pk__in=pk_chunk).exclude(
                     acl_read=acl_read,
                     acl_write=acl_write,
                 ).update(**update_kwargs)
-                changed_pks.extend(pk_chunk_to_update)
-
-            for pk in changed_pks:
-                model_class(pk=pk).set_acls_history(acl_read, acl_write)
 
     def _collect_objects_for_acl_update(self, objects_to_update, visited):
         """
