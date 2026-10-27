@@ -49,8 +49,9 @@ class TestTaskmanService(object):
         status, _ = flaw.jira_status()
         assert response2 is None
 
-        # NOTAFFECTED:NOVALUE is resolved, so flaw advances past ANALYSIS
-        assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
+        # NOTAFFECTED:NOVALUE is resolved and needs no trackers, so the flaw
+        # advances past ANALYSIS and, since DONE has no requirements, to DONE
+        assert flaw.workflow_state == "DONE"
         flaw.save(raise_validation_error=False)
         response3 = taskman.create_or_update_task(flaw=flaw)
         assert response3 is None
