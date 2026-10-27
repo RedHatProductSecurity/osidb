@@ -776,6 +776,202 @@ class TestTrackerQueryBuilderDescription:
         assert "triage" not in tqb.description
         assert "Triage" not in tqb.description
 
+    def test_jira_manifest_missing(self):
+        """
+        test that no manifest section is rendered when the affect has no manifest metadata
+        """
+        ps_product = PsProductFactory(business_unit="Engineering")
+        ps_module = PsModuleFactory(bts_name="jboss", ps_product=ps_product)
+        ps_update_stream = PsUpdateStreamFactory(
+            name="deep-stream", ps_module=ps_module
+        )
+        flaw = FlawFactory(
+            cve_id="CVE-2020-12345",
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="serious flaw",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="large-component",
+            assist_meta={
+                "osv_status": "no_match",
+                "osv_range_used": None,
+                "osv_version_checked": None,
+            },
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+        assert "manifest" not in tqb.description.lower()
+
+    def test_jira_manifest_present(self):
+        """
+        test that the manifest reference is rendered together with
+        its provenance when the affect has manifest metadata
+        """
+        ps_product = PsProductFactory(business_unit="Engineering")
+        ps_module = PsModuleFactory(bts_name="jboss", ps_product=ps_product)
+        ps_update_stream = PsUpdateStreamFactory(
+            name="deep-stream", ps_module=ps_module
+        )
+        flaw = FlawFactory(
+            cve_id="CVE-2020-12345",
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="serious flaw",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="large-component",
+            # placeholder payload - replace once the real shape is confirmed
+            assist_meta={
+                "manifest_evidence": {
+                    "manifest_url": "https://example.com/manifest/abc",
+                },
+            },
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+        description = tqb.description
+        assert (
+            "Manifest for large-component (deep-stream): https://example.com/manifest/abc"
+            in description
+        )
+
+    def test_community_manifest_hidden(self):
+        """
+        test that the manifest reference is not rendered for community trackers
+        """
+        ps_product = PsProductFactory(business_unit="Community")
+        ps_module = PsModuleFactory(ps_product=ps_product)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory(
+            comment_zero="this is the community flaw description",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="large-component",
+            assist_meta={
+                "manifest_evidence": {
+                    "manifest_url": "https://example.com/manifest/abc",
+                },
+            },
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+        assert "https://example.com/manifest/abc" not in tqb.description
+
+    def test_bugzilla_manifest_present(self):
+        """
+        test that the manifest reference is rendered in the Bugzilla tracker description
+        """
+        ps_product = PsProductFactory(business_unit="Engineering")
+        ps_module = PsModuleFactory(bts_name="bugzilla", ps_product=ps_product)
+        ps_update_stream = PsUpdateStreamFactory(
+            name="deep-stream", ps_module=ps_module
+        )
+        flaw = FlawFactory(
+            cve_id="CVE-2020-12345",
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="serious flaw",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="large-component",
+            assist_meta={
+                "manifest_evidence": {
+                    "manifest_url": "https://example.com/manifest/abc",
+                },
+            },
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+        assert tracker.type == Tracker.TrackerType.BUGZILLA
+        assert (
+            "Manifest for large-component (deep-stream): https://example.com/manifest/abc"
+            in tqb.description
+        )
+
+    @pytest.mark.parametrize(
+        "assist_meta",
+        [
+            "a string",
+            ["a", "list"],
+            {"manifest_evidence": "a string"},
+            {"manifest_evidence": ["a", "list"]},
+            {"manifest_evidence": {"manifest_url": 123}},
+        ],
+    )
+    def test_jira_manifest_malformed(self, assist_meta):
+        """
+        test that malformed assist_meta values do not break the description and render no manifest section
+        """
+        ps_product = PsProductFactory(business_unit="Engineering")
+        ps_module = PsModuleFactory(bts_name="jboss", ps_product=ps_product)
+        ps_update_stream = PsUpdateStreamFactory(
+            name="deep-stream", ps_module=ps_module
+        )
+        flaw = FlawFactory(
+            cve_id="CVE-2020-12345",
+            embargoed=False,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            title="serious flaw",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="large-component",
+            assist_meta=assist_meta,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.BTS2TYPE[ps_module.bts_name],
+        )
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
+        assert "manifest" not in tqb.description.lower()
+
 
 class TestTrackerQueryBuilderSLO:
     """

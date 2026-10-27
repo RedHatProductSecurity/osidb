@@ -202,6 +202,10 @@ class TrackerQueryBuilder:
         if not self.ps_module.ps_product.is_community:
             description_parts.extend(self._description_vuln_mgmt_info())
 
+        # 5b) Manifest reference (internal trackers only)
+        if not self.ps_module.ps_product.is_community:
+            description_parts.extend(self._description_manifest())
+
         # 6) Tracker feedback form for Jira
         if self.tracker.type == Tracker.TrackerType.JIRA:
             description_parts.extend(self._description_feedback_form())
@@ -354,3 +358,25 @@ class TrackerQueryBuilder:
             "If something is wrong or missing, please contact a member of PSIRT.\n"
             f"{VULN_MGMT_INFO_URL}"
         ]
+
+    def _description_manifest(self):
+        """
+        generate manifest reference lines, empty when no affect has manifest metadata
+        """
+        lines = []
+        for affect in self.tracker.affects.all():
+            assist_meta = affect.assist_meta
+            if not isinstance(assist_meta, dict):
+                continue
+            evidence = assist_meta.get("manifest_evidence")
+            if not isinstance(evidence, dict):
+                continue
+            url = evidence.get("manifest_url")
+            if not url or not isinstance(url, str):
+                continue
+            line = (
+                f"Manifest for {affect.ps_component} ({affect.ps_update_stream}): {url}"
+            )
+            if line not in lines:
+                lines.append(line)
+        return lines
