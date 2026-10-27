@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Added filters for checking if the workflow state or name are empty (OSIDB-5730)
+- Extend stats API with tracker counts (OSIDB-5664)
 
 ### Fixed
 - Normalize lowercase stream impact values in product definitions collector (OSIDB-5785)
