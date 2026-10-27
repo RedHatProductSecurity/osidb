@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added filters for checking if the workflow state or name are empty (OSIDB-5730)
 - Added filter (aegis_processed) for flaws processed by Aegis/osidb-bot (OSIDB-4817)
+- Extend stats API with tracker counts (OSIDB-5664)
 
 ### Fixed
 - Normalize lowercase stream impact values in product definitions collector (OSIDB-5785)
