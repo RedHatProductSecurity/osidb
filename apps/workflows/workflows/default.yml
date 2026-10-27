@@ -57,8 +57,7 @@ states:
 
   - name: DONE
     description: >
-      A flaw was approved and is considered done.
+      A flaw is considered done.
     jira_state: Closed
     jira_resolution: Done
-    requirements:
-      - has label approved
+    requirements: []

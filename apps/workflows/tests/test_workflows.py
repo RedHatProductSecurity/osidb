@@ -141,8 +141,8 @@ class TestDefaultWorkflow:
         Verify that a NOTAFFECTED affect (which has no resolution)
         is treated as resolved and advances the flaw past ANALYSIS.
 
-        NOTAFFECTED also doesn't require trackers so the flaw advances
-        all the way to SECONDARY_ASSESSMENT (blocked only by has label approved).
+        NOTAFFECTED also doesn't require trackers so the flaw satisfies
+        SECONDARY_ASSESSMENT and since DONE has no requirements lands there.
         """
         flaw = FlawFactory(
             embargoed=False,
@@ -161,13 +161,16 @@ class TestDefaultWorkflow:
 
         affect.affectedness = Affect.AffectAffectedness.NOTAFFECTED
         affect.save(raise_validation_error=False)
-        assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
+        assert flaw.workflow_state == "DONE"
 
     @pytest.mark.enable_signals
-    def test_label_removal_triggers_regression(self):
+    def test_regression_out_of_done(self):
         """
-        Verify that deleting an "approved" label triggers reclassification
-        and the flaw regresses from DONE.
+        Verify that withdrawing a requirement regresses a flaw out of DONE.
+
+        Flaw with resolved affects and filed trackers lands in DONE. Unresolving
+        an affect withdraws the "has affects resolved" requirement and the
+        flaw regresses back to ANALYSIS.
         """
         # build a flaw all the way to DONE
         flaw = FlawFactory(
@@ -189,16 +192,14 @@ class TestDefaultWorkflow:
         tracker.save()
         affect.tracker = tracker
         affect.save(raise_validation_error=False)
-        label = WorkflowLabel.objects.create(
-            flaw=flaw,
-            name="approved",
-        )
         assert flaw.workflow_state == "DONE"
 
-        # remove the approved label — should regress
-        label.delete()
+        # unresolve the affect — should regress out of DONE
+        affect.affectedness = Affect.AffectAffectedness.NEW
+        affect.resolution = Affect.AffectResolution.NOVALUE
+        affect.save(raise_validation_error=False)
         flaw.refresh_from_db()
-        assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
+        assert flaw.workflow_state == "ANALYSIS"
 
     @pytest.mark.enable_signals
     def test_resolved_dt_being_set_correctly(self):
@@ -218,6 +219,12 @@ class TestDefaultWorkflow:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
         )
+
+        # not resolved before reaching DONE (no trackers yet)
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        assert flaw.resolved_dt is None
+
+        before = now()
         tracker = TrackerFactory.build(
             embargoed=False,
             ps_update_stream=affect.ps_update_stream,
@@ -225,15 +232,10 @@ class TestDefaultWorkflow:
         tracker.save()
         affect.tracker = tracker
         affect.save(raise_validation_error=False)
-
-        # not resolved before reaching DONE
-        assert flaw.resolved_dt is None
-
-        before = now()
-        label = WorkflowLabel.objects.create(flaw=flaw, name="approved")
         after = now()
 
-        # entering DONE stamps resolved_dt with the current time
+        # filing the tracker satisfies the remaining requirements and, since
+        # DONE has none of its own, entering DONE stamps resolved_dt
         assert flaw.workflow_state == "DONE"
         assert flaw.resolved_dt is not None
         assert before <= flaw.resolved_dt <= after
@@ -242,7 +244,9 @@ class TestDefaultWorkflow:
         assert flaw.resolved_dt is not None  # persisted
 
         # leaving DONE clears it
-        label.delete()
+        affect.affectedness = Affect.AffectAffectedness.NEW
+        affect.resolution = Affect.AffectResolution.NOVALUE
+        affect.save(raise_validation_error=False)
         flaw.refresh_from_db()
         assert flaw.workflow_state != "DONE"
         assert flaw.resolved_dt is None
@@ -456,6 +460,9 @@ class TestWorkflowFullTraversal:
         Walk a flaw through NEW → TRIAGE → ANALYSIS → PRE_SECONDARY_ASSESSMENT →
         SECONDARY_ASSESSMENT → DONE, verifying each requirement gates progression.
 
+        As DONE has empty requirements, a flaw that satisfies SECONDARY_ASSESSMENT
+        (has trackers) also satisfies DONE and lands directly in DONE.
+
         Note: title and comment_zero must be non-empty at creation time due to
         Django's model-level blank=False constraint. These fields are tested
         for regression in TestDefaultWorkflow.test_default_workflow_regression.
@@ -523,7 +530,9 @@ class TestWorkflowFullTraversal:
         affect.save(raise_validation_error=False)
         assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
 
-        # --- PRE_SECONDARY_ASSESSMENT → SECONDARY_ASSESSMENT: requires trackers ---
+        # --- PRE_SECONDARY_ASSESSMENT → SECONDARY_ASSESSMENT → DONE: filing
+        #     trackers satisfies SECONDARY_ASSESSMENT and, since DONE has no
+        #     further requirements, the flaw advances straight to DONE ---
 
         # file a tracker and link it to the affect — signal triggers reclassification
         tracker = TrackerFactory.build(
@@ -533,15 +542,6 @@ class TestWorkflowFullTraversal:
         tracker.save()
         affect.tracker = tracker
         affect.save(raise_validation_error=False)
-        assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
-
-        # --- SECONDARY_ASSESSMENT → DONE: requires label approved ---
-
-        # creating the label triggers reclassification via signal
-        WorkflowLabel.objects.create(
-            flaw=flaw,
-            name="approved",
-        )
         assert flaw.workflow_state == "DONE"
         assert flaw.workflow_name == "DEFAULT"
 

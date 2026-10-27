@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - align manual workflows (also embargoed) with multi-team distribution
+- do not require manual approval as the final DEFAULT (automatic) workflow step (OSIDB-5789)
 
 ### Fixed
 - Normalize lowercase stream impact values in product definitions collector (OSIDB-5785)
