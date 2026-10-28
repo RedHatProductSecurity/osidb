@@ -18036,6 +18036,7 @@ components:
         external_system_id:
           type: string
           readOnly: true
+          default: ''
         creator:
           type: string
           maxLength: 100
@@ -20958,6 +20959,7 @@ components:
         external_system_id:
           type: string
           readOnly: true
+          default: ''
         ps_update_stream:
           type: string
           maxLength: 100
@@ -21292,6 +21294,7 @@ components:
         external_system_id:
           type: string
           readOnly: true
+          default: ''
         ps_update_stream:
           type: string
           maxLength: 100
