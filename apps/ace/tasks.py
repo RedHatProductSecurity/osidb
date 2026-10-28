@@ -173,18 +173,36 @@ def _is_go_stdlib_component(component: str, all_components: list[str]) -> bool:
     )
 
 
+_TRUSTED_PAIR_PREFIXES = ("python-", "rust-", "rubygem-")
+
+
+def _is_trusted_pair(resolved: list[str]) -> bool:
+    """
+    Return True when ``resolved`` is a trusted pair.
+
+    Either order counts, both ``["a2wsgi", "python-a2wsgi"]`` and
+    ``["python-a2wsgi", "a2wsgi"]`` are valid pairs.
+    """
+    if len(resolved) != 2:
+        return False
+    left, right = resolved[0].strip().lower(), resolved[1].strip().lower()
+    return any(
+        left == prefix + right or right == prefix + left
+        for prefix in _TRUSTED_PAIR_PREFIXES
+    )
+
+
 def _is_verified_mapping(component: str, resolved: list[str]) -> bool:
     """
     Check if the component has a verified mapping using the table collected
     by the component_mapping collector.
+
+    Trusted pairs do not require a ``VerifiedMapping`` row. Other multi-name
+    lists must be verified before they are treated as trusted.
     """
-    # List mappings (e.g. ["a2wsgi", "python-a2wsgi"]) are convention-based,
-    # auto-generated from SBOM data, and always trusted.
-    if isinstance(resolved, list) and len(resolved) > 1:
+    if _is_trusted_pair(resolved):
         return True
-    if VerifiedMapping.objects.filter(name__iexact=component).exists():
-        return True
-    return False
+    return VerifiedMapping.objects.filter(name__iexact=component).exists()
 
 
 def _is_manual_triage_component(resolved: list[str], ecosystem: str) -> bool:
