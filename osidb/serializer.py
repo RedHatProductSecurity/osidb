@@ -1166,15 +1166,13 @@ class AffectSerializer(
     cvss_scores = AffectCVSSSerializer(many=True, read_only=True)
     created_by = serializers.CharField(read_only=True)
     updated_by = serializers.CharField(read_only=True)
-    assist_meta = serializers.JSONField(allow_null=True, required=False, default=None)
+    assist_meta = serializers.JSONField(allow_null=True, default=None)
     # at least one of ps_component or purl is required
     ps_component = serializers.CharField(
-        max_length=255, allow_blank=True, allow_null=True, required=False, default=""
+        max_length=255, allow_blank=True, allow_null=True, default=""
     )
     ps_module = serializers.CharField(read_only=True)
-    purl = serializers.CharField(
-        allow_blank=True, allow_null=True, required=False, default=""
-    )
+    purl = serializers.CharField(allow_blank=True, allow_null=True, default="")
     resolved_dt = serializers.DateTimeField(read_only=True, allow_null=True)
     cve_id = serializers.CharField(allow_blank=True, read_only=True)
     delegated_not_affected_justification = serializers.ChoiceField(
@@ -1365,9 +1363,7 @@ class AffectBulkPutSerializer(AffectSerializer):
 class AffectBulkPostPutResponseSerializer(serializers.Serializer):
     # Extra serializer for drf-spectacular to describe format of bulk POST & PUT response.
     results = AffectSerializer(many=True)
-    failed = serializers.ListField(
-        child=serializers.DictField(), required=False, default=list
-    )
+    failed = serializers.ListField(child=serializers.DictField(), default=list)
 
 
 class AffectV1Serializer(
@@ -1559,6 +1555,10 @@ class FlawAcknowledgmentSerializer(
     TrackingMixinSerializer,
 ):
     """FlawAcknowledgment serializer"""
+
+    # The field may be blank, but it must be provided to preserve the
+    # acknowledgment's uniqueness and API contract.
+    affiliation = serializers.CharField(max_length=255, allow_blank=True, required=True)
 
     class Meta:
         """filter fields"""
@@ -2014,7 +2014,6 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
     label = serializers.CharField(source="name", max_length=255)
     type = serializers.ChoiceField(
         choices=FlawLabel.LabelType.choices,
-        required=False,
         default=FlawLabel.LabelType.CONTEXT_BASED,
     )
     state = serializers.ChoiceField(
@@ -2118,7 +2117,6 @@ class FlawCollaboratorPostSerializer(FlawCollaboratorSerializer):
             for c in FlawLabel.LabelType.choices
             if c[0] != FlawLabel.LabelType.PRODUCT_FAMILY
         ],
-        required=False,
         default=FlawLabel.LabelType.CONTEXT_BASED,
     )
 
