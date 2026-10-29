@@ -1,12 +1,19 @@
+import logging
+from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.db.models.query import QuerySet
+from django.utils import timezone
 from rest_framework import status
 
+from osidb.acls import ACL
 from osidb.core import set_user_acls
-from osidb.models import Affect, AffectCVSS, Tracker
+from osidb.mixins import Alert
+from osidb.models import Affect, AffectCVSS, Flaw, Tracker
 from osidb.models.ps_constants import UbiPackage
 from osidb.tests.factories import (
     AffectCVSSFactory,
@@ -627,6 +634,471 @@ class TestEndpointsAffectsBulk:
         assert len(orig_uuids) == len(new_uuids)
         assert orig_uuids == new_uuids
         assert len(body["results"]) == len(request_affects)
+
+    def test_affect_update_bulk_partial_success(self, auth_client, test_api_v2_uri):
+        flaw = FlawFactory(embargoed=False)
+        first = AffectFactory(flaw=flaw)
+        second = AffectFactory(flaw=flaw)
+        client = auth_client()
+        valid = client.get(f"{test_api_v2_uri}/affects/{first.uuid}").json()
+        invalid = client.get(f"{test_api_v2_uri}/affects/{second.uuid}").json()
+        valid["affectedness"] = "AFFECTED"
+        valid["resolution"] = "DELEGATED"
+        invalid["affectedness"] = "INVALID_VALUE"
+
+        response = client.put(
+            f"{test_api_v2_uri}/affects/bulk",
+            [{"uuid": "not-a-uuid"}, invalid, valid, valid],
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == 200
+        assert [entry["index"] for entry in response.data["failed"]] == [0, 1, 3]
+        assert len(response.data["results"]) == 1
+        first.refresh_from_db()
+        second.refresh_from_db()
+        assert first.affectedness == "AFFECTED"
+        assert first.updated_by == response.data["results"][0]["updated_by"]
+        assert first.updated_by
+        assert second.affectedness != "INVALID_VALUE"
+
+    @pytest.mark.django_db(transaction=True)
+    def test_affect_update_bulk_failed_validation_does_not_leave_alert(
+        self, auth_client, test_api_v2_uri
+    ):
+        affect = AffectFactory(flaw=FlawFactory(embargoed=False))
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+
+        def fail_after_alert(instance, **kwargs):
+            instance.alert(name="bulk-validation-warning", description="temporary")
+            raise ValidationError("Validation failed")
+
+        with patch.object(
+            Affect, "validate", autospec=True, side_effect=fail_after_alert
+        ):
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                [data],
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+
+        assert response.status_code == 400
+        assert response.data["failed"][0]["index"] == 0
+        assert not Alert.objects.filter(
+            object_id=affect.uuid, name="bulk-validation-warning"
+        ).exists()
+
+    @pytest.mark.parametrize("bad_stream", [["invalid"], {"name": "invalid"}])
+    def test_affect_update_bulk_invalid_stream_type(
+        self, auth_client, test_api_v2_uri, bad_stream
+    ):
+        flaw = FlawFactory(embargoed=False)
+        bad = AffectFactory(flaw=flaw)
+        good = AffectFactory(flaw=flaw)
+        client = auth_client()
+        invalid = client.get(f"{test_api_v2_uri}/affects/{bad.uuid}").json()
+        valid = client.get(f"{test_api_v2_uri}/affects/{good.uuid}").json()
+        invalid["ps_update_stream"] = bad_stream
+
+        response = client.put(
+            f"{test_api_v2_uri}/affects/bulk",
+            [invalid, valid],
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 1
+        assert response.data["failed"][0]["index"] == 0
+        assert "ps_update_stream" in response.data["failed"][0]["errors"]
+
+    def test_affect_update_bulk_purl_derived_duplicate(
+        self, auth_client, test_api_v2_uri
+    ):
+        flaw = FlawFactory(embargoed=False)
+        stream = _community_ps_for_affect()
+        existing = AffectFactory(flaw=flaw, ps_component="curl", purl="", **stream)
+        candidate = AffectFactory(
+            flaw=flaw, ps_component="old-component", purl="", **stream
+        )
+        other = AffectFactory(flaw=flaw, ps_component="unrelated", purl="", **stream)
+        client = auth_client()
+        invalid = client.get(f"{test_api_v2_uri}/affects/{candidate.uuid}").json()
+        valid = client.get(f"{test_api_v2_uri}/affects/{other.uuid}").json()
+        invalid.pop("ps_component")
+        invalid["purl"] = "pkg:rpm/fedora/curl@7.50.3-1.fc25?arch=i386&distro=fedora-25"
+        valid["ps_component"] = "updated-unrelated"
+
+        with patch.object(
+            Affect, "validate", autospec=True, side_effect=Affect.validate
+        ) as validate:
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                [invalid, valid],
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+        assert not any(
+            call.args[0].uuid == candidate.uuid for call in validate.call_args_list
+        )
+        assert response.status_code == 200
+        assert [entry["index"] for entry in response.data["failed"]] == [0]
+        assert len(response.data["results"]) == 1
+        candidate.refresh_from_db()
+        other.refresh_from_db()
+        assert candidate.ps_component == "old-component"
+        assert other.ps_component == "updated-unrelated"
+        assert Affect.objects.filter(uuid=existing.uuid).exists()
+
+    def test_affect_update_bulk_unembargo(self, auth_client, test_api_v2_uri):
+        flaw = FlawFactory(embargoed=True)
+        affect = AffectFactory(flaw=flaw, embargoed=True)
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+        data["embargoed"] = False
+        # A parent becoming public is the condition under which its affect may be unembargoed.
+        Flaw.objects.filter(uuid=flaw.uuid).update(
+            acl_read=ACL.PUBLIC.uuid_read,
+            acl_write=ACL.PUBLIC.uuid_write,
+            unembargo_dt=timezone.now() - timedelta(seconds=1),
+            auto_timestamps=False,
+        )
+
+        response = client.put(
+            f"{test_api_v2_uri}/affects/bulk",
+            [data],
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200, response.data
+        affect.refresh_from_db()
+        assert affect.acl_read == ACL.PUBLIC.uuid_read
+        assert affect.acl_write == ACL.PUBLIC.uuid_write
+
+    def test_affect_update_bulk_preserves_unrelated_acl_change(
+        self, auth_client, test_api_v2_uri
+    ):
+        affect = AffectFactory(
+            flaw=FlawFactory(embargoed=False), affectedness="NEW", resolution=""
+        )
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+        data.update(affectedness="AFFECTED", resolution="DELEGATED")
+        changed_acl_write = [*affect.acl_write, ACL.INTERNAL.uuid_write[0]]
+        bulk_update = QuerySet.bulk_update
+
+        def change_acl_before_write(queryset, objs, fields, batch_size=None):
+            Affect.objects.filter(uuid=affect.uuid).update(
+                acl_write=changed_acl_write, auto_timestamps=False
+            )
+            return bulk_update(queryset, objs, fields, batch_size=batch_size)
+
+        with patch(
+            "django.db.models.query.QuerySet.bulk_update",
+            autospec=True,
+            side_effect=change_acl_before_write,
+        ):
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                [data],
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+        assert response.status_code == 200, response.data
+        affect.refresh_from_db()
+        assert affect.acl_write == changed_acl_write
+        assert affect.affectedness == "AFFECTED"
+
+    def test_affect_update_bulk_tracker_sync_failure(
+        self, auth_client, test_api_v2_uri
+    ):
+        affect = AffectFactory(flaw=FlawFactory(embargoed=False))
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+        data["resolution"] = "DELEGATED"
+        data["affectedness"] = "AFFECTED"
+
+        with (
+            patch(
+                "osidb.api_views.AffectSerializer.update_tracker",
+                side_effect=ValidationError(
+                    "Jira connection failed: private-marker-123"
+                ),
+            ) as sync,
+            patch.object(logging.getLogger("osidb.api_views"), "warning") as warning,
+        ):
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                [data],
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+        sync.assert_called_once()
+        warning.assert_called_once_with(
+            "Tracker sync failed for affect %s", affect.uuid
+        )
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 1
+        failed = response.data["failed"][0]
+        assert failed["update_applied"] is True
+        assert "Tracker sync failed" in failed["errors"]["tracker"][0]
+        for field in ("uuid", "ps_update_stream", "ps_component", "purl", "ps_module"):
+            assert field in failed["input"]
+        affect.refresh_from_db()
+        assert affect.resolution == "DELEGATED"
+
+    def test_affect_update_bulk_filtered_readback(self, auth_client, test_api_v2_uri):
+        flaw = FlawFactory(embargoed=False)
+        affect = AffectFactory(flaw=flaw, **_community_ps_for_affect())
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+        original_component = data["ps_component"]
+        data["ps_component"] = "changed-component"
+        data["purl"] = ""
+
+        response = client.put(
+            f"{test_api_v2_uri}/affects/bulk?ps_component={original_component}",
+            [data],
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        assert response.data["results"][0]["ps_component"] == "changed-component"
+
+    @pytest.mark.django_db(transaction=True)
+    def test_affect_update_bulk_rolls_back_on_flaw_save_failure(
+        self, auth_client, test_api_v2_uri
+    ):
+        affect = AffectFactory(
+            flaw=FlawFactory(embargoed=False), affectedness="NEW", resolution=""
+        )
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+        data.update(affectedness="AFFECTED", resolution="DELEGATED")
+
+        with patch(
+            "osidb.api_views.Flaw.save", side_effect=ValidationError("Flaw save failed")
+        ) as save:
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                [data],
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+        save.assert_called_once()
+        assert response.status_code == 400
+        affect.refresh_from_db()
+        assert affect.affectedness == "NEW"
+        assert affect.resolution == ""
+
+    @pytest.mark.django_db(transaction=True)
+    def test_affect_update_bulk_write_conflict(self, auth_client, test_api_v2_uri):
+        flaw = FlawFactory(embargoed=False)
+        affects = [AffectFactory(flaw=flaw) for _ in range(2)]
+        original_states = [a.affectedness for a in affects]
+        client = auth_client()
+        data = [
+            client.get(f"{test_api_v2_uri}/affects/{a.uuid}").json() for a in affects
+        ]
+        for entry in data:
+            entry["affectedness"] = "AFFECTED"
+            entry["resolution"] = "DELEGATED"
+
+        with patch(
+            "django.db.models.query.QuerySet.bulk_update",
+            side_effect=IntegrityError("simulated concurrent conflict"),
+        ) as bulk_update:
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                data,
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+        bulk_update.assert_called_once()
+        assert response.status_code == 400
+        for affect, original in zip(affects, original_states):
+            affect.refresh_from_db()
+            assert affect.affectedness == original
+
+    def test_affect_update_bulk_change_during_write(self, auth_client, test_api_v2_uri):
+        flaw = FlawFactory(embargoed=False)
+        affects = [
+            AffectFactory(flaw=flaw, affectedness="NEW", resolution="")
+            for _ in range(2)
+        ]
+        client = auth_client()
+        data = [
+            client.get(f"{test_api_v2_uri}/affects/{a.uuid}").json() for a in affects
+        ]
+        for entry in data:
+            entry.update(affectedness="AFFECTED", resolution="DELEGATED")
+
+        bulk_update = QuerySet.bulk_update
+
+        def race(queryset, objs, fields, batch_size=None):
+            Affect.objects.filter(uuid=affects[0].uuid).update(
+                updated_dt=affects[0].updated_dt + timedelta(seconds=30)
+            )
+            return bulk_update(queryset, objs, fields, batch_size=batch_size)
+
+        with patch(
+            "django.db.models.query.QuerySet.bulk_update",
+            autospec=True,
+            side_effect=race,
+        ):
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                data,
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+        assert response.status_code == 400
+        assert "updated_dt" in response.data
+        for affect in affects:
+            affect.refresh_from_db()
+            assert affect.affectedness == "NEW"
+
+    def test_affect_update_bulk_ignores_flaw_change(self, auth_client, test_api_v2_uri):
+        source = FlawFactory(embargoed=False)
+        target = FlawFactory(embargoed=False, impact="CRITICAL")
+        affect = AffectFactory(flaw=source)
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+        data["flaw"] = str(target.uuid)
+
+        with patch(
+            "osidb.api_views.ProductFamilyLabel.update_relevance"
+        ) as update_relevance:
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                [data],
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+
+        assert response.status_code == 200, response.data["failed"][0]["errors"]
+        affect.refresh_from_db()
+        assert affect.flaw_id == source.uuid
+        update_relevance.assert_called_once()
+        assert update_relevance.call_args.args[0].uuid == source.uuid
+
+    def test_affect_update_bulk_resolved_dates(self, auth_client, test_api_v2_uri):
+        flaw = FlawFactory(embargoed=False)
+        unresolved = AffectFactory(flaw=flaw, affectedness="NEW", resolution="")
+        resolved = AffectFactory(
+            flaw=flaw, affectedness="AFFECTED", resolution="WONTFIX"
+        )
+        client = auth_client()
+        first = client.get(f"{test_api_v2_uri}/affects/{unresolved.uuid}").json()
+        second = client.get(f"{test_api_v2_uri}/affects/{resolved.uuid}").json()
+        assert second["resolved_dt"]
+        first.update(affectedness="AFFECTED", resolution="WONTFIX")
+        second.update(affectedness="NEW", resolution="")
+
+        response = client.put(
+            f"{test_api_v2_uri}/affects/bulk",
+            [first, second],
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        assert response.data["failed"] == []
+        unresolved.refresh_from_db()
+        resolved.refresh_from_db()
+        assert unresolved.resolved_dt is not None
+        assert resolved.resolved_dt is None
+
+    def test_affect_update_bulk_same_second_advances_timestamp(
+        self, auth_client, test_api_v2_uri
+    ):
+        affect = AffectFactory(
+            flaw=FlawFactory(embargoed=False), affectedness="NEW", resolution=""
+        )
+        Affect.objects.filter(uuid=affect.uuid).update(
+            updated_dt=timezone.now().replace(microsecond=0), auto_timestamps=False
+        )
+        affect.refresh_from_db()
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+        old_updated_dt = affect.updated_dt
+        data.update(affectedness="AFFECTED", resolution="DELEGATED")
+
+        with patch(
+            "osidb.api_views.timezone.now",
+            return_value=old_updated_dt + timedelta(microseconds=999999),
+        ):
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                [data],
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+
+        assert response.status_code == 200, response.data
+        affect.refresh_from_db()
+        assert affect.updated_dt == old_updated_dt + timedelta(seconds=1)
+
+        response = client.put(
+            f"{test_api_v2_uri}/affects/bulk",
+            [data],
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 400
+        assert "updated_dt" in response.data["failed"][0]["errors"]
+
+    def test_affect_update_bulk_stale_timestamp(self, auth_client, test_api_v2_uri):
+        affect = AffectFactory(
+            flaw=FlawFactory(embargoed=False), affectedness="NEW", resolution=""
+        )
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+        Affect.objects.filter(uuid=affect.uuid).update(
+            updated_dt=affect.updated_dt + timedelta(seconds=30)
+        )
+        data["affectedness"] = "AFFECTED"
+        data["resolution"] = "DELEGATED"
+
+        response = client.put(
+            f"{test_api_v2_uri}/affects/bulk",
+            [data],
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 400
+        assert "updated_dt" in response.data["failed"][0]["errors"]
+        affect.refresh_from_db()
+        assert affect.affectedness != "AFFECTED"
+
+    def test_affect_update_bulk_all_invalid(self, auth_client, test_api_v2_uri):
+        response = auth_client().put(
+            f"{test_api_v2_uri}/affects/bulk",
+            [{"uuid": "not-a-uuid"}],
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 400
+        assert response.data["results"] == []
+        assert response.data["failed"][0]["index"] == 0
 
     @pytest.mark.enable_signals
     def test_affect_create_bulk(self, auth_client, test_api_v2_uri):
@@ -1432,7 +1904,7 @@ class TestEndpointsAffectsBulk:
             HTTP_JIRA_API_KEY="SECRET",
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["failed"]
         assert "must have either purl or ps_component" in str(response.data["failed"])
 
@@ -1516,9 +1988,9 @@ class TestEndpointsAffectsBulk:
         }
 
         with patch(
-            "osidb.api_views.AffectSerializer.save",
+            "osidb.api_views._prepare_affect_update_for_bulk",
             side_effect=ValidationError("Jira connection failed"),
-        ):
+        ) as prepare_mock:
             response = auth_client().put(
                 f"{test_api_v2_uri}/affects/bulk",
                 [update_data],
@@ -1527,9 +1999,11 @@ class TestEndpointsAffectsBulk:
                 HTTP_JIRA_API_KEY="SECRET",
             )
 
-        assert response.status_code == status.HTTP_200_OK
+        prepare_mock.assert_called_once()
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["failed"]
         failed = response.data["failed"][0]
+        assert "Jira connection failed" in str(failed["errors"])
         assert "ps_update_stream" in failed["input"]
         assert "ps_component" in failed["input"]
         assert "purl" in failed["input"]
