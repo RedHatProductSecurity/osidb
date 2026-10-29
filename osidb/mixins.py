@@ -1241,7 +1241,9 @@ class AlertMixin(ValidateMixin):
             # ValidationError may be raised here
             setattr(self, f.attname, f.to_python(getattr(self, f.attname)))
 
-    def validate(self, raise_validation_error=True, dry_run=False):
+    def validate(
+        self, raise_validation_error=True, dry_run=False, validate_unique=True
+    ):
         """
         Run custom validations first and then standard Django validations as the
         custom ones offer more specific errors. This may raise ValidationError.
@@ -1266,7 +1268,8 @@ class AlertMixin(ValidateMixin):
                 f.name
                 for f in self._meta.fields
                 if not isinstance(f, fields.ArrayField)
-            ]
+            ],
+            validate_unique=validate_unique,
         )
 
         # custom validations
@@ -1292,5 +1295,6 @@ class AlertMixin(ValidateMixin):
         self.full_clean(
             exclude=["meta_attr"]
             # array fields were already validated before
-            + [f.name for f in self._meta.fields if isinstance(f, fields.ArrayField)]
+            + [f.name for f in self._meta.fields if isinstance(f, fields.ArrayField)],
+            validate_unique=validate_unique,
         )

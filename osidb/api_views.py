@@ -4,12 +4,13 @@ implement osidb rest api views
 
 import logging
 from collections import defaultdict
-from datetime import datetime
+from copy import copy
+from datetime import datetime, timedelta
 from importlib.metadata import distributions
 from types import SimpleNamespace
 from typing import Any, Type, cast
 from urllib.parse import urljoin, urlparse
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pghistory
 import requests
@@ -20,7 +21,8 @@ from django.core.exceptions import (
     PermissionDenied,
     ValidationError,
 )
-from django.db.models import Q
+from django.db import IntegrityError, transaction
+from django.db.models import Case, DateTimeField, Q, Value, When
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -34,9 +36,11 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
+from jira import JIRAError
 from packageurl import PackageURL
 from packaging.utils import canonicalize_name
 from pghistory.models import Events
+from rest_framework import serializers as drf_serializers
 from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.mixins import ListModelMixin
@@ -51,6 +55,7 @@ from rest_framework.status import (
     HTTP_503_SERVICE_UNAVAILABLE,
 )
 from rest_framework.utils.urls import remove_query_param, replace_query_param
+from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.views import APIView
 from rest_framework.viewsets import (
     GenericViewSet,
@@ -61,6 +66,7 @@ from rest_framework.viewsets import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from apps.trackers.exceptions import BTSException
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
 from osidb.helpers import (
     bypass_rls,
@@ -77,6 +83,7 @@ from osidb.models import (
     CollaboratorLabelDefinition,
     Flaw,
     FlawLabel,
+    Impact,
     ProductFamilyLabel,
     ProductFamilyLabelDefinition,
     PsModule,
@@ -1580,6 +1587,45 @@ def _prepare_affect_for_bulk(instance, flaw, ps_update_stream_map):
     instance.validate(raise_validation_error=True)
 
 
+def _prepare_affect_update_for_bulk(instance, old, serializer, streams):
+    """Apply update data and the model's pre-save work before bulk_update."""
+    data = dict(serializer.validated_data)
+    serializer._unembargo_if_requested(data, old)
+    for field, value in data.items():
+        setattr(instance, field, value)
+
+    if instance.purl and (old.purl != instance.purl or not instance.ps_component):
+        try:
+            instance.ps_component = (
+                instance.ps_component_from_purl() or instance.ps_component
+            )
+        except ValueError:
+            pass
+    if instance.is_resolved:
+        if not old.is_resolved:
+            instance.resolved_dt = timezone.now().replace(microsecond=0)
+    else:
+        instance.resolved_dt = None
+    stream = streams.get(instance.ps_update_stream)
+    instance.ps_module = stream.ps_module.name if stream and stream.ps_module else None
+    instance.cve_id = instance.flaw.cve_id
+    if instance.affectedness != Affect.AffectAffectedness.NOTAFFECTED:
+        instance.not_affected_justification = ""
+    if (old.affectedness, old.resolution) != (
+        instance.affectedness,
+        instance.resolution,
+    ):
+        if old.affectedness_explanation == instance.affectedness_explanation:
+            instance.affectedness_explanation = ""
+    if (instance.ps_module, instance.ps_component) != (old.ps_module, old.ps_component):
+        instance.update_denormalized_labels()
+    instance.updated_dt = max(
+        timezone.now().replace(microsecond=0),
+        old.updated_dt.replace(microsecond=0) + timedelta(seconds=1),
+    )
+    instance.last_validated_dt = timezone.now()
+
+
 def _run_post_save_effects_for_bulk(created_affects, flaw):
     """
     Run the post_save side-effects that are normally triggered by signals
@@ -1657,80 +1703,197 @@ class AffectView(
 
         queryset = self.filter_queryset(self.get_queryset())
 
-        # first, perform validations
-        flaws = set()
-        uuids = set()
-        validated_serializers = []
-
         if not request.data:
             raise ValidationError({"affect": "At least one affect is required."})
-
         if not isinstance(request.data, list):
             raise ValidationError({"affect": "Expected a list of affects."})
+        if any(not isinstance(datum, dict) for datum in request.data):
+            raise ValidationError({"affect": "Expected a dict."})
 
+        uuids = []
+        seen = set()
         for datum in request.data:
-            if not isinstance(datum, dict):
-                raise ValidationError({"affect": "Expected a dict."})
-
             try:
-                uuid = datum["uuid"]
-            except KeyError:
-                raise ValidationError({"uuid": "This field is required."})
-
-            if uuid in uuids:
+                uuid = UUID(datum["uuid"])
+            except KeyError as e:
+                raise ValidationError({"uuid": "This field is required."}) from e
+            except (ValueError, TypeError, AttributeError) as e:
+                raise ValidationError({"uuid": "Enter a valid UUID."}) from e
+            if uuid in seen:
                 raise ValidationError(
                     {"uuid": "Multiple objects with the same uuid provided."}
                 )
-            else:
-                uuids.add(uuid)
-
-            instance = get_object_or_404(queryset, uuid=uuid)
-            flaws.add(instance.flaw_id)
-
-            serializer = self.get_serializer(instance, data=datum)
-            serializer.is_valid(raise_exception=True)
-            validated_serializers.append(serializer)
-
-        if len(flaws) > 1:
+            seen.add(uuid)
+            uuids.append(uuid)
+        instances = {
+            a.uuid: a for a in queryset.filter(uuid__in=uuids).select_related("flaw")
+        }
+        if len(instances) != len(uuids):
+            raise ValidationError({"uuid": "Affect matching query does not exist."})
+        if len({instance.flaw_id for instance in instances.values()}) != 1:
             raise ValidationError(
                 {"flaw": "Provided affects belong to multiple flaws."}
             )
+        flaw = next(iter(instances.values())).flaw
 
-        # Second, save the updated affects to the database, but not sync with BZ.
+        stream_names = {
+            d["ps_update_stream"]
+            for d in request.data
+            if isinstance(d.get("ps_update_stream"), str) and d["ps_update_stream"]
+        }
+        streams = {
+            s.name: s
+            for s in PsUpdateStream.objects.filter(
+                name__in=stream_names
+            ).select_related("ps_module")
+        }
         actor = self._actor(request.user)
-        ret = []
-        errors = []
-        for serializer in validated_serializers:
-            # Make the serializer skip the sync for each affect
-            try:
-                serializer.save(skip_bz_sync=True, updated_by=actor)
-                ret.append(serializer.data)
-            except ValidationError as e:
-                instance = serializer.instance
-                error_detail = (
-                    e.message_dict
-                    if hasattr(e, "message_dict")
-                    else {"non_field_errors": e.messages}
+        prepared = []
+        errors = []  # tracker sync failures do not undo affect updates
+        keys = set()
+        for index, (uuid, datum) in enumerate(zip(uuids, request.data)):
+            old = instances[uuid]
+            serializer = self.get_serializer(old, data=datum)
+            serializer.validators = [
+                validator
+                for validator in serializer.validators
+                if not isinstance(validator, UniqueTogetherValidator)
+            ]
+            serializer.is_valid(raise_exception=True)
+            if serializer.validated_data["updated_dt"] != old.updated_dt:
+                raise ValidationError(
+                    {"updated_dt": "Affect has changed since it was retrieved."}
                 )
-                errors.append(
+            instance = copy(old)
+            instance._state = copy(old._state)
+            instance._state.fields_cache = old._state.fields_cache.copy()
+            instance.updated_by = actor
+            _prepare_affect_update_for_bulk(instance, old, serializer, streams)
+            key = (instance.flaw_id, instance.ps_update_stream, instance.ps_component)
+            if key in keys:
+                raise ValidationError(
                     {
-                        "input": {
-                            "uuid": str(instance.uuid),
-                            "ps_update_stream": instance.ps_update_stream,
-                            "ps_component": instance.ps_component,
-                            "purl": instance.purl,
-                            "ps_module": instance.ps_module,
-                        },
-                        "errors": error_detail,
+                        "ps_component": "Affect already exists for this flaw/stream/component."
                     }
                 )
+            instance.validate(raise_validation_error=True, validate_unique=False)
+            keys.add(key)
+            prepared.append((index, old, instance, serializer))
 
-        # Third, proxy the update to Bugzilla
-        flaw = Flaw.objects.get(uuid=next(iter(flaws)))
-        if ret:
+        if prepared:
+            # Bulk writes fire database audit triggers, but not Django model signals.
+            fields = [
+                "affectedness",
+                "resolution",
+                "ps_update_stream",
+                "ps_module",
+                "cve_id",
+                "ps_component",
+                "purl",
+                "subpackage_purls",
+                "impact",
+                "not_affected_justification",
+                "affectedness_explanation",
+                "resolved_dt",
+                "labels",
+                "updated_by",
+                "assist_meta",
+                "updated_dt",
+                "last_validated_dt",
+            ]
+            acl_updates = [
+                new
+                for _, old, new, _ in prepared
+                if (new.acl_read, new.acl_write) != (old.acl_read, old.acl_write)
+            ]
+            increasing_trackers = {
+                new.tracker_id
+                for _, old, new, _ in prepared
+                if new.tracker_id
+                and Impact(new.impact) > Impact(old.impact)
+                and Impact(new.impact) > new.tracker.aggregated_impact
+            }
+            # Check versions in the UPDATE, without locking rows during validation.
+            versions = Case(
+                *[
+                    When(uuid=new.uuid, then=Value(old.updated_dt))
+                    for _, old, new, _ in prepared
+                ],
+                output_field=DateTimeField(),
+            )
+            try:
+                with transaction.atomic():
+                    updated_count = Affect.objects.filter(
+                        updated_dt=versions
+                    ).bulk_update([new for _, _, new, _ in prepared], fields)
+                    if updated_count != len(prepared):
+                        raise ValidationError(
+                            {"updated_dt": "Affect has changed since it was retrieved."}
+                        )
+                    if acl_updates:
+                        Affect.objects.bulk_update(
+                            acl_updates, ["acl_read", "acl_write", "updated_dt"]
+                        )
+                    ProductFamilyLabel.update_relevance(flaw)
+                    if increasing_trackers:
+                        Tracker.objects.filter(uuid__in=increasing_trackers).update(
+                            last_impact_increase_dt=timezone.now()
+                        )
+            except IntegrityError as e:
+                # shortcut: any write integrity error becomes a generic batch conflict; refine if diagnostics are needed.
+                raise ValidationError(
+                    {"affect": "An affect update conflicts with another record."}
+                ) from e
+            for index, old, new, serializer in prepared:
+                try:
+                    with transaction.atomic():
+                        serializer.update_tracker(old, new)
+                except (
+                    ValidationError,
+                    drf_serializers.ValidationError,
+                    BTSException,
+                    JIRAError,
+                    requests.RequestException,
+                ):
+                    logging.getLogger(__name__).warning(
+                        "Tracker sync failed for affect %s", new.uuid
+                    )
+                    errors.append(
+                        {
+                            "index": index,
+                            "input": {
+                                "uuid": str(new.uuid),
+                                "ps_update_stream": new.ps_update_stream,
+                                "ps_component": new.ps_component,
+                                "purl": new.purl.to_string() if new.purl else None,
+                                "ps_module": new.ps_module,
+                            },
+                            "update_applied": True,
+                            "errors": {
+                                "tracker": [
+                                    "Tracker sync failed; affect update was applied."
+                                ]
+                            },
+                        }
+                    )
             flaw.save(bz_api_key=bz_api_key)
 
-        return Response({"results": ret, "failed": errors})
+        updated = {
+            str(a.uuid): a
+            for a in self.get_queryset().filter(
+                uuid__in=[new.uuid for _, _, new, _ in prepared]
+            )
+        }
+        ret = self.get_serializer(
+            [updated[str(new.uuid)] for _, _, new, _ in prepared], many=True
+        ).data
+        return Response(
+            {
+                "results": ret,
+                "failed": sorted(errors, key=lambda entry: entry["index"]),
+            },
+            status=status.HTTP_200_OK if ret else status.HTTP_400_BAD_REQUEST,
+        )
 
     @extend_schema(
         request=AffectPostSerializer(many=True),
