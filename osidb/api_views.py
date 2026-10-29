@@ -127,6 +127,7 @@ from .serializer import (
     AffectCVSSV2PutSerializer,
     AffectCVSSV2Serializer,
     AffectPostSerializer,
+    AffectPutSerializer,
     AffectSerializer,
     AffectV1Serializer,
     AlertSerializer,
@@ -1595,6 +1596,12 @@ def _run_post_save_effects_for_bulk(created_affects, flaw):
     create=extend_schema(
         request=AffectPostSerializer,
     ),
+    update=extend_schema(
+        request=AffectPutSerializer,
+    ),
+    partial_update=extend_schema(
+        request=AffectPutSerializer,
+    ),
 )
 class AffectView(
     RudimentaryUserPathLoggingMixin,
@@ -1614,6 +1621,11 @@ class AffectView(
     filterset_class = AffectFilter
     http_method_names = get_valid_http_methods(ModelViewSet)
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action in ("update", "partial_update", "bulk_put"):
+            return AffectPutSerializer
+        return self.serializer_class
 
     @staticmethod
     def _actor(user) -> str:
@@ -1670,14 +1682,9 @@ class AffectView(
             else:
                 uuids.add(uuid)
 
-            try:
-                flaw_uuid = datum["flaw"]
-            except KeyError:
-                raise ValidationError({"flaw": "This field is required."})
-
-            flaws.add(flaw_uuid)
-
             instance = get_object_or_404(queryset, uuid=uuid)
+            flaws.add(instance.flaw_id)
+
             serializer = self.get_serializer(instance, data=datum)
             serializer.is_valid(raise_exception=True)
             validated_serializers.append(serializer)
