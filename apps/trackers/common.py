@@ -8,6 +8,7 @@ from apps.bbsync.constants import MAX_SUMMARY_LENGTH, MULTIPLE_DESCRIPTIONS_SUBS
 from apps.bbsync.query import summary_shorten
 from apps.trackers.constants import (
     KERNEL_PACKAGES,
+    OSIM_URL,
     VIRTUALIZATION_PACKAGES,
     VULN_MGMT_INFO_URL,
 )
@@ -206,6 +207,10 @@ class TrackerQueryBuilder:
         if not self.ps_module.ps_product.is_community:
             description_parts.extend(self._description_manifest())
 
+        # 5c) OSIM flaw link
+        if not self.ps_module.ps_product.is_community:
+            description_parts.extend(self._description_osim_flaw())
+
         # 6) Tracker feedback form for Jira
         if self.tracker.type == Tracker.TrackerType.JIRA:
             description_parts.extend(self._description_feedback_form())
@@ -379,4 +384,21 @@ class TrackerQueryBuilder:
             )
             if line not in lines:
                 lines.append(line)
+        return lines
+
+    def _description_osim_flaw(self):
+        """
+        generate OSIM flaw link lines, empty when OSIM_URL is not configured
+        """
+        if OSIM_URL is None:
+            return []
+        base_url = OSIM_URL.rstrip("/")
+        lines = []
+        seen = set()
+        for flaw in self.flaws:
+            if flaw.uuid in seen:
+                continue
+            seen.add(flaw.uuid)
+            identifier = flaw.cve_id or flaw.uuid
+            lines.append(f"OSIM flaw: {base_url}/flaws/{identifier}")
         return lines
