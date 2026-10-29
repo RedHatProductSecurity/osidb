@@ -1288,7 +1288,9 @@ class TestMultiMixinIntegration:
         validation_counter = {}
         original_validate = AlertMixin.validate
 
-        def counter_validate(self, raise_validation_error=True, dry_run=False):
+        def counter_validate(
+            self, raise_validation_error=True, dry_run=False, validate_unique=True
+        ):
             nonlocal validation_counter
             if not dry_run:
                 # in Django 5.2 the implementation of ContentType.__str__()
@@ -1300,7 +1302,11 @@ class TestMultiMixinIntegration:
                     validation_counter[model] = 0
                 validation_counter[model] += 1
             # preserve original method behavior for proper testing
-            original_validate(self, raise_validation_error=raise_validation_error)
+            original_validate(
+                self,
+                raise_validation_error=raise_validation_error,
+                validate_unique=validate_unique,
+            )
 
         flaw_data = {
             "title": "test validations",
