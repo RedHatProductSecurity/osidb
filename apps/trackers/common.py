@@ -8,6 +8,7 @@ from apps.bbsync.constants import MAX_SUMMARY_LENGTH, MULTIPLE_DESCRIPTIONS_SUBS
 from apps.bbsync.query import summary_shorten
 from apps.trackers.constants import (
     KERNEL_PACKAGES,
+    OSIM_URL,
     VIRTUALIZATION_PACKAGES,
     VULN_MGMT_INFO_URL,
 )
@@ -379,4 +380,18 @@ class TrackerQueryBuilder:
             )
             if line not in lines:
                 lines.append(line)
+        return lines
+
+    @property
+    def osim_flaw_links(self):
+        """
+        OSIM flaw link as pairs, empty when not applicable
+        """
+        if OSIM_URL is None or self.ps_module.ps_product.is_community:
+            return []
+        base_url = OSIM_URL.rstrip("/")
+        lines = []
+        for flaw in self.flaws:
+            label = flaw.cve_id or flaw.uuid
+            lines.append((f"{base_url}/flaws/{flaw.uuid}", f"OSIM flaw {label}"))
         return lines

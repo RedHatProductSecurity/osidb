@@ -94,6 +94,8 @@ class TrackerJiraSaver(JiraQuerier):
                 title=reference.description,
             )
 
+        for url, title in querybuilder.osim_flaw_links:
+            self.add_link(issue_key=issue.key, url=url, title=title)
         return tracker
 
     def update(self, tracker):
