@@ -469,6 +469,84 @@ class TestFlaw:
             assert f.local_updated_dt == timezone.now()
 
     @pytest.mark.enable_signals
+    def test_tracker_save_only_updates_related_flaw_timestamps(self, monkeypatch):
+        flaws = [FlawFactory(embargoed=False) for _ in range(3)]
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affects = [
+            AffectFactory(
+                flaw=flaw,
+                ps_update_stream=ps_update_stream.name,
+                ps_component="shared-component",
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+            )
+            for flaw in flaws[:2]
+        ]
+        tracker = TrackerFactory(
+            affects=affects,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+            embargoed=False,
+        )
+        before = [Flaw.objects.get(pk=flaw.pk) for flaw in flaws]
+
+        def reject_flaw_save(self, *args, **kwargs):
+            pytest.fail("tracker save must not re-save a flaw")
+
+        monkeypatch.setattr(Flaw, "save", reject_flaw_save)
+        with freeze_time(tzdatetime(2077, 1, 1, 13, 39, 0)):
+            tracker.status = "Closed"
+            tracker.save(raise_validation_error=False)
+            for old in before[:2]:
+                current = Flaw.objects.get(pk=old.pk)
+                assert current.local_updated_dt == timezone.now()
+                assert current.updated_dt == old.updated_dt
+                assert current.classification == old.classification
+                assert current.last_validated_dt == old.last_validated_dt
+
+        unaffected = Flaw.objects.get(pk=before[2].pk)
+        assert unaffected.local_updated_dt == before[2].local_updated_dt
+
+    @pytest.mark.enable_signals
+    def test_tracker_status_controls_flaw_impact_change_alert(self):
+        flaw = FlawFactory(
+            embargoed=False,
+            impact=Impact.LOW,
+            major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+        )
+        ps_module = PsModuleFactory(bts_name="bugzilla")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            impact=Impact.NOVALUE,
+        )
+        tracker = TrackerFactory(
+            affects=(affect,),
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+            status="Open",
+            embargoed=False,
+        )
+        flaw.refresh_from_db()
+        flaw.impact = Impact.CRITICAL
+        flaw.save()
+        assert flaw.valid_alerts.filter(name="unsupported_impact_change").exists()
+
+        # Closing the tracker alone does not refresh flaw alerts; the next flaw
+        # impact change revalidates them against the tracker's current status.
+        tracker.status = "Closed"
+        tracker.save(raise_validation_error=False)
+        assert flaw.valid_alerts.filter(name="unsupported_impact_change").exists()
+        flaw.refresh_from_db()
+        flaw.impact = Impact.LOW
+        flaw.save()
+        assert not flaw.valid_alerts.filter(name="unsupported_impact_change").exists()
+
+    @pytest.mark.enable_signals
     def test_local_updated_dt_inverse_relationship(self):
         f = FlawFactory(embargoed=False)
         ps_module = PsModuleFactory(bts_name="bugzilla")

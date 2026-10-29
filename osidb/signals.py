@@ -182,25 +182,27 @@ def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=Tracker)
+def update_local_updated_dt_tracker(sender, instance, **kwargs):
+    # Flaw validators use tracker presence or status only when flaw fields change;
+    # tracker-only edits cannot change those results or workflow classification.
+    Flaw.objects.filter(affects__tracker=instance).update(
+        auto_timestamps=False, local_updated_dt=timezone.now()
+    )
+
+
 @receiver(post_save, sender=Affect)
 @receiver(post_delete, sender=Affect)
-def update_local_updated_dt_tracker(sender, instance, **kwargs):
-    flaws = set()
-    if isinstance(instance, Affect):
-        flaws.add(instance.flaw)
-    else:
-        for affect in instance.affects.all():
-            flaws.add(affect.flaw)
-    for flaw in list(flaws):
-        flaw.refresh_from_db()
-        with signal_pghistory_context(
-            "update_local_updated_dt_tracker", sender=sender, instance=instance
-        ):
-            flaw.save(
-                auto_timestamps=False,
-                no_alerts=True,  # recreating alerts from nested entities can cause deadlocks
-                raise_validation_error=False,
-            )
+def update_local_updated_dt_affect(sender, instance, **kwargs):
+    flaw = instance.flaw
+    flaw.refresh_from_db()
+    with signal_pghistory_context(
+        "update_local_updated_dt_affect", sender=sender, instance=instance
+    ):
+        flaw.save(
+            auto_timestamps=False,
+            no_alerts=True,  # recreating alerts from nested entities can cause deadlocks
+            raise_validation_error=False,
+        )
 
 
 @receiver(post_save, sender=AffectCVSS)
