@@ -1331,6 +1331,69 @@ def test_pre_filter_verified_mapping_proceeds():
     assert result.action is PreFilterAction.SEARCH
 
 
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "packages",
+    [
+        ["a2wsgi", "python-a2wsgi"],
+        ["python-a2wsgi", "a2wsgi"],
+        ["serde", "rust-serde"],
+        ["rust-serde", "serde"],
+        ["nokogiri", "rubygem-nokogiri"],
+        ["rubygem-nokogiri", "nokogiri"],
+        ["Django", "Python-Django"],
+    ],
+)
+def test_pre_filter_trusted_pair_auto_trusted(packages):
+    from collectors.component_mapping.models import ComponentMapEntry
+
+    ComponentMapEntry.objects.create(name="mapped", upstream_packages=packages)
+    flaw = FlawFactory(components=["mapped"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "mapped", "")
+
+    assert result.action is PreFilterAction.SEARCH
+    assert "no verified source component mapping" not in result.reason
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "packages",
+    [
+        ["kafka", "kafka-clients"],
+        ["nodejs", "nodejs22", "nodejs24"],
+        ["python-black", "psf/black"],
+    ],
+)
+def test_pre_filter_non_trusted_pair_unverified_manual(packages):
+    from collectors.component_mapping.models import ComponentMapEntry
+
+    ComponentMapEntry.objects.create(name="mapped", upstream_packages=packages)
+    flaw = FlawFactory(components=["mapped"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "mapped", "")
+
+    assert result.action is PreFilterAction.MANUAL
+    assert result.label == LABEL_MANUAL_TRIAGE
+    assert "no verified source component mapping" in result.reason
+
+
+@pytest.mark.django_db
+def test_pre_filter_non_trusted_pair_verified_proceeds():
+    from collectors.component_mapping.models import ComponentMapEntry, VerifiedMapping
+
+    ComponentMapEntry.objects.create(
+        name="Kafka", upstream_packages=["kafka", "kafka-clients"]
+    )
+    VerifiedMapping.objects.create(name="Kafka", upstream_package="kafka")
+    flaw = FlawFactory(components=["Kafka"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "Kafka", "")
+
+    assert result.action is PreFilterAction.SEARCH
+    assert "no verified source component mapping" not in result.reason
+
+
 # ── Manual-triage components guard ──────────────────────────────────────────
 
 
