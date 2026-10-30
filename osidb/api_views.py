@@ -73,6 +73,7 @@ from osidb.models import (
     Affect,
     AffectCVSS,
     AffectV1,
+    BULabel,
     BULabelDefinition,
     CollaboratorLabelDefinition,
     Flaw,
@@ -1585,6 +1586,8 @@ def _run_post_save_effects_for_bulk(created_affects, flaw):
     """
     for affect in created_affects:
         ProductFamilyLabel.create_from_affect(affect)
+    if created_affects:
+        BULabel.sync_for_flaw(flaw)
 
 
 @include_meta_attr_extend_schema_view

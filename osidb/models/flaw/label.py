@@ -6,13 +6,14 @@ The polymorphic content type field automatically tracks which subclass
 each instance belongs to.
 """
 
+import logging
 import uuid
 
 import pghistory
 from django.contrib.postgres import fields
 from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.db.models import Q
 from polymorphic.managers import PolymorphicManager
 from polymorphic.models import PolymorphicModel
@@ -24,6 +25,8 @@ from osidb.mixins import (
     ValidateMixin,
     validator,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class FlawLabelManager(PolymorphicManager, TrackingMixinManager):
@@ -170,6 +173,81 @@ class BULabel(FlawLabel):
             raise ValidationError(
                 {"name": f"BU label '{self.name}' must be pre-registered."}
             )
+
+    @staticmethod
+    def compute_state(affects):
+        """Affects of one team on one flaw in, BU label state out"""
+        from osidb.models import Affect
+
+        if any(not affect.is_resolved for affect in affects):
+            return BULabel.State.NEW
+
+        # temporary until a DECLINE state exists
+        if all(
+            affect.affectedness == Affect.AffectAffectedness.NOTAFFECTED
+            for affect in affects
+        ):
+            return BULabel.State.SKIP
+        return BULabel.State.DONE
+
+    @staticmethod
+    def sync_for_flaw(flaw):
+        """Recompute the BU labels of the flaw from its current affects"""
+        from osidb.models import Affect, PsModule
+
+        affects = list(Affect.objects.filter(flaw=flaw))
+
+        teams = dict(
+            PsModule.objects.filter(
+                name__in={affect.ps_module for affect in affects if affect.ps_module}
+            ).values_list("name", "ps_product__team")
+        )
+
+        affects_by_team = {}
+        for affect in affects:
+            team = teams.get(affect.ps_module) if affect.ps_module else None
+            if team:
+                affects_by_team.setdefault(team, []).append(affect)
+
+        defined = set(
+            BULabelDefinition.objects.filter(
+                name__in=list(affects_by_team)
+            ).values_list("name", flat=True)
+        )
+        for team in set(affects_by_team) - defined:
+            logger.warning(f"No BU label definition for team {team} (flaw {flaw.uuid})")
+        desired = {
+            team: BULabel.compute_state(affects_by_team[team]) for team in defined
+        }
+        existing = {label.name: label for label in BULabel.objects.filter(flaw=flaw)}
+
+        # delete labels without affects left, update changed states
+        for name, label in existing.items():
+            if name not in desired:
+                label.delete()
+            elif label.state != desired[name]:
+                label.state = desired[name]
+                label.save()
+
+        # names taken by any label type, as they are unique per flaw
+        taken = set(flaw.labels.values_list("name", flat=True))
+
+        # create missing labels with an empty owner
+        for name, state in desired.items():
+            if name not in taken:
+                try:
+                    with transaction.atomic():
+                        BULabel.objects.create(
+                            flaw=flaw,
+                            name=name,
+                            state=state,
+                            acl_read=list(flaw.acl_read),
+                            acl_write=list(flaw.acl_write),
+                        )
+                except IntegrityError:
+                    logger.info(
+                        f"BU label {name} was created concurrently (flaw {flaw.uuid})"
+                    )
 
 
 class CollaboratorLabel(FlawLabel):

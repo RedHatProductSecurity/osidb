@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added filter (aegis_processed) for flaws processed by Aegis/osidb-bot (OSIDB-4817)
 - Extend stats API with tracker counts (OSIDB-5664)
 - Add Link to Manifest in Tracker References (OSIDB-5705)
+- Implement affect-based trigger to keep BU labels in sync (OSIDB-5710)
 
 ### Fixed
 - Normalize lowercase stream impact values in product definitions collector (OSIDB-5785)
