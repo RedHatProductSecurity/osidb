@@ -1,6 +1,8 @@
 import enum
 import importlib.metadata
+import re
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from typing import Any
 
 from celery.utils.log import get_task_logger
@@ -12,6 +14,7 @@ from apps.ace.constants import (
     CHROMIUM_NAMES,
     CHROMIUM_STATEMENT,
     CHROMIUM_STREAMS,
+    DOWNSTREAM_BUILD_TYPES,
     GO_STDLIB_BUILDER_PRODUCTS,
     GO_STDLIB_BUILDER_PURL,
     GO_STDLIB_PACKAGES,
@@ -20,6 +23,7 @@ from apps.ace.constants import (
     LABEL_MANUAL_TRIAGE,
     LABEL_POTENTIAL_REJECTION,
     NEWTOPIA_ECOSYSTEMS,
+    OPENSHIFT_PS_MODULES,
 )
 from apps.ace.osv_ranges import OsvPackageInfo, match_component_to_upstream
 from apps.ace.version import (
@@ -48,12 +52,109 @@ from osidb.models.flaw.upstream import UpstreamData
 logger = get_task_logger(__name__)
 
 try:
-    from lib_newtopia import NewtopiaQuerier  # type: ignore[import-untyped]
+    from lib_newtopia import (  # type: ignore[import-untyped]
+        BomqSearchService,
+        NewtopiaQuerier,
+        is_rhcos_node_build,
+        rhcos_search,
+        to_affect_purl,
+    )
 
     HAS_LIB_NEWTOPIA = True
 except ImportError:
+    BomqSearchService = None  # type: ignore[assignment,misc]
     NewtopiaQuerier = None  # type: ignore[assignment,misc]
+    is_rhcos_node_build = None  # type: ignore[assignment,misc]
+    rhcos_search = None  # type: ignore[assignment,misc]
+    to_affect_purl = None  # type: ignore[assignment,misc]
     HAS_LIB_NEWTOPIA = False
+
+_DOWNSTREAM_MODES = ("build_type", "ecosystem", "rhcos")
+_SKIPPED_BOT_TYPE = "AI-Bot-Skipped"
+
+
+def _latest_downstream_value(aegis_meta) -> list | None:
+    """Return the latest usable ``_downstream`` catalog, or None.
+
+    Aegis appends newest entries last. Only that last entry is considered.
+    A usable catalog is a list (including an empty list) on an entry whose
+    ``type`` is not ``AI-Bot-Skipped``. Missing, malformed, or skipped
+    metadata returns None so ACE keeps the component search.
+    """
+    if not isinstance(aegis_meta, dict):
+        return None
+    entries = aegis_meta.get("_downstream")
+    if not isinstance(entries, list) or not entries:
+        return None
+    last = entries[-1]
+    if not isinstance(last, dict) or last.get("type") == _SKIPPED_BOT_TYPE:
+        return None
+    value = last.get("value")
+    if not isinstance(value, list):
+        return None
+    return value
+
+
+def _ps_module_regex(patterns: list[str] | None):
+    """Compile ACE product filters the same way lib-newtopia ``keep_included`` does."""
+    cleaned = [p.strip() for p in (patterns or []) if isinstance(p, str) and p.strip()]
+    if not cleaned:
+        return None
+    return re.compile("|".join(cleaned))
+
+
+def _ps_module_selected(
+    ps_module: str | None,
+    include: list[str] | None,
+    exclude: list[str] | None,
+) -> bool:
+    module = ps_module or ""
+    include_re = _ps_module_regex(include)
+    exclude_re = _ps_module_regex(exclude)
+    if include_re is not None and include_re.match(module) is None:
+        return False
+    if exclude_re is not None and exclude_re.match(module) is not None:
+        return False
+    return True
+
+
+def _openshift_modules_selected(include: list[str] | None) -> bool:
+    """True when an empty include list (all products) or a pattern matches OpenShift."""
+    include_re = _ps_module_regex(include)
+    if include_re is None:
+        return True
+    return any(include_re.match(module) for module in OPENSHIFT_PS_MODULES)
+
+
+def _downstream_search(record: dict) -> tuple[str, str, str] | None:
+    """Return ``(name, mode, mode_value)`` for one catalog query, or None to skip."""
+    if not isinstance(record, dict):
+        return None
+    name = record.get("name")
+    if not isinstance(name, str) or not name.strip():
+        return None
+    present = [
+        key for key in _DOWNSTREAM_MODES if key in record and record[key] is not None
+    ]
+    if len(present) != 1:
+        return None
+    mode = present[0]
+    raw = record[mode]
+    if not isinstance(raw, str):
+        return None
+    if mode == "ecosystem":
+        if not raw.strip():
+            return None
+        # Pass the catalog string through; do not restrict the value set.
+        return name.strip(), mode, raw.strip()
+    normalized = raw.strip().lower()
+    if mode == "build_type":
+        if normalized not in DOWNSTREAM_BUILD_TYPES:
+            return None
+        return name.strip(), mode, normalized
+    if normalized != "rpm":
+        return None
+    return name.strip(), "rhcos", "rpm"
 
 
 def _aegis_ecosystems(flaw: Flaw) -> list[str]:
@@ -692,6 +793,54 @@ def _query_newtopia(
     return results
 
 
+def _query_rhcos(
+    name: str,
+    ps_modules: list[str],
+    exclude_products: list[str] | None,
+    query_log: list | None = None,
+) -> list:
+    """Search RHCOS node builds in bomq and return parent-image affects.
+
+    The search term is the bundled component. Each hit's affect purl is the
+    RHCOS image (``ose-rhel-coreos``), taken from bomq's canonical purl.
+    """
+    if not _openshift_modules_selected(ps_modules):
+        desc = (
+            f"rhcos_search skipped for {name!r}: "
+            f"OpenShift modules not selected by products={ps_modules!r}"
+        )
+        if query_log is not None:
+            query_log.append({"tool_input": desc, "results": []})
+        logger.info(desc)
+        return []
+
+    config = NewtopiaQuerier().config  # type: ignore[misc]
+    bomq = config.bomq
+    service = BomqSearchService(bomq.url, bomq.ca_cert, debug=bomq.debug)  # type: ignore[misc]
+    desc = f"rhcos_search(BomqSearchService({bomq.url!r}), {name!r}, strict=True)"
+    response = rhcos_search(service, name, True)  # type: ignore[misc]
+    deps = list(getattr(response, "deps", None) or [])
+    kept = []
+    for dep in deps:
+        module = getattr(dep, "ps_module", None)
+        if not _ps_module_selected(module, ps_modules, exclude_products):
+            continue
+        raw_purl = getattr(dep, "purl", None) or ""
+        purl = to_affect_purl(raw_purl) if raw_purl else None  # type: ignore[misc]
+        kept.append(
+            SimpleNamespace(
+                ps_update_stream=getattr(dep, "ps_update_stream", None),
+                purls=[purl] if purl else [],
+                build_nvr=getattr(dep, "build_nvr", None),
+                build_name=getattr(dep, "build_name", None),
+                ps_module=module,
+            )
+        )
+    if query_log is not None:
+        query_log.append({"tool_input": desc, "results": [repr(r) for r in kept]})
+    return kept
+
+
 def _ace_tool_name() -> str:
     try:
         osidb_version = importlib.metadata.version("osidb")
@@ -914,16 +1063,249 @@ def _sync_affects_from_results(
     }
 
 
+def _apply_downstream_verdict(
+    flaw: Flaw,
+    affect: Affect,
+    record: dict,
+    *,
+    apply_labels: bool,
+    flaw_has_high_cvss_score: bool,
+) -> str:
+    """Set affectedness from a catalog record. Returns a stats bucket name."""
+    verdict = record["affectedness"] if "affectedness" in record else None
+    name = record.get("name")
+    if verdict == "AFFECTED":
+        affect.auto_resolve(flaw_has_high_cvss_score=flaw_has_high_cvss_score)
+        return "affected"
+    if verdict == "NOTAFFECTED":
+        affect.affectedness = Affect.AffectAffectedness.NOTAFFECTED
+        affect.resolution = Affect.AffectResolution.NOVALUE
+        affect.not_affected_justification = (
+            NotAffectedJustification.VULN_CODE_NOT_PRESENT
+        )
+        affect.affectedness_explanation = (
+            "Downstream catalog marked this package NOTAFFECTED. "
+            "Affectedness set to NOTAFFECTED with justification "
+            "'Vulnerable Code not Present'."
+        )
+        affect._auto_resolved = True
+        return "notaffected"
+    affect.affectedness = Affect.AffectAffectedness.NEW
+    affect.resolution = Affect.AffectResolution.NOVALUE
+    if apply_labels:
+        _apply_label(
+            flaw,
+            LABEL_MANUAL_TRIAGE,
+            reason=(
+                f"Downstream catalog affectedness for {name} is {verdict!r}; "
+                "left NEW for manual triage."
+            ),
+        )
+    return "new"
+
+
+def _sync_downstream_affects(
+    flaw: Flaw,
+    results: list,
+    record: dict,
+    mode: str,
+    mode_value: str,
+) -> dict[str, int]:
+    """Create affects for one catalog query, then apply its verdict.
+
+    OSV version ranges are not consulted. The first save is ``NEW`` so a
+    failed verdict still leaves a reviewable affect.
+    """
+    created = 0
+    skipped = 0
+    skipped_existing = 0
+    marked_notaffected = 0
+    verdict = record["affectedness"] if "affectedness" in record else None
+    evidence = record.get("evidence")
+    name = record.get("name")
+    flaw_has_high_cvss_score = flaw.has_high_cvss_score
+
+    with transaction.atomic():
+        for result in results:
+            ps_update_stream = getattr(result, "ps_update_stream", None)
+            purls = getattr(result, "purls", None) or []
+            purl_str = purls[0] if purls else None
+            if not ps_update_stream or not purl_str:
+                logger.warning(
+                    "Skipping _downstream result missing ps_update_stream or purl: %s",
+                    getattr(result, "build_nvr", None),
+                )
+                skipped += 1
+                continue
+
+            ps_component = Affect(purl=purl_str).ps_component_from_purl()
+            if (
+                ps_component
+                and Affect.objects.filter(
+                    flaw=flaw,
+                    ps_update_stream=ps_update_stream,
+                    ps_component=ps_component,
+                ).exists()
+            ):
+                skipped_existing += 1
+                continue
+
+            affect = Affect(
+                flaw=flaw,
+                ps_update_stream=ps_update_stream,
+                purl=purl_str,
+                ps_component=ps_component,
+                affectedness=Affect.AffectAffectedness.NEW,
+                resolution=Affect.AffectResolution.NOVALUE,
+                acl_read=flaw.acl_read,
+                acl_write=flaw.acl_write,
+                created_by="AffectCreationEngine",
+                updated_by="AffectCreationEngine",
+                assist_meta={
+                    "downstream_affectedness": verdict,
+                    "downstream_evidence": evidence,
+                    "downstream_name": name,
+                    "downstream_query": f"{mode}:{mode_value}",
+                },
+            )
+            affect.save(raise_validation_error=False)
+            created += 1
+            try:
+                # Savepoint so a failed verdict update keeps the NEW affect.
+                with transaction.atomic():
+                    outcome = _apply_downstream_verdict(
+                        flaw,
+                        affect,
+                        record,
+                        apply_labels=True,
+                        flaw_has_high_cvss_score=flaw_has_high_cvss_score,
+                    )
+                    affect.save(raise_validation_error=False)
+            except Exception:
+                logger.exception(
+                    "Failed to apply _downstream verdict for flaw=%s stream=%s component=%s",
+                    flaw.uuid,
+                    ps_update_stream,
+                    ps_component,
+                )
+                continue
+            if outcome == "notaffected":
+                marked_notaffected += 1
+
+    return {
+        "created": created,
+        "skipped": skipped,
+        "skipped_existing": skipped_existing,
+        "marked_notaffected": marked_notaffected,
+    }
+
+
+def _query_downstream_record(
+    name: str,
+    mode: str,
+    mode_value: str,
+    ps_modules: list[str],
+    exclude_products: list[str],
+    query_log: list,
+) -> list:
+    if mode == "build_type":
+        return _query_newtopia(
+            name,
+            ps_modules,
+            builds_only=True,
+            build_type=mode_value,
+            exclude_products=exclude_products,
+            query_log=query_log,
+        )
+    if mode == "ecosystem":
+        results = _query_newtopia(
+            name,
+            ps_modules,
+            ecosystem=mode_value,
+            exclude_products=exclude_products,
+            query_log=query_log,
+        )
+        if is_rhcos_node_build is None:
+            return results
+        return [
+            result
+            for result in results
+            if not is_rhcos_node_build(getattr(result, "build_name", None))
+        ]
+    return _query_rhcos(name, ps_modules, exclude_products, query_log)
+
+
+def _sync_downstream_catalog(
+    flaw: Flaw,
+    catalog: list,
+    settings: AffectSettings,
+    trigger: str,
+) -> dict[str, int]:
+    """Run typed catalog searches and do not walk ``Flaw.components``."""
+    ps_modules = settings.auto_create_ps_modules
+    exclude_ps_modules = settings.exclude_ps_modules
+    totals: dict[str, int] = {
+        "created": 0,
+        "skipped": 0,
+        "skipped_existing": 0,
+        "marked_notaffected": 0,
+        "pre_filtered": 0,
+    }
+    query_log: list[dict] = []
+    for record in catalog:
+        parsed = _downstream_search(record)
+        if parsed is None:
+            logger.warning(
+                "Skipping invalid _downstream record for flaw=%s: %s",
+                flaw.uuid,
+                record,
+            )
+            continue
+        name, mode, mode_value = parsed
+        results = _query_downstream_record(
+            name,
+            mode,
+            mode_value,
+            ps_modules,
+            exclude_ps_modules,
+            query_log,
+        )
+        stats = _sync_downstream_affects(flaw, results, record, mode, mode_value)
+        for key in stats:
+            totals[key] += stats[key]
+
+    if query_log:
+        _write_flaw_assist_meta(
+            flaw,
+            "ace",
+            {
+                "tool_name": _ace_tool_name(),
+                "trigger": trigger,
+                "queries": query_log,
+            },
+        )
+    logger.info(
+        "sync_flaw_affects_from_newcli flaw=%s downstream_records=%s %s",
+        flaw.uuid,
+        len(catalog),
+        totals,
+    )
+    return totals
+
+
 @app.task(queue="high")
 @bypass_rls
 def sync_flaw_affects_from_newcli(
     flaw_id: str, trigger: str = "unknown"
 ) -> dict[str, Any]:
     """
-    For each entry in ``Flaw.components``, query lib_newtopia and create affects for each
-    result: ``ps_update_stream`` and ``purl`` are taken from the result objects returned by
-    ``NewtopiaQuerier``. Existing affects for the same flaw, stream, and ``ps_component``
-    (inferred from the purl) are left unchanged.
+    When the latest ``aegis_meta["_downstream"]`` entry is a usable catalog, each
+    record is one typed lib-newtopia or RHCOS search and ``Flaw.components`` is not
+    searched. Otherwise, for each entry in ``Flaw.components``, query lib_newtopia
+    and create affects for each result: ``ps_update_stream`` and ``purl`` are taken
+    from the result objects returned by ``NewtopiaQuerier``. Existing affects for
+    the same flaw, stream, and ``ps_component`` (inferred from the purl) are left
+    unchanged.
 
     The set of PS modules queried is controlled by
     :attr:`osidb.models.affect.AffectSettings.auto_create_ps_modules`
@@ -957,6 +1339,10 @@ def sync_flaw_affects_from_newcli(
             flaw.workflow_state,
         )
         return {"skipped_reason": "workflow gate: not eligible"}
+
+    catalog = _latest_downstream_value(flaw.aegis_meta)
+    if catalog is not None:
+        return _sync_downstream_catalog(flaw, catalog, AffectSettings(), trigger)
 
     components = _flaw_components(flaw)
     settings = AffectSettings()
