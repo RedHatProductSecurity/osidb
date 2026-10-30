@@ -917,6 +917,7 @@ class TestSearchVectorMixin:
 
 class TestMultiMixinIntegration:
     @pytest.mark.vcr
+    @pytest.mark.django_db(transaction=True)
     def test_tracker_validation(
         self,
         auth_client,

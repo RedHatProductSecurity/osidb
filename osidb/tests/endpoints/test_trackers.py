@@ -19,6 +19,7 @@ class TestEndpointsTrackers:
     tests specific to /trackers endpoint
     """
 
+    @pytest.mark.django_db(transaction=True)
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])
     def test_tracker_create(self, auth_client, test_api_v2_uri, embargoed, bts_name):
@@ -55,6 +56,7 @@ class TestEndpointsTrackers:
         assert tracker.affects.count() == 1
         assert tracker.affects.first().uuid == affect.uuid
 
+    @pytest.mark.django_db(transaction=True)
     @pytest.mark.parametrize("sync_to_bz", [False, True, None])
     def test_tracker_create_jira_bulk_enablement(
         self, auth_client, test_api_v2_uri, monkeypatch, sync_to_bz
@@ -140,6 +142,7 @@ class TestEndpointsTrackers:
                 assert len(shared_state["runs"]) == 4
                 assert shared_state["runs"][-1] == (Flaw, {"success": True})
 
+    @pytest.mark.django_db(transaction=True)
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])
     def test_tracker_update(self, auth_client, test_api_v2_uri, embargoed, bts_name):
@@ -176,6 +179,7 @@ class TestEndpointsTrackers:
         )
         assert response.status_code == 200
 
+    @pytest.mark.django_db(transaction=True)
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     @pytest.mark.parametrize("embargoed", [False, True])
     def test_tracker_update_link(

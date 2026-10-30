@@ -12,6 +12,7 @@ import pghistory
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import BadRequest, ValidationError
+from django.db import transaction
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
@@ -797,22 +798,61 @@ class TrackerSerializer(
         TIMEZONE = timezone.get_current_timezone()
         tracker.created_dt = timezone.datetime(1970, 1, 1, tzinfo=TIMEZONE)
         tracker.updated_dt = timezone.datetime(1970, 1, 1, tzinfo=TIMEZONE)
-        tracker.save(no_alerts=True, auto_timestamps=False)
-        # create affect-tracker links
-        for affect in affects:
-            affect.tracker = tracker
-            affect.save(no_alerts=True, raise_validation_error=False)
+        previous_tracker_ids = {affect.pk: affect.tracker_id for affect in affects}
+
+        with transaction.atomic():
+            tracker.save(no_alerts=True, auto_timestamps=False)
+
+            # create affect-tracker links
+            for affect in affects:
+                affect.tracker = tracker
+                affect.save(no_alerts=True, raise_validation_error=False)
+
+            tracker.validate(raise_validation_error=True, dry_run=True)
 
         #####################
         # 3) create actions #
         #####################
-        tracker.save(
-            # the serializer does not care for the backend system
-            # therefore at this point we simply require both secrets
-            bz_api_key=self.get_bz_api_key(),
-            jira_token=self.get_jira_token(),
-            jira_email=self.get_jira_email(),
-        )
+        try:
+            tracker.save(
+                # the serializer does not care for the backend system
+                # therefore at this point we simply require both secrets
+                bz_api_key=self.get_bz_api_key(),
+                jira_token=self.get_jira_token(),
+                jira_email=self.get_jira_email(),
+            )
+        except Exception:
+            logger.exception(
+                "Backend save failed for tracker with UUID: %s", tracker.uuid
+            )
+            try:
+                if tracker.external_system_id == "":
+                    with transaction.atomic():
+                        for affect in affects:
+                            affect.tracker_id = previous_tracker_ids[affect.pk]
+                            affect.save(no_alerts=True, raise_validation_error=False)
+                        logger.error(
+                            "Local tracker row is missing upstream for tracker with UUID: "
+                            + str(tracker.uuid)
+                        )
+                        tracker.delete()
+                else:
+                    Tracker.objects.filter(uuid=tracker.uuid).update(
+                        external_system_id=tracker.external_system_id
+                    )
+
+                    logger.error(
+                        "Key on row unwritten for tracker with UUID: "
+                        + str(tracker.uuid)
+                        + "and external system ID: "
+                        + tracker.external_system_id
+                    )
+            except Exception:
+                logger.exception(
+                    "Tracker cleanup failed for tracker with UUID: %s", tracker.uuid
+                )
+
+            raise
 
         ##########################
         # 4) post-create actions #
@@ -822,7 +862,15 @@ class TrackerSerializer(
             # related flaws need to be saved to Bugzilla in order to update SRT notes with the new
             # Jira tracker ID (Bugzilla trackers are linked naturally through Bugzilla relations)
             if self.sync_to_bz_helper:
-                self._sync_related_flaws_to_bz(affects)
+                try:
+                    self._sync_related_flaws_to_bz(affects)
+                except Exception:
+                    logger.exception(
+                        "Unable to sync flaws from tracker "
+                        + str(tracker.uuid)
+                        + " to bugzilla. Scheduling sync of flaws for the future."
+                    )
+                    self._schedule_related_flaws_bz_sync(affects)
             else:
                 # Previously skipped the BZ sync entirely for performance, but that
                 # left the flaw's bz_component stale.Schedule an async sync instead,
@@ -854,32 +902,51 @@ class TrackerSerializer(
 
         removed_affects = old_affects - new_affects
         added_affects = new_affects - old_affects
+        previous_tracker_ids = {
+            affect.pk: affect.tracker_id for affect in added_affects
+        }
 
-        # Remove tracker from affects that are no longer associated
-        for affect in removed_affects:
-            affect.tracker = None
-            affect.save()
+        with transaction.atomic():
+            # Remove tracker from affects that are no longer associated
+            for affect in removed_affects:
+                affect.tracker = None
+                affect.save()
 
-        # Add tracker to newly associated affects
-        for affect in added_affects:
-            affect.tracker = tracker
-            affect.save()
+            # Add tracker to newly associated affects
+            for affect in added_affects:
+                affect.tracker = tracker
+                affect.save()
+
+            tracker.refresh_from_db()
+            for attr, value in validated_data.items():
+                setattr(tracker, attr, value)
+            tracker.validate(raise_validation_error=True, dry_run=True)
 
         #####################
         # 3) update actions #
         #####################
 
-        tracker.refresh_from_db()
-
-        for attr, value in validated_data.items():
-            setattr(tracker, attr, value)
-
-        tracker.save(
-            bz_api_key=self.get_bz_api_key(),
-            jira_token=self.get_jira_token(),
-            jira_email=self.get_jira_email(),
-            auto_timestamps=False,
-        )
+        try:
+            tracker.save(
+                bz_api_key=self.get_bz_api_key(),
+                jira_token=self.get_jira_token(),
+                jira_email=self.get_jira_email(),
+                auto_timestamps=False,
+            )
+        except Exception:
+            try:
+                with transaction.atomic():
+                    for affect in added_affects:
+                        affect.tracker_id = previous_tracker_ids[affect.pk]
+                        affect.save(no_alerts=True, raise_validation_error=False)
+                    for affect in removed_affects:
+                        affect.tracker = tracker
+                        affect.save(no_alerts=True, raise_validation_error=False)
+            except Exception:
+                logger.exception(
+                    "Failed to restore affect links after tracker save failure"
+                )
+            raise
 
         ##########################
         # 4) post-update actions #
@@ -890,14 +957,24 @@ class TrackerSerializer(
         # (Bugzilla trackers are linked naturally through Bugzilla relations)
         if tracker.type == Tracker.TrackerType.JIRA:
             # iterate over both added and removed affects
-            for affect in old_affects ^ set(tracker.affects.all()):
-                # do not raise validation errors here as the flaw is not what the user touches
-                # which would make the errors hard to understand and cause the tracker to orphan
-                affect.flaw.save(
-                    bz_api_key=self.get_bz_api_key(),
-                    no_alerts=True,
-                    raise_validation_error=False,
+            affect_set = old_affects ^ set(tracker.affects.all())
+
+            try:
+                for affect in affect_set:
+                    # do not raise validation errors here as the flaw is not what the user touches
+                    # which would make the errors hard to understand and cause the tracker to orphan
+                    affect.flaw.save(
+                        bz_api_key=self.get_bz_api_key(),
+                        no_alerts=True,
+                        raise_validation_error=False,
+                    )
+            except Exception:
+                logger.exception(
+                    "Unable to sync flaws from tracker "
+                    + str(tracker.uuid)
+                    + " to bugzilla. Scheduling sync of flaws for the future."
                 )
+                self._schedule_related_flaws_bz_sync(affect_set)
 
         #####################
         # 5) return updated #
