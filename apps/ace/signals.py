@@ -44,12 +44,17 @@ def _enqueue_hummingbird(flaw_id, trigger):
 @receiver(pre_save, sender=Flaw)
 def schedule_sync_flaw_affects_on_components_change(sender, instance, **kwargs) -> None:
     """
-    Trigger ACE when components change on a flaw that is already in an eligible workflow state.
+    Trigger ACE when components change, or when the latest usable
+    ``aegis_meta["_downstream"]`` catalog changes, on a flaw that is already
+    in an eligible workflow state.
 
     This handler checks the DB flaw's eligibility (not the instance's) to avoid race conditions
     with the workflow pre_save signal that updates workflow_state. When both components and
     workflow change in one save, the DB flaw is still in the old (ineligible) state, so this
     handler skips and the classification_changed handler picks it up.
+
+    Catalog comparison uses only the latest ``_downstream`` value, so updates to
+    ``processed`` or ``_ecosystems`` do not enqueue ACE.
 
     Gated by :attr:`osidb.models.affect.AffectSettings.auto_create`
     (``OSIDB_AFFECTS_AUTO_CREATE``, default false).
@@ -64,7 +69,9 @@ def schedule_sync_flaw_affects_on_components_change(sender, instance, **kwargs) 
         return
 
     update_fields = kwargs.get("update_fields")
-    if update_fields is not None and "components" not in update_fields:
+    components_in_update = update_fields is None or "components" in update_fields
+    meta_in_update = update_fields is None or "aegis_meta" in update_fields
+    if not components_in_update and not meta_in_update:
         return
 
     db_flaw = Flaw.objects.get(pk=instance.pk)
@@ -73,16 +80,25 @@ def schedule_sync_flaw_affects_on_components_change(sender, instance, **kwargs) 
     if not _is_eligible(db_flaw.workflow_name, db_flaw.workflow_state):
         return
 
-    # Check if components changed (use set comparison to ignore order)
-    old_set = set(db_flaw.components or [])
-    new_set = set(instance.components or [])
-    if old_set == new_set:
-        return
+    components_changed = False
+    if components_in_update:
+        # Check if components changed (use set comparison to ignore order)
+        old_set = set(db_flaw.components or [])
+        new_set = set(instance.components or [])
+        components_changed = old_set != new_set
 
-    if not _has_nonempty_components(instance.components):
-        return
+    catalog_changed = False
+    if meta_in_update:
+        from apps.ace.tasks import _latest_downstream_value
 
-    _enqueue_ace(str(instance.uuid), "flaw components changed")
+        catalog_changed = _latest_downstream_value(
+            db_flaw.aegis_meta
+        ) != _latest_downstream_value(instance.aegis_meta)
+
+    if components_changed and _has_nonempty_components(instance.components):
+        _enqueue_ace(str(instance.uuid), "flaw components changed")
+    elif catalog_changed:
+        _enqueue_ace(str(instance.uuid), "aegis_meta _downstream changed")
 
 
 @receiver(classification_changed, sender=Flaw)

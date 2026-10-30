@@ -29,7 +29,7 @@ from apps.ace.tasks import (
     sync_flaw_affects_from_newcli,
 )
 from osidb.models import Flaw
-from osidb.models.affect import Affect
+from osidb.models.affect import Affect, NotAffectedJustification
 from osidb.tests.factories import (
     FlawFactory,
     PsUpdateStreamFactory,
@@ -2801,3 +2801,741 @@ def test_both_signals_fire_for_eligible_flaw(monkeypatch, signal_ace_enabled):
 
     # Total: 1 (creation) + 2 (ACE + hummingbird on change) = 3
     assert len(calls) == 3
+
+
+# ── aegis_meta._downstream catalog ───────────────────────────────────────────
+
+_OCI_COREOS = "pkg:oci/ose-rhel-coreos-9?repository_url=registry.redhat.io/openshift/ose-rhel-coreos-9"
+
+
+def _downstream_meta(records, *, older=None, skipped=False):
+    entries = []
+    if older is not None:
+        entries.append(
+            {
+                "timestamp": "2020-01-01T00:00:00+00:00",
+                "type": "AI-Bot",
+                "value": older,
+            }
+        )
+    latest = {
+        "timestamp": "2026-01-01T00:00:00+00:00",
+        "type": "AI-Bot-Skipped" if skipped else "AI-Bot",
+    }
+    if not skipped:
+        latest["value"] = records
+    entries.append(latest)
+    return {"_downstream": entries}
+
+
+def _recording_querier(results_by_name, search_calls, filter_calls):
+    def _search(terms, **kwargs):
+        search_calls.append((list(terms), kwargs))
+        qs = MagicMock()
+
+        def _filter(**fkwargs):
+            filter_calls.append(fkwargs)
+            return qs
+
+        qs.filter.side_effect = _filter
+        qs.exclude.return_value = qs
+        qs.all.return_value = results_by_name.get(terms[0], [])
+        return qs
+
+    querier = MagicMock()
+    querier.return_value.search.side_effect = _search
+    return querier
+
+
+def test_latest_downstream_value_uses_only_the_last_entry():
+    from apps.ace.tasks import _latest_downstream_value
+
+    meta = _downstream_meta(
+        [{"name": "openssl", "build_type": "rpm"}],
+        older=[{"name": "curl", "build_type": "rpm"}],
+    )
+    assert _latest_downstream_value(meta) == [{"name": "openssl", "build_type": "rpm"}]
+    assert _latest_downstream_value({"_ecosystems": []}) is None
+    assert (
+        _latest_downstream_value(
+            _downstream_meta(
+                [],
+                older=[{"name": "curl", "build_type": "rpm"}],
+                skipped=True,
+            )
+        )
+        is None
+    )
+    assert (
+        _latest_downstream_value({"_downstream": [{"type": "AI-Bot", "value": []}]})
+        == []
+    )
+
+
+def test_sync_without_downstream_keeps_component_search(
+    monkeypatch, ace_enabled, result
+):
+    flaw = FlawFactory(
+        components=["openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta={"processed": True},
+    )
+    search_calls = []
+    filter_calls = []
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        _recording_querier(
+            {
+                "openssl": [
+                    result("rhel-9.8.z", "pkg:rpm/redhat/openssl@3.0.7?arch=src")
+                ]
+            },
+            search_calls,
+            filter_calls,
+        ),
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["created"] == 1
+    assert search_calls[0][0] == ["openssl"]
+    assert search_calls[0][1]["builds_only"] is False
+    assert "deps_only" not in search_calls[0][1]
+
+
+def test_sync_skipped_downstream_entry_keeps_component_search(
+    monkeypatch, ace_enabled, result
+):
+    flaw = FlawFactory(
+        components=["openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [],
+            older=[{"name": "jbcs-httpd24-openssl", "build_type": "rpm"}],
+            skipped=True,
+        ),
+    )
+    search_calls = []
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        _recording_querier(
+            {
+                "openssl": [
+                    result("rhel-9.8.z", "pkg:rpm/redhat/openssl@3.0.7?arch=src")
+                ]
+            },
+            search_calls,
+            [],
+        ),
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert search_calls[0][0] == ["openssl"]
+    assert search_calls[0][1]["builds_only"] is False
+
+
+def test_sync_downstream_build_type_queries(monkeypatch, ace_enabled, result):
+    records = [
+        {"name": "openssl", "build_type": "rpm", "affectedness": "NOTAFFECTED"},
+        {
+            "name": "jbcs-httpd24-openssl",
+            "build_type": "rpm",
+            "affectedness": "NOTAFFECTED",
+            "evidence": "1.1.1k",
+        },
+    ]
+    flaw = FlawFactory(
+        components=["openssl", "curl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(records),
+    )
+    search_calls = []
+    filter_calls = []
+    hits = {
+        "openssl": [result("rhel-9.8.z", "pkg:rpm/redhat/openssl@3.0.7?arch=src")],
+        "jbcs-httpd24-openssl": [
+            result("rhel-9.8.z", "pkg:rpm/redhat/jbcs-httpd24-openssl@1.1.1k?arch=src")
+        ],
+        "curl": [result("rhel-9.8.z", "pkg:rpm/redhat/curl@1?arch=src")],
+    }
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        _recording_querier(hits, search_calls, filter_calls),
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert [terms for terms, _ in search_calls] == [
+        ["openssl"],
+        ["jbcs-httpd24-openssl"],
+    ]
+    assert all(kwargs["builds_only"] is True for _, kwargs in search_calls)
+    assert all(kwargs["ecosystem"] == "" for _, kwargs in search_calls)
+    assert {"build_type": "rpm"} in filter_calls
+    assert stats["created"] == 2
+    assert stats["marked_notaffected"] == 2
+    assert flaw.affects.count() == 2
+    jbcs = flaw.affects.get(ps_component="jbcs-httpd24-openssl")
+    assert jbcs.assist_meta["downstream_evidence"] == "1.1.1k"
+    assert jbcs.assist_meta["downstream_query"] == "build_type:rpm"
+
+
+def test_sync_downstream_catalog_skips_component_search(
+    monkeypatch, ace_enabled, result
+):
+    flaw = FlawFactory(
+        components=["openssl", "curl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [{"name": "openssl", "build_type": "rpm", "affectedness": "NOTAFFECTED"}]
+        ),
+    )
+    search_calls = []
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        _recording_querier(
+            {
+                "openssl": [
+                    result("rhel-9.8.z", "pkg:rpm/redhat/openssl@3.0.7?arch=src")
+                ]
+            },
+            search_calls,
+            [],
+        ),
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert [terms for terms, _ in search_calls] == [["openssl"]]
+
+
+def test_sync_empty_downstream_catalog_creates_no_component_affects(
+    monkeypatch, ace_enabled
+):
+    flaw = FlawFactory(
+        components=["openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta={"_downstream": [{"type": "AI-Bot", "value": []}]},
+    )
+    querier = MagicMock()
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", querier)
+    rhcos = MagicMock()
+    monkeypatch.setattr("apps.ace.tasks.rhcos_search", rhcos)
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["created"] == 0
+    assert flaw.affects.count() == 0
+    querier.return_value.search.assert_not_called()
+    rhcos.assert_not_called()
+
+
+def test_sync_downstream_ecosystem_passes_value_and_drops_rhcos(
+    monkeypatch, ace_enabled, result
+):
+    flaw = FlawFactory(
+        components=["leftpad"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [
+                {
+                    "name": "leftpad",
+                    "ecosystem": "custom-eco",
+                    "affectedness": "NOTAFFECTED",
+                }
+            ]
+        ),
+    )
+    search_calls = []
+    hits = [
+        result(
+            "rhel-9.8.z",
+            "pkg:rpm/redhat/leftpad@1?arch=src",
+            build_name="leftpad",
+        ),
+        result(
+            "openshift-4.21",
+            _OCI_COREOS,
+            build_name="rhcos",
+        ),
+    ]
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        _recording_querier({"leftpad": hits}, search_calls, []),
+    )
+    monkeypatch.setattr(
+        "apps.ace.tasks.is_rhcos_node_build",
+        lambda name: (
+            isinstance(name, str) and (name == "rhcos" or name.startswith("rhcos-"))
+        ),
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert search_calls[0][1]["ecosystem"] == "custom-eco"
+    assert search_calls[0][1]["builds_only"] is False
+    assert "deps_only" not in search_calls[0][1]
+    assert stats["created"] == 1
+    assert flaw.affects.get().ps_component == "leftpad"
+
+
+def _patch_rhcos(monkeypatch, deps):
+    calls = []
+
+    def _search(service, name, strict, **kwargs):
+        calls.append((name, strict))
+        return SimpleNamespace(deps=deps)
+
+    nq = MagicMock()
+    nq.return_value.config.bomq.url = "https://bomq.example"
+    nq.return_value.config.bomq.ca_cert = None
+    nq.return_value.config.bomq.debug = False
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", nq)
+    monkeypatch.setattr("apps.ace.tasks.BomqSearchService", MagicMock())
+    monkeypatch.setattr("apps.ace.tasks.rhcos_search", _search)
+    monkeypatch.setattr("apps.ace.tasks.to_affect_purl", lambda purl: purl)
+    return calls, nq
+
+
+def _rhcos_dep(stream, module):
+    return SimpleNamespace(
+        purl=_OCI_COREOS,
+        ps_update_stream=stream,
+        ps_module=module,
+        build_name="rhcos",
+        build_nvr=f"rhcos-{stream}",
+    )
+
+
+def test_sync_downstream_rhcos_uses_parent_image_purl(monkeypatch, ace_enabled):
+    flaw = FlawFactory(
+        components=["openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [{"name": "openssl", "rhcos": "rpm", "affectedness": "NOTAFFECTED"}]
+        ),
+    )
+    calls, nq = _patch_rhcos(
+        monkeypatch,
+        [
+            _rhcos_dep("openshift-4.21", "openshift-4"),
+            _rhcos_dep("openshift-5.1", "openshift-5"),
+        ],
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert calls == [("openssl", True)]
+    nq.return_value.search.assert_not_called()
+    assert stats["created"] == 2
+    components = set(flaw.affects.values_list("ps_component", flat=True))
+    assert components == {"openshift/ose-rhel-coreos-9"}
+    assert set(flaw.affects.values_list("ps_update_stream", flat=True)) == {
+        "openshift-4.21",
+        "openshift-5.1",
+    }
+    expected_purl = PackageURL.from_string(_OCI_COREOS).to_string()
+    assert all(str(affect.purl) == expected_purl for affect in flaw.affects.all())
+
+
+def test_sync_downstream_rhcos_filters_openshift_modules(monkeypatch, ace_enabled):
+    flaw = FlawFactory(
+        components=["openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [{"name": "openssl", "rhcos": "rpm", "affectedness": "NOTAFFECTED"}]
+        ),
+    )
+    monkeypatch.setenv("OSIDB_AFFECTS_AUTO_CREATE_PS_MODULES", '["openshift-4"]')
+    calls, _nq = _patch_rhcos(
+        monkeypatch,
+        [
+            _rhcos_dep("openshift-4.21", "openshift-4"),
+            _rhcos_dep("openshift-5.1", "openshift-5"),
+        ],
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert calls == [("openssl", True)]
+    assert list(flaw.affects.values_list("ps_update_stream", flat=True)) == [
+        "openshift-4.21"
+    ]
+
+
+def test_sync_downstream_rhcos_skips_when_openshift_not_selected(
+    monkeypatch, ace_enabled
+):
+    flaw = FlawFactory(
+        components=["openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [{"name": "openssl", "rhcos": "rpm", "affectedness": "NOTAFFECTED"}]
+        ),
+    )
+    monkeypatch.setenv("OSIDB_AFFECTS_AUTO_CREATE_PS_MODULES", '["rhel-9"]')
+    calls, nq = _patch_rhcos(monkeypatch, [_rhcos_dep("openshift-4.21", "openshift-4")])
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert calls == []
+    assert stats["created"] == 0
+    nq.return_value.search.assert_not_called()
+
+
+def test_sync_downstream_affected_calls_auto_resolve_not_osv(
+    monkeypatch, ace_enabled, result, upstream_purls_openssl_rpm
+):
+    PsUpdateStreamFactory(name="rhel-9.8.z")
+    flaw = FlawFactory(
+        components=["openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [
+                {
+                    "name": "openssl",
+                    "build_type": "rpm",
+                    "affectedness": "AFFECTED",
+                    "evidence": "3.5.1",
+                }
+            ]
+        ),
+    )
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+    seen = []
+    real = Affect.auto_resolve
+
+    def _spy(self, *args, **kwargs):
+        seen.append(self.ps_update_stream)
+        return real(self, *args, **kwargs)
+
+    monkeypatch.setattr(Affect, "auto_resolve", _spy)
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        _recording_querier(
+            {
+                "openssl": [
+                    result(
+                        "rhel-9.8.z", "pkg:rpm/redhat/openssl@3.5.1-7.el9_7?arch=src"
+                    )
+                ]
+            },
+            [],
+            [],
+        ),
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    affect = flaw.affects.get()
+    assert seen == ["rhel-9.8.z"]
+    assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+    assert (
+        affect.not_affected_justification
+        != NotAffectedJustification.VULN_CODE_NOT_PRESENT
+    )
+    assert "osv_status" not in (affect.assist_meta or {})
+    assert affect.assist_meta["downstream_evidence"] == "3.5.1"
+
+
+def test_sync_downstream_notaffected_ignores_osv_range(
+    monkeypatch, ace_enabled, result, upstream_purls_openssl_rpm
+):
+    flaw = FlawFactory(
+        components=["openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [{"name": "openssl", "build_type": "rpm", "affectedness": "NOTAFFECTED"}]
+        ),
+    )
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        _recording_querier(
+            {
+                "openssl": [
+                    result(
+                        "rhel-9.8.z", "pkg:rpm/redhat/openssl@3.0.7-18.el9_2?arch=src"
+                    )
+                ]
+            },
+            [],
+            [],
+        ),
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.NOTAFFECTED
+    assert affect.resolution == Affect.AffectResolution.NOVALUE
+    assert (
+        affect.not_affected_justification
+        == NotAffectedJustification.VULN_CODE_NOT_PRESENT
+    )
+
+
+@pytest.mark.parametrize("verdict", [None, "UNKNOWN", ""])
+def test_sync_downstream_unresolved_verdict_stays_new_and_manual_triage(
+    monkeypatch, ace_enabled, result, verdict
+):
+    from osidb.models.flaw.label import WorkflowLabel
+
+    flaw = FlawFactory(
+        components=["compat-openssl11"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [
+                {
+                    "name": "compat-openssl11",
+                    "build_type": "rpm",
+                    "affectedness": verdict,
+                    "evidence": "1.1.1k",
+                }
+            ]
+        ),
+    )
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        _recording_querier(
+            {
+                "compat-openssl11": [
+                    result(
+                        "rhel-9.8.z",
+                        "pkg:rpm/redhat/compat-openssl11@1.1.1k?arch=src",
+                    )
+                ]
+            },
+            [],
+            [],
+        ),
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.NEW
+    assert affect.resolution == Affect.AffectResolution.NOVALUE
+    assert affect.assist_meta["downstream_affectedness"] == verdict
+    assert affect.assist_meta["downstream_evidence"] == "1.1.1k"
+    assert WorkflowLabel.objects.filter(flaw=flaw, name=LABEL_MANUAL_TRIAGE).exists()
+
+
+def test_sync_downstream_missing_verdict_stays_new_and_manual_triage(
+    monkeypatch, ace_enabled, result
+):
+    from osidb.models.flaw.label import WorkflowLabel
+
+    flaw = FlawFactory(
+        components=["compat-openssl11"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [{"name": "compat-openssl11", "build_type": "rpm", "evidence": "1.1.1k"}]
+        ),
+    )
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        _recording_querier(
+            {
+                "compat-openssl11": [
+                    result(
+                        "rhel-9.8.z",
+                        "pkg:rpm/redhat/compat-openssl11@1.1.1k?arch=src",
+                    )
+                ]
+            },
+            [],
+            [],
+        ),
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.NEW
+    assert affect.assist_meta["downstream_affectedness"] is None
+    assert WorkflowLabel.objects.filter(flaw=flaw, name=LABEL_MANUAL_TRIAGE).exists()
+
+
+def test_sync_uses_only_latest_downstream_catalog(monkeypatch, ace_enabled, result):
+    flaw = FlawFactory(
+        components=["openssl", "curl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [{"name": "openssl", "build_type": "rpm", "affectedness": "NOTAFFECTED"}],
+            older=[
+                {"name": "curl", "build_type": "rpm", "affectedness": "NOTAFFECTED"}
+            ],
+        ),
+    )
+    search_calls = []
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        _recording_querier(
+            {
+                "openssl": [
+                    result("rhel-9.8.z", "pkg:rpm/redhat/openssl@3.0.7?arch=src")
+                ]
+            },
+            search_calls,
+            [],
+        ),
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert [terms for terms, _ in search_calls] == [["openssl"]]
+
+
+def test_sync_downstream_leaves_existing_affect(monkeypatch, ace_enabled, result):
+    flaw = FlawFactory(
+        components=["openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [{"name": "openssl", "build_type": "rpm", "affectedness": "NOTAFFECTED"}]
+        ),
+    )
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        _recording_querier(
+            {
+                "openssl": [
+                    result("rhel-9.8.z", "pkg:rpm/redhat/openssl@3.0.7?arch=src")
+                ]
+            },
+            [],
+            [],
+        ),
+    )
+
+    first = sync_flaw_affects_from_newcli(str(flaw.uuid))
+    second = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert first["created"] == 1
+    assert second["created"] == 0
+    assert second["skipped_existing"] == 1
+    assert flaw.affects.get().affectedness == Affect.AffectAffectedness.NOTAFFECTED
+
+
+def test_sync_downstream_ignores_invalid_records(monkeypatch, ace_enabled, result):
+    flaw = FlawFactory(
+        components=["openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [
+                {
+                    "name": "openssl",
+                    "build_type": "rpm",
+                    "ecosystem": "npm",
+                    "affectedness": "NOTAFFECTED",
+                },
+                {
+                    "name": "mingw-openssl",
+                    "build_type": "rpm",
+                    "affectedness": "NOTAFFECTED",
+                },
+            ]
+        ),
+    )
+    search_calls = []
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        _recording_querier(
+            {
+                "mingw-openssl": [
+                    result("rhel-9.8.z", "pkg:rpm/redhat/mingw-openssl@1.0.2k?arch=src")
+                ]
+            },
+            search_calls,
+            [],
+        ),
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert [terms for terms, _ in search_calls] == [["mingw-openssl"]]
+    assert stats["created"] == 1
+
+
+@pytest.mark.enable_signals
+def test_signal_enqueues_when_downstream_catalog_changes(
+    monkeypatch, signal_ace_enabled
+):
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    enqueued = []
+    monkeypatch.setattr(
+        "apps.ace.signals._enqueue_ace",
+        lambda flaw_id, trigger: enqueued.append(trigger),
+    )
+
+    flaw.aegis_meta = _downstream_meta(
+        [{"name": "openssl", "build_type": "rpm", "affectedness": "AFFECTED"}]
+    )
+    flaw.save()
+
+    assert enqueued == ["aegis_meta _downstream changed"]
+
+
+@pytest.mark.enable_signals
+def test_signal_ignores_other_aegis_meta_keys(monkeypatch, signal_ace_enabled):
+    flaw = FlawFactory(
+        components=["openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+        aegis_meta=_downstream_meta(
+            [{"name": "openssl", "build_type": "rpm", "affectedness": "AFFECTED"}]
+        ),
+    )
+    enqueued = []
+    monkeypatch.setattr(
+        "apps.ace.signals._enqueue_ace",
+        lambda flaw_id, trigger: enqueued.append(trigger),
+    )
+
+    flaw.aegis_meta = {
+        **flaw.aegis_meta,
+        "processed": True,
+        "_ecosystems": [{"type": "AI-Bot", "value": ["npm"]}],
+    }
+    flaw.save(update_fields=["aegis_meta"])
+
+    assert enqueued == []
+
+
+@pytest.mark.enable_signals
+def test_signal_ignores_unrelated_update_fields(monkeypatch, signal_ace_enabled):
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    enqueued = []
+    monkeypatch.setattr(
+        "apps.ace.signals._enqueue_ace",
+        lambda flaw_id, trigger: enqueued.append(trigger),
+    )
+
+    flaw.title = "renamed"
+    flaw.aegis_meta = _downstream_meta(
+        [{"name": "openssl", "build_type": "rpm", "affectedness": "AFFECTED"}]
+    )
+    flaw.save(update_fields=["title"])
+
+    assert enqueued == []

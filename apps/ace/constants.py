@@ -2,6 +2,13 @@ NEWTOPIA_ECOSYSTEMS = frozenset(
     {"cargo", "gem", "generic", "golang", "maven", "npm", "nuget", "pypi", "upstream"}
 )
 
+# Search modes on aegis_meta._downstream records. Ecosystem values are not
+# restricted; whatever string the catalog sends is passed through.
+DOWNSTREAM_BUILD_TYPES = frozenset({"rpm", "container", "maven", "generic"})
+# RHCOS node builds are OpenShift modules. openshift-5 is included so a
+# forthcoming major is not dropped by a hardcoded openshift-4 check.
+OPENSHIFT_PS_MODULES = ("openshift-4", "openshift-5")
+
 # OSV ecosystem strings to normalized ecosystem identifiers
 OSV_ECOSYSTEM_MAP: dict[str, str] = {
     "maven": "maven",
