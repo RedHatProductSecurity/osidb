@@ -700,32 +700,48 @@ class TestEffectiveVisibility:
     def test_effective_visibility_from_current_state(self):
         """
         Test that effective visibility is returned when the current state
-        has a visibility property
+        has a visibility property (TRIAGE is the PUBLIC gate in DEFAULT)
         """
         wf = WorkflowFramework()
-        vis = wf.get_effective_visibility("DEFAULT", "PRE_SECONDARY_ASSESSMENT")
+        vis = wf.get_effective_visibility("DEFAULT", "TRIAGE")
         assert vis == ACL.PUBLIC
 
     def test_effective_visibility_inherited_from_earlier_state(self):
         """
         Test that effective visibility is inherited from an earlier state
-        when the current state has no visibility property (e.g. DONE
-        inherits PUBLIC from PRE_SECONDARY_ASSESSMENT)
+        when the current state has no visibility property (e.g. DONE and
+        PRE_SECONDARY_ASSESSMENT inherit PUBLIC from TRIAGE)
         """
         wf = WorkflowFramework()
-        vis = wf.get_effective_visibility("DEFAULT", "DONE")
-        assert vis == ACL.PUBLIC
+        assert wf.get_effective_visibility("DEFAULT", "ANALYSIS") == ACL.PUBLIC
+        assert (
+            wf.get_effective_visibility("DEFAULT", "PRE_SECONDARY_ASSESSMENT")
+            == ACL.PUBLIC
+        )
+        assert wf.get_effective_visibility("DEFAULT", "DONE") == ACL.PUBLIC
 
     def test_effective_visibility_none_before_gate(self):
         """
-        Test that states before any visibility gate return None
+        Test that states before the visibility gate return None. Only NEW
+        precedes the TRIAGE gate in DEFAULT.
         """
         wf = WorkflowFramework()
         vis = wf.get_effective_visibility("DEFAULT", "NEW")
         assert vis is None
 
-        vis = wf.get_effective_visibility("DEFAULT", "TRIAGE")
-        assert vis is None
+    def test_effective_visibility_manual_gate_at_triage(self):
+        """
+        Test that the MANUAL workflow opens visibility to PUBLIC at TRIAGE
+        (mirroring DEFAULT) and that NEW precedes the gate.
+        """
+        wf = WorkflowFramework()
+        assert wf.get_effective_visibility("MANUAL", "NEW") is None
+        assert wf.get_effective_visibility("MANUAL", "TRIAGE") == ACL.PUBLIC
+        assert (
+            wf.get_effective_visibility("MANUAL", "PRE_SECONDARY_ASSESSMENT")
+            == ACL.PUBLIC
+        )
+        assert wf.get_effective_visibility("MANUAL", "DONE") == ACL.PUBLIC
 
     def test_effective_visibility_none_for_rejected(self):
         """
