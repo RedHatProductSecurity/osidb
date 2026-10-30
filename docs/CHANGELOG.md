@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Normalize lowercase stream impact values in product definitions collector (OSIDB-5785)
 
+### Changed
+- Switch DELETE responses from 200 to 204 No Content (OSIDB-5778)
+
 ## [5.21.0] - 2026-10-21
 ### Added
 - Move logging of affects query, and reply, to flaw level (OSIDB-5344)

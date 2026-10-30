@@ -867,7 +867,7 @@ class TestBBSyncIntegration:
             format="json",
             HTTP_BUGZILLA_API_KEY=bugzilla_token,
         )
-        assert response.status_code == 200
+        assert response.status_code == 204
 
         response = auth_client().get(f"{test_api_uri}/affects/{affect.uuid}")
         assert response.status_code == 404

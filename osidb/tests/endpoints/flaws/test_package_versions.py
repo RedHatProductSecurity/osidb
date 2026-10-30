@@ -296,6 +296,6 @@ class TestEndpointsFlawsPackageVersions:
             f"{test_api_uri}/flaws/{str(flaw.uuid)}/package_versions/{package_versions1.uuid}",
             HTTP_BUGZILLA_API_KEY="SECRET",
         )
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         assert Package.objects.all().count() == 0
         assert PackageVer.objects.all().count() == 0
