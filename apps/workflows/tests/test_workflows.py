@@ -698,6 +698,170 @@ class TestWorkflowFullTraversal:
         assert flaw.workflow_state == "DONE"
 
 
+class TestWorkflowVisibilityGate:
+    """
+    Visibility (ACL) widening at the workflow gate.
+
+    Leadership moved the PUBLIC visibility gate earlier — from
+    PRE_SECONDARY_ASSESSMENT to TRIAGE — so that non-embargoed flaws are
+    published as soon as they carry basic triage data, instead of waiting for
+    all affects to be resolved. These tests exercise the real workflow YAML to
+    lock that behaviour in and, critically, guard against embargoed flaws ever
+    being published early.
+    """
+
+    def _fill_triage_requirements(self, flaw):
+        """Populate the fields required to advance a flaw from NEW to TRIAGE."""
+        flaw.source = "INTERNET"
+        flaw.components = ["kernel"]
+        flaw.cwe_id = "CWE-79"
+        flaw.impact = Impact.MODERATE
+        flaw.reported_dt = flaw.created_dt
+        flaw.cve_description = "A vulnerability in the kernel"
+
+    @pytest.mark.enable_signals
+    def test_default_internal_flaw_made_public_at_triage(
+        self, internal_read_groups, internal_write_groups
+    ):
+        """
+        A non-embargoed INTERNAL flaw in the DEFAULT workflow is made PUBLIC
+        the moment it reaches TRIAGE — and stays INTERNAL while still in NEW.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-DEFAULT-VIS",
+            acl_read=internal_read_groups,
+            acl_write=internal_write_groups,
+            source="",
+            impact="",
+            components=[],
+            reported_dt=None,
+            cwe_id="",
+            cve_description="",
+        )
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state == "NEW"
+        assert flaw.is_internal
+        assert not flaw.is_public
+
+        # a partial set of requirements keeps the flaw in NEW — still internal,
+        # i.e. the gate does not open before TRIAGE
+        flaw.source = "INTERNET"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "NEW"
+        assert flaw.is_internal
+
+        # completing the TRIAGE requirements crosses the visibility gate
+        self._fill_triage_requirements(flaw)
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "TRIAGE"
+        assert flaw.is_public
+        assert not flaw.is_internal
+
+    @pytest.mark.enable_signals
+    def test_manual_internal_flaw_made_public_at_triage(
+        self, internal_read_groups, internal_write_groups
+    ):
+        """
+        A non-embargoed INTERNAL flaw in the MANUAL workflow is likewise made
+        PUBLIC at TRIAGE (the MANUAL gate was moved to mirror DEFAULT).
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-MANUAL-VIS",
+            acl_read=internal_read_groups,
+            acl_write=internal_write_groups,
+            source="",
+            impact="",
+            components=[],
+            reported_dt=None,
+            cwe_id="",
+            cve_description="",
+        )
+        # force the MANUAL workflow via the manual-triage label
+        WorkflowLabel.objects.create(flaw=flaw, name="manual-triage")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "MANUAL"
+        assert flaw.workflow_state == "NEW"
+        assert flaw.is_internal
+
+        self._fill_triage_requirements(flaw)
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_name == "MANUAL"
+        assert flaw.workflow_state == "TRIAGE"
+        assert flaw.is_public
+
+    @pytest.mark.enable_signals
+    def test_embargoed_flaw_not_published_at_triage(self):
+        """
+        Safety guard: an EMBARGOED flaw reaching TRIAGE must NOT be published.
+        The EMBARGOED workflow carries no visibility gate, so the flaw stays
+        embargoed until it is explicitly unembargoed.
+        """
+        flaw = FlawFactory(
+            embargoed=True,
+            task_key="TASK-EMBARGOED-VIS",
+            source="",
+            impact="",
+            components=[],
+            reported_dt=None,
+            cwe_id="",
+            cve_description="",
+        )
+        assert flaw.workflow_name == "EMBARGOED"
+        assert flaw.workflow_state == "NEW"
+        assert flaw.is_embargoed
+
+        self._fill_triage_requirements(flaw)
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_name == "EMBARGOED"
+        assert flaw.workflow_state == "TRIAGE"
+        # the embargo must hold — no early publication
+        assert flaw.is_embargoed
+        assert not flaw.is_public
+
+    @pytest.mark.enable_signals
+    def test_triage_visibility_propagates_to_affects(
+        self, internal_read_groups, internal_write_groups
+    ):
+        """
+        When a non-embargoed flaw crosses the TRIAGE gate, the widened PUBLIC
+        visibility propagates to its nested affects as well.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-VIS-NESTED",
+            acl_read=internal_read_groups,
+            acl_write=internal_write_groups,
+            source="",
+            impact="",
+            components=[],
+            reported_dt=None,
+            cwe_id="",
+            cve_description="",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+            acl_read=internal_read_groups,
+            acl_write=internal_write_groups,
+        )
+        assert flaw.is_internal
+        assert affect.is_internal
+
+        # completing the data requirements crosses the gate; because the flaw
+        # already has an affect it settles in ANALYSIS, which inherits the
+        # PUBLIC visibility opened at TRIAGE
+        self._fill_triage_requirements(flaw)
+        flaw.save(raise_validation_error=False)
+        affect.refresh_from_db()
+
+        assert flaw.workflow_state == "ANALYSIS"
+        assert flaw.is_public
+        assert affect.is_public
+
+
 class TestNoClassification:
     @pytest.mark.enable_signals
     def test_no_classification_without_task_key(self):

@@ -697,59 +697,37 @@ class TestState:
 
 
 class TestEffectiveVisibility:
-    def test_effective_visibility_from_current_state(self):
+    @pytest.mark.parametrize(
+        "workflow, state, expected",
+        [
+            # DEFAULT: TRIAGE is the PUBLIC gate; NEW precedes it (None) and
+            # the later states inherit PUBLIC from it
+            ("DEFAULT", "NEW", None),
+            ("DEFAULT", "TRIAGE", ACL.PUBLIC),
+            ("DEFAULT", "ANALYSIS", ACL.PUBLIC),
+            ("DEFAULT", "PRE_SECONDARY_ASSESSMENT", ACL.PUBLIC),
+            ("DEFAULT", "DONE", ACL.PUBLIC),
+            # MANUAL mirrors DEFAULT: PUBLIC gate at TRIAGE
+            ("MANUAL", "NEW", None),
+            ("MANUAL", "TRIAGE", ACL.PUBLIC),
+            ("MANUAL", "PRE_SECONDARY_ASSESSMENT", ACL.PUBLIC),
+            ("MANUAL", "DONE", ACL.PUBLIC),
+            # workflows without any visibility gate
+            ("REJECTED", "DONE", None),
+            ("EMBARGOED", "PRE_SECONDARY_ASSESSMENT", None),
+            # unknown workflow or state names
+            ("NONEXISTENT", "NEW", None),
+            ("DEFAULT", "NONEXISTENT", None),
+        ],
+    )
+    def test_effective_visibility(self, workflow, state, expected):
         """
-        Test that effective visibility is returned when the current state
-        has a visibility property
+        get_effective_visibility returns the widest visibility defined from the
+        first state up to and including the given state: None before the gate,
+        the gate's visibility at and after it, and None for workflows without a
+        gate or for unknown workflow/state names.
         """
-        wf = WorkflowFramework()
-        vis = wf.get_effective_visibility("DEFAULT", "PRE_SECONDARY_ASSESSMENT")
-        assert vis == ACL.PUBLIC
-
-    def test_effective_visibility_inherited_from_earlier_state(self):
-        """
-        Test that effective visibility is inherited from an earlier state
-        when the current state has no visibility property (e.g. DONE
-        inherits PUBLIC from PRE_SECONDARY_ASSESSMENT)
-        """
-        wf = WorkflowFramework()
-        vis = wf.get_effective_visibility("DEFAULT", "DONE")
-        assert vis == ACL.PUBLIC
-
-    def test_effective_visibility_none_before_gate(self):
-        """
-        Test that states before any visibility gate return None
-        """
-        wf = WorkflowFramework()
-        vis = wf.get_effective_visibility("DEFAULT", "NEW")
-        assert vis is None
-
-        vis = wf.get_effective_visibility("DEFAULT", "TRIAGE")
-        assert vis is None
-
-    def test_effective_visibility_none_for_rejected(self):
-        """
-        Test that the REJECTED workflow has no visibility gates
-        """
-        wf = WorkflowFramework()
-        vis = wf.get_effective_visibility("REJECTED", "DONE")
-        assert vis is None
-
-    def test_effective_visibility_none_for_embargoed(self):
-        """
-        Test that the EMBARGOED workflow has no visibility gates
-        """
-        wf = WorkflowFramework()
-        vis = wf.get_effective_visibility("EMBARGOED", "PRE_SECONDARY_ASSESSMENT")
-        assert vis is None
-
-    def test_effective_visibility_none_for_unknown(self):
-        """
-        Test that unknown workflow/state combinations return None
-        """
-        wf = WorkflowFramework()
-        assert wf.get_effective_visibility("NONEXISTENT", "NEW") is None
-        assert wf.get_effective_visibility("DEFAULT", "NONEXISTENT") is None
+        assert WorkflowFramework().get_effective_visibility(workflow, state) == expected
 
     def test_effective_visibility_picks_widest(self):
         """
