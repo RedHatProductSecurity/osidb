@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Skip response metadata for 204 responses in the OpenAPI schema (OSIDB-5599)
+- Unify the definition of a resolved affect - only NEW:NOVALUE is unresolved (OSIDB-5744)
 
 ## [5.20.2] - 2026-10-09
 ### Changed

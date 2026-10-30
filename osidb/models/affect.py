@@ -81,6 +81,12 @@ class AffectManager(TrackingMixinManager):
     def get_queryset(self):
         return super().get_queryset().prefetch_related("tracker")
 
+    def all_resolved(self) -> bool:
+        """
+        whether all affects in the queryset are resolved
+        """
+        return not self.get_queryset().filter(**Affect.UNRESOLVED).exists()
+
     @staticmethod
     def create_affect(flaw, ps_update_stream, ps_component, **extra_fields):
         """return a new affect or update an existing affect without saving"""
@@ -160,6 +166,12 @@ class Affect(
         WONTFIX = "WONTFIX"
         OOSS = "OOSS"
         DEFER = "DEFER"
+
+    # an affect is unresolved only when NEW without any resolution
+    UNRESOLVED = {
+        "affectedness": AffectAffectedness.NEW,
+        "resolution": AffectResolution.NOVALUE,
+    }
 
     # internal primary key
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -1109,13 +1121,11 @@ class Affect(
     @property
     def is_resolved(self) -> bool:
         """
-        check and return whether the given affect is considered resolved
-        and should have a resolution date
+        check and return whether the affect is considered resolved
         """
         return (
-            self.affectedness not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS
-            or self.resolution
-            not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS[self.affectedness]
+            self.affectedness != self.UNRESOLVED["affectedness"]
+            or self.resolution != self.UNRESOLVED["resolution"]
         )
 
     @property
@@ -1316,18 +1326,6 @@ class AffectV1(AffectExploitExtensionMixin):
         )
 
     @property
-    def is_resolved(self) -> bool:
-        """
-        check and return whether the given affect is considered resolved
-        and should have a resolution date
-        """
-        return (
-            self.affectedness not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS
-            or self.resolution
-            not in AFFECTEDNESS_UNRESOLVED_RESOLUTIONS[self.affectedness]
-        )
-
-    @property
     def is_rhscl(self) -> bool:
         """
         check and return whether the given affect is RHSCL one
@@ -1434,16 +1432,6 @@ class AffectCVSS(CVSS):
             # default save already sync with Jira when needed
             tracker.save(jira_token=jira_token, jira_email=jira_email)
 
-
-# List of all states an Affect is considered open/not resolved
-AFFECTEDNESS_UNRESOLVED_RESOLUTIONS = {
-    Affect.AffectAffectedness.NEW: [
-        Affect.AffectResolution.NOVALUE,
-    ],
-    Affect.AffectAffectedness.AFFECTED: [
-        Affect.AffectResolution.DELEGATED,
-    ],
-}
 
 AFFECTEDNESS_VALID_RESOLUTIONS = {
     Affect.AffectAffectedness.NEW: [
