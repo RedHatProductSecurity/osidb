@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Extend stats API with tracker counts (OSIDB-5664)
 - Add Link to Manifest in Tracker References (OSIDB-5705)
 
+### Changed
+- Require a verified mapping before trusting multi-name component lists that are not trusted pairs (OSIDB-5677)
+
 ### Fixed
 - Normalize lowercase stream impact values in product definitions collector (OSIDB-5785)
 
