@@ -116,6 +116,7 @@ class TestJiraTrackerConvertor:
             cve_id="CVE-2014-3120",
             embargoed=False,
             # no bz_id so the failed affect is reported with a None flaw id
+            bz_id=None,
             meta_attr={},
         )
         ps_module = PsModuleFactory(name="amq-7")

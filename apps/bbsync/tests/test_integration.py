@@ -135,10 +135,10 @@ class TestBBSyncIntegration:
             Flaw.objects.get(uuid=created_uuid).comment_zero == "foobar"
         )  # DB field not overwritten
         assert (
-            flaw.bz_id == "2293325"
+            flaw.bz_id == 2293325
         )  # the in-memory representation was updated in-place
         assert (
-            Flaw.objects.get(uuid=created_uuid).bz_id == "2293325"
+            Flaw.objects.get(uuid=created_uuid).bz_id == 2293325
         )  # DB was updated as well
 
         response = auth_client().get(f"{test_api_uri}/flaws/{created_uuid}")
@@ -335,7 +335,7 @@ class TestBBSyncIntegration:
         """
         last_change_time = "2024-06-20T23:08:18Z"
         flaw = FlawFactory(
-            bz_id="2293325",
+            bz_id=2044578,
             cve_id="CVE-2000-3000",
             components=["ssh"],
             title="I cannot ssh into Matrix",
@@ -396,6 +396,7 @@ class TestBBSyncIntegration:
         """
         last_change_time = "2024-02-08T16:51:02Z"
         flaw = FlawFactory.build(
+            bz_id=2044578,
             cve_id="CVE-2022-0508",
             cwe_id="CWE-100",
             components=["shower"],
@@ -457,6 +458,7 @@ class TestBBSyncIntegration:
         with freeze_time(timezone.datetime(2000, 11, 11)):
             last_change_time = "2024-06-17T08:13:47Z"
             flaw = FlawFactory(
+                bz_id=2044578,
                 cve_id="CVE-2004-2493",
                 components=["test"],
                 title="totally descriptive",
@@ -530,6 +532,7 @@ class TestBBSyncIntegration:
         # freeze time so there is no late unembargo
         with freeze_time(timezone.datetime(2000, 11, 11)):
             flaw = FlawFactory(
+                bz_id=2044578,
                 cve_id="CVE-2022-0500",
                 components=["test"],
                 title="totally descriptive",
@@ -964,14 +967,17 @@ class TestBBSyncSaveIntegration:
     test the integration of BBSync with the model save machinery
     """
 
-    def test_bz_id(self):
+    @pytest.mark.parametrize("api_version", ["v1", "v2"])
+    def test_bz_id(self, auth_client, test_api_uri):
         """
         test preventing regression in the Bugzilla ID sync
 
         ensuring that the exising behavior is not changed by
         this or any previous change in the integration
         """
-        flaw = FlawFactory(cve_id=None, embargoed=False, meta_attr={"bz_id": None})
+        flaw = FlawFactory(
+            cve_id=None, embargoed=False, bz_id=None, meta_attr={"bz_id": None}
+        )
         assert not flaw.bz_id
         assert flaw.meta_attr == {"bz_id": None}
 
@@ -996,10 +1002,20 @@ class TestBBSyncSaveIntegration:
 
         flaw = Flaw.objects.get(uuid=flaw.uuid)
 
-        assert flaw.bz_id == "123"
+        assert flaw.bz_id == 123
+        assert flaw.meta_attr["bz_id"] is None
         assert len(flaw.meta_attr) == 4
         for item in ["alias", "cc", "groups"]:
             assert item in flaw.meta_attr and flaw.meta_attr[item] == "[]"
+
+        response = auth_client().get(
+            f"{test_api_uri}/flaws/{flaw.uuid}?include_meta_attr=bz_id"
+        )
+        assert response.status_code == 200
+        assert response.json()["bz_id"] == 123
+        assert response.json()["meta_attr"] == {"bz_id": "123"}
+        flaw.refresh_from_db()
+        assert flaw.meta_attr["bz_id"] is None
 
 
 class TestFlawDraftBBSyncIntegration:

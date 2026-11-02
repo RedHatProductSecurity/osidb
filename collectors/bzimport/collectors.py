@@ -264,7 +264,7 @@ class BugzillaQuerier(BugzillaConnector):
                 continue
 
             # let us consider all bugs as flaws for now
-            flaw = Flaw.objects.filter(meta_attr__bz_id=bug_id).first()
+            flaw = Flaw.objects.filter(bz_id=bug_id).first()
             if flaw is not None:
                 flaw.delete()
 

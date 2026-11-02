@@ -721,20 +721,31 @@ class TestEndpointsFlaws:
         assert response.status_code == 200
         assert response.json()["count"] == 2
 
-    def test_list_flaws_filter_by_bz_id(self, auth_client, test_api_uri):
-        """retrieve list of flaws from endpoint"""
+    @pytest.mark.parametrize("api_version", ["v1", "v2"])
+    @pytest.mark.parametrize("filter_name", ["bz_id", "meta_attr__bz_id"])
+    @pytest.mark.parametrize("meta_attr", [{}, {"bz_id": "654321"}])
+    def test_list_flaws_filter_by_bz_id(
+        self, auth_client, test_api_uri, filter_name, meta_attr
+    ):
+        """Both filter names use the field, even when legacy metadata disagrees."""
         response = auth_client().get(f"{test_api_uri}/flaws")
         assert response.status_code == 200
         body = response.json()
         assert body["count"] == 0
 
-        meta_attr = {"bz_id": 123456}
+        flaw = FlawFactory(bz_id=123456, meta_attr=meta_attr)
+        FlawFactory(bz_id=654321, meta_attr={"bz_id": "123456"})
 
-        FlawFactory(meta_attr=meta_attr)
-
-        response = auth_client().get(f"{test_api_uri}/flaws?bz_id={meta_attr['bz_id']}")
+        response = auth_client().get(
+            f"{test_api_uri}/flaws?{filter_name}=123456&include_meta_attr=bz_id"
+        )
         assert response.status_code == 200
         assert response.json()["count"] == 1
+        assert response.json()["results"][0]["uuid"] == str(flaw.uuid)
+        assert response.json()["results"][0]["bz_id"] == 123456
+        assert response.json()["results"][0]["meta_attr"] == {"bz_id": "123456"}
+        flaw.refresh_from_db()
+        assert flaw.meta_attr == meta_attr
 
     def test_list_flaws_filter_by_labels(self, auth_client, test_api_uri):
         """test multi-label filtering"""
@@ -1229,7 +1240,7 @@ class TestEndpointsFlaws:
                 "include_meta_attr=test_key_1,test_key_2,bad_key",
                 {"test_key_1", "test_key_2"},
             ),
-            ("include_meta_attr=*", {f"test_key_{i}" for i in range(5)}),
+            ("include_meta_attr=*", {f"test_key_{i}" for i in range(5)} | {"bz_id"}),
         ],
     )
     def test_list_flaws_include_meta_attr(
@@ -1282,7 +1293,7 @@ class TestEndpointsFlaws:
             (
                 "include_meta_attr=*,affects.*,affects.tracker.*",
                 {
-                    "flaw": {f"test_key_{i}" for i in range(5)},
+                    "flaw": {f"test_key_{i}" for i in range(5)} | {"bz_id"},
                     "affect": {f"test_key_{i}" for i in range(5)},
                     "tracker": {f"test_key_{i}" for i in range(5)},
                 },
@@ -1342,7 +1353,7 @@ class TestEndpointsFlaws:
                 "include_meta_attr=test_key_1,test_key_2,bad_key",
                 {"test_key_1", "test_key_2"},
             ),
-            ("include_meta_attr=*", {f"test_key_{i}" for i in range(5)}),
+            ("include_meta_attr=*", {f"test_key_{i}" for i in range(5)} | {"bz_id"}),
         ],
     )
     def test_flaw_include_meta_attr(
@@ -1394,7 +1405,7 @@ class TestEndpointsFlaws:
             (
                 "include_meta_attr=*,affects.*,affects.tracker.*",
                 {
-                    "flaw": {f"test_key_{i}" for i in range(5)},
+                    "flaw": {f"test_key_{i}" for i in range(5)} | {"bz_id"},
                     "affect": {f"test_key_{i}" for i in range(5)},
                     "tracker": {f"test_key_{i}" for i in range(5)},
                 },
@@ -1559,6 +1570,8 @@ class TestEndpointsFlaws:
         """
         flaw_data = {
             "cve_id": "CVE-2021-0666",
+            "bz_id": 999999,
+            "meta_attr": {"bz_id": "999999"},
             "cwe_id": "CWE-1",
             "title": "Foo",
             "impact": "CRITICAL",
@@ -1583,6 +1596,8 @@ class TestEndpointsFlaws:
         response = auth_client().get(f"{test_api_uri}/flaws/{created_uuid}")
         assert response.status_code == 200
         assert response.json()["cve_id"] == "CVE-2021-0666"
+        assert response.json()["bz_id"] is None
+        assert Flaw.objects.get(uuid=created_uuid).bz_id is None
         assert "curl" in response.json()["components"]
 
     def test_flaw_draft_create(self, auth_client, test_api_uri):
@@ -1651,6 +1666,8 @@ class TestEndpointsFlaws:
             {
                 "uuid": flaw.uuid,
                 "cve_id": flaw.cve_id,
+                "bz_id": 999999,
+                "meta_attr": {"bz_id": "999999"},
                 "title": f"{flaw.title} appended test title",
                 "comment_zero": flaw.comment_zero,
                 "impact": flaw.impact,
@@ -1667,6 +1684,9 @@ class TestEndpointsFlaws:
         assert original_body["title"] != body["title"]
         assert "appended test title" in body["title"]
         assert original_body["comment_zero"] == body["comment_zero"]
+        assert body["bz_id"] == original_body["bz_id"]
+        flaw.refresh_from_db()
+        assert flaw.bz_id == original_body["bz_id"]
 
     @pytest.mark.parametrize("embargoed", [True, False])
     @pytest.mark.parametrize(
