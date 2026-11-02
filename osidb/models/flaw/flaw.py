@@ -285,6 +285,7 @@ class Flaw(
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)
+    bz_id = models.PositiveBigIntegerField(null=True, editable=False)
     # aegis metadata
     aegis_meta = JSONField(default=dict, blank=True)
     # assist metadata
@@ -325,6 +326,11 @@ class Flaw(
                 models.Index(fields=["-cve_id"]),
                 GinIndex(fields=["acl_read"]),
                 models.Index(fields=["-local_updated_dt"]),
+                models.Index(
+                    fields=["bz_id"],
+                    condition=models.Q(bz_id__isnull=False),
+                    name="osidb_flaw_bz_id_idx",
+                ),
                 models.Index(fields=["uuid", "local_updated_dt"]),
                 models.Index(
                     fields=["cve_id", "local_updated_dt"],
@@ -961,20 +967,6 @@ class Flaw(
         return FLAW_PLACEHOLDER_KEYWORD in json.loads(
             self.meta_attr.get("keywords", "[]")
         )
-
-    @property
-    def bz_id(self):
-        """
-        shortcut to get underlying Bugzilla bug ID
-        """
-        return self.meta_attr.get("bz_id", None)
-
-    @bz_id.setter
-    def bz_id(self, value):
-        """
-        shortcut to set underlying Bugzilla bug ID
-        """
-        self.meta_attr["bz_id"] = value
 
     @property
     def api_url(self):

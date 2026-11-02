@@ -872,6 +872,8 @@ class FlawIntrospectionView(RudimentaryUserPathLoggingMixin, APIView):
 @extend_schema_view(
     list=extend_schema(
         parameters=[
+            # Preserve the public query type when bz_id becomes an integer model field.
+            OpenApiParameter("bz_id", type=OpenApiTypes.NUMBER),
             OpenApiParameter(
                 "tracker_ids",
                 type={"type": "array", "items": {"type": "string"}},

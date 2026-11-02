@@ -2366,11 +2366,24 @@ class FlawSerializer(
     @extend_schema_field(
         {
             "type": "object",
-            "properties": {key: {"type": "string"} for key in META_ATTR_KEYS},
+            "properties": {
+                **{key: {"type": "string"} for key in META_ATTR_KEYS if key != "bz_id"},
+                "bz_id": {
+                    "type": "string",
+                    "deprecated": True,
+                    "description": "Deprecated response alias for the top-level bz_id field.",
+                },
+            },
         }
     )
     def get_meta_attr(self, obj):
-        return super().get_meta_attr(obj)
+        meta_attr = dict(super().get_meta_attr(obj))
+        if obj.bz_id is not None and (
+            "bz_id" in self._include_meta_attr or "*" in self._include_meta_attr
+        ):
+            # Preserve the legacy response without modifying the stored metadata.
+            meta_attr["bz_id"] = str(obj.bz_id)
+        return meta_attr
 
     def get_requires_cve_description(self, obj):
         return obj.FlawRequiresCVEDescription.NOVALUE
@@ -2415,6 +2428,7 @@ class FlawSerializer(
             [
                 "uuid",
                 "cve_id",
+                "bz_id",
                 "impact",
                 "components",
                 "title",
@@ -2450,7 +2464,7 @@ class FlawSerializer(
             + AlertMixinSerializer.Meta.fields
             + HistoryMixinSerializer.Meta.fields
         )
-        read_only_fields = ["assist_meta"]
+        read_only_fields = ["assist_meta", "bz_id"]
 
     def validate_embargoed(self, embargoed: bool):
         if embargoed:

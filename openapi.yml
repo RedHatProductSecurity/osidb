@@ -3370,6 +3370,10 @@ paths:
         explode: false
         style: form
       - in: query
+        name: meta_attr__bz_id
+        schema:
+          type: integer
+      - in: query
         name: mitigation__isempty
         schema:
           type: boolean
@@ -11143,6 +11147,10 @@ paths:
         explode: false
         style: form
       - in: query
+        name: meta_attr__bz_id
+        schema:
+          type: integer
+      - in: query
         name: mitigation__isempty
         schema:
           type: boolean
@@ -17580,6 +17588,11 @@ components:
           type:
           - string
           - 'null'
+        bz_id:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -17746,6 +17759,7 @@ components:
       - affects
       - alerts
       - assist_meta
+      - bz_id
       - classification
       - comment_zero
       - comments
@@ -18607,6 +18621,11 @@ components:
           type:
           - string
           - 'null'
+        bz_id:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -18774,6 +18793,7 @@ components:
       - affects
       - alerts
       - assist_meta
+      - bz_id
       - classification
       - comment_zero
       - comments
@@ -19185,6 +19205,11 @@ components:
           type:
           - string
           - 'null'
+        bz_id:
+          type:
+          - integer
+          - 'null'
+          readOnly: true
         impact:
           oneOf:
           - $ref: '#/components/schemas/ImpactEnum'
@@ -19345,6 +19370,7 @@ components:
       - affects
       - alerts
       - assist_meta
+      - bz_id
       - classification
       - comment_zero
       - comments
