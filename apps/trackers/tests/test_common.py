@@ -652,10 +652,9 @@ class TestTrackerQueryBuilderDescription:
             in tqb.description
         )
 
-    @pytest.mark.parametrize("form_url", [None, "https://example.form.com"])
-    def test_feedback_form(self, form_url):
+    def test_no_feedback_form(self):
         """
-        test that tracker feedback form is included in the description if the env variable is set
+        test that no tracker feedback form is included in the description
         """
         ps_module = PsModuleFactory(bts_name="jboss")
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
@@ -673,14 +672,10 @@ class TestTrackerQueryBuilderDescription:
             type=Tracker.TrackerType.JIRA,
         )
 
-        with patch("apps.trackers.common.TRACKER_FEEDBACK_FORM_URL", form_url):
-            tqb = TrackerQueryBuilder()
-            tqb.instance = tracker
+        tqb = TrackerQueryBuilder()
+        tqb.instance = tracker
 
-            if form_url is not None:
-                assert form_url in tqb.description
-            else:
-                assert "feedback form" not in tqb.description
+        assert "feedback form" not in tqb.description
 
     @pytest.mark.parametrize("info_url", [None, "https://example.doc.com"])
     def test_vuln_mgmt_link(self, info_url):

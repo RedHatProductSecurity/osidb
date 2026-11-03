@@ -13,7 +13,6 @@ JIRA_EMBARGO_SECURITY_LEVEL_NAME = get_env(
 JIRA_INTERNAL_SECURITY_LEVEL_NAME = get_env(
     "JIRA_INTERNAL_SECURITY_LEVEL_NAME", default="Red Hat Employee"
 )
-TRACKER_FEEDBACK_FORM_URL = get_env("TRACKER_FEEDBACK_FORM_URL")
 
 # Override mapping for resolving ambiguous Jira field names per project.
 # Structure: {project_key: {field_name: field_id}}

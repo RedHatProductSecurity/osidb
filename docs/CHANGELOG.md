@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Expose an indexed, read-only numeric flaw `bz_id`, preserving stored legacy metadata and supporting legacy response and `meta_attr__bz_id` filter aliases (OSIDB-5717)
 
+### Removed
+- Removed the tracker accuracy feedback form link from Jira tracker descriptions and the `TRACKER_FEEDBACK_FORM_URL` setting
+
 ## [5.22.0] - 2026-11-02
 ### Added
 - Added filters for checking if the workflow state or name are empty (OSIDB-5730)

@@ -11,7 +11,6 @@ from apps.trackers.constants import (
     VIRTUALIZATION_PACKAGES,
     VULN_MGMT_INFO_URL,
 )
-from apps.trackers.jira.constants import TRACKER_FEEDBACK_FORM_URL
 from osidb.helpers import cve_id_comparator
 from osidb.models import Flaw, PsModule, PsUpdateStream, Tracker
 
@@ -206,11 +205,7 @@ class TrackerQueryBuilder:
         if not self.ps_module.ps_product.is_community:
             description_parts.extend(self._description_manifest())
 
-        # 6) Tracker feedback form for Jira
-        if self.tracker.type == Tracker.TrackerType.JIRA:
-            description_parts.extend(self._description_feedback_form())
-
-        # 7) join the parts by empty lines
+        # 6) join the parts by empty lines
         return "\n\n".join(description_parts)
 
     def _description_bugzilla_footer(self):
@@ -338,14 +333,6 @@ class TrackerQueryBuilder:
             "Reproducers, if any, will remain confidential and never be made public, "
             "unless done so by the security team."
         ]
-
-    def _description_feedback_form(self):
-        """
-        generate tracker feedback form text
-        """
-        if TRACKER_FEEDBACK_FORM_URL is None:
-            return []
-        return [f"Tracker accuracy feedback form: {TRACKER_FEEDBACK_FORM_URL}"]
 
     def _description_vuln_mgmt_info(self):
         """
