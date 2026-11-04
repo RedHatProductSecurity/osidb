@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Normalize lowercase stream impact values in product definitions collector (OSIDB-5785)
+- ACE: require an affirmative OSV affected result before auto-resolving and route
+  unresolved statuses to manual triage (OSIDB-5800)
 
 ## [5.21.0] - 2026-10-21
 ### Added

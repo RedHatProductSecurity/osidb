@@ -28,8 +28,10 @@ from apps.ace.tasks import (
     _resolve_component,
     sync_flaw_affects_from_newcli,
 )
+from apps.ace.version import OsvStatus
 from osidb.models import Flaw
 from osidb.models.affect import Affect
+from osidb.models.flaw.label import WorkflowLabel
 from osidb.tests.factories import (
     FlawFactory,
     PsUpdateStreamFactory,
@@ -400,12 +402,12 @@ def test_sync_creates_affected_when_version_in_range(
     assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
 
 
-def test_sync_creates_affected_when_no_upstream_match(
+def test_sync_no_upstream_match_requires_manual_triage(
     monkeypatch, ace_enabled, mock_querier, result
 ):
     """
     No upstream_purls entry matches the component name.
-    Falls back to AFFECTED (current behaviour preserved).
+    The affect must be NEW and manually triaged.
     """
     PsUpdateStreamFactory(name="rhel-9.8.z")
     flaw = FlawFactory(
@@ -441,15 +443,18 @@ def test_sync_creates_affected_when_no_upstream_match(
     assert stats["created"] == 1
     assert stats["marked_notaffected"] == 0
     affect = flaw.affects.get()
-    assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+    assert affect.affectedness == Affect.AffectAffectedness.NEW
+    assert affect.resolution == Affect.AffectResolution.NOVALUE
+    assert affect.assist_meta["osv_status"] == "no_match"
+    assert WorkflowLabel.objects.filter(flaw=flaw, name=LABEL_MANUAL_TRIAGE).exists()
 
 
-def test_sync_creates_affected_when_no_range(
+def test_sync_no_range_requires_manual_triage(
     monkeypatch, ace_enabled, mock_querier, result
 ):
     """
     upstream_purls entry matches the component but has empty ranges.
-    Falls back to AFFECTED (no range to compare against).
+    The affect must be NEW and manually triaged.
     """
     flaw = FlawFactory(
         components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
@@ -478,6 +483,77 @@ def test_sync_creates_affected_when_no_range(
 
     assert stats["created"] == 1
     assert stats["marked_notaffected"] == 0
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.NEW
+    assert affect.resolution == Affect.AffectResolution.NOVALUE
+    assert affect.assist_meta["osv_status"] == "no_range"
+    assert WorkflowLabel.objects.filter(flaw=flaw, name=LABEL_MANUAL_TRIAGE).exists()
+
+
+@pytest.mark.parametrize(
+    "osv_status",
+    [OsvStatus.NO_MATCH, OsvStatus.NO_RANGE, OsvStatus.UNKNOWN],
+)
+def test_sync_unresolved_osv_status_requires_manual_triage(
+    monkeypatch,
+    ace_enabled,
+    mock_querier,
+    result,
+    upstream_purls_mistune_pypi,
+    osv_status,
+):
+    flaw = FlawFactory(
+        components=["mistune"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_mistune_pypi)
+
+    monkeypatch.setattr(
+        "apps.ace.tasks._osv_version_status",
+        lambda *args, **kwargs: (osv_status, "< 3.3.0", "3.3.3"),
+    )
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        mock_querier({"mistune": [result("rhoai-3.5", "pkg:pypi/mistune@3.3.3")]}),
+    )
+
+    def auto_resolve_must_not_be_called(*args, **kwargs):
+        raise AssertionError("auto_resolve must not be called")
+
+    monkeypatch.setattr(Affect, "auto_resolve", auto_resolve_must_not_be_called)
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["created"] == 1
+    assert stats["marked_notaffected"] == 0
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.NEW
+    assert affect.resolution == Affect.AffectResolution.NOVALUE
+    assert affect.assist_meta["osv_status"] == osv_status.value
+
+    assert WorkflowLabel.objects.filter(flaw=flaw, name=LABEL_MANUAL_TRIAGE).exists()
+
+
+def test_sync_fixed_mistune_version_marks_not_affected(
+    monkeypatch, ace_enabled, mock_querier, result, upstream_purls_mistune_pypi
+):
+    flaw = FlawFactory(
+        components=["mistune"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_mistune_pypi)
+
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        mock_querier({"mistune": [result("rhoai-3.5", "pkg:pypi/mistune@3.3.3")]}),
+    )
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert stats["created"] == 1
+    assert stats["marked_notaffected"] == 1
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.NOTAFFECTED
+    assert affect.resolution == Affect.AffectResolution.NOVALUE
+    assert affect.assist_meta["osv_status"] == "not_affected"
 
 
 def test_sync_assist_meta_includes_osv_fields(

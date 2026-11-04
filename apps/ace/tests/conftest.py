@@ -140,6 +140,25 @@ def upstream_purls_openssl_rpm():
 
 
 @pytest.fixture
+def upstream_purls_mistune_pypi():
+    """OSV upstream_purls entry for mistune (PyPI ecosystem, fixed at 3.3.0)."""
+    return [
+        {
+            "purl": "pkg:pypi/mistune",
+            "name": "mistune",
+            "ecosystem": "PyPI",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "3.3.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+
+
+@pytest.fixture
 def upstream_purls_nuget():
     """OSV upstream_purls entry for Magick.NET (NuGet ecosystem, fixed at 14.10.3)."""
     return [
