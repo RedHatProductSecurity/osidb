@@ -313,7 +313,12 @@ class Affect(
         return f"Affect ({affect_id}) for {ps_update_stream}/{ps_component} {msg}"
 
     def save(self, *args, **kwargs):
-        if self.purl and not self.ps_component:
+        old_affect = None
+        if not self._state.adding:
+            old_affect = Affect.objects.get(uuid=self.uuid)
+        if self.purl and (
+            not self.ps_component or (old_affect and old_affect.purl != self.purl)
+        ):
             try:
                 maybe_ps_component = self.ps_component_from_purl()
                 if maybe_ps_component:
@@ -321,17 +326,9 @@ class Affect(
             except ValueError:
                 pass
 
-        if self.is_resolved:
-            if self._state.adding:
-                # new affect created resolved
-                self.resolved_dt = timezone.now().replace(microsecond=0)
-            else:
-                old_affect = Affect.objects.get(uuid=self.uuid)
-                if not old_affect.is_resolved:
-                    # affect changed from unresolved to resolved
-                    self.resolved_dt = timezone.now().replace(microsecond=0)
-        else:
-            # Not resolved affects should never have resolved_dt
+        if self.is_resolved and not (old_affect and old_affect.is_resolved):
+            self.resolved_dt = timezone.now().replace(microsecond=0)
+        elif not self.is_resolved:
             self.resolved_dt = None
 
         ps_update_stream = PsUpdateStream.objects.filter(
