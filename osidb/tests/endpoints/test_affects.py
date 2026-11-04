@@ -2570,6 +2570,30 @@ class TestEndpointsAffectsPurl:
             assert error in str(response.content)
             assert "rhacm-2.11.z" in str(response.content)
 
+    def test_update_changed_purl_replaces_component(self, auth_client, test_api_v2_uri):
+        affect = AffectFactory(
+            flaw=FlawFactory(embargoed=False),
+            ps_component="old-component",
+            purl=default_rpm_purl_for_ps_component("old-component"),
+            **_community_ps_for_affect(),
+        )
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+        data["purl"] = default_rpm_purl_for_ps_component("curl")
+
+        response = client.put(
+            f"{test_api_v2_uri}/affects/{affect.uuid}",
+            data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+
+        assert response.status_code == 200, response.data
+        affect.refresh_from_db()
+        assert affect.ps_component == "curl"
+        assert response.data["ps_component"] == "curl"
+
     @pytest.mark.parametrize(
         "ps_component,purl,error",
         [
@@ -2596,10 +2620,13 @@ class TestEndpointsAffectsPurl:
         or purl and ps_component are missing.
         """
         flaw = FlawFactory(embargoed=False)
+        initial_purl = (
+            purl if error == "does not match user-provided ps_component" else ""
+        )
         affect = AffectFactory(
             flaw=flaw,
-            ps_component="podman",
-            purl="",
+            ps_component="curl" if initial_purl else "podman",
+            purl=initial_purl,
             **_community_ps_for_affect(),
         )
 
