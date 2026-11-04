@@ -61,12 +61,13 @@ class BugzillaSaver(BugzillaQuerier):
         """
         bugzilla_query_builder = self.query_builder(self.instance)
         response = self.bz_conn.createbug(bugzilla_query_builder.query)
-        self.instance.bz_id = str(response.id)
+        self.instance.bz_id = int(response.id)
         if isinstance(self.instance, Flaw):
             # update the meta_attr according to the changes
             # since in the async mode we do not fetch them
             self.model.objects.filter(uuid=self.instance.uuid).update(
-                meta_attr=bugzilla_query_builder.meta_attr
+                bz_id=self.instance.bz_id,
+                meta_attr=bugzilla_query_builder.meta_attr,
             )
         return self.instance
 
@@ -200,7 +201,7 @@ class FlawBugzillaSaver(BugzillaSaver):
         # in OSIDB it basically results in a flaw removal
         # so let us restrict it for now - should be rare
         if (
-            self.model.objects.filter(meta_attr__bz_id=self.flaw.bz_id).count() > 1
+            self.model.objects.filter(bz_id=self.flaw.bz_id).count() > 1
             and not self.flaw.cve_id
         ):
             raise UnsaveableFlawError(

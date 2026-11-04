@@ -229,7 +229,8 @@ class TestFlaw:
         AffectFactory(flaw=flaw1)
 
         assert Flaw.objects.count() == 1
-        assert Flaw.objects.first().meta_attr["bz_id"] == "12345"
+        assert Flaw.objects.first().bz_id == 12345
+        assert "bz_id" not in Flaw.objects.first().meta_attr
         Flaw.objects.create_flaw(
             bz_id="12345",
             title="second",
@@ -243,6 +244,46 @@ class TestFlaw:
         # no new flaw should be created
         assert Flaw.objects.count() == 1
         assert Flaw.objects.first().title == "second"
+
+    @pytest.mark.parametrize("full_match", [False, True])
+    def test_create_flaw_without_bz_id_does_not_reuse_another_cve(self, full_match):
+        """A sole null-ID flaw must not be mistaken for a different CVE."""
+        existing = FlawFactory(bz_id=None, cve_id="CVE-2026-1111")
+
+        flaw = Flaw.objects.create_flaw(
+            None, full_match=full_match, cve_id="CVE-2026-2222"
+        )
+
+        assert flaw._state.adding
+        assert flaw.uuid != existing.uuid
+        existing.refresh_from_db()
+        assert existing.cve_id == "CVE-2026-1111"
+
+    @pytest.mark.parametrize("full_match", [False, True])
+    @pytest.mark.parametrize("bz_id", [None, 12345])
+    def test_create_flaw_without_bz_id_matches_cve(self, full_match, bz_id):
+        """A CVE identifies the existing flaw without clearing its Bugzilla ID."""
+        existing = FlawFactory(bz_id=bz_id, cve_id="CVE-2026-1111")
+        FlawFactory(bz_id=None, cve_id="CVE-2026-2222")
+
+        flaw = Flaw.objects.create_flaw(
+            None, full_match=full_match, cve_id=existing.cve_id, title="updated title"
+        )
+
+        assert flaw.uuid == existing.uuid
+        assert flaw.bz_id == bz_id
+        assert flaw.title == "updated title"
+
+    @pytest.mark.parametrize("full_match", [False, True])
+    @pytest.mark.parametrize("cve_id", [None, ""])
+    def test_create_flaw_without_identifiers_creates_new(self, full_match, cve_id):
+        """Unidentified flaws must not be matched against other null identifiers."""
+        existing = FlawFactory(bz_id=None, cve_id=None)
+
+        flaw = Flaw.objects.create_flaw(None, full_match=full_match, cve_id=cve_id)
+
+        assert flaw._state.adding
+        assert flaw.uuid != existing.uuid
 
     def test_multi_affect_tracker(self):
         ps_module = PsModuleFactory(bts_name="bugzilla")
@@ -1540,7 +1581,7 @@ class TestFlawValidators:
         ps_update_stream = PsUpdateStreamFactory(
             ps_module=ps_module if not missing_module else None
         )
-        flaw = FlawFactory(meta_attr={"bz_id": bz_id})
+        flaw = FlawFactory(bz_id=bz_id)
         affect = AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
         if should_alert:
             assert affect.valid_alerts.filter(name="old_flaw_affect_ps_module").exists()
@@ -1565,7 +1606,7 @@ class TestFlawValidators:
         ps_update_stream = PsUpdateStreamFactory(
             ps_module=ps_module if not missing_module else None
         )
-        flaw = FlawFactory(meta_attr={"bz_id": bz_id})
+        flaw = FlawFactory(bz_id=bz_id)
         if should_raise:
             with pytest.raises(ValidationError) as e:
                 AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)

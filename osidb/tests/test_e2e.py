@@ -172,7 +172,7 @@ class TestE2E:
         if not embargoed:
             assert response.json()["title"] == "test validations"
             assert "curl" in response.json()["components"]
-            assert response.json()["meta_attr"]["bz_id"]
+            assert response.json()["bz_id"]
 
         # 2) get valid external data
         ps_update_streams = PsUpdateStream.objects.filter(
@@ -273,7 +273,7 @@ class TestE2E:
             assert len(response.json()["trackers"]) == 2
             assert len(response.json()["affects"]) == 2
             assert "curl" in response.json()["components"]
-            assert response.json()["meta_attr"]["bz_id"]
+            assert response.json()["bz_id"]
 
         # 6) validate users can promote flaws
         # 6.1) setup workflows for test
@@ -354,7 +354,7 @@ class TestE2E:
         assert len(body["trackers"]) == 2
         assert len(body["affects"]) == 2
         assert "curl" in body["components"]
-        assert body["meta_attr"]["bz_id"]
+        assert body["bz_id"]
         assert any(
             h["pgh_diff"] and "task_key" in h["pgh_diff"] for h in body["history"]
         )

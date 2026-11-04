@@ -25,7 +25,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
 
     @property
     def blocks(self):
-        return json.loads(self.meta_attr.get("blocks", "[]"))
+        return [int(block) for block in json.loads(self.meta_attr.get("blocks", "[]"))]
 
     def update_blocks(self, add, remove):
         add_blocks = set(self.blocks) | set(add)
@@ -73,11 +73,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
         """
         # there may be multiple flaws in OSIDB with the same Bugzilla ID
         flaw_ids = list(
-            set(
-                flaw.meta_attr["bz_id"]
-                for flaw in self.flaws
-                if "bz_id" in flaw.meta_attr
-            )
+            set(flaw.bz_id for flaw in self.flaws if flaw.bz_id is not None)
         )
 
         if self.is_creating:
@@ -93,7 +89,7 @@ class TrackerBugzillaQueryBuilder(BugzillaQueryBuilder, TrackerQueryBuilder):
             old_flaw_ids = [
                 bz_id
                 for bz_id in self.blocks
-                if Flaw.objects.filter(meta_attr__bz_id=bz_id).exists()
+                if Flaw.objects.filter(bz_id=bz_id).exists()
             ]
 
             add_flaw_ids, remove_flaw_ids = self._lists2diffs(flaw_ids, old_flaw_ids)

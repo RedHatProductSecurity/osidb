@@ -239,7 +239,7 @@ class FlawBugzillaQueryBuilder(BugzillaQueryBuilder):
         if self.flaw.bz_id:
             cve_ids = cve_ids + [
                 f.cve_id
-                for f in Flaw.objects.filter(meta_attr__bz_id=self.flaw.bz_id).exclude(
+                for f in Flaw.objects.filter(bz_id=self.flaw.bz_id).exclude(
                     uuid=self.flaw.uuid
                 )
             ]

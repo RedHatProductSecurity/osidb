@@ -414,7 +414,7 @@ class TestFlawModelIntegration(object):
         assert not transition_performed
 
         # provide IDs
-        flaw.bz_id = "12345"
+        flaw.bz_id = 12345
         flaw.task_key = "TASK-123"
 
         create_or_update_performed = False

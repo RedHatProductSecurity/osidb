@@ -381,10 +381,10 @@ class OldTrackerJiraQueryBuilder(TrackerQueryBuilder):
                     ).values_list("flaw__uuid", flat=True)
                 ],
                 *[  # add all linked non-empty BZ IDs
-                    "flaw:bz#" + meta_attr["bz_id"]
-                    for meta_attr in self.tracker.affects.filter(
-                        flaw__meta_attr__bz_id__isnull=False
-                    ).values_list("flaw__meta_attr", flat=True)
+                    f"flaw:bz#{bz_id}"
+                    for bz_id in self.tracker.affects.filter(
+                        flaw__bz_id__isnull=False
+                    ).values_list("flaw__bz_id", flat=True)
                 ],
             ]
         )

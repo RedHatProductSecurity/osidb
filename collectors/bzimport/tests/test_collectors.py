@@ -26,18 +26,14 @@ pytestmark = pytest.mark.unit
 
 class TestBugzillaQuerier:
     def test_remove_testing(self):
-        flaw1 = FlawFactory(
-            title="regular flaw", embargoed=False, meta_attr={"bz_id": "321"}
-        )
-        flaw2 = FlawFactory(
-            title="testing: flaw", embargoed=False, meta_attr={"bz_id": "123"}
-        )
+        flaw1 = FlawFactory(title="regular flaw", embargoed=False, bz_id=321)
+        flaw2 = FlawFactory(title="testing: flaw", embargoed=False, bz_id=123)
         AffectFactory(flaw=flaw2)
         PackageFactory(flaw=flaw2)
         FlawCommentFactory(flaw=flaw2)
 
-        flaw1 = Flaw.objects.filter(meta_attr__bz_id="321").first()
-        flaw2 = Flaw.objects.filter(meta_attr__bz_id="123").first()
+        flaw1 = Flaw.objects.filter(bz_id=321).first()
+        flaw2 = Flaw.objects.filter(bz_id=123).first()
         affect = Affect.objects.first()
         package_version = Package.objects.first()
         comment = FlawComment.objects.first()
@@ -59,8 +55,8 @@ class TestBugzillaQuerier:
             ("321", None),
         ]
 
-        flaw1 = Flaw.objects.filter(meta_attr__bz_id="321").first()
-        flaw2 = Flaw.objects.filter(meta_attr__bz_id="123").first()
+        flaw1 = Flaw.objects.filter(bz_id=321).first()
+        flaw2 = Flaw.objects.filter(bz_id=123).first()
         affect = Affect.objects.first()
         package_version = Package.objects.first()
         comment = FlawComment.objects.first()

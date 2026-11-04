@@ -31,7 +31,7 @@ class TrackerSaver:
         for affect in tracker.affects.all():
             if (
                 affect.flaw.bz_id
-                and Flaw.objects.filter(meta_attr__bz_id=affect.flaw.bz_id).count() > 1
+                and Flaw.objects.filter(bz_id=affect.flaw.bz_id).count() > 1
             ):
                 raise UnsupportedTrackerError(
                     "Creating trackers for flaws with multiple CVEs is not supported"

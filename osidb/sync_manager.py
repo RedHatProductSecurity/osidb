@@ -590,7 +590,7 @@ class BZTrackerDownloadManager(SyncManager):
 
         # Bugzilla flaws
         for bz_id in json.loads(tracker.meta_attr["blocks"]):
-            flaws = Flaw.objects.filter(meta_attr__bz_id=str(bz_id))
+            flaws = Flaw.objects.filter(bz_id=bz_id)
             if not flaws:
                 failed_flaws.append(bz_id)
             for flaw in flaws:
@@ -988,9 +988,7 @@ class JiraTrackerDownloadManager(SyncManager):
                     continue
 
             if match := JIRA_BZ_ID_LABEL_RE.match(label):
-                if not (
-                    linked_flaws := Flaw.objects.filter(meta_attr__bz_id=match.group(1))
-                ):
+                if not (linked_flaws := Flaw.objects.filter(bz_id=match.group(1))):
                     # tracker created against
                     # non-existing BZ ID
                     failed_flaws.append(match.group(1))

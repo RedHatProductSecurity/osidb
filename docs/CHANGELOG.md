@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Expose an indexed, read-only numeric flaw `bz_id`, preserving stored legacy metadata and supporting legacy response and `meta_attr__bz_id` filter aliases (OSIDB-5717)
 
 ## [5.22.0] - 2026-11-02
 ### Added

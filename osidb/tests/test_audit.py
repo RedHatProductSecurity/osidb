@@ -143,6 +143,19 @@ class TestAuditFlaw:
         # track returns just events on the specific entity
         assert pghistory.models.Events.objects.tracks(flaw1).count() == 2
 
+    def test_bz_id_history(self):
+        """Track field changes independently of the retained legacy metadata."""
+        flaw = FlawFactory(bz_id=None, meta_attr={"bz_id": "12345"})
+        assert flaw.events.get().bz_id is None
+
+        flaw.bz_id = 12345
+        flaw.save()
+        assert flaw.events.filter(pgh_label="update").get().bz_id == 12345
+
+        flaw.refresh_from_db()
+        assert flaw.meta_attr == {"bz_id": "12345"}
+        assert flaw.bz_id == 12345
+
     @pytest.mark.enable_rls
     def test_access_flawevent(
         self,

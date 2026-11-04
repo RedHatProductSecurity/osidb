@@ -600,7 +600,8 @@ class FlawFilter(
 
     query = CharFilter(method="query_filter")
 
-    bz_id = NumberFilter(field_name="meta_attr__bz_id", lookup_expr="exact")
+    # Preserve the legacy query parameter while using the indexed field.
+    meta_attr__bz_id = NumberFilter(field_name="bz_id", lookup_expr="exact")
     tracker_ids = CharInFilter(
         field_name="affects__tracker__external_system_id",
         lookup_expr="in",
@@ -780,6 +781,7 @@ class FlawFilter(
             # Flaw fields
             "uuid": ["exact"],
             "cve_id": ["exact"],
+            "bz_id": ["exact"],
             "created_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS
@@ -887,7 +889,6 @@ class FlawFilter(
 
     order_fields = (
         [
-            "bz_id",
             "cve_id",
             "embargoed",
             "comment_zero",
@@ -1153,6 +1154,7 @@ class FlawV1Filter(FlawFilter):
             # Flaw fields
             "uuid": ["exact"],
             "cve_id": ["exact"],
+            "bz_id": ["exact"],
             "created_dt": ["exact"]
             + LT_GT_LOOKUP_EXPRS
             + LTE_GTE_LOOKUP_EXPRS

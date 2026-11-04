@@ -67,27 +67,29 @@ class FlawManager(TrackingMixinManager, WorkflowModelManager):
 
         full match means that we match on both Bugzilla and CVE ID
         """
+        bz_id = int(bz_id) if bz_id is not None else None
         try:
             cve_id = extra_fields.get("cve_id")
-            if full_match:
-                flaw = Flaw.objects.get(cve_id=cve_id, meta_attr__bz_id=bz_id)
+            if bz_id is None:
+                # A missing Bugzilla ID cannot identify a flaw on its own.
+                if not cve_id:
+                    return Flaw(bz_id=None, **extra_fields)
+                flaw = Flaw.objects.get(cve_id=cve_id)
+            elif full_match:
+                flaw = Flaw.objects.get(cve_id=cve_id, bz_id=bz_id)
             else:
                 # flaws are primarily identified by Bugzilla ID
                 # as it is constant while the CVE ID may change
                 # however we eventually try both as if the source
                 # is multi-CVE flaw the Bugzilla ID is not unique
-                flaws = Flaw.objects.filter(meta_attr__bz_id=bz_id)
+                flaws = Flaw.objects.filter(bz_id=bz_id)
                 flaw = flaws.get() if flaws.count() == 1 else flaws.get(cve_id=cve_id)
 
             for attr, value in extra_fields.items():
                 setattr(flaw, attr, value)
             return flaw
         except ObjectDoesNotExist:
-            # set Bugzilla ID as meta attribute
-            meta_attr = extra_fields.get("meta_attr", {})
-            meta_attr["bz_id"] = bz_id
-            extra_fields["meta_attr"] = meta_attr
-            return Flaw(**extra_fields)
+            return Flaw(bz_id=bz_id, **extra_fields)
 
     @staticmethod
     def get_by_identifier(id, queryset=None):
@@ -285,6 +287,7 @@ class Flaw(
 
     # non operational meta data
     meta_attr = HStoreField(default=dict)
+    bz_id = models.PositiveBigIntegerField(null=True, editable=False)
     # aegis metadata
     aegis_meta = JSONField(default=dict, blank=True)
     # assist metadata
@@ -325,6 +328,11 @@ class Flaw(
                 models.Index(fields=["-cve_id"]),
                 GinIndex(fields=["acl_read"]),
                 models.Index(fields=["-local_updated_dt"]),
+                models.Index(
+                    fields=["bz_id"],
+                    condition=models.Q(bz_id__isnull=False),
+                    name="osidb_flaw_bz_id_idx",
+                ),
                 models.Index(fields=["uuid", "local_updated_dt"]),
                 models.Index(
                     fields=["cve_id", "local_updated_dt"],
@@ -963,20 +971,6 @@ class Flaw(
         )
 
     @property
-    def bz_id(self):
-        """
-        shortcut to get underlying Bugzilla bug ID
-        """
-        return self.meta_attr.get("bz_id", None)
-
-    @bz_id.setter
-    def bz_id(self, value):
-        """
-        shortcut to set underlying Bugzilla bug ID
-        """
-        self.meta_attr["bz_id"] = value
-
-    @property
     def api_url(self):
         """return osidb api url"""
         return f"/api/{OSIDB_API_VERSION}/{self.uuid}"
@@ -1111,7 +1105,7 @@ class Flaw(
 
         if not self.task_key:
             # old pre-OSIDB flaws without tasks are ignored by default
-            if force_creation or not self.meta_attr.get("bz_id"):
+            if force_creation or not self.bz_id:
                 update_task = True
 
         elif diff is not None:
