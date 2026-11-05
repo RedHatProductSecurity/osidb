@@ -4,14 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [5.23.0] - 2026-11-05
 ### Added
-- Expose an indexed, read-only numeric flaw `bz_id`, preserving stored legacy metadata and supporting legacy response and `meta_attr__bz_id` filter aliases (OSIDB-5717)
+- Expose an indexed, read-only numeric flaw `bz_id`, preserving stored legacy metadata
+  and supporting legacy response and `meta_attr__bz_id` filter aliases (OSIDB-5717)
+
+### Changed
+- align manual workflows (also embargoed) with multi-team distribution
+- do not require manual approval as the final DEFAULT (automatic) workflow step (OSIDB-5789)
+- publish non-embargoed flaws earlier by moving the PUBLIC visibility gate from
+  PRE_SECONDARY_ASSESSMENT to TRIAGE in the DEFAULT and MANUAL workflows (OSIDB-5803)
 
 ### Fixed
 - Honor the RHEL 6 ELS package inclusion list when automatically resolving affects,
   using generic update-stream scope metadata, and label unresolved affects for
   manual triage regardless of stream (OSIDB-5450)
+- ACE: require an affirmative OSV affected result before auto-resolving and route
+  unresolved statuses to manual triage (OSIDB-5800)
 
 ## [5.22.0] - 2026-11-02
 ### Added
@@ -23,16 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Require a verified mapping before trusting multi-name component lists that are not trusted pairs (OSIDB-5677)
 
-### Changed
-- align manual workflows (also embargoed) with multi-team distribution
-- do not require manual approval as the final DEFAULT (automatic) workflow step (OSIDB-5789)
-- publish non-embargoed flaws earlier by moving the PUBLIC visibility gate from
-  PRE_SECONDARY_ASSESSMENT to TRIAGE in the DEFAULT and MANUAL workflows (OSIDB-5803)
-
 ### Fixed
 - Normalize lowercase stream impact values in product definitions collector (OSIDB-5785)
-- ACE: require an affirmative OSV affected result before auto-resolving and route
-  unresolved statuses to manual triage (OSIDB-5800)
 
 ## [5.21.0] - 2026-10-21
 ### Added
