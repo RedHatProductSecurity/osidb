@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   using generic update-stream scope metadata, and label unresolved affects for
   manual triage regardless of stream (OSIDB-5450)
 
+### Changed
+- ACE qualifies a flaw once and creates affects only when the `auto-affects` label is applied. Low-confidence components receive `potential-rejection` and no affects (OSIDB-5735)
+
 ## [5.22.0] - 2026-11-02
 ### Added
 - Added filters for checking if the workflow state or name are empty (OSIDB-5730)

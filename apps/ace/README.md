@@ -13,28 +13,29 @@ ACE is a self-contained Django app within [OSIDB](https://github.com/RedHatProdu
 
 ## How it works
 
-When a `Flaw`'s `components` list is set or changed, ACE schedules a background Celery task that:
+ACE qualifies a flaw once, the first time it enters a processable `DEFAULT` state from `NEW`, an empty workflow, or `EMBARGOED`. That check applies pre-filter labels and records `assist_meta["ace_qualified"]`. It does not run again when components change, or when a flaw leaves `DONE`, `MANUAL`, or `REJECTED`.
+
+Affect creation runs only when an `auto-affects` workflow label is created. That happens automatically for a strict or special-case component during qualification. A user can run it again by deleting that label and creating it while the flaw is still eligible (`TRIAGE` through `SECONDARY_ASSESSMENT`). A label created while the flaw is `NEW`, `DONE`, or not in `DEFAULT` is stored, and the task skips.
+
+The task:
 
 1. Checks that `lib_newtopia` is installed; if not, logs a warning and returns immediately.
-2. Iterates over each component in `Flaw.components`.
-3. Calls `NewtopiaQuerier().search([component], strict=True).filter(products=ps_modules).all()` to query the Deptopia / manifest-cube product tree.
-4. Creates a new `Affect` (with `AFFECTED` / `DELEGATED` affectedness/resolution and the flaw's impact) for each result that does not already have a matching affect on the flaw.
+2. Refuses flaws that are not in an eligible `DEFAULT` state.
+3. Pre-filters each component. `potential-rejection`, `manual-triage`, and `auto-rejected` stay labels. Only `auto-affects` (and the Chromium / Go stdlib handlers) create affects.
+4. Calls `NewtopiaQuerier().search([component], strict=True).filter(products=ps_modules).all()` for those components.
+5. Creates an `Affect` for each result that does not already have a matching affect on the flaw. Existing `(ps_update_stream, ps_component)` pairs are left unchanged, so a later run can still add streams that did not exist before.
 
 ## Architecture
 
 ```
 Flaw.save()
-  └─▶ pre_save signal  (apps/ace/signals.py)
+  └─▶ classification_changed, first entry into an eligible state
           └─▶ transaction.on_commit
-                  └─▶ sync_flaw_affects_from_newcli.delay(flaw_id)   [Celery task]
-                          └─▶ HAS_LIB_NEWTOPIA?  No → no-op (warning logged)
-                          └─▶ _flaw_components(flaw)
-                          └─▶ for each component:
-                                  └─▶ NewtopiaQuerier().search([component], strict=True)
-                                                       .filter(products=ps_modules)
-                                                       .all()
-                                  └─▶ _sync_affects_from_results(flaw, results)
-                                          └─▶ Affect.save()  per new (stream, purl) pair
+                  └─▶ qualify_flaw_for_ace(flaw_id)
+                          └─▶ pre-filter labels
+                          └─▶ auto-affects WorkflowLabel, when a component qualifies
+                                  └─▶ post_save
+                                          └─▶ sync_flaw_affects_from_newcli.delay(...)
 ```
 
 ## Installation of lib-newtopia
@@ -65,7 +66,7 @@ ACE reads its settings from environment variables via `AffectSettings` (pydantic
 
 | Environment variable | Default | Description |
 |---|---|---|
-| `OSIDB_AFFECTS_AUTO_CREATE` | `false` | Enable automatic affect creation on `Flaw.components` change. |
+| `OSIDB_AFFECTS_AUTO_CREATE` | `false` | Enable qualification on first entry and affect creation when the `auto-affects` label is created. |
 | `OSIDB_AFFECTS_AUTO_CREATE_PS_MODULES` | `["hummingbird-1"]` | JSON list of PS module names passed to `NewtopiaQuerier.filter(products=…)`. |
 
 ## Structure
@@ -73,6 +74,6 @@ ACE reads its settings from environment variables via `AffectSettings` (pydantic
 | Path | Purpose |
 |---|---|
 | `apps/ace/apps.py` | `AppConfig` — registers the app and imports signals on `ready()` |
-| `apps/ace/signals.py` | `pre_save` on `Flaw` — schedules the Celery task on commit |
+| `apps/ace/signals.py` | Qualifies a flaw on its first eligible classification, and enqueues ACE when the `auto-affects` label is created |
 | `apps/ace/tasks.py` | Celery task `sync_flaw_affects_from_newcli` and its helpers |
 | `apps/ace/tests/` | Unit tests |

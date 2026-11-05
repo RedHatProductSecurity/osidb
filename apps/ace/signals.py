@@ -1,15 +1,35 @@
 from django.db import transaction
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
+from apps.ace.constants import LABEL_AUTO_AFFECTS
 from apps.workflows.signals import classification_changed
 from osidb.models import Flaw
 from osidb.models.affect import AffectSettings
+from osidb.models.flaw.label import WorkflowLabel
 
 
-def _is_eligible(workflow_name, workflow_state):
-    """Check if a workflow position qualifies for ACE triggering."""
-    return workflow_name == "DEFAULT" and workflow_state not in ("", "NEW", "DONE")
+def _is_eligible(old_workflow, old_state, new_workflow, new_state):
+    """
+    True when workflow transition may be the first move into an eligible state.
+
+    New workflow must be DEFAULT and not NEW or DONE. Old workflow
+    must be NEW, an empty workflow, or EMBARGOED.
+    """
+
+    destination_eligible = new_workflow == "DEFAULT" and new_state not in (
+        "",
+        "NEW",
+        "DONE",
+    )
+    if old_workflow == "EMBARGOED":
+        source_may_be_first = True
+    else:
+        source_may_be_first = old_workflow in ("", "DEFAULT") and old_state in (
+            "",
+            "NEW",
+        )
+    return destination_eligible and source_may_be_first
 
 
 def _has_nonempty_components(components):
@@ -41,61 +61,16 @@ def _enqueue_hummingbird(flaw_id, trigger):
     transaction.on_commit(enqueue_sync)
 
 
-@receiver(pre_save, sender=Flaw)
-def schedule_sync_flaw_affects_on_components_change(sender, instance, **kwargs) -> None:
-    """
-    Trigger ACE when components change on a flaw that is already in an eligible workflow state.
-
-    This handler checks the DB flaw's eligibility (not the instance's) to avoid race conditions
-    with the workflow pre_save signal that updates workflow_state. When both components and
-    workflow change in one save, the DB flaw is still in the old (ineligible) state, so this
-    handler skips and the classification_changed handler picks it up.
-
-    Gated by :attr:`osidb.models.affect.AffectSettings.auto_create`
-    (``OSIDB_AFFECTS_AUTO_CREATE``, default false).
-    """
-    if not AffectSettings().auto_create:
-        return
-
-    if kwargs.get("raw"):
-        return
-
-    if instance._state.adding:
-        return
-
-    update_fields = kwargs.get("update_fields")
-    if update_fields is not None and "components" not in update_fields:
-        return
-
-    db_flaw = Flaw.objects.get(pk=instance.pk)
-
-    # Check eligibility using DB flaw's state to avoid pre_save ordering race
-    if not _is_eligible(db_flaw.workflow_name, db_flaw.workflow_state):
-        return
-
-    # Check if components changed (use set comparison to ignore order)
-    old_set = set(db_flaw.components or [])
-    new_set = set(instance.components or [])
-    if old_set == new_set:
-        return
-
-    if not _has_nonempty_components(instance.components):
-        return
-
-    _enqueue_ace(str(instance.uuid), "flaw components changed")
-
-
 @receiver(classification_changed, sender=Flaw)
-def schedule_sync_flaw_affects_on_classification_change(
+def schedule_ace_qualification_on_first_entry(
     sender, instance, old_classification, new_classification, **kwargs
 ) -> None:
     """
-    Trigger ACE when a flaw transitions into an eligible workflow state.
+    Qualify a flaw for ACE once, on its first move into an eligible state.
 
-    This handler listens to the classification_changed signal emitted by
-    adjust_classification() after the workflow state has been updated in memory.
-    It only triggers when moving FROM an ineligible state TO an eligible state
-    (e.g., NEW -> TRIAGE).
+    Qualification runs after commit. It may create workflow labels, and a
+    label save writes the flaw again, which must not happen inside this
+    pre_save. The ``auto-affects`` label enqueues ACE.
 
     Gated by :attr:`osidb.models.affect.AffectSettings.auto_create`
     (``OSIDB_AFFECTS_AUTO_CREATE``, default false).
@@ -103,22 +78,47 @@ def schedule_sync_flaw_affects_on_classification_change(
     if not AffectSettings().auto_create:
         return
 
-    old_workflow = old_classification.get("workflow", "")
-    old_state = old_classification.get("state", "")
-    new_workflow = new_classification.get("workflow", "")
-    new_state = new_classification.get("state", "")
+    old_workflow = old_classification.get("workflow") or ""
+    old_state = old_classification.get("state") or ""
+    new_workflow = new_classification.get("workflow") or ""
+    new_state = new_classification.get("state") or ""
 
-    was_eligible = _is_eligible(old_workflow, old_state)
-    now_eligible = _is_eligible(new_workflow, new_state)
-
-    # Only trigger when transitioning INTO an eligible state
-    if not now_eligible or was_eligible:
+    if not _is_eligible(old_workflow, old_state, new_workflow, new_state):
         return
-
     if not _has_nonempty_components(instance.components):
         return
 
-    _enqueue_ace(str(instance.uuid), "flaw moved into eligible workflow state")
+    flaw_id = str(instance.uuid)
+
+    def qualify_on_commit():
+        from apps.ace.tasks import qualify_flaw_for_ace
+
+        qualify_flaw_for_ace(flaw_id)
+
+    transaction.on_commit(qualify_on_commit)
+
+
+@receiver(post_save, sender=WorkflowLabel)
+def schedule_sync_flaw_affects_on_auto_affects_label(
+    sender, instance, created, **kwargs
+) -> None:
+    """
+    Enqueue ACE when the auto-affects label is created.
+
+    ``get_or_create`` of an existing label does not set ``created``, so the
+    task cannot enqueue itself by applying the label again. Deleting the
+    label does not enqueue ACE. A re-run is a new label after the old one
+    is removed, and only while the flaw is eligible: the task still refuses
+    NEW, DONE, and non-DEFAULT workflows.
+
+    Gated by :attr:`osidb.models.affect.AffectSettings.auto_create`
+    (``OSIDB_AFFECTS_AUTO_CREATE``, default false).
+    """
+    if not created or instance.name != LABEL_AUTO_AFFECTS:
+        return
+    if not AffectSettings().auto_create:
+        return
+    _enqueue_ace(str(instance.flaw_id), "auto-affects label applied")
 
 
 @receiver(pre_save, sender=Flaw)
@@ -128,7 +128,7 @@ def schedule_sync_hummingbird_affects_on_components_change(
     """
     Trigger Hummingbird affect creation when components change, regardless of workflow state.
 
-    Unlike the ACE components-change handler, this handler:
+    Unlike ACE, this handler:
     - Has no workflow gate (fires for any workflow type/state)
     - Fires on flaw creation if components are set
     - Never applies labels
