@@ -20,9 +20,11 @@ from django.core.exceptions import (
     PermissionDenied,
     ValidationError,
 )
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from djangoql.serializers import SuggestionsAPISerializer
 from djangoql.views import SuggestionsAPIView
@@ -2049,6 +2051,7 @@ class AffectCVSSV2View(RudimentaryUserPathLoggingMixin, ModelViewSet):
 @include_exclude_fields_extend_schema_view
 @bz_api_key_extend_schema_view
 @jira_api_key_extend_schema_view
+@method_decorator(transaction.non_atomic_requests, name="dispatch")
 @extend_schema_view(
     create=extend_schema(
         request=TrackerPostSerializer,
