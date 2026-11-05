@@ -18,6 +18,7 @@ from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.bbsync.models import BugzillaComponent
 from apps.exploits.mixins import AffectExploitExtensionMixin
 from apps.exploits.query_sets import AffectQuerySetExploitExtension
+from collectors.component_mapping.models import PackageScope
 from osidb.acls import ACL
 from osidb.mixins import (
     ACLMixin,
@@ -906,10 +907,11 @@ class Affect(
     def auto_resolve(self, *, flaw_has_high_cvss_score: bool | None = None) -> None:
         """
         Automatically determine affectedness and resolution based on PsUpdateStream,
-        PsModule, PsProduct, impact, and flaw CVSS data. Conditions are evaluated in
-        order; the first matching condition wins. Does not call save().
+        package scope, PsModule, PsProduct, impact, and flaw CVSS data. Conditions are
+        evaluated in order; the first matching condition wins. Does not call save().
 
-        If the stream or module is not found in the DB, sets NEW/NOVALUE (unknown state).
+        A missing stream sets NEW/NOVALUE. For a known stream, explicit package
+        exclusions take precedence over the missing-module NEW/NOVALUE fallback.
 
         Pass ``flaw_has_high_cvss_score`` to avoid a per-affect DB query when resolving
         multiple affects for the same flaw.
@@ -924,6 +926,22 @@ class Affect(
             self.affectedness_explanation = (
                 f"PS update stream '{self.ps_update_stream}' was not found in product definitions. "  # noqa: S608
                 "Affectedness set to NEW pending manual review."
+            )
+            self._auto_resolved = True
+            return
+
+        # Scope lists are exhaustive and prepared upstream, including any aliases.
+        # Streams without a configured list retain the normal resolution rules.
+        if (
+            PackageScope.objects.filter(ps_update_stream=self.ps_update_stream)
+            .exclude(components__contains=[self.ps_component.lower()])
+            .exists()
+        ):
+            self.affectedness = self.AffectAffectedness.AFFECTED
+            self.resolution = self.AffectResolution.OOSS
+            self.affectedness_explanation = (
+                f"Package '{self.ps_component}' is outside the component inclusion list "
+                f"for stream '{self.ps_update_stream}'. Resolution set to OOSS."
             )
             self._auto_resolved = True
             return

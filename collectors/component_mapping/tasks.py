@@ -14,6 +14,7 @@ from .models import (
     BlocklistEntry,
     ComponentMapEntry,
     CrossEcosystemName,
+    PackageScope,
     RejectedComponent,
     SemiStrictReviewEntry,
     StrictNpmPackage,
@@ -36,9 +37,11 @@ logger = get_task_logger(__name__)
         VerifiedMapping,
         SemiStrictReviewEntry,
         RejectedComponent,
+        PackageScope,
     ],
 )
 def component_mapping_collector(collector_obj) -> str:
+    """Fetch and sync reference data, recording the completed collection time."""
     logger.info("Fetching component mapping from '%s'", COMPONENT_MAPPING_URL)
     data = fetch_component_mapping()
 
