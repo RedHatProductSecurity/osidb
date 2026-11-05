@@ -704,7 +704,7 @@ class TestEndpointsFlaws:
         FlawFactory(components=["test-component"])
         FlawFactory(components=["test-component", "other-component"])
         FlawFactory(
-            components=["test-component", "other-component", "different-component"]
+            components=["test-component", "Other-Component", "different-component"]
         )
 
         response = auth_client().get(f"{test_api_uri}/flaws?components=test-component")
