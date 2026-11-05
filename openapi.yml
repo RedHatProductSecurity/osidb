@@ -2924,7 +2924,8 @@ paths:
           type: array
           items:
             type: string
-        description: Multiple values may be separated by commas.
+        description: Case-insensitive filter for flaw components. Multiple values
+          may be separated by commas.
         explode: false
         style: form
       - in: query
@@ -10701,7 +10702,8 @@ paths:
           type: array
           items:
             type: string
-        description: Multiple values may be separated by commas.
+        description: Case-insensitive filter for flaw components. Multiple values
+          may be separated by commas.
         explode: false
         style: form
       - in: query
