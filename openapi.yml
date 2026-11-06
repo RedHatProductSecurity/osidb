@@ -21462,10 +21462,8 @@ components:
         sync_to_bz:
           type: boolean
           writeOnly: true
-          description: Setting sync_to_bz to false skips the tracker's own Bugzilla
-            sync during this operation. For Jira trackers, the related flaw is still
-            synced to Bugzilla automatically, deduplicated per flaw. Bugzilla trackers
-            do not go through this sync. Does nothing if BZ is disabled.
+          description: Accepted for backwards compatibility; has no effect.
+          deprecated: true
       required:
       - affects
       - embargoed
@@ -21513,10 +21511,8 @@ components:
         sync_to_bz:
           type: boolean
           writeOnly: true
-          description: Setting sync_to_bz to false skips the tracker's own Bugzilla
-            sync during this operation. For Jira trackers, the related flaw is still
-            synced to Bugzilla automatically, deduplicated per flaw. Bugzilla trackers
-            do not go through this sync. Does nothing if BZ is disabled.
+          description: Accepted for backwards compatibility; has no effect.
+          deprecated: true
       required:
       - affects
       - embargoed
