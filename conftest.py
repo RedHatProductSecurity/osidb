@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import uuid
 
@@ -21,6 +22,73 @@ from osidb.core import generate_acls, set_user_acls
 from osidb.exceptions import InvalidTestEnvironmentException
 from osidb.models import PsModule, PsUpdateStream
 from osidb.tests.factories import PsModuleFactory, PsProductFactory
+
+
+@pytest.fixture(scope="session")
+def django_db_modify_db_settings(django_db_modify_db_settings):
+    """Install trusted trigger functions as the migration owner, not runtime."""
+    from django.db import connection
+
+    runtime = {key: connection.settings_dict[key] for key in ("USER", "PASSWORD")}
+    connection.settings_dict.update(
+        USER=os.environ.get("OSIDB_TEST_MIGRATION_USER", "osidb_manage_user"),
+        PASSWORD=os.environ.get("OSIDB_TEST_MIGRATION_PASSWORD", runtime["PASSWORD"]),
+    )
+    return runtime
+
+
+@pytest.fixture(scope="session")
+def django_db_setup(django_db_setup, django_db_modify_db_settings, django_db_blocker):
+    from django.db import connection
+
+    runtime = django_db_modify_db_settings
+    migration = {key: connection.settings_dict[key] for key in ("USER", "PASSWORD")}
+    with django_db_blocker.unblock(), connection.cursor() as cursor:
+        user = connection.ops.quote_name(runtime["USER"])
+        cursor.execute(f"GRANT ALL ON ALL TABLES IN SCHEMA public TO {user}")
+        cursor.execute(f"GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO {user}")
+        cursor.execute(
+            f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO {user}"
+        )
+        cursor.execute(
+            f"ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO {user}"
+        )
+    connection.close()
+    connection.settings_dict.update(runtime)
+    yield
+    connection.close()
+    connection.settings_dict.update(migration)
+
+
+@pytest.fixture
+def migrate_database(db):
+    """Replay DDL as the owner, then restore the restricted session and ACLs."""
+    from django.db import connection
+    from django.db.migrations.executor import MigrationExecutor
+
+    def migrate(targets):
+        assert not connection.in_atomic_block, "Migration tests need transaction=True"
+        runtime = {key: connection.settings_dict[key] for key in ("USER", "PASSWORD")}
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT current_setting('osidb.acl')")
+            acl = cursor.fetchone()[0]
+        connection.close()
+        connection.settings_dict.update(
+            USER=os.environ.get("OSIDB_TEST_MIGRATION_USER", "osidb_manage_user"),
+            PASSWORD=os.environ.get(
+                "OSIDB_TEST_MIGRATION_PASSWORD", runtime["PASSWORD"]
+            ),
+        )
+        try:
+            MigrationExecutor(connection).migrate(targets)
+        finally:
+            connection.close()
+            connection.settings_dict.update(runtime)
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT set_config('osidb.acl', %s, false)", [acl])
+
+    return migrate
+
 
 # matches base urls starting with http / https until the first slash, quote, or whitespace after the protocol
 base_url_pattern = re.compile(r"https?://[^/\s\"']+")
@@ -124,8 +192,19 @@ def refresh_v1_view():
 
     def refresh_func():
         transaction.commit()
-        with connection.cursor() as cursor:
-            cursor.execute("REFRESH MATERIALIZED VIEW affect_v1_mv;")
+        # REFRESH requires ownership; ordinary test DML stays restricted.
+        owner = connection.copy()
+        owner.settings_dict.update(
+            USER=os.environ.get("OSIDB_TEST_MIGRATION_USER", "osidb_manage_user"),
+            PASSWORD=os.environ.get(
+                "OSIDB_TEST_MIGRATION_PASSWORD", connection.settings_dict["PASSWORD"]
+            ),
+        )
+        try:
+            with owner.cursor() as cursor:
+                cursor.execute("REFRESH MATERIALIZED VIEW affect_v1_mv;")
+        finally:
+            owner.close()
 
     return refresh_func
 
