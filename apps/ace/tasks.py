@@ -248,7 +248,7 @@ def _pre_filter_component(
       6. Verified mapping guard -> manual triage if unverified
       7. Cross-ecosystem guard -> manual triage if ambiguous
       8. Semi-strict review -> manual triage if unresolved
-      9. Confidence check -> potential-rejection if low confidence
+      9. Confidence check -> manual (potential-rejection) if low confidence
       10. All checks pass -> search (auto-affects)
     """
     component_lower = component.strip().lower()
@@ -339,7 +339,7 @@ def _pre_filter_component(
     # Strict package check
     if not _is_strict_package(resolved, ecosystem):
         return PreFilterResult(
-            action=PreFilterAction.SEARCH,
+            action=PreFilterAction.MANUAL,
             label=LABEL_POTENTIAL_REJECTION,
             resolved_names=resolved,
             reason=f"The '{component}' component is not in the strict package list, low confidence, results could contain false positives.",

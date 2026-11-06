@@ -1360,9 +1360,10 @@ def test_pre_filter_cross_ecosystem_no_ecosystem():
 
 @pytest.mark.django_db
 def test_pre_filter_cross_ecosystem_with_ecosystem_proceeds():
-    from collectors.component_mapping.models import CrossEcosystemName
+    from collectors.component_mapping.models import CrossEcosystemName, StrictPackage
 
     CrossEcosystemName.objects.create(name="redis", ecosystems=["npm", "pypi"])
+    StrictPackage.objects.create(name="redis", repos=[])
     flaw = FlawFactory(components=["redis"], embargoed=False)
 
     result = _pre_filter_component(flaw, "redis", "npm")
@@ -1392,7 +1393,11 @@ def test_pre_filter_unverified_mapping_manual_triage():
 
 @pytest.mark.django_db
 def test_pre_filter_verified_mapping_proceeds():
-    from collectors.component_mapping.models import ComponentMapEntry, VerifiedMapping
+    from collectors.component_mapping.models import (
+        ComponentMapEntry,
+        StrictPackage,
+        VerifiedMapping,
+    )
 
     ComponentMapEntry.objects.create(
         name="Vault", upstream_packages="github.com/hashicorp/vault"
@@ -1400,6 +1405,7 @@ def test_pre_filter_verified_mapping_proceeds():
     VerifiedMapping.objects.create(
         name="Vault", upstream_package="github.com/hashicorp/vault"
     )
+    StrictPackage.objects.create(name="github.com/hashicorp/vault", repos=[])
     flaw = FlawFactory(components=["Vault"], embargoed=False)
 
     result = _pre_filter_component(flaw, "Vault", "")
@@ -1421,9 +1427,10 @@ def test_pre_filter_verified_mapping_proceeds():
     ],
 )
 def test_pre_filter_trusted_pair_auto_trusted(packages):
-    from collectors.component_mapping.models import ComponentMapEntry
+    from collectors.component_mapping.models import ComponentMapEntry, StrictPackage
 
     ComponentMapEntry.objects.create(name="mapped", upstream_packages=packages)
+    StrictPackage.objects.create(name=packages[0].lower(), repos=[])
     flaw = FlawFactory(components=["mapped"], embargoed=False)
 
     result = _pre_filter_component(flaw, "mapped", "")
@@ -1456,12 +1463,17 @@ def test_pre_filter_non_trusted_pair_unverified_manual(packages):
 
 @pytest.mark.django_db
 def test_pre_filter_non_trusted_pair_verified_proceeds():
-    from collectors.component_mapping.models import ComponentMapEntry, VerifiedMapping
+    from collectors.component_mapping.models import (
+        ComponentMapEntry,
+        StrictPackage,
+        VerifiedMapping,
+    )
 
     ComponentMapEntry.objects.create(
         name="Kafka", upstream_packages=["kafka", "kafka-clients"]
     )
     VerifiedMapping.objects.create(name="Kafka", upstream_package="kafka")
+    StrictPackage.objects.create(name="kafka", repos=[])
     flaw = FlawFactory(components=["Kafka"], embargoed=False)
 
     result = _pre_filter_component(flaw, "Kafka", "")
@@ -1527,8 +1539,13 @@ def test_pre_filter_manual_triage_component_ecosystem_restricted(monkeypatch):
     pypi = _pre_filter_component(flaw, "kernel", "pypi")
 
     assert linux.action is PreFilterAction.MANUAL
+    assert linux.label == LABEL_MANUAL_TRIAGE
     assert cargo.action is PreFilterAction.MANUAL
-    assert pypi.action is not PreFilterAction.MANUAL
+    assert cargo.label == LABEL_MANUAL_TRIAGE
+    # A non-matching ecosystem is not manual-triage. Kernel is not a strict
+    # package, so it falls through to potential-rejection.
+    assert pypi.action is PreFilterAction.MANUAL
+    assert pypi.label == LABEL_POTENTIAL_REJECTION
 
 
 # ── Semi-strict review ───────────────────────────────────────────────────────
@@ -1589,7 +1606,7 @@ def test_pre_filter_non_strict_potential_rejection():
 
     result = _pre_filter_component(flaw, "unknown-pkg", "")
 
-    assert result.action is PreFilterAction.SEARCH
+    assert result.action is PreFilterAction.MANUAL
     assert result.label == LABEL_POTENTIAL_REJECTION
     assert "not in the strict package list" in result.reason
     assert "low confidence" in result.reason
