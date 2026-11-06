@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added filter (aegis_processed) for flaws processed by Aegis/osidb-bot (OSIDB-4817)
 - Extend stats API with tracker counts (OSIDB-5664)
 - Add Link to Manifest in Tracker References (OSIDB-5705)
+- Add Link to OSIM flaw in tracker description (OSIDB-5704)
 
 ### Changed
 - Require a verified mapping before trusting multi-name component lists that are not trusted pairs (OSIDB-5677)

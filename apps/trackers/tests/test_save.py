@@ -3,7 +3,7 @@ tracker saver tests
 """
 
 import uuid
-from unittest.mock import patch
+from unittest.mock import MagicMock, PropertyMock, call, patch
 
 import pytest
 from jira import JIRAError
@@ -472,3 +472,51 @@ class TestTrackerJiraSaverIssuetype:
         assert mock_create_issue.called
         assert "JIRAError during tracker creation" in caplog.text
         assert str(tracker.uuid) in caplog.text
+
+
+class TestTrackerJiraSaverCreate:
+    """
+    Test OSIM flaw remote links on Jira tracker creation
+    """
+
+    @pytest.mark.parametrize(
+        "links",
+        [
+            [],
+            [("https://osim.example.com/flaws/CVE-2024-1", "OSIM flaw CVE-2024-1")],
+        ],
+    )
+    def test_create_adds_osim_links(self, links):
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="component",
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+        builder = MagicMock()
+        builder.query = {"fields": {}}
+        builder.query_comment = None
+        builder.osim_flaw_links = links
+        saver = TrackerJiraSaver(tracker, "token", "email", "Vulnerability")
+        with (
+            patch.object(
+                TrackerJiraSaver, "get_builder", return_value=lambda t: builder
+            ),
+            patch.object(
+                TrackerJiraSaver, "jira_conn", new_callable=PropertyMock
+            ) as conn,
+            patch.object(TrackerJiraSaver, "add_link") as add_link,
+        ):
+            conn.return_value.create_issue.return_value = MagicMock(key="OSIDB-1")
+            saver.create(tracker)
+        assert add_link.call_args_list == [
+            call(issue_key="OSIDB-1", url=url, title=title) for url, title in links
+        ]
