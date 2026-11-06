@@ -435,6 +435,10 @@ class SparseFieldsFilterSet(OSIDBFilterSet):
         field_set = set()
         valid_field_names = {f.name for f in self._meta.model._meta.get_fields()}
         for fname in list(fields):
+            # Also block nested traversals through a Flaw from another model.
+            # Internal append records are never a sparse-field/prefetch surface.
+            if "change_events" in fname.split("__"):
+                continue
             relation = fname
             if "__" in fname:
                 # in the case of something like affects__trackers, we must
