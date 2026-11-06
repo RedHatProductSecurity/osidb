@@ -2176,7 +2176,7 @@ def test_signal_qualifies_on_triage_promotion_with_strict_component(
     )
 
     assert [fn.__qualname__ for fn in calls] == [
-        "schedule_ace_qualification_on_first_entry.<locals>.qualify_on_commit"
+        "qualify_flaw_on_first_entry.<locals>.qualify_on_commit"
     ]
     calls[0]()
 
@@ -2304,7 +2304,7 @@ def test_signal_qualifies_on_empty_to_triage_promotion(monkeypatch, signal_ace_e
     )
 
     assert [fn.__qualname__ for fn in calls] == [
-        "schedule_ace_qualification_on_first_entry.<locals>.qualify_on_commit"
+        "qualify_flaw_on_first_entry.<locals>.qualify_on_commit"
     ]
 
 
@@ -2480,7 +2480,7 @@ def test_signal_qualifies_on_unembargo(monkeypatch, signal_ace_enabled):
     )
 
     assert [fn.__qualname__ for fn in calls] == [
-        "schedule_ace_qualification_on_first_entry.<locals>.qualify_on_commit"
+        "qualify_flaw_on_first_entry.<locals>.qualify_on_commit"
     ]
 
 
@@ -2519,9 +2519,7 @@ def test_ace_triggers_when_workflow_changes_on_same_save(
     flaw.save()
 
     names = [fn.__qualname__ for fn in calls]
-    assert (
-        "schedule_ace_qualification_on_first_entry.<locals>.qualify_on_commit" in names
-    )
+    assert "qualify_flaw_on_first_entry.<locals>.qualify_on_commit" in names
     assert "_enqueue_hummingbird.<locals>.enqueue_sync" in names
 
     next(fn for fn in calls if "qualify_on_commit" in fn.__qualname__)()

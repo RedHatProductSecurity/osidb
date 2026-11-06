@@ -963,8 +963,12 @@ def _sync_affects_from_results(
     }
 
 
-def _is_ace_eligible(workflow_name: str, workflow_state: str) -> bool:
-    return workflow_name == "DEFAULT" and workflow_state not in ("", "NEW", "DONE")
+def _is_ace_eligible(flaw: Flaw) -> bool:
+    return (
+        flaw.workflow_name == "DEFAULT"
+        and flaw.workflow_state not in ("", "NEW", "DONE")
+        and not (flaw.assist_meta or {}).get("ace_qualified")
+    )
 
 
 def qualify_flaw_for_ace(flaw_id: str) -> None:
@@ -976,9 +980,7 @@ def qualify_flaw_for_ace(flaw_id: str) -> None:
     are labels only. A later entry into an eligible state does not run again.
     """
     flaw = Flaw.objects.get(uuid=flaw_id)
-    if (flaw.assist_meta or {}).get("ace_qualified"):
-        return
-    if not _is_ace_eligible(flaw.workflow_name, flaw.workflow_state):
+    if not _is_ace_eligible(flaw):
         return
     if not any(c and str(c).strip() for c in (flaw.components or [])):
         return
@@ -1129,16 +1131,13 @@ def sync_flaw_affects_from_newcli(
                 totals[key] += stats[key]
             continue
 
-        if (
-            pre_filter.action is not PreFilterAction.SEARCH
-            or pre_filter.label != LABEL_AUTO_AFFECTS
-        ):
+        if pre_filter.action is not PreFilterAction.SEARCH:
             logger.info(
                 "Pre-filter %s for flaw=%s component=%r: %s",
                 pre_filter.action,
                 flaw_id,
                 flaw_component,
-                pre_filter.reason or pre_filter.label,
+                pre_filter.reason,
             )
             totals["pre_filtered"] += 1
             continue

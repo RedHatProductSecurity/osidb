@@ -20,9 +20,9 @@ Affect creation runs only when an `auto-affects` workflow label is created. That
 The task:
 
 1. Checks that `lib_newtopia` is installed; if not, logs a warning and returns immediately.
-2. Refuses flaws that are not in an eligible `DEFAULT` state.
-3. Pre-filters each component. `potential-rejection`, `manual-triage`, and `auto-rejected` stay labels. Only `auto-affects` (and the Chromium / Go stdlib handlers) create affects.
-4. Calls `NewtopiaQuerier().search([component], strict=True).filter(products=ps_modules).all()` for those components.
+2. Refuses flaws that are not in an eligible state in the `DEFAULT` workflow.
+3. Pre-filters each component and applies the relevant label.
+4. Calls `NewtopiaQuerier().search([component], strict=True).filter(products=ps_modules).all()` for components that resolve to a strict package.
 5. Creates an `Affect` for each result that does not already have a matching affect on the flaw. Existing `(ps_update_stream, ps_component)` pairs are left unchanged, so a later run can still add streams that did not exist before.
 
 ## Architecture

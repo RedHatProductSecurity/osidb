@@ -62,7 +62,7 @@ def _enqueue_hummingbird(flaw_id, trigger):
 
 
 @receiver(classification_changed, sender=Flaw)
-def schedule_ace_qualification_on_first_entry(
+def qualify_flaw_on_first_entry(
     sender, instance, old_classification, new_classification, **kwargs
 ) -> None:
     """
