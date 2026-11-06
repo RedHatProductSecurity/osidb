@@ -7,6 +7,7 @@ from datetime import timedelta
 from typing import Union
 
 from django import forms
+from django.conf import settings
 from django.contrib.postgres.search import (
     SearchQuery,
     SearchRank,
@@ -34,6 +35,7 @@ from django_filters.rest_framework import (
 from djangoql.queryset import apply_search
 from packageurl import PackageURL
 
+from osidb.flaw_watermarks import filter_latest_change
 from osidb.mixins import SearchVectorMixin
 from osidb.models import (
     Affect,
@@ -723,13 +725,23 @@ class FlawFilter(
         """
         Returns a Flaw if it or any of its affects/trackers have been updated after `value`
         """
-        return queryset.filter(local_updated_dt__gte=value)
+        if not settings.OSIDB_USE_FLAW_WATERMARK:
+            return queryset.filter(local_updated_dt__gte=value)
+        # The whole form is validated before methods run. Never reparse raw
+        # strings or apply the V1 lower-bound adjustment twice.
+        upper = self.form.cleaned_data.get("changed_before")
+        return filter_latest_change(queryset, after=value, before=upper)
 
     def changed_before_filter(self, queryset, name, value):
         """
         Returns a Flaw if it or any of its affects/trackers have been updated before `value`
         """
-        return queryset.filter(local_updated_dt__lte=value)
+        if not settings.OSIDB_USE_FLAW_WATERMARK:
+            return queryset.filter(local_updated_dt__lte=value)
+        if self.form.cleaned_data.get("changed_after") is not None:
+            # The after method applies both typed bounds, in either method order.
+            return queryset
+        return filter_latest_change(queryset, before=value)
 
     def flaw_has_no_non_community_affects_trackers_filter(self, queryset, name, value):
         """Check if a flaw has non-community affects AND all of them are missing trackers."""
@@ -1162,7 +1174,9 @@ class FlawV1Filter(FlawFilter):
         # NOTE: This is a hack to solve the potential issue of the materialized view having stale data,
         # which updates every 5 minutes. By getting flaws which were updated 5 minutes before the given value,
         # we ensure that we don't miss any flaws that were updated in that time window and maybe had stale data.
-        return queryset.filter(local_updated_dt__gte=value - timedelta(minutes=5))
+        return super().changed_after_filter(
+            queryset, name, value - timedelta(minutes=5)
+        )
 
     class Meta:
         """

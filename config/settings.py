@@ -36,6 +36,11 @@ LDAP_BASE_DN = "dc=ipa,dc=redhat,dc=com"
 BLACKLISTED_HTTP_METHODS = ("patch",)
 READONLY_MODE: bool = get_env("OSIDB_READONLY_MODE", default="False", is_bool=True)
 
+# Read rollout only: retain the legacy timestamp writers for rollback.
+OSIDB_USE_FLAW_WATERMARK: bool = get_env(
+    "OSIDB_USE_FLAW_WATERMARK", default="False", is_bool=True
+)
+
 # Application definition
 # WARNING: Do not sort alphabetically — this list is ordered by dependency.
 # Apps are loaded and their ready() methods called in this order, which
