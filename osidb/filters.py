@@ -17,6 +17,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.db.models import F, Max, Min, Q
+from django.db.models.functions import Collate
 from django.utils import timezone
 from django_filters.rest_framework import (
     BaseInFilter,
@@ -589,7 +590,7 @@ class FlawFilter(
     DISTINCT_FIELDS_PREFIXES = ("affects__",)
 
     cve_id = CharInFilter(field_name="cve_id")
-    components = CharInFilter(field_name="components", lookup_expr="contains")
+    components = CharInFilter(method="component_filter")
 
     changed_after = RelativeDateTimeFilter(
         field_name="updated_dt", method="changed_after_filter"
@@ -764,6 +765,17 @@ class FlawFilter(
 
         for label in value:
             queryset = queryset.filter(labels__name=label)
+
+        return queryset
+
+    def component_filter(self, queryset, name, value):
+        """
+        A case-insensitive filter for Flaw components
+        """
+
+        queryset = queryset.alias(
+            components_ci=Collate("components", "case_insensitive")
+        ).filter(components_ci__contains=value)
 
         return queryset
 
