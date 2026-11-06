@@ -269,7 +269,7 @@ class TestEndpointsAffects:
         assert response.status_code == 200
 
         response = auth_client().delete(affect_url, HTTP_BUGZILLA_API_KEY="SECRET")
-        assert response.status_code == 200
+        assert response.status_code == 204
 
         response = auth_client().get(affect_url)
         assert response.status_code == 404
@@ -719,7 +719,7 @@ class TestEndpointsAffectsBulk:
             HTTP_JIRA_API_KEY="SECRET",
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 204
         assert Affect.objects.count() == 0
 
     def test_affect_update_bulk_empty_list(

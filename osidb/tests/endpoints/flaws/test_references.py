@@ -92,5 +92,5 @@ class TestEndpointsFlawsReferences:
 
         # Tests "DELETE" on flaws/{uuid}/references/{uuid}
         response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         assert FlawReference.objects.count() == 0
