@@ -1892,7 +1892,7 @@ def test_handle_go_stdlib_phase4_creates_builder_affects(
     _handle_go_stdlib(flaw, "net/http", ["hummingbird-1"], [])
 
     builder_affects = flaw.affects.filter(
-        ps_component="openshift-golang-builder-container"
+        ps_component="rh-osbs/openshift-golang-builder"
     )
     assert builder_affects.count() == 2
     for a in builder_affects:

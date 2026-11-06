@@ -512,7 +512,7 @@ def _handle_go_stdlib(
     Phase 1: golang compiler builds
     Phase 2: component RPM affects
     Phase 3: component container affects (one per product)
-    Phase 4: openshift-golang-builder-container for OCP/CNV/OSSM active streams
+    Phase 4: openshift-golang-builder for OCP/CNV/OSSM active streams
     """
     totals: dict[str, int] = {
         "created": 0,
@@ -588,7 +588,7 @@ def _handle_go_stdlib(
     except Exception as exc:
         logger.warning("Go stdlib Phase 3 failed for flaw=%s: %s", flaw.uuid, exc)
 
-    # Phase 4: openshift-golang-builder-container for active streams
+    # Phase 4: openshift-golang-builder for active streams
     tool_name = _ace_tool_name()
     phase4_created = 0
     for product_name in GO_STDLIB_BUILDER_PRODUCTS:
@@ -605,7 +605,7 @@ def _handle_go_stdlib(
             if Affect.objects.filter(
                 flaw=flaw,
                 ps_update_stream=stream.name,
-                ps_component="openshift-golang-builder-container",
+                ps_component="rh-osbs/openshift-golang-builder",
             ).exists():
                 totals["skipped_existing"] += 1
                 continue
@@ -614,7 +614,7 @@ def _handle_go_stdlib(
                 flaw=flaw,
                 ps_update_stream=stream.name,
                 purl=GO_STDLIB_BUILDER_PURL,
-                ps_component="openshift-golang-builder-container",
+                ps_component="rh-osbs/openshift-golang-builder",
                 affectedness=Affect.AffectAffectedness.AFFECTED,
                 resolution=Affect.AffectResolution.DELEGATED,
                 acl_read=flaw.acl_read,
