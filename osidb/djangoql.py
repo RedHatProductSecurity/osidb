@@ -148,7 +148,7 @@ class FlawQLSchema(DjangoQLSchema):
         fields = super().get_fields(model)
         exclude = ["acl_read", "acl_write"]
         if model == Flaw:
-            exclude += ["snippets", "local_updated_dt"]
+            exclude += ["snippets", "local_updated_dt", "change_events"]
             fields.remove("components")
             fields.remove("labels")
             fields += [
