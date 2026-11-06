@@ -889,15 +889,7 @@ class TrackerSerializer(
         # SRT notes with both added and removed Jira tracker IDs
         # (Bugzilla trackers are linked naturally through Bugzilla relations)
         if tracker.type == Tracker.TrackerType.JIRA:
-            # iterate over both added and removed affects
-            for affect in old_affects ^ set(tracker.affects.all()):
-                # do not raise validation errors here as the flaw is not what the user touches
-                # which would make the errors hard to understand and cause the tracker to orphan
-                affect.flaw.save(
-                    bz_api_key=self.get_bz_api_key(),
-                    no_alerts=True,
-                    raise_validation_error=False,
-                )
+            self._sync_related_flaws_to_bz(old_affects ^ set(tracker.affects.all()))
 
         #####################
         # 5) return updated #
