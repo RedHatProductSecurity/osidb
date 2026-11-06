@@ -62,6 +62,7 @@ from rest_framework.viewsets import (
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from collectors.jiraffe.constants import HTTPS_PROXY, JIRA_SERVER
+from osidb.flaw_watermarks import flaw_timestamp_field, with_flaw_timestamp
 from osidb.helpers import (
     bypass_rls,
     get_bugzilla_api_key,
@@ -1066,14 +1067,16 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
         Simple API endpoint to return ID and local update time pairs
         """
         id_type = request.query_params.get("id_type", "uuid")
+        timestamp_field = flaw_timestamp_field()
+        roots = with_flaw_timestamp(Flaw.objects.all())
 
         # Default to using UUID unless CVE ID is requested
         if id_type == "cve_id":
-            queryset = Flaw.objects.exclude(cve_id__isnull=True).values_list(
-                "cve_id", "local_updated_dt"
+            queryset = roots.exclude(cve_id__isnull=True).values_list(
+                "cve_id", timestamp_field
             )
         else:
-            queryset = Flaw.objects.values_list("uuid", "local_updated_dt")
+            queryset = roots.values_list("uuid", timestamp_field)
 
         return Response({"results": queryset})
 
