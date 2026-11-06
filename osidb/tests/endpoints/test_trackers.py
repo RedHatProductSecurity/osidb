@@ -1,8 +1,13 @@
+from unittest.mock import patch
+
 import pytest
 from rest_framework import status
+from rest_framework.request import Request
+from rest_framework.test import APIRequestFactory
 
 from apps.bbsync.mixins import BugzillaSyncMixin
 from osidb.models import Affect, Flaw, Tracker
+from osidb.serializer import TrackerSerializer
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -228,6 +233,63 @@ class TestEndpointsTrackers:
         assert response.status_code == 200
         assert affect1.uuid not in response.data["affects"]
         assert affect2.uuid in response.data["affects"]
+
+    def test_tracker_update_syncs_each_changed_flaw_once(self):
+        flaws = [FlawFactory(embargoed=False) for _ in range(2)]
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affects = [
+            AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=ps_module.name,
+                ps_component="shared-component",
+                ps_update_stream=ps_update_stream.name,
+            )
+            for flaw in flaws
+        ]
+        tracker = TrackerFactory(
+            affects=affects,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+        affects.append(
+            AffectFactory(
+                flaw=flaws[0],
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_module=ps_module.name,
+                ps_component="another-component",
+                ps_update_stream=ps_update_stream.name,
+                tracker=tracker,
+            )
+        )
+        serializer = TrackerSerializer(
+            context={
+                "request": Request(
+                    APIRequestFactory().put(
+                        "/trackers",
+                        HTTP_BUGZILLA_API_KEY="SECRET",
+                        HTTP_JIRA_API_KEY="SECRET",
+                    )
+                )
+            }
+        )
+        with (
+            patch.object(Flaw, "save", autospec=True) as save,
+            patch.object(Tracker, "save"),
+        ):
+            serializer.update(tracker, {"affects": []})
+
+        assert sorted(call_.args[0].uuid for call_ in save.call_args_list) == sorted(
+            flaw.uuid for flaw in flaws
+        )
+        assert all(
+            call_.kwargs["no_alerts"] is True
+            and call_.kwargs["raise_validation_error"] is False
+            for call_ in save.call_args_list
+        )
 
     @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
     def test_tracker_delete(self, auth_client, test_api_v2_uri, bts_name):
