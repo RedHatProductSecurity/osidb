@@ -34,6 +34,7 @@ from osidb.models.affect import Affect
 from osidb.models.flaw.label import WorkflowLabel
 from osidb.tests.factories import (
     FlawFactory,
+    PsModuleFactory,
     PsUpdateStreamFactory,
     UpstreamDataFactory,
 )
@@ -2428,6 +2429,91 @@ def test_apply_label_does_not_overwrite_reason():
 # ============================================================================
 
 
+@pytest.mark.parametrize("impact", ["LOW", "MODERATE", "IMPORTANT", "CRITICAL"])
+@pytest.mark.enable_signals
+def test_hummingbird_sync_resolves_without_osv_match(
+    monkeypatch, ace_enabled, mock_querier, result, impact
+):
+    """OSIDB-5870: internal Hummingbird builds need no upstream OSV match."""
+    from apps.ace.tasks import sync_hummingbird_affects
+
+    module = PsModuleFactory(name="hummingbird-1", bts_key="HUM")
+    stream = PsUpdateStreamFactory(
+        name="hummingbird-1", ps_module=module, default_to_ps_module=module
+    )
+    flaw = FlawFactory(components=["grafana"], impact=impact, workflow_state="NEW")
+
+    # No ACE creation or generic affect-resolution policy should run for HUM.
+    def unexpected(*args, **kwargs):
+        pytest.fail("Hummingbird must not use the ACE resolution path")
+
+    monkeypatch.setattr("apps.ace.tasks._sync_affects_from_results", unexpected)
+    monkeypatch.setattr(Affect, "auto_resolve", unexpected)
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        mock_querier(
+            {"grafana": [result(stream.name, "pkg:rpm/redhat/grafana@1.0-1.hum1")]}
+        ),
+    )
+
+    stats = sync_hummingbird_affects(str(flaw.uuid))
+
+    affect = flaw.affects.get()
+    assert stats["created"] == 1
+    assert affect.assist_meta["osv_status"] == OsvStatus.NO_MATCH.value
+    assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+    assert affect.resolution == Affect.AffectResolution.DELEGATED
+    assert "no_match" in affect.affectedness_explanation
+    assert "tracker" in affect.affectedness_explanation
+    assert not WorkflowLabel.objects.filter(flaw=flaw).exists()
+
+
+@pytest.mark.parametrize(
+    "status",
+    [
+        OsvStatus.AFFECTED,
+        OsvStatus.NO_MATCH,
+        OsvStatus.NO_RANGE,
+        OsvStatus.NO_VERSION,
+        OsvStatus.UNKNOWN,
+    ],
+)
+@pytest.mark.parametrize("module_key", ["HUM", "OTHER", None])
+def test_hummingbird_sync_resolves_other_non_negative_osv_statuses(
+    monkeypatch, ace_enabled, mock_querier, result, status, module_key
+):
+    from apps.ace.tasks import sync_hummingbird_affects
+
+    if module_key:
+        module = PsModuleFactory(name="hummingbird-1", bts_key=module_key)
+        PsUpdateStreamFactory(name="hummingbird-1", ps_module=module)
+    flaw = FlawFactory(components=["grafana"])
+
+    def unexpected(*args, **kwargs):
+        pytest.fail("Hummingbird must not use the generic affect resolver")
+
+    monkeypatch.setattr(Affect, "auto_resolve", unexpected)
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        mock_querier(
+            {"grafana": [result("hummingbird-1", "pkg:rpm/redhat/grafana@1.0")]}
+        ),
+    )
+    monkeypatch.setattr(
+        "apps.ace.tasks._osv_version_status", lambda *args, **kwargs: (status, "", "")
+    )
+
+    sync_hummingbird_affects(str(flaw.uuid))
+
+    affect = flaw.affects.get()
+    assert affect.assist_meta["osv_status"] == status.value
+    assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+    assert affect.resolution == Affect.AffectResolution.DELEGATED
+    assert status.value in affect.affectedness_explanation
+    assert "tracker" in affect.affectedness_explanation
+    assert not WorkflowLabel.objects.filter(flaw=flaw).exists()
+
+
 def test_hummingbird_sync_no_workflow_gate(
     monkeypatch, ace_enabled, urllib3_results, mock_querier
 ):
@@ -2592,6 +2678,7 @@ def test_hummingbird_sync_queries_only_hummingbird_modules(
     assert ("filter", ["hummingbird-1"]) in filter_calls
 
 
+@pytest.mark.enable_signals
 def test_hummingbird_sync_still_applies_version_checking(
     monkeypatch, ace_enabled, upstream_purls_openssl_rpm
 ):
@@ -2601,6 +2688,8 @@ def test_hummingbird_sync_still_applies_version_checking(
     """
     from apps.ace.tasks import sync_hummingbird_affects
 
+    module = PsModuleFactory(name="hummingbird-1", bts_key="HUM")
+    PsUpdateStreamFactory(name="hummingbird-1", ps_module=module)
     flaw = FlawFactory(
         components=["openssl"], workflow_name="DEFAULT", workflow_state="NEW"
     )
@@ -2637,6 +2726,10 @@ def test_hummingbird_sync_still_applies_version_checking(
     assert affect.ps_component == "openssl"
     assert affect.ps_update_stream == "hummingbird-1"
     assert affect.affectedness == Affect.AffectAffectedness.NOTAFFECTED
+    assert affect.resolution == Affect.AffectResolution.NOVALUE
+    assert affect.not_affected_justification == "Vulnerable Code not Present"
+    assert "OSV" in affect.affectedness_explanation
+    assert "not present" in affect.affectedness_explanation
     assert "3.0.10" in str(affect.purl)
 
 
