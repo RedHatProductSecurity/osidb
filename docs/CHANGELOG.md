@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hummingbird only takes into account OSV.NOTAFFECTED for affectedness / resolution
   determination and nothing else (OSIDB-5870)
 
+### Changed
+- Flaw components filter is now case-insensitive (OSIDB-5499)
+
 ## [5.23.0] - 2026-11-05
 ### Added
 - Expose an indexed, read-only numeric flaw `bz_id`, preserving stored legacy metadata
