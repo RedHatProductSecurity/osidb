@@ -1,8 +1,10 @@
+import fcntl
 import json
 import os
 import re
 from collections import defaultdict
 from decimal import Decimal
+from pathlib import Path
 from time import sleep
 from typing import Any, Union
 
@@ -161,7 +163,7 @@ class CVEorgCollector(Collector):
         "cvssV4_0": FlawCVSS.CVSSVersion.VERSION4,
     }
 
-    # Notes for Cmd.run(...) in clone_repo(), update_repo(), get_repo_changes() methods:
+    # Notes for Cmd.run(...) in clone_repo(), _run_repo_git() and get_repo_changes():
     # - shell=False is used to run the command directly, so that Bash injection is not possible.
     # - fail_silently=True is used to ignore stderr output. This does not indicate a real failure, but Cmd.run()
     #   will treat it like one. So we disable this behavior, then check only the return code here instead.
@@ -189,34 +191,102 @@ class CVEorgCollector(Collector):
             raise CVEorgCollectorException(msg)
 
     def update_repo(self) -> None:
-        """
-        Update the already existing cvelistV5 repository.
+        """Update the checkout, recovering from a failed or interrupted run first.
 
-        Warning: Do not use this method unless strictly necessary and you know
-        it won't run while another update is running in parallel (e.g. via
-        celery), otherwise this can lead to any further updates failing.
+        Pods share this repository, so flock prevents overlapping updates and
+        cleanup. Git inherits the lock so it stays held if the worker dies but
+        Git is still running. The OS releases it when both processes exit, even
+        after an OOM kill. Leave the lock file on disk; unlike Git's index.lock,
+        its existence does not mean the lock is held.
+
+        The in-progress marker survives an interrupted update so the next run
+        can recover even if the worker died before recording an error.
+
+        Manual Git commands must use the same lock or run with the collector
+        stopped. This relies on the shared filesystem supporting flock.
         """
         logger.info("Updating the cvelistV5 repository...")
+        repo = Path(self.REPO_PATH)
+        git_dir = repo / ".git"
+        marker = git_dir / "osidb-update-in-progress"
+        with (git_dir / "osidb-update.lock").open("a") as guard:
+            try:
+                fcntl.flock(guard, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as exc:
+                raise CVEorgCollectorException(
+                    "CVE.org repository update is already active; retry after it finishes."
+                ) from exc
 
-        cmd_parts = (
-            "/usr/bin/git",
-            # Our namespaced user is trying to update files on a PVC
-            # which we have write access to, but git complains the owner doesn't match
-            "-c",
-            f"safe.directory={self.REPO_PATH}",
-            "pull",
-        )
-        result = Cmd.run(cmd_parts, cwd=self.REPO_PATH, fail_silently=True, shell=False)
-        logger.debug(result.stdout)
+            interrupted = marker.exists()
+            if self.metadata.error or interrupted:
+                logger.warning(
+                    "Checking CVE.org repository after a failed/interrupted run."
+                )
+                index_lock = git_dir / "index.lock"
+                if index_lock.exists():
+                    # Only recover locks associated with a managed update.
+                    # An older/unmarked lock may belong to external Git work.
+                    if (
+                        not interrupted
+                        or index_lock.stat().st_mtime < marker.stat().st_mtime
+                    ):
+                        raise CVEorgCollectorException(
+                            "Unowned CVE.org index.lock found; verify no external Git "
+                            "operation is running and remove the stale lock manually."
+                        )
+                    index_lock.unlink()
+                    logger.warning(
+                        "Removed stale CVE.org index.lock from interrupted update."
+                    )
+                # This checkout is an upstream cache, not a place for local
+                # edits. Discard interrupted checkout changes instead of
+                # accumulating recovery stashes on the shared volume.
+                self._run_repo_git(guard, "reset", "--hard", "HEAD")
+                self._run_repo_git(guard, "clean", "-fd")
+                logger.info(
+                    "Discarded local CVE.org changes and removed untracked files."
+                )
 
-        if result.returncode == 0:
-            logger.info("The repository was successfully updated.")
-        else:
-            msg = (
-                f"Failed to update the repository. Returned code: {result.returncode}."
+            # Retained on failure or OOM termination, even when on_failure never
+            # runs. Do not refresh an old marker until recovery has finished.
+            marker.touch()
+            self._run_repo_git(
+                guard,
+                "-c",
+                "gc.autoDetach=false",
+                "-c",
+                "maintenance.autoDetach=false",
+                "pull",
+                "--ff-only",
             )
-            logger.error(msg)
-            raise CVEorgCollectorException(msg)
+            marker.unlink()
+            logger.info("CVE.org repository update completed successfully.")
+
+    def _run_repo_git(self, guard, *args):
+        """Run Git while retaining the repository guard in the child process."""
+        result = Cmd.run(
+            ["/usr/bin/git", "-c", f"safe.directory={self.REPO_PATH}", *args],
+            cwd=self.REPO_PATH,
+            shell=False,
+            fail_silently=True,
+            pass_fds=(guard.fileno(),),
+        )
+        if result.returncode:
+            # Git diagnostics can include internal proxy or remote details.
+            logger.debug(
+                "CVE.org git %s diagnostics: stderr: %s stdout: %s",
+                args,
+                result.stderr.strip(),
+                result.stdout.strip(),
+            )
+            message = (
+                f"CVE.org git {' '.join(args)} failed (code {result.returncode}). "
+                "See debug logs for Git diagnostics."
+            )
+            logger.error(message)
+            raise CVEorgCollectorException(message)
+        logger.debug("CVE.org git %s: %s", args, result.stdout)
+        return result.stdout
 
     def get_repo_changes(self) -> tuple[str, timezone.datetime]:
         """
