@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ACE: require an affirmative OSV affected result before auto-resolving and route
   unresolved statuses to manual triage (OSIDB-5800)
 
+### Fixed
+- Auto-affects label added without any affects (OSIDB-5596)
+
 ## [5.22.0] - 2026-11-02
 ### Added
 - Added filters for checking if the workflow state or name are empty (OSIDB-5730)

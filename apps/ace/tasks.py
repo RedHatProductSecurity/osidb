@@ -1112,8 +1112,6 @@ def sync_flaw_affects_from_newcli(
     query_log: list[dict] = []
 
     for flaw_component, ecosystem, pre_filter in pre_filter_results:
-        _apply_label(flaw, pre_filter.label, reason=pre_filter.reason)
-
         if pre_filter.action is PreFilterAction.SPECIAL:
             # Special workflow handling
             if pre_filter.workflow is SpecialWorkflow.CHROMIUM:
@@ -1131,9 +1129,24 @@ def sync_flaw_affects_from_newcli(
                 stats = {}
             for key in stats:
                 totals[key] += stats[key]
+            if pre_filter.workflow is SpecialWorkflow.CHROMIUM:
+                has_affects = flaw.affects.exists()
+            else:
+                has_affects = (
+                    stats.get("created", 0) + stats.get("skipped_existing", 0) > 0
+                )
+            if has_affects:
+                _apply_label(flaw, pre_filter.label, reason=pre_filter.reason)
+            else:
+                _apply_label(
+                    flaw,
+                    LABEL_POTENTIAL_REJECTION,
+                    reason="ACE tried to add affects automatically but the query yielded zero results",
+                )
             continue
 
         if pre_filter.action is not PreFilterAction.SEARCH:
+            _apply_label(flaw, pre_filter.label, reason=pre_filter.reason)
             logger.info(
                 "Pre-filter %s for flaw=%s component=%r: %s",
                 pre_filter.action,
@@ -1144,6 +1157,7 @@ def sync_flaw_affects_from_newcli(
             totals["pre_filtered"] += 1
             continue
 
+        component_outcomes = 0
         for resolved_name in pre_filter.resolved_names:
             results = _query_newtopia(
                 resolved_name,
@@ -1165,6 +1179,16 @@ def sync_flaw_affects_from_newcli(
             )
             for key in stats:
                 totals[key] += stats[key]
+            component_outcomes += stats["created"] + stats["skipped_existing"]
+
+        if pre_filter.label == LABEL_AUTO_AFFECTS and component_outcomes == 0:
+            _apply_label(
+                flaw,
+                LABEL_POTENTIAL_REJECTION,
+                reason="ACE tried to add affects automatically but the query yielded zero results",
+            )
+        else:
+            _apply_label(flaw, pre_filter.label, reason=pre_filter.reason)
 
     if query_log:
         _write_flaw_assist_meta(
