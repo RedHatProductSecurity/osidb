@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Flaw components filter is now case-insensitive (OSIDB-5499)
+- Flaw labels filter is now case-insensitive (OSIDB-5481)
 
 ## [5.23.0] - 2026-11-05
 ### Added

@@ -750,6 +750,7 @@ class TestEndpointsFlaws:
     def test_list_flaws_filter_by_labels(self, auth_client, test_api_uri):
         """test multi-label filtering"""
         CollaboratorLabelDefinition.objects.create(name="label_a")
+        CollaboratorLabelDefinition.objects.create(name="label_A")
         CollaboratorLabelDefinition.objects.create(name="label_b")
         CollaboratorLabelDefinition.objects.create(name="label_c")
 
@@ -769,6 +770,11 @@ class TestEndpointsFlaws:
         flaw2.save()
         CollaboratorLabel.objects.create(
             flaw=flaw2,
+            name="label_A",
+            state=CollaboratorLabel.State.NEW,
+        )
+        CollaboratorLabel.objects.create(
+            flaw=flaw2,
             name="label_a",
             state=CollaboratorLabel.State.NEW,
         )
@@ -784,7 +790,7 @@ class TestEndpointsFlaws:
         flaw3.save()
         CollaboratorLabel.objects.create(
             flaw=flaw3,
-            name="label_a",
+            name="label_A",
             state=CollaboratorLabel.State.NEW,
         )
         CollaboratorLabel.objects.create(

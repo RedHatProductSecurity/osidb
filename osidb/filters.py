@@ -768,9 +768,9 @@ class FlawFilter(
         """
 
         for label in value:
-            queryset = queryset.filter(labels__name=label)
+            queryset = queryset.filter(labels__name__iexact=label)
 
-        return queryset
+        return queryset.distinct()
 
     def component_filter(self, queryset, name, value):
         """
