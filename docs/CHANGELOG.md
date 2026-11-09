@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Fixed
+- Hummingbird only takes into account OSV.NOTAFFECTED for affectedness / resolution
+  determination and nothing else (OSIDB-5870)
+
 ## [5.23.0] - 2026-11-05
 ### Added
 - Expose an indexed, read-only numeric flaw `bz_id`, preserving stored legacy metadata

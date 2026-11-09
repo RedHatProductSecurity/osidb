@@ -838,8 +838,7 @@ def _sync_affects_from_results(
     version is checked against the OSV version range for the matched component.
     Results whose version falls outside the range are created as NOTAFFECTED affects.
 
-    When ``apply_labels`` is False, no labels are applied to the flaw (used by
-    hummingbird workflow).
+    When ``apply_labels`` is False, no labels are applied to the flaw.
     """
     created = 0
     skipped = 0
@@ -935,6 +934,94 @@ def _sync_affects_from_results(
         "skipped_existing": skipped_existing,
         "marked_notaffected": marked_notaffected,
     }
+
+
+def _sync_hummingbird_affects_from_results(
+    flaw: Flaw,
+    results: list,
+    flaw_component: str,
+    *,
+    ecosystem: str = "",
+    upstream_purls: list[dict] | None = None,
+    resolved_name: str = "",
+) -> dict[str, int]:
+    """Create Hummingbird affects independently of ACE's resolution policy."""
+    stats = {"created": 0, "skipped": 0, "skipped_existing": 0, "marked_notaffected": 0}
+    pkg_info = match_component_to_upstream(
+        flaw_component, upstream_purls or [], ecosystem=ecosystem
+    )
+
+    with transaction.atomic():
+        for result in results:
+            ps_update_stream = getattr(result, "ps_update_stream", None)
+            purls = getattr(result, "purls", None) or []
+            purl_str = purls[0] if purls else None
+            if not ps_update_stream or not purl_str:
+                logger.warning(
+                    "Skipping lib_newtopia result missing ps_update_stream or purls: %s",
+                    getattr(result, "build_nvr", None),
+                )
+                stats["skipped"] += 1
+                continue
+
+            ps_component = Affect(purl=purl_str).ps_component_from_purl()
+            if (
+                ps_component
+                and Affect.objects.filter(
+                    flaw=flaw,
+                    ps_update_stream=ps_update_stream,
+                    ps_component=ps_component,
+                ).exists()
+            ):
+                stats["skipped_existing"] += 1
+                continue
+
+            osv_status, range_str, version_checked = _osv_version_status(
+                purl_str,
+                pkg_info,
+                result=result,
+                query_component=resolved_name or flaw_component,
+            )
+            affect = Affect(
+                flaw=flaw,
+                ps_update_stream=ps_update_stream,
+                purl=purl_str,
+                ps_component=ps_component,
+                acl_read=flaw.acl_read,
+                acl_write=flaw.acl_write,
+                created_by="AffectCreationEngine",
+                updated_by="AffectCreationEngine",
+                assist_meta={
+                    "osv_range_used": range_str,
+                    "osv_version_checked": version_checked,
+                    "osv_status": osv_status.value,
+                },
+            )
+            if osv_status is OsvStatus.NOT_AFFECTED:
+                affect.affectedness = Affect.AffectAffectedness.NOTAFFECTED
+                affect.resolution = Affect.AffectResolution.NOVALUE
+                affect.not_affected_justification = (
+                    NotAffectedJustification.VULN_CODE_NOT_PRESENT
+                )
+                affect.affectedness_explanation = (
+                    "OSV data indicates the vulnerable code is not present in this version. "
+                    "Affectedness set to NOTAFFECTED with justification 'Vulnerable Code not Present'."
+                )
+                stats["marked_notaffected"] += 1
+            else:
+                affect.affectedness = Affect.AffectAffectedness.AFFECTED
+                affect.resolution = Affect.AffectResolution.DELEGATED
+                affect.affectedness_explanation = (
+                    f"OSV status '{osv_status.value}' does not establish that the vulnerable code "
+                    "is absent. Hummingbird affects default to AFFECTED/DELEGATED so a tracker "
+                    "can be filed regardless of impact or CVSS score."
+                )
+
+            affect._auto_resolved = True
+            affect.save(raise_validation_error=False)
+            stats["created"] += 1
+
+    return stats
 
 
 @app.task(queue="high")
@@ -1189,16 +1276,13 @@ def sync_hummingbird_affects(flaw_id: str, trigger: str = "unknown") -> dict[str
                     ecosystem=ecosystem,
                     query_log=query_log,
                 )
-                stats = _sync_affects_from_results(
+                stats = _sync_hummingbird_affects_from_results(
                     flaw,
                     results,
                     flaw_component,
-                    hummingbird_ps_modules,
                     ecosystem=ecosystem,
                     upstream_purls=upstream_purls,
                     resolved_name=resolved_name,
-                    apply_labels=False,
-                    trigger=trigger,
                 )
                 for key in stats:
                     totals[key] += stats[key]
