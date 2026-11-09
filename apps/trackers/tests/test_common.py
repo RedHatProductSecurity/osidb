@@ -749,6 +749,134 @@ class TestTrackerQueryBuilderDescription:
             if info_url is not None:
                 assert info_url not in tqb_community.description
 
+    @pytest.mark.parametrize("osim_url", [None, "https://osim.example.com"])
+    def test_osim_flaw_link(self, osim_url):
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory()
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+        with patch("apps.trackers.common.OSIM_URL", osim_url):
+            tqb = TrackerQueryBuilder()
+            tqb.instance = tracker
+            identifier = flaw.cve_id or flaw.uuid
+            if osim_url is not None:
+                assert tqb.osim_flaw_links == [
+                    (f"{osim_url}/flaws/{flaw.uuid}", f"OSIM flaw {identifier}")
+                ]
+            else:
+                assert tqb.osim_flaw_links == []
+
+    def test_osim_flaw_link_uuid_fallback(self):
+        """
+        test the OSIM flaw link uses the flaw uuid when the flaw has no CVE
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw = FlawFactory(cve_id=None)
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            embargoed=affect.flaw.embargoed,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+        # make sure the fallback is really exercised
+        assert not flaw.cve_id
+        with patch("apps.trackers.common.OSIM_URL", "https://osim.example.com"):
+            tqb = TrackerQueryBuilder()
+            tqb.instance = tracker
+            assert tqb.osim_flaw_links == [
+                (
+                    f"https://osim.example.com/flaws/{flaw.uuid}",
+                    f"OSIM flaw {flaw.uuid}",
+                )
+            ]
+
+    def test_osim_flaw_link_community(self):
+        """
+        test community trackers do not show the OSIM flaw link
+        """
+        ps_product_community = PsProductFactory(business_unit="Community")
+        ps_module_community = PsModuleFactory(
+            bts_name="jboss", ps_product=ps_product_community
+        )
+        ps_update_stream_community = PsUpdateStreamFactory(
+            ps_module=ps_module_community
+        )
+        flaw_community = FlawFactory()
+        affect_community = AffectFactory(
+            flaw=flaw_community,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream_community.name,
+        )
+        tracker_community = TrackerFactory(
+            affects=[affect_community],
+            embargoed=affect_community.flaw.embargoed,
+            ps_update_stream=ps_update_stream_community.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+        with patch("apps.trackers.common.OSIM_URL", "https://osim.example.com"):
+            tqb_community = TrackerQueryBuilder()
+            tqb_community.instance = tracker_community
+            assert tqb_community.osim_flaw_links == []
+
+    def test_osim_flaw_link_multi_flaw(self):
+        """
+        test every flaw gets one OSIM link and a flaw is never linked twice
+        """
+        ps_module = PsModuleFactory(bts_name="jboss")
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        flaw1 = FlawFactory(embargoed=False)
+        flaw2 = FlawFactory(embargoed=False)
+        affect1 = AffectFactory(
+            flaw=flaw1,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="kernel",
+        )
+        affect2 = AffectFactory(
+            flaw=flaw2,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="kernel",
+        )
+        tracker = TrackerFactory(
+            affects=[affect1, affect2],
+            embargoed=False,
+            ps_update_stream=ps_update_stream.name,
+            type=Tracker.TrackerType.JIRA,
+        )
+        with patch("apps.trackers.common.OSIM_URL", "https://osim.example.com"):
+            tqb = TrackerQueryBuilder()
+            tqb.instance = tracker
+            links = tqb.osim_flaw_links
+            assert len(links) == 2
+            for flaw in (flaw1, flaw2):
+                identifier = flaw.cve_id or flaw.uuid
+                assert (
+                    f"https://osim.example.com/flaws/{flaw.uuid}",
+                    f"OSIM flaw {identifier}",
+                ) in links
+
     def test_triage(self):
         """
         test triage tracker description generation

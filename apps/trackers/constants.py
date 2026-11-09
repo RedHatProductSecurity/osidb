@@ -17,3 +17,4 @@ VIRTUALIZATION_PACKAGES = {"xen", "kvm", "kernel-xen"}
 
 # link to essential Vuln Mgmt documentation
 VULN_MGMT_INFO_URL = get_env("VULN_MGMT_INFO_URL", default=None)
+OSIM_URL = get_env("OSIM_URL", default=None)
