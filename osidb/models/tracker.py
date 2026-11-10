@@ -540,6 +540,10 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         an affect with no tracker linked is always linked even by a duplicate
         tracker as showing a duplicate is better than showing nothing
+
+        returns the set of affects whose tracker link was changed, i.e. the
+        affects linked to or unlinked from this tracker, so that callers can
+        react to the link state change
         """
         target = set(target_affects)
         current = set(self.affects.all())
@@ -559,6 +563,8 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         # unlink the affects this tracker no longer covers
         self.affects.remove(*(current - to_link))
         self.affects.add(*to_link)
+
+        return (current - to_link) | (to_link - current)
 
     @property
     def is_acked(self):
