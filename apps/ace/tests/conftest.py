@@ -118,6 +118,9 @@ def mock_querier():
 def ace_enabled(monkeypatch):
     """Patch HAS_LIB_NEWTOPIA=True so the task does not short-circuit."""
     monkeypatch.setattr("apps.ace.tasks.HAS_LIB_NEWTOPIA", True)
+    monkeypatch.setattr(
+        "apps.ace.tasks._is_strict_package", lambda *_args, **_kwargs: True
+    )
 
 
 @pytest.fixture

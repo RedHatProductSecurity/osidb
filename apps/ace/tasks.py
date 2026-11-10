@@ -337,14 +337,7 @@ def _pre_filter_component(
         resolved = [pick]
 
     # Strict package check
-    resolved_lower = [r.lower() for r in resolved]
-    is_strict = StrictPackage.objects.filter(name__in=resolved_lower).exists()
-    is_strict_npm = StrictNpmPackage.objects.filter(name__in=resolved_lower).exists()
-    is_ambiguous_npm = AmbiguousNpmPackage.objects.filter(
-        name__in=resolved_lower
-    ).exists()
-
-    if not (is_strict or is_strict_npm or (is_ambiguous_npm and ecosystem == "npm")):
+    if not _is_strict_package(resolved, ecosystem):
         return PreFilterResult(
             action=PreFilterAction.SEARCH,
             label=LABEL_POTENTIAL_REJECTION,
@@ -358,6 +351,39 @@ def _pre_filter_component(
         label=LABEL_AUTO_AFFECTS,
         resolved_names=resolved,
     )
+
+
+def _is_strict_package(resolved: list[str], ecosystem: str) -> bool:
+    """A resolved name is strict when it is safe to search without manual review."""
+    resolved_lower = [r.lower() for r in resolved]
+    is_strict = StrictPackage.objects.filter(name__in=resolved_lower).exists()
+    is_strict_npm = StrictNpmPackage.objects.filter(name__in=resolved_lower).exists()
+    is_ambiguous_npm = AmbiguousNpmPackage.objects.filter(
+        name__in=resolved_lower
+    ).exists()
+    return bool(is_strict or is_strict_npm or (is_ambiguous_npm and ecosystem == "npm"))
+
+
+def _collect_pre_filter_results(
+    flaw: Flaw,
+) -> list[tuple[str, str, PreFilterResult]]:
+    """Run the pre-filter for every component and resolved ecosystem."""
+    osv_data = flaw.upstream_data.filter(source=UpstreamData.Source.OSV).first()
+    component_ecosystems = osv_data.component_ecosystems if osv_data else {}
+    aegis_ecosystems = _aegis_ecosystems(flaw)
+    pre_filter_results: list[tuple[str, str, PreFilterResult]] = []
+    for flaw_component in _flaw_components(flaw):
+        for ecosystem in _resolve_ecosystems(
+            flaw_component, component_ecosystems, aegis_ecosystems
+        ):
+            pre_filter_results.append(
+                (
+                    flaw_component,
+                    ecosystem,
+                    _pre_filter_component(flaw, flaw_component, ecosystem),
+                )
+            )
+    return pre_filter_results
 
 
 def _parse_chrome_advisory(advisory_url: str, cve_id: str) -> dict:
@@ -1024,6 +1050,70 @@ def _sync_hummingbird_affects_from_results(
     return stats
 
 
+def _is_ace_eligible(flaw: Flaw) -> bool:
+    return (
+        flaw.workflow_name == "DEFAULT"
+        and flaw.workflow_state not in ("", "NEW", "DONE")
+        and not (flaw.assist_meta or {}).get("ace_qualified")
+    )
+
+
+def qualify_flaw_for_ace(flaw_id: str) -> None:
+    """
+    Apply pre-filter labels once, the first time a flaw is processable.
+
+    Applying the ``auto-affects`` label enqueues affect creation. Other
+    outcomes (``manual-triage``, ``potential-rejection``, ``auto-rejected``)
+    are labels only. A later entry into an eligible state does not run again.
+    """
+    flaw = Flaw.objects.get(uuid=flaw_id)
+    if not _is_ace_eligible(flaw):
+        return
+    if not any(c and str(c).strip() for c in (flaw.components or [])):
+        return
+
+    pre_filter_results = _collect_pre_filter_results(flaw)
+    skip_result = next(
+        (pf for _, _, pf in pre_filter_results if pf.action is PreFilterAction.SKIP),
+        None,
+    )
+    if skip_result:
+        with transaction.atomic():
+            _ace_qualified(flaw, [skip_result.label] if skip_result.label else [])
+            _apply_label(flaw, skip_result.label, reason=skip_result.reason)
+        logger.info(
+            "ACE qualification skip for flaw=%s: %s", flaw_id, skip_result.reason
+        )
+        return
+
+    auto = next(
+        (pf for _, _, pf in pre_filter_results if pf.label == LABEL_AUTO_AFFECTS),
+        None,
+    )
+    if auto:
+        with transaction.atomic():
+            _ace_qualified(flaw, [LABEL_AUTO_AFFECTS])
+            _apply_label(flaw, LABEL_AUTO_AFFECTS, reason=auto.reason)
+        logger.info("ACE qualification applied auto-affects for flaw=%s", flaw_id)
+        return
+
+    labels: list[str] = []
+    pending: list[PreFilterResult] = []
+    for _, _, pre_filter in pre_filter_results:
+        if pre_filter.label and pre_filter.label not in labels:
+            labels.append(pre_filter.label)
+            pending.append(pre_filter)
+    with transaction.atomic():
+        _ace_qualified(flaw, labels)
+        for pre_filter in pending:
+            _apply_label(flaw, pre_filter.label, reason=pre_filter.reason)
+    logger.info("ACE qualification labels=%s for flaw=%s", labels, flaw_id)
+
+
+def _ace_qualified(flaw: Flaw, labels: list[str]) -> None:
+    _write_flaw_assist_meta(flaw, "ace_qualified", {"labels": labels})
+
+
 @app.task(queue="high")
 @bypass_rls
 def sync_flaw_affects_from_newcli(
@@ -1035,14 +1125,17 @@ def sync_flaw_affects_from_newcli(
     ``NewtopiaQuerier``. Existing affects for the same flaw, stream, and ``ps_component``
     (inferred from the purl) are left unchanged.
 
+    ``SEARCH`` results are queried, including low-confidence components labeled
+    ``potential-rejection``. Chromium and Go stdlib keep their special-case handlers.
+
     The set of PS modules queried is controlled by
     :attr:`osidb.models.affect.AffectSettings.auto_create_ps_modules`
     (``OSIDB_AFFECTS_AUTO_CREATE_PS_MODULES``, JSON list; default ``[]``).
 
     When :attr:`osidb.models.affect.AffectSettings.auto_create` is true
-    (``OSIDB_AFFECTS_AUTO_CREATE``), changes to :attr:`~osidb.models.flaw.flaw.Flaw.components`
-    register this task on :func:`django.db.transaction.on_commit` from a ``pre_save`` signal
-    on :class:`~osidb.models.flaw.flaw.Flaw`.
+    (``OSIDB_AFFECTS_AUTO_CREATE``), applying an ``auto-affects`` workflow label
+    registers this task on :func:`django.db.transaction.on_commit`. Component
+    edits and later workflow moves do not.
 
     If ``lib_newtopia`` is not installed this task is a no-op — it logs a warning and returns
     without creating any affects. Install the package from the internal Nexus repository
@@ -1082,19 +1175,10 @@ def sync_flaw_affects_from_newcli(
 
     osv_data = flaw.upstream_data.filter(source=UpstreamData.Source.OSV).first()
     upstream_purls: list[dict] = osv_data.upstream_purls if osv_data else []
-    component_ecosystems = osv_data.component_ecosystems if osv_data else {}
-    aegis_ecosystems = _aegis_ecosystems(flaw)
 
     # Pre-filter all components first. If any component triggers a skip
     # (e.g. blocklist), the entire flaw is skipped — matching vulncli behavior.
-    pre_filter_results: list[tuple[str, str, PreFilterResult]] = []
-    for flaw_component in components:
-        ecosystems = _resolve_ecosystems(
-            flaw_component, component_ecosystems, aegis_ecosystems
-        )
-        for ecosystem in ecosystems:
-            pf = _pre_filter_component(flaw, flaw_component, ecosystem)
-            pre_filter_results.append((flaw_component, ecosystem, pf))
+    pre_filter_results = _collect_pre_filter_results(flaw)
 
     skip_result = next(
         (pf for _, _, pf in pre_filter_results if pf.action is PreFilterAction.SKIP),
