@@ -1075,8 +1075,9 @@ class JiraTrackerDownloadManager(SyncManager):
             affects.append(affect)
 
         with transaction.atomic():
-            tracker.relink_affects(affects)
+            changed_affects = tracker.relink_affects(affects)
             tracker.save(raise_validation_error=False, auto_timestamps=False)
+            reclassify_relinked_flaws(changed_affects)
 
         return affects, failed_flaws, failed_affects
 
