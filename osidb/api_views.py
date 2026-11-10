@@ -1703,7 +1703,8 @@ class AffectView(
         for serializer in validated_serializers:
             # Make the serializer skip the sync for each affect
             try:
-                serializer.save(skip_bz_sync=True, updated_by=actor)
+                with serializer.instance.defer_flaw_save():
+                    serializer.save(skip_bz_sync=True, updated_by=actor)
                 ret.append(serializer.data)
             except ValidationError as e:
                 instance = serializer.instance
@@ -1925,7 +1926,8 @@ class AffectView(
                 )
 
             # Relying on the whole transaction being aborted if a validation fails along the way.
-            affect_obj.delete()
+            with affect_obj.defer_flaw_save():
+                affect_obj.delete()
         flaw = Flaw.objects.get(uuid=next(iter(flaws)))
         flaw.save(bz_api_key=bz_api_key)
 

@@ -1,5 +1,6 @@
 import logging
 import uuid
+from contextlib import contextmanager
 
 import pghistory
 from django.contrib.postgres import fields
@@ -311,6 +312,16 @@ class Affect(
         ps_component = self.ps_component or "None"
 
         return f"Affect ({affect_id}) for {ps_update_stream}/{ps_component} {msg}"
+
+    @contextmanager
+    def defer_flaw_save(self):
+        """Defer the affect signal's flaw save until the caller finishes the batch."""
+        previous = getattr(self, "_defer_flaw_save", False)
+        self._defer_flaw_save = True
+        try:
+            yield
+        finally:
+            self._defer_flaw_save = previous
 
     def save(self, *args, **kwargs):
         if self.purl and not self.ps_component:

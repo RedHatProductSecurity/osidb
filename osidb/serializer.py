@@ -12,6 +12,7 @@ import pghistory
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import BadRequest, ValidationError
+from django.db import transaction
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
@@ -47,6 +48,7 @@ from osidb.models import (
     UpstreamData,
 )
 from osidb.models.affect import NotAffectedJustification
+from osidb.signals import signal_pghistory_context
 from osidb.sync_manager import SyncManager
 
 from .exceptions import DataInconsistencyException
@@ -705,6 +707,7 @@ class TrackerSerializer(
             "resolved_dt",
         ]
 
+    @transaction.atomic
     def create(self, validated_data):
         """
         perform the tracker instance creation
@@ -751,7 +754,27 @@ class TrackerSerializer(
         # create affect-tracker links
         for affect in affects:
             affect.tracker = tracker
-            affect.save(no_alerts=True, raise_validation_error=False)
+            with affect.defer_flaw_save():
+                affect.save(no_alerts=True, raise_validation_error=False)
+
+        # Workflow checks tracker links, not the fields populated by external sync.
+        flaw_ids = {affect.flaw_id for affect in affects}
+        flaws = Flaw.objects.in_bulk(flaw_ids)
+        if len(flaws) != len(flaw_ids):
+            raise serializers.ValidationError(
+                {"affects": "An affected flaw is not accessible."}
+            )
+        for flaw in flaws.values():
+            with signal_pghistory_context(
+                "update_local_updated_dt_affect",
+                sender=Affect,
+                instance=[
+                    str(affect.uuid) for affect in affects if affect.flaw_id == flaw.pk
+                ],
+            ):
+                flaw.save(
+                    auto_timestamps=False, no_alerts=True, raise_validation_error=False
+                )
 
         #####################
         # 3) create actions #
@@ -766,6 +789,7 @@ class TrackerSerializer(
 
         return tracker
 
+    @transaction.atomic
     def update(self, tracker, validated_data):
         """
         perform the tracker instance update
@@ -790,12 +814,14 @@ class TrackerSerializer(
         # Remove tracker from affects that are no longer associated
         for affect in removed_affects:
             affect.tracker = None
-            affect.save()
+            with affect.defer_flaw_save():
+                affect.save()
 
         # Add tracker to newly associated affects
         for affect in added_affects:
             affect.tracker = tracker
-            affect.save()
+            with affect.defer_flaw_save():
+                affect.save()
 
         #####################
         # 3) update actions #
@@ -805,6 +831,27 @@ class TrackerSerializer(
 
         for attr, value in validated_data.items():
             setattr(tracker, attr, value)
+
+        # Workflow checks tracker links, not the fields populated by external sync.
+        flaw_ids = {affect.flaw_id for affect in removed_affects | added_affects}
+        flaws = Flaw.objects.in_bulk(flaw_ids)
+        if len(flaws) != len(flaw_ids):
+            raise serializers.ValidationError(
+                {"affects": "An affected flaw is not accessible."}
+            )
+        for flaw in flaws.values():
+            with signal_pghistory_context(
+                "update_local_updated_dt_affect",
+                sender=Affect,
+                instance=[
+                    str(affect.uuid)
+                    for affect in removed_affects | added_affects
+                    if affect.flaw_id == flaw.pk
+                ],
+            ):
+                flaw.save(
+                    auto_timestamps=False, no_alerts=True, raise_validation_error=False
+                )
 
         tracker.save(
             bz_api_key=self.get_bz_api_key(),
