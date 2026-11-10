@@ -1,16 +1,27 @@
+import json
 from datetime import UTC, datetime, timedelta
+from unittest.mock import Mock
 
 import pytest
 from django.test import TestCase
 from freezegun import freeze_time
 from rhubarb.tasks import LockableTaskWithArgs
 
+from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.sync_manager import (
+    BZTrackerDownloadManager,
     JiraTaskSyncManager,
     JiraTaskTransitionManager,
+    JiraTrackerDownloadManager,
     SyncManager,
 )
-from osidb.tests.factories import FlawFactory
+from osidb.tests.factories import (
+    AffectFactory,
+    FlawFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
+    TrackerFactory,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -397,3 +408,459 @@ class TestJiraTaskSyncManagerLockContention:
         # (ConcurrentExecutionException / Reject, no requeue) instead of
         # being converted into a Celery retry.
         assert task.before_start.__func__ is LockableTaskWithArgs.before_start
+
+
+class TestLinkTrackerReclassification:
+    """
+    regression tests for OSIDB-5840
+
+    during tracker sync the affect-tracker reconciliation
+    (link_tracker_with_affects -> relink_affects) changes the links by plain
+    bulk updates which fire no save signals, so nothing re-saved the flaw and
+    a flaw sitting in PRE_SECONDARY_ASSESSMENT stalled there until some
+    unrelated change re-saved it. The sync must re-run the workflow
+    classification for the flaws of the relinked affects itself.
+    """
+
+    def _stream(self, bts_name="jboss"):
+        # the tracker type must correspond to the BTS of the affect's module
+        ps_module = PsModuleFactory(bts_name=bts_name)
+        return PsUpdateStreamFactory(ps_module=ps_module)
+
+    def _flaw(self, task_key="TASK-5840"):
+        return FlawFactory(
+            embargoed=False,
+            task_key=task_key,
+            impact=Impact.MODERATE,
+            cwe_id="CWE-79",
+            cve_description="a cve description",
+        )
+
+    def _resolved_affect(self, flaw, ps_update_stream, ps_component="component"):
+        return AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component=ps_component,
+        )
+
+    def _unlinked_tracker(self, type_, ps_update_stream, external_system_id, meta_attr):
+        # a freshly synced tracker has no affects linked yet - they get linked
+        # by the following link_tracker_with_affects() call. The tracker model
+        # would reject that state on save, so mirror what the collectors do
+        # and save without raising.
+        tracker = TrackerFactory.build(
+            embargoed=False,
+            type=type_,
+            external_system_id=external_system_id,
+            ps_update_stream=ps_update_stream.name,
+            status="Open",
+            resolution="",
+            meta_attr=meta_attr,
+        )
+        tracker.save(raise_validation_error=False, auto_timestamps=False)
+        return tracker
+
+    def _jira_tracker(self, flaw, ps_update_stream, ps_component="component"):
+        return self._unlinked_tracker(
+            Tracker.TrackerType.JIRA,
+            ps_update_stream,
+            f"RHEL-5840-{ps_component}",
+            {
+                "labels": json.dumps([f"flaw:bz#{flaw.bz_id}"]),
+                "ps_component": ps_component,
+            },
+        )
+
+    def _bz_tracker(self, flaw, ps_update_stream, ps_component="component"):
+        return self._unlinked_tracker(
+            Tracker.TrackerType.BUGZILLA,
+            ps_update_stream,
+            f"584000-{ps_component}",
+            {
+                "blocks": json.dumps([flaw.bz_id]),
+                "ps_component": ps_component,
+                "whiteboard": "{}",
+            },
+        )
+
+    @pytest.mark.enable_signals
+    def test_jira_link_promotes_flaw_from_pre_secondary_assessment(self, monkeypatch):
+        """
+        linking the last missing tracker of a flaw sitting in
+        PRE_SECONDARY_ASSESSMENT must immediately re-run the workflow
+        classification and promote the flaw, with no flaw re-save at all
+        """
+        ps_update_stream = self._stream()
+        flaw = self._flaw()
+        affect = self._resolved_affect(flaw, ps_update_stream)
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        assert flaw.resolved_dt is None
+
+        tracker = self._jira_tracker(flaw, ps_update_stream)
+        updated_dt = flaw.updated_dt
+
+        def reject_flaw_save(instance, *args, **kwargs):
+            pytest.fail("linking a tracker must not re-save the flaw")
+
+        monkeypatch.setattr(Flaw, "save", reject_flaw_save)
+        JiraTrackerDownloadManager.link_tracker_with_affects(tracker.external_system_id)
+
+        flaw.refresh_from_db()
+        # all affects resolved and tracked, and DONE has no requirements,
+        # so the classifier passes SECONDARY_ASSESSMENT and lands in DONE
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state == "DONE"
+        assert flaw.resolved_dt is not None
+        # the mid-air collision timestamp must not move
+        assert flaw.updated_dt == updated_dt
+        affect.refresh_from_db()
+        assert affect.tracker == tracker
+
+        # the promotion is visible in the flaw audit trail
+        event_model = Flaw.pgh_event_model
+        assert event_model.objects.filter(
+            pgh_obj_id=flaw.uuid, workflow_state="DONE"
+        ).exists()
+
+    @pytest.mark.enable_signals
+    def test_bz_link_promotes_flaw_from_pre_secondary_assessment(self, monkeypatch):
+        """
+        the Bugzilla variant of the tracker download must reclassify the
+        relinked flaws too (OSIDB-5840)
+        """
+        ps_update_stream = self._stream(bts_name="bugzilla")
+        flaw = self._flaw()
+        affect = self._resolved_affect(flaw, ps_update_stream)
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+
+        tracker = self._bz_tracker(flaw, ps_update_stream)
+        updated_dt = flaw.updated_dt
+
+        def reject_flaw_save(instance, *args, **kwargs):
+            pytest.fail("linking a tracker must not re-save the flaw")
+
+        monkeypatch.setattr(Flaw, "save", reject_flaw_save)
+        BZTrackerDownloadManager.link_tracker_with_affects(tracker.external_system_id)
+
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+        assert flaw.resolved_dt is not None
+        assert flaw.updated_dt == updated_dt
+        affect.refresh_from_db()
+        assert affect.tracker == tracker
+
+    @pytest.mark.enable_signals
+    def test_link_unlink_regresses_flaw_from_done(self):
+        """
+        unlinking an affect during the reconciliation must re-run the
+        classification too: a flaw regresses out of DONE once its last
+        tracker link is withdrawn (OSIDB-5840)
+        """
+        ps_update_stream = self._stream(bts_name="bugzilla")
+        flaw = self._flaw()
+        affect = self._resolved_affect(flaw, ps_update_stream)
+        tracker = TrackerFactory(
+            embargoed=False,
+            type=Tracker.TrackerType.BUGZILLA,
+            external_system_id="584001",
+            ps_update_stream=ps_update_stream.name,
+            status="Open",
+            resolution="",
+            meta_attr={
+                "blocks": json.dumps([flaw.bz_id]),
+                "ps_component": "component",
+                "whiteboard": "{}",
+            },
+            affects=[affect],
+        )
+        flaw.refresh_from_db()
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "DONE"
+        assert flaw.resolved_dt is not None
+        updated_dt = flaw.updated_dt
+
+        # the flaw no longer blocks the tracker, so the next sync
+        # reconciles the link away
+        tracker.meta_attr["blocks"] = json.dumps([])
+        tracker.save(raise_validation_error=False, auto_timestamps=False)
+        BZTrackerDownloadManager.link_tracker_with_affects(tracker.external_system_id)
+
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        # leaving DONE clears the resolution stamp
+        assert flaw.resolved_dt is None
+        # the mid-air collision timestamp must not move either
+        assert flaw.updated_dt == updated_dt
+        affect.refresh_from_db()
+        assert affect.tracker is None
+
+    @pytest.mark.enable_signals
+    def test_relink_with_unchanged_links_leaves_flaw_untouched(self, monkeypatch):
+        """
+        flaws whose affect links did not change must not be touched at all:
+        the common already-correct-links sync must neither reclassify the
+        flaw nor re-save it (OSIDB-5840)
+        """
+        ps_update_stream = self._stream(bts_name="bugzilla")
+        flaw = self._flaw()
+        affect = self._resolved_affect(flaw, ps_update_stream)
+        tracker = self._bz_tracker(flaw, ps_update_stream)
+        tracker.affects.add(affect)
+        flaw.refresh_from_db()
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "DONE"
+
+        before = Flaw.objects.get(pk=flaw.pk)
+
+        def reject_flaw_save(instance, *args, **kwargs):
+            pytest.fail("unchanged tracker links must not re-save the flaw")
+
+        monkeypatch.setattr(Flaw, "save", reject_flaw_save)
+        BZTrackerDownloadManager.link_tracker_with_affects(tracker.external_system_id)
+
+        after = Flaw.objects.get(pk=flaw.pk)
+        assert after.workflow_state == "DONE"
+        assert after.classification_meta == before.classification_meta
+        assert after.resolved_dt == before.resolved_dt
+        assert after.updated_dt == before.updated_dt
+        assert after.last_validated_dt == before.last_validated_dt
+
+    @pytest.mark.enable_signals
+    def test_tracker_swap_with_stable_classification_leaves_flaw_untouched(
+        self, monkeypatch
+    ):
+        """
+        an affect moving between two relevant trackers changes its link but
+        not the classification result - such a flaw must not be touched
+        either, even though one of its affects was relinked (OSIDB-5840)
+        """
+        ps_update_stream = self._stream(bts_name="bugzilla")
+        flaw = self._flaw()
+        affect = self._resolved_affect(flaw, ps_update_stream)
+        tracker1 = self._bz_tracker(flaw, ps_update_stream, ps_component="component")
+        tracker1.affects.add(affect)
+        flaw.refresh_from_db()
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_state == "DONE"
+
+        # a second relevant tracker for the same affect syncs in; when none
+        # of the two is a duplicate the newly synced tracker wins the link
+        tracker2 = self._unlinked_tracker(
+            Tracker.TrackerType.BUGZILLA,
+            ps_update_stream,
+            "584002",
+            {
+                "blocks": json.dumps([flaw.bz_id]),
+                "ps_component": "component",
+                "whiteboard": "{}",
+            },
+        )
+        before = Flaw.objects.get(pk=flaw.pk)
+
+        def reject_flaw_save(instance, *args, **kwargs):
+            pytest.fail("a classification-preserving relink must not re-save the flaw")
+
+        monkeypatch.setattr(Flaw, "save", reject_flaw_save)
+        BZTrackerDownloadManager.link_tracker_with_affects(tracker2.external_system_id)
+
+        # the link really did change...
+        affect.refresh_from_db()
+        assert affect.tracker == tracker2
+        # ...but the flaw was left untouched
+        after = Flaw.objects.get(pk=flaw.pk)
+        assert after.workflow_state == "DONE"
+        assert after.classification_meta == before.classification_meta
+        assert after.updated_dt == before.updated_dt
+
+    @pytest.mark.enable_signals
+    def test_taskless_flaw_not_classified(self):
+        """
+        flaws without a Jira task are never classified - relinking their
+        affects must not invent a workflow classification (OSIDB-5840)
+        """
+        ps_update_stream = self._stream()
+        flaw = self._flaw(task_key="")
+        affect = self._resolved_affect(flaw, ps_update_stream)
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == ""
+        assert flaw.workflow_state == ""
+
+        tracker = self._jira_tracker(flaw, ps_update_stream)
+        JiraTrackerDownloadManager.link_tracker_with_affects(tracker.external_system_id)
+
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == ""
+        assert flaw.workflow_state == ""
+        # the link itself still works
+        affect.refresh_from_db()
+        assert affect.tracker == tracker
+
+    @pytest.mark.enable_signals
+    def test_classification_change_schedules_taskman_transition_on_commit(
+        self, monkeypatch, django_capture_on_commit_callbacks
+    ):
+        """
+        a workflow state change caused by the relink reclassification must
+        schedule the taskman task transition, but only after the transaction
+        commits so that no Jira I/O happens under the classification row
+        lock (OSIDB-5840)
+        """
+        ps_update_stream = self._stream()
+        flaw = self._flaw()
+        self._resolved_affect(flaw, ps_update_stream)
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        tracker = self._jira_tracker(flaw, ps_update_stream)
+
+        monkeypatch.setattr("apps.taskman.constants.JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        # asynchronous taskman so that scheduling is observable without
+        # talking to Jira
+        monkeypatch.setattr(
+            "osidb.models.flaw.flaw.JIRA_TASKMAN_ASYNCHRONOUS_SYNC", True
+        )
+        transition_schedule = Mock()
+        monkeypatch.setattr(JiraTaskTransitionManager, "schedule", transition_schedule)
+        sync_schedule = Mock()
+        monkeypatch.setattr(JiraTaskSyncManager, "schedule", sync_schedule)
+
+        with django_capture_on_commit_callbacks(execute=False) as callbacks:
+            JiraTrackerDownloadManager.link_tracker_with_affects(
+                tracker.external_system_id
+            )
+            # nothing may touch Jira before the transaction commits
+            assert not transition_schedule.called
+
+        # exactly one taskman job: a task transition, not a full task re-sync
+        assert len(callbacks) == 1
+        callbacks[0]()  # simulate the commit
+
+        transition_schedule.assert_called_once_with(str(flaw.uuid))
+        assert not sync_schedule.called
+
+    @pytest.mark.enable_signals
+    def test_taskman_not_scheduled_when_auto_sync_disabled(
+        self, monkeypatch, django_capture_on_commit_callbacks
+    ):
+        """
+        with the taskman auto-sync gate disabled the relink reclassification
+        must not schedule any Jira task work (OSIDB-5840)
+        """
+        ps_update_stream = self._stream()
+        flaw = self._flaw()
+        self._resolved_affect(flaw, ps_update_stream)
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        tracker = self._jira_tracker(flaw, ps_update_stream)
+
+        monkeypatch.setattr("apps.taskman.constants.JIRA_TASKMAN_AUTO_SYNC_FLAW", False)
+        tasksync = Mock()
+        monkeypatch.setattr(Flaw, "tasksync", tasksync)
+
+        with django_capture_on_commit_callbacks(execute=True):
+            JiraTrackerDownloadManager.link_tracker_with_affects(
+                tracker.external_system_id
+            )
+
+        # the classification was still persisted...
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+        # ...but no taskman transition was scheduled at all
+        assert not tasksync.called
+
+    @pytest.mark.enable_signals
+    def test_taskman_transition_uses_workflow_state_diff(
+        self, monkeypatch, django_capture_on_commit_callbacks
+    ):
+        """
+        the scheduled taskman transition must be given the workflow state
+        change so that the Jira task is transitioned, not merely re-synced
+        (OSIDB-5840)
+        """
+        ps_update_stream = self._stream()
+        flaw = self._flaw()
+        self._resolved_affect(flaw, ps_update_stream)
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        tracker = self._jira_tracker(flaw, ps_update_stream)
+
+        monkeypatch.setattr("apps.taskman.constants.JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        tasksync = Mock()
+        monkeypatch.setattr(Flaw, "tasksync", tasksync)
+
+        with django_capture_on_commit_callbacks(execute=False) as callbacks:
+            JiraTrackerDownloadManager.link_tracker_with_affects(
+                tracker.external_system_id
+            )
+        assert len(callbacks) == 1
+        callbacks[0]()  # simulate the commit
+
+        tasksync.assert_called_once_with(
+            jira_token=None,
+            jira_email=None,
+            diff={
+                "workflow_state": {
+                    "old": "PRE_SECONDARY_ASSESSMENT",
+                    "new": "DONE",
+                }
+            },
+        )
+
+    @pytest.mark.enable_signals
+    def test_only_the_last_missing_tracker_triggers_the_promotion(
+        self, monkeypatch, django_capture_on_commit_callbacks
+    ):
+        """
+        with several affects still missing their trackers only the link of
+        the last one changes the classification: the earlier links leave the
+        flaw untouched and the promotion - and the single taskman
+        transition - happens with the last link (the production scenario
+        of OSIDB-5840)
+        """
+        ps_update_stream = self._stream()
+        flaw = self._flaw()
+        affect1 = self._resolved_affect(
+            flaw, ps_update_stream, ps_component="component-1"
+        )
+        affect2 = self._resolved_affect(
+            flaw, ps_update_stream, ps_component="component-2"
+        )
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        tracker1 = self._jira_tracker(
+            flaw, ps_update_stream, ps_component="component-1"
+        )
+        tracker2 = self._jira_tracker(
+            flaw, ps_update_stream, ps_component="component-2"
+        )
+
+        monkeypatch.setattr("apps.taskman.constants.JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        tasksync = Mock()
+        monkeypatch.setattr(Flaw, "tasksync", tasksync)
+
+        with django_capture_on_commit_callbacks(execute=False) as callbacks:
+            # the first link does not change the classification: the second
+            # affect is still untracked
+            JiraTrackerDownloadManager.link_tracker_with_affects(
+                tracker1.external_system_id
+            )
+            affect1.refresh_from_db()
+            assert affect1.tracker == tracker1
+            assert (
+                Flaw.objects.get(pk=flaw.pk).workflow_state
+                == "PRE_SECONDARY_ASSESSMENT"
+            )
+            assert not tasksync.called
+
+            JiraTrackerDownloadManager.link_tracker_with_affects(
+                tracker2.external_system_id
+            )
+
+        affect2.refresh_from_db()
+        assert affect2.tracker == tracker2
+        assert Flaw.objects.get(pk=flaw.pk).workflow_state == "DONE"
+        # exactly one taskman transition, triggered by the last link
+        assert len(callbacks) == 1
