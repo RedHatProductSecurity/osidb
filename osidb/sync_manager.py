@@ -557,6 +557,62 @@ class SyncManager(models.Model):
         )
 
 
+def reclassify_relinked_flaws(changed_affects):
+    """
+    re-run workflow classification for the flaws of the given affects
+
+    relink_affects changes affect-tracker links by plain bulk updates which
+    fire no save signals, so without an explicit reclassification the flaw
+    workflow would never see the final link state and flaws could stall e.g.
+    in PRE_SECONDARY_ASSESSMENT until some unrelated change re-saves them
+
+    the classification is persisted by a narrow update to avoid a full flaw
+    save (see OSIDB-5817) and the taskman task transition is scheduled only
+    after the changes are committed so that no Jira network I/O happens
+    under the classification row lock
+    """
+    from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW
+    from osidb.models import Flaw
+
+    flaw_uuids = {affect.flaw_id for affect in changed_affects}
+    for flaw in Flaw.objects.filter(uuid__in=flaw_uuids):
+        old_classification = flaw.classification
+        with transaction.atomic():
+            flaw.adjust_classification()
+            if flaw.classification == old_classification:
+                # no classification change - do not touch the flaw at all
+                continue
+
+            # auto_timestamps=False keeps updated_dt untouched so concurrent
+            # flaw editors do not trip over the mid-air collision check
+            Flaw.objects.filter(uuid=flaw.uuid).update(
+                auto_timestamps=False,
+                workflow_name=flaw.workflow_name,
+                workflow_state=flaw.workflow_state,
+                classification_meta=flaw.classification_meta,
+                resolved_dt=flaw.resolved_dt,
+            )
+
+        if not JIRA_TASKMAN_AUTO_SYNC_FLAW:
+            continue
+
+        def sync_taskman(flaw=flaw, old_classification=old_classification):
+            flaw.tasksync(
+                jira_token=None,
+                jira_email=None,
+                diff={
+                    "workflow_state": {
+                        "old": old_classification["state"],
+                        "new": flaw.workflow_state,
+                    }
+                },
+            )
+
+        # run after the outermost transaction commits so the taskman task is
+        # transitioned only when the new classification is really persisted
+        transaction.on_commit(sync_taskman)
+
+
 class BZTrackerDownloadManager(SyncManager):
     """
     Sync manager class for Bugzilla => OSIDB Tracker synchronization.
@@ -658,8 +714,9 @@ class BZTrackerDownloadManager(SyncManager):
                 celery_task_id=getattr(getattr(task, "request", None), "id", None),
             ),
         ):
-            tracker.relink_affects(affects)
+            changed_affects = tracker.relink_affects(affects)
             tracker.save(raise_validation_error=False, auto_timestamps=False)
+            reclassify_relinked_flaws(changed_affects)
 
         return affects, failed_flaws, failed_affects
 
