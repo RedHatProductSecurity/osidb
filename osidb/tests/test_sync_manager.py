@@ -810,6 +810,43 @@ class TestLinkTrackerReclassification:
         )
 
     @pytest.mark.enable_signals
+    def test_taskman_failure_does_not_fail_committed_tracker_sync(
+        self, monkeypatch, django_capture_on_commit_callbacks
+    ):
+        """
+        the taskman transition runs in a robust commit hook: a failing Jira
+        sync must not fail the tracker sync that already committed the link
+        and the classification change - a retry of that sync would see no
+        link change anymore, so the task transition would never be
+        re-scheduled (OSIDB-5840)
+        """
+        ps_update_stream = self._stream()
+        flaw = self._flaw()
+        affect = self._resolved_affect(flaw, ps_update_stream)
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        tracker = self._jira_tracker(flaw, ps_update_stream)
+
+        monkeypatch.setattr("apps.taskman.constants.JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+
+        def broken_tasksync(*args, **kwargs):
+            raise RuntimeError("taskman is down")
+
+        monkeypatch.setattr(Flaw, "tasksync", broken_tasksync)
+
+        # the commit hook fails, yet the tracker sync itself must succeed
+        with django_capture_on_commit_callbacks(execute=True):
+            JiraTrackerDownloadManager.link_tracker_with_affects(
+                tracker.external_system_id
+            )
+
+        # the committed classification and link survive the taskman failure
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+        affect.refresh_from_db()
+        assert affect.tracker == tracker
+
+    @pytest.mark.enable_signals
     def test_only_the_last_missing_tracker_triggers_the_promotion(
         self, monkeypatch, django_capture_on_commit_callbacks
     ):

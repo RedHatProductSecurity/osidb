@@ -726,4 +726,5 @@ class TestTrackerRelinkAffects:
         duplicate = self._tracker(ps_module, ps_update_stream, "Duplicate")
 
         assert duplicate.relink_affects([affect]) == set()
+        affect.refresh_from_db()
         assert affect.tracker == relevant
