@@ -7,7 +7,13 @@ logger = logging.getLogger(__name__)
 class Cmd:
     @staticmethod
     def run(
-        command, stdin="", fail_silently=False, log_stdout=False, cwd=None, shell=True
+        command,
+        stdin="",
+        fail_silently=False,
+        log_stdout=False,
+        cwd=None,
+        shell=True,
+        pass_fds=(),
     ):
         logger.debug(f"Running command {command}")
         # Only fixed (string) commands are run by default, but injection via arguments may still occur
@@ -25,6 +31,7 @@ class Cmd:
             encoding="utf-8",
             shell=shell,
             cwd=cwd,
+            pass_fds=pass_fds,
         )
 
         if result.stdout and log_stdout:

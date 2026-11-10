@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -12,6 +13,53 @@ from osidb.models import Flaw, Snippet
 from osidb.tests.factories import FlawFactory
 
 pytestmark = pytest.mark.integration
+
+
+class TestCVEorgRepositoryRecovery:
+    @pytest.mark.parametrize("interrupted", [False, True])
+    def test_recovery_discards_changes_and_updates(
+        self, checkout, interrupted, update_repository, repo_git
+    ):
+        (checkout / "cve.json").write_text("local edit\n")
+        repo_git(checkout, "add", "cve.json")
+        (checkout / "new.json").write_text("local untracked\n")
+        leftovers = checkout / "interrupted-checkout"
+        leftovers.mkdir()
+        (leftovers / "partial.json").write_text("partial\n")
+        if interrupted:
+            (checkout / ".git/osidb-update-in-progress").touch()
+            (checkout / ".git/index.lock").touch()
+        update_repository(checkout, previous_error=not interrupted)
+        assert (checkout / "cve.json").read_text() == "updated\n"
+        assert (checkout / "new.json").read_text() == "upstream\n"
+        assert not leftovers.exists()
+        assert not repo_git(checkout, "stash", "list")
+        assert not repo_git(checkout, "status", "--porcelain")
+        assert not (checkout / ".git/index.lock").exists()
+        assert not (checkout / ".git/osidb-update-in-progress").exists()
+
+    def test_failed_update_keeps_marker_and_git_diagnostics(
+        self, checkout, update_repository, repo_git, caplog
+    ):
+        repo_git(
+            checkout, "remote", "set-url", "origin", str(checkout / "missing-remote")
+        )
+        with caplog.at_level(logging.DEBUG):
+            with pytest.raises(
+                CVEorgCollectorException, match=r"failed \(code 1\)"
+            ) as exc:
+                update_repository(checkout)
+        assert (checkout / ".git/osidb-update-in-progress").exists()
+        assert "missing-remote" not in str(exc.value)
+        assert any(
+            "does not appear" in record.getMessage() and record.levelno == logging.DEBUG
+            for record in caplog.records
+        )
+        assert all(
+            "missing-remote" not in record.getMessage()
+            for record in caplog.records
+            if record.levelno >= logging.INFO
+        )
 
 
 class TestCVEorgCollector:

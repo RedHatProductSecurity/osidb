@@ -1,5 +1,8 @@
 import json
+import os
+import subprocess
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from django.utils import timezone
@@ -109,3 +112,72 @@ def windows_with_dotnet_cve_content(repo_path):
     """CVE-2026-50355: mixes windows OS CPEs with cpe:2.3:a:microsoft:.net — cross-platform app."""
     with open(f"{repo_path}/CVE-2026-50355.json", "r") as f:
         return json.load(f)
+
+
+@pytest.fixture
+def repo_git():
+    def git(repo, *args):
+        return subprocess.run(
+            ["/usr/bin/git", *args],
+            cwd=repo,
+            check=True,
+            capture_output=True,
+            text=True,
+            env={
+                **os.environ,
+                "GIT_AUTHOR_NAME": "Test",
+                "GIT_AUTHOR_EMAIL": "test@example.com",
+                "GIT_COMMITTER_NAME": "Test",
+                "GIT_COMMITTER_EMAIL": "test@example.com",
+                "GIT_CONFIG_NOSYSTEM": "1",
+                "GIT_CONFIG_GLOBAL": "/dev/null",
+            },
+        ).stdout
+
+    return git
+
+
+@pytest.fixture
+def update_repository():
+    def update(repo, previous_error=False):
+        # Avoid constructing database-backed task metadata for Git-only tests.
+        collector = object.__new__(CVEorgCollector)
+        collector.REPO_PATH = repo
+        collector.metadata = SimpleNamespace(
+            error="previous failure" if previous_error else ""
+        )
+        collector.update_repo()
+
+    return update
+
+
+@pytest.fixture
+def checkout(tmp_path, monkeypatch, repo_git):
+    git = repo_git
+    # Keep repository tests independent of the developer's Git configuration.
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", "/dev/null")
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
+    # Inherited Git variables can override cwd and target another repository.
+    for name in (
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_INDEX_FILE",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        "GIT_COMMON_DIR",
+        "GIT_PREFIX",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    upstream = tmp_path / "upstream"
+    upstream.mkdir()
+    git(upstream, "init", "-b", "main")
+    (upstream / "cve.json").write_text("original\n")
+    git(upstream, "add", ".")
+    git(upstream, "commit", "-m", "Initial CVE")
+    repo = tmp_path / "checkout"
+    git(tmp_path, "clone", str(upstream), str(repo))
+    (upstream / "cve.json").write_text("updated\n")
+    (upstream / "new.json").write_text("upstream\n")
+    git(upstream, "add", ".")
+    git(upstream, "commit", "-m", "Update CVEs")
+    return repo
