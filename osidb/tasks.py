@@ -4,7 +4,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail.message import EmailMultiAlternatives
-from django.db import connection
+from django.db import OperationalError, connection
 from django.db.models import OuterRef, Q, Subquery
 from django.db.models.functions import Cast
 from rhubarb.tasks import LockableTask
@@ -12,6 +12,7 @@ from rhubarb.tasks import LockableTask
 from config.celery import app
 from config.settings import EmailSettings
 from osidb.core import set_user_acls
+from osidb.helpers import bypass_rls
 from osidb.mixins import Alert
 from osidb.sync_manager import (
     BZSyncManager,
@@ -20,6 +21,17 @@ from osidb.sync_manager import (
 )
 
 logger = get_task_logger(__name__)
+
+
+@app.task(
+    queue="low", autoretry_for=(OperationalError,), retry_backoff=True, max_retries=2
+)
+@bypass_rls
+def compact_flaw_change_events(**kwargs):
+    """Daily bounded maintenance, not a history-feed or delivery mechanism."""
+    from osidb.change_log import compact_change_events
+
+    return compact_change_events(**kwargs)
 
 
 @app.task(queue="low")
