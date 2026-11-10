@@ -267,47 +267,17 @@ class TrackingMixinSerializer(serializers.ModelSerializer):
 
 
 class SyncToBzBulkEnablementMixinSerializer(serializers.ModelSerializer):
-    """
-    Provides parameter "sync_to_bz" that when set to False skips the
-    tracker-level Bugzilla sync for the given request. For Jira trackers,
-    the related flaws are still synced to Bugzilla automatically as part of the
-    operation, deduplicated per flaw, regardless of this flag.
-    This is to be used by clients during bulk actions that
-    are carried out by repeated single-instance calls (e.g. creating
-    Trackers). Bugzilla trackers do not go through this related-flaw sync path.
-
-    The parameter does nothing if BZ sync is not enabled in the OSIDB instance.
-    """
+    """Accept the deprecated sync_to_bz parameter for tracker bulk actions."""
 
     sync_to_bz = serializers.BooleanField(
         required=False,
         write_only=True,
-        help_text=(
-            "Setting sync_to_bz to false skips the tracker's own Bugzilla "
-            "sync during this operation. For Jira trackers, the related "
-            "flaw is still synced to Bugzilla automatically, deduplicated "
-            "per flaw. Bugzilla trackers do not go through this sync. "
-            "Does nothing if BZ is disabled."
-        ),
+        help_text="Accepted for backwards compatibility; has no effect.",
     )
 
     class Meta:
         fields = ["sync_to_bz"]
         abstract = True
-
-    # Not named exactly as the write-only field to prevent Django
-    # from trying to treat it as a readable field.
-    @property
-    def sync_to_bz_helper(self):
-        return getattr(self, "_sync_to_bz", True)
-
-    def is_valid(self, raise_exception=False):
-        ret = super().is_valid(raise_exception=raise_exception)
-        # By default, sync with bz is not disabled.
-        # sync_to_bz: false is a special case for bulk actions.
-        # This can be removed after decommissioning bugzilla.
-        self._sync_to_bz = self._validated_data.pop("sync_to_bz", True)
-        return ret
 
 
 class BaseSerializer(serializers.ModelSerializer):
@@ -634,6 +604,7 @@ class HistoryMixinSerializer(serializers.ModelSerializer):
         fields = ["history"]
 
 
+@extend_schema_serializer(deprecate_fields=["sync_to_bz"])
 class TrackerSerializer(
     ACLMixinSerializer,
     AlertMixinSerializer,
@@ -734,28 +705,6 @@ class TrackerSerializer(
             "resolved_dt",
         ]
 
-    def _sync_related_flaws_to_bz(self, affects):
-        synced_flaw_ids = set()
-        for affect in affects:
-            if affect.flaw_id in synced_flaw_ids:
-                continue
-            synced_flaw_ids.add(affect.flaw_id)
-            affect.flaw.save(
-                bz_api_key=self.get_bz_api_key(),
-                no_alerts=True,
-                raise_validation_error=False,
-            )
-
-    def _schedule_related_flaws_bz_sync(self, affects):
-        from osidb.sync_manager import BZSyncManager
-
-        synced_flaw_ids = set()
-        for affect in affects:
-            if affect.flaw_id in synced_flaw_ids:
-                continue
-            synced_flaw_ids.add(affect.flaw_id)
-            BZSyncManager.schedule(str(affect.flaw_id))
-
     def create(self, validated_data):
         """
         perform the tracker instance creation
@@ -783,6 +732,7 @@ class TrackerSerializer(
             )
 
         affects = validated_data.pop("affects", [])
+        validated_data.pop("sync_to_bz", None)
         tracker = self.Meta.model(**validated_data)
 
         #########################
@@ -814,25 +764,6 @@ class TrackerSerializer(
             jira_email=self.get_jira_email(),
         )
 
-        ##########################
-        # 4) post-create actions #
-        ##########################
-
-        if tracker.type == Tracker.TrackerType.JIRA:
-            # related flaws need to be saved to Bugzilla in order to update SRT notes with the new
-            # Jira tracker ID (Bugzilla trackers are linked naturally through Bugzilla relations)
-            if self.sync_to_bz_helper:
-                self._sync_related_flaws_to_bz(affects)
-            else:
-                # Previously skipped the BZ sync entirely for performance, but that
-                # left the flaw's bz_component stale.Schedule an async sync instead,
-                # preserving the original intent of sync_to_bz=False.
-                self._schedule_related_flaws_bz_sync(affects)
-
-        #####################
-        # 5) return created #
-        #####################
-
         return tracker
 
     def update(self, tracker, validated_data):
@@ -849,6 +780,7 @@ class TrackerSerializer(
         # 2) pre-update actions #
         #########################
 
+        validated_data.pop("sync_to_bz", None)
         old_affects = set(tracker.affects.all())
         new_affects = set(validated_data.pop("affects", []))
 
@@ -880,28 +812,6 @@ class TrackerSerializer(
             jira_email=self.get_jira_email(),
             auto_timestamps=False,
         )
-
-        ##########################
-        # 4) post-update actions #
-        ##########################
-
-        # related flaws need to be saved to Bugzilla in order to update
-        # SRT notes with both added and removed Jira tracker IDs
-        # (Bugzilla trackers are linked naturally through Bugzilla relations)
-        if tracker.type == Tracker.TrackerType.JIRA:
-            # iterate over both added and removed affects
-            for affect in old_affects ^ set(tracker.affects.all()):
-                # do not raise validation errors here as the flaw is not what the user touches
-                # which would make the errors hard to understand and cause the tracker to orphan
-                affect.flaw.save(
-                    bz_api_key=self.get_bz_api_key(),
-                    no_alerts=True,
-                    raise_validation_error=False,
-                )
-
-        #####################
-        # 5) return updated #
-        #####################
 
         return tracker
 

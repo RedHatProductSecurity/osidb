@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- Deprecate the tracker `sync_to_bz` parameter: it remains accepted but has no effect;
+  tracker creation and updates no longer sync related flaws to Bugzilla (OSIDB-5864).
 
 ## [5.23.1] - 2026-11-09
 ### Fixed
