@@ -578,6 +578,10 @@ def reclassify_relinked_flaws(changed_affects):
     for flaw in Flaw.objects.filter(uuid__in=flaw_uuids):
         old_classification = flaw.classification
         with transaction.atomic():
+            # adjust_classification locks the flaw row, re-bases the old
+            # classification on it and only then computes the new one - the
+            # lock is held through the update below so no concurrent writer
+            # can clobber the classification
             flaw.adjust_classification()
             if flaw.classification == old_classification:
                 # no classification change - do not touch the flaw at all
@@ -609,8 +613,10 @@ def reclassify_relinked_flaws(changed_affects):
             )
 
         # run after the outermost transaction commits so the taskman task is
-        # transitioned only when the new classification is really persisted
-        transaction.on_commit(sync_taskman)
+        # transitioned only when the new classification is really persisted;
+        # robust keeps a taskman failure from failing the already committed
+        # tracker sync - its retry would see no link change anymore
+        transaction.on_commit(sync_taskman, robust=True)
 
 
 class BZTrackerDownloadManager(SyncManager):
