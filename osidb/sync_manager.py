@@ -601,16 +601,26 @@ def reclassify_relinked_flaws(changed_affects):
             continue
 
         def sync_taskman(flaw=flaw, old_classification=old_classification):
-            flaw.tasksync(
-                jira_token=None,
-                jira_email=None,
-                diff={
-                    "workflow_state": {
-                        "old": old_classification["state"],
-                        "new": flaw.workflow_state,
-                    }
-                },
-            )
+            try:
+                flaw.tasksync(
+                    jira_token=None,
+                    jira_email=None,
+                    diff={
+                        "workflow_state": {
+                            "old": old_classification["state"],
+                            "new": flaw.workflow_state,
+                        }
+                    },
+                )
+            except Exception:
+                # the direct transition failed (e.g. a Jira outage in the
+                # synchronous taskman mode) - schedule the retryable
+                # transition manager job so the change is not lost: a
+                # tracker sync retry would see no link change anymore and
+                # therefore never re-schedule the transition itself
+                logger.exception(f"taskman transition of flaw {flaw.uuid} failed")
+                JiraTaskTransitionManager.check_for_reschedules()
+                JiraTaskTransitionManager.schedule(str(flaw.uuid))
 
         # run after the outermost transaction commits so the taskman task is
         # transitioned only when the new classification is really persisted;
