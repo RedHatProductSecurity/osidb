@@ -722,6 +722,10 @@ class TestLinkTrackerReclassification:
         monkeypatch.setattr(
             "osidb.models.flaw.flaw.JIRA_TASKMAN_ASYNCHRONOUS_SYNC", True
         )
+        transition_reschedule = Mock()
+        monkeypatch.setattr(
+            JiraTaskTransitionManager, "check_for_reschedules", transition_reschedule
+        )
         transition_schedule = Mock()
         monkeypatch.setattr(JiraTaskTransitionManager, "schedule", transition_schedule)
         sync_schedule = Mock()
@@ -740,6 +744,9 @@ class TestLinkTrackerReclassification:
 
         transition_schedule.assert_called_once_with(str(flaw.uuid))
         assert not sync_schedule.called
+        # the successful direct transition schedules exactly one job -
+        # the failure fallback must not have scheduled a retry on top
+        transition_reschedule.assert_called_once_with()
 
     @pytest.mark.enable_signals
     def test_taskman_not_scheduled_when_auto_sync_disabled(
@@ -814,11 +821,12 @@ class TestLinkTrackerReclassification:
         self, monkeypatch, django_capture_on_commit_callbacks
     ):
         """
-        the taskman transition runs in a robust commit hook: a failing Jira
-        sync must not fail the tracker sync that already committed the link
-        and the classification change - a retry of that sync would see no
-        link change anymore, so the task transition would never be
-        re-scheduled (OSIDB-5840)
+        a failing direct taskman transition must not fail the tracker sync
+        that already committed the link and the classification change -
+        instead the retryable transition manager job is scheduled so the
+        transition is not lost: a retry of the tracker sync would see no
+        link change anymore and therefore never re-schedule it itself
+        (OSIDB-5840)
         """
         ps_update_stream = self._stream()
         flaw = self._flaw()
@@ -833,12 +841,27 @@ class TestLinkTrackerReclassification:
             raise RuntimeError("taskman is down")
 
         monkeypatch.setattr(Flaw, "tasksync", broken_tasksync)
+        # mock the transition manager so that the fallback retry request
+        # is asserted without creating real sync manager rows or
+        # enqueueing real celery jobs
+        transition_reschedule = Mock()
+        monkeypatch.setattr(
+            JiraTaskTransitionManager, "check_for_reschedules", transition_reschedule
+        )
+        transition_schedule = Mock()
+        monkeypatch.setattr(JiraTaskTransitionManager, "schedule", transition_schedule)
 
-        # the commit hook fails, yet the tracker sync itself must succeed
+        # the direct transition fails, yet the tracker sync itself must
+        # succeed
         with django_capture_on_commit_callbacks(execute=True):
             JiraTrackerDownloadManager.link_tracker_with_affects(
                 tracker.external_system_id
             )
+
+        # the failed direct transition falls back to scheduling the
+        # retryable transition manager job for the flaw
+        transition_reschedule.assert_called_once_with()
+        transition_schedule.assert_called_once_with(str(flaw.uuid))
 
         # the committed classification and link survive the taskman failure
         flaw.refresh_from_db()
