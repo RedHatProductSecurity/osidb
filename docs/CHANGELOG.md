@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tracker creation and updates no longer sync related flaws to Bugzilla (OSIDB-5864).
 - Recover the CVE.org collector checkout after interrupted updates (OSIDB-5865)
 
+### Fixed
+- Manage ACL-write indexes and remove redundant database indexes (OSIDB-5854).
+
 ## [5.23.1] - 2026-11-09
 ### Fixed
 - Hummingbird only takes into account OSV.NOTAFFECTED for affectedness / resolution
