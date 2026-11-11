@@ -1,0 +1,220 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh97"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '24'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 13 Jun 2024 13:43:06 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.1d92645f.1718286185.33757141
+      x-rh-edge-request-id:
+      - '33757141'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"name": "aander07@packetmaster.com", "email": "aander07@packetmaster.com",
+        "id": 1, "real_name": "Need Real Name", "can_login": true}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '137'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 13 Jun 2024 13:43:06 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.1d92645f.1718286186.33758062
+      x-rh-edge-request-id:
+      - '33758062'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/bug/1629664?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
+  response:
+    body:
+      string: '{"bugs": [{"sub_components": {}, "description": "\nThis is an automatically
+        created tracking bug!  It was created to ensure\nthat one or more security
+        vulnerabilities are fixed in affected versions\nof epel-all.\n\nFor comments
+        that are specific to the vulnerability please use bugs filed\nagainst the
+        \"Security Response\" product referenced in the \"Blocks\" field.\n\nFor more
+        information see:\nhttps://example.com/wiki/Security/TrackingBugs\n\nWhen submitting
+        as an update, use the fedpkg template provided in the next\ncomment(s).  This
+        will include the bug IDs of this tracking bug as well as\nthe relevant top-level
+        CVE bugs.\n\nPlease also mention the CVE IDs being fixed in the RPM changelog
+        and the\nfedpkg commit message.\n\nNOTE: this issue affects multiple supported
+        versions of Fedora EPEL. While\nonly one tracking bug has been filed, please
+        correct all affected versions\nat the same time.  If you need to fix the versions
+        independent of each\nother, you may clone this bug as appropriate.", "component":
+        ["jhead"], "cf_doc_type": "Release Note", "cf_type": "---", "is_creator_accessible":
+        true, "qa_contact": "extras-qa@fedoraproject.org", "data_category": "Public",
+        "classification": "Fedora", "cf_major_incident": null, "is_cc_accessible":
+        true, "cf_pgm_internal": "", "cf_devel_whiteboard": "", "target_release":
+        ["---"], "assigned_to_detail": {"id": 22225, "email": "adrian@lisas.de", "name":
+        "adrian@lisas.de", "partner": false, "insider": false, "real_name": "Adrian
+        Reber", "active": true}, "assigned_to": "adrian@lisas.de", "platform": "Unspecified",
+        "cf_clone_of": null, "docs_contact": "", "cf_qa_whiteboard": "", "cf_embargoed":
+        null, "depends_on": [], "comments": [{"creator_id": 391044, "time": "2018-09-17T09:21:54Z",
+        "tags": [], "text": "\nThis is an automatically created tracking bug!  It
+        was created to ensure\nthat one or more security vulnerabilities are fixed
+        in affected versions\nof epel-all.\n\nFor comments that are specific to the
+        vulnerability please use bugs filed\nagainst the \"Security Response\" product
+        referenced in the \"Blocks\" field.\n\nFor more information see:\nhttps://example.com/wiki/Security/TrackingBugs\n\nWhen
+        submitting as an update, use the fedpkg template provided in the next\ncomment(s).  This
+        will include the bug IDs of this tracking bug as well as\nthe relevant top-level
+        CVE bugs.\n\nPlease also mention the CVE IDs being fixed in the RPM changelog
+        and the\nfedpkg commit message.\n\nNOTE: this issue affects multiple supported
+        versions of Fedora EPEL. While\nonly one tracking bug has been filed, please
+        correct all affected versions\nat the same time.  If you need to fix the versions
+        independent of each\nother, you may clone this bug as appropriate.", "creator":
+        "anemec@redhat.com", "private_groups": [], "id": 12021771, "count": 0, "creation_time":
+        "2018-09-17T09:21:54Z", "attachment_id": null, "is_private": false, "bug_id":
+        1629664}, {"creator_id": 391044, "time": "2018-09-17T09:21:58Z", "tags": [],
+        "text": "Use the following template to for the ''fedpkg update'' request to
+        submit an\nupdate for this issue as it contains the top-level parent bug(s)
+        as well as\nthis tracking bug.  This will ensure that all associated bugs
+        get updated\nwhen new packages are pushed to stable.\n\n=====\n\n# bugfix,
+        security, enhancement, newpackage (required)\ntype=security\n\n# testing,
+        stable\nrequest=testing\n\n# Bug numbers: 1234,9876\nbugs=1629662,1629664\n\n#
+        Description of your update\nnotes=Security fix for [PUT CVEs HERE]\n\n# Enable
+        request automation based on the stable/unstable karma thresholds\nautokarma=True\nstable_karma=3\nunstable_karma=-3\n\n#
+        Automatically close bugs when this marked as stable\nclose_bugs=True\n\n#
+        Suggest that users restart after update\nsuggest_reboot=False\n\n======\n\nAdditionally,
+        you may opt to use the bodhi web interface to submit updates:\n\nhttps://example.com/updates/new",
+        "creator": "anemec@redhat.com", "private_groups": [], "id": 12021772, "count":
+        1, "attachment_id": null, "is_private": false, "creation_time": "2018-09-17T09:21:58Z",
+        "bug_id": 1629664}], "keywords": ["Security", "SecurityTracking"], "cf_conditional_nak":
+        [], "cc_detail": [{"partner": false, "insider": false, "real_name": "Adrian
+        Reber", "active": true, "id": 22225, "email": "adrian@lisas.de", "name": "adrian@lisas.de"}],
+        "cf_internal_whiteboard": "", "severity": "low", "version": ["epel7"], "cf_environment":
+        "", "flags": [{"creation_date": "2018-09-17T09:21:54Z", "status": "-", "is_active":
+        1, "name": "requires_doc_text", "type_id": 415, "id": 3727582, "modification_date":
+        "2018-09-17T09:21:54Z", "setter": "bugzilla@redhat.com"}], "alias": [], "cf_cust_facing":
+        "---", "cc": ["adrian@lisas.de"], "id": 1629664, "priority": "low", "url":
+        "", "last_change_time": "2018-09-17T09:22:00Z", "cf_last_closed": null, "dupe_of":
+        null, "actual_time": 0, "is_confirmed": true, "blocks": [1629662], "resolution":
+        "", "cf_build_id": "", "cf_pm_score": "0", "tags": [], "deadline": null, "external_bugs":
+        [], "creation_time": "2018-09-17T09:21:54Z", "product": "Fedora EPEL", "qa_contact_detail":
+        {"name": "extras-qa@fedoraproject.org", "id": 171387, "email": "extras-qa@fedoraproject.org",
+        "insider": false, "active": true, "real_name": "Fedora Extras Quality Assurance",
+        "partner": false}, "estimated_time": 0, "summary": "CVE-2018-17088 jhead:
+        Integer overflow in gpsinfo.c while running jhead [epel-all]", "creator_detail":
+        {"real_name": "Andrej Nemec", "active": false, "insider": false, "partner":
+        false, "name": "anemec@redhat.com", "email": "anemec@redhat.com", "id": 391044},
+        "op_sys": "Unspecified", "cf_qe_conditional_nak": [], "creator": "anemec@redhat.com",
+        "remaining_time": 0, "groups": [], "is_open": true, "whiteboard": "", "status":
+        "NEW", "cf_fixed_in": "", "target_milestone": "---", "cf_release_notes": ""}],
+        "faults": []}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Thu, 13 Jun 2024 13:43:07 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '5682'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.1d92645f.1718286187.33758bc1
+      x-rh-edge-request-id:
+      - 33758bc1
+    status:
+      code: 200
+      message: OK
+version: 1
