@@ -1,5 +1,6 @@
 import uuid
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 from django.conf import settings
@@ -11,6 +12,7 @@ from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.constants import TRACKERS_API_VERSION
 from apps.workflows.models import Workflow
 from apps.workflows.workflow import WorkflowFramework
+from collectors.bzimport.collectors import BugzillaTrackerCollector
 from collectors.cveorg import tests as cveorg_tests
 from collectors.cveorg.collectors import CVEorgCollector
 from collectors.cveorg.models import Keyword
@@ -19,12 +21,18 @@ from collectors.jiraffe.collectors import (
     JiraTrackerDownloadManager,
 )
 from osidb.core import set_user_acls
-from osidb.models import Affect, Flaw, Profile, PsUpdateStream, Snippet, Tracker
+from osidb.models import Affect, Flaw, Impact, Profile, PsUpdateStream, Snippet, Tracker
 from osidb.sync_manager import (
     BZSyncManager,
+    BZTrackerDownloadManager,
     JiraTaskSyncManager,
+    JiraTaskTransitionManager,
 )
 from osidb.tests.factories import (
+    AffectFactory,
+    FlawFactory,
+    PsModuleFactory,
+    PsUpdateStreamFactory,
     default_rpm_purl_for_ps_component,
 )
 
@@ -749,3 +757,607 @@ class TestE2E:
         response = auth_client().get(f"{test_api_uri}/flaws/{embargoed_flaw_uuid}")
 
         assert response.status_code == 200
+
+
+class TestE2ETrackerRelink:
+    """
+    E2E regression tests for OSIDB-5840: flaw reclassification after the
+    affect-tracker relink done by the tracker download managers.
+
+    Production incident (CVE-2026-61674): a tracker filed directly in Jira
+    was synced in by the collector and relinked to the last affect that
+    was still missing its tracker, but the plain bulk link updates fired
+    no save signals, nothing re-saved the flaw and it stalled in
+    PRE_SECONDARY_ASSESSMENT for ~2.5 days until an unrelated BU-label
+    edit re-saved it.
+
+    These tests drive the real chain - REST API, Bugzilla/Jira task sync,
+    collector, download manager - under the real workflow definitions and
+    let the tracker sync itself do the promoting: no explicit flaw save or
+    adjust_classification call anywhere. The trackers are filed directly
+    in the external system (replayed from cassettes), never through the
+    OSIDB tracker API - the API filing path pre-links the affect via
+    affect.save() and is not affected by the bug.
+
+    The taskman transition is asserted with a mocked
+    JiraTaskTransitionManager.schedule executed from the captured
+    transaction.on_commit callbacks - no Jira I/O for it.
+    """
+
+    @pytest.fixture(autouse=True)
+    def real_workflow_definitions(self):
+        """
+        the TestE2E tests above swap the workflow framework singleton for
+        toy workflow definitions - drop whatever is loaded so the real
+        definitions from apps/workflows/workflows are lazily reloaded
+        """
+        WorkflowFramework()._workflows = []
+        yield
+
+    def _create_flaw_with_task(
+        self,
+        auth_client,
+        bugzilla_token,
+        jira_email,
+        jira_token,
+        test_api_v2_uri,
+        embargoed=False,
+    ):
+        """
+        create a flaw over the REST API and let it go through the real
+        Bugzilla and taskman sync, ending with a taskman task (task_key)
+        and a TRIAGE classification under the real workflows
+        """
+        response = auth_client().post(
+            f"{test_api_v2_uri}/flaws",
+            {
+                "title": "test validations",
+                "comment_zero": "this is a simple test",
+                # a critical impact would route the flaw into the MANUAL
+                # workflow - keep it in the DEFAULT one like the plan asks
+                "impact": "MODERATE",
+                "components": ["curl"],
+                "source": "REDHAT",
+                "reported_dt": "2024-08-06T00:00:00.000Z",
+                "unembargo_dt": (
+                    "2024-08-07T00:00:00.000Z"
+                    if embargoed
+                    else "2024-08-06T00:00:00.000Z"
+                ),
+                "embargoed": embargoed,
+                # satisfy the TRIAGE requirements of the real workflows
+                "cwe_id": "CWE-79",
+                "cve_description": "a cve description",
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 201
+        flaw = Flaw.objects.get(uuid=response.json()["uuid"])
+
+        # synchronously perform the scheduled async syncs
+        flaw._perform_bzsync(bz_api_key=bugzilla_token)
+        flaw._create_or_update_task(jira_token)
+        return flaw
+
+    def _create_affects(
+        self,
+        auth_client,
+        bugzilla_token,
+        jira_email,
+        jira_token,
+        test_api_v2_uri,
+        flaw,
+        embargoed=False,
+        count=1,
+    ):
+        """
+        create resolved AFFECTED:DELEGATED affects over the REST API on
+        the first <count> Jira-BTS update streams, returning the streams
+        """
+        ps_update_streams = PsUpdateStream.objects.filter(
+            active_to_ps_module__bts_name="jboss"
+        ).order_by("name")[:count]
+        comp = ps_update_streams[0].active_to_ps_module.default_component
+        purl = default_rpm_purl_for_ps_component(comp)
+        affects_data = [
+            {
+                "flaw": str(flaw.uuid),
+                "affectedness": "AFFECTED",
+                "resolution": "DELEGATED",
+                "ps_update_stream": stream.name,
+                "ps_component": comp,
+                "purl": purl,
+                "impact": "MODERATE",
+                "embargoed": embargoed,
+            }
+            for stream in ps_update_streams
+        ]
+        response = auth_client().post(
+            f"{test_api_v2_uri}/affects/bulk",
+            affects_data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 200
+        return ps_update_streams
+
+    def _mock_taskman_transition(self, monkeypatch):
+        """
+        enable the taskman auto-sync gate for the relink reclassification
+        and switch taskman to its asynchronous mode so that the transition
+        scheduling can be asserted without any Jira I/O
+        """
+        monkeypatch.setattr("apps.taskman.constants.JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        monkeypatch.setattr(
+            "osidb.models.flaw.flaw.JIRA_TASKMAN_ASYNCHRONOUS_SYNC", True
+        )
+        transition_schedule = Mock()
+        monkeypatch.setattr(JiraTaskTransitionManager, "schedule", transition_schedule)
+        sync_schedule = Mock()
+        monkeypatch.setattr(JiraTaskSyncManager, "schedule", sync_schedule)
+        return transition_schedule, sync_schedule
+
+    @pytest.mark.enable_signals
+    @pytest.mark.vcr
+    @freeze_time(tzdatetime(2024, 8, 6))
+    def test_collector_filed_tracker_promotes_flaw(
+        self,
+        auth_client,
+        bugzilla_token,
+        enable_bz_async_sync,
+        enable_jira_task_async_sync,
+        jira_email,
+        jira_token,
+        monkeypatch,
+        setup_sample_external_resources,
+        test_api_v2_uri,
+        django_capture_on_commit_callbacks,
+    ):
+        """
+        a flaw with a taskman task and a resolved affect sits in
+        PRE_SECONDARY_ASSESSMENT; a tracker filed directly in Jira is
+        synced in by the collector and the link alone must promote the
+        flaw to DONE with a single taskman task transition scheduled on
+        commit - the exact chain that stalled in production until an
+        unrelated edit re-saved the flaw (OSIDB-5840)
+        """
+        monkeypatch.setattr(JiraTaskmanQuerier, "is_service_account", lambda x: False)
+
+        flaw = self._create_flaw_with_task(
+            auth_client,
+            bugzilla_token,
+            jira_email,
+            jira_token,
+            test_api_v2_uri,
+        )
+        self._create_affects(
+            auth_client,
+            bugzilla_token,
+            jira_email,
+            jira_token,
+            test_api_v2_uri,
+            flaw,
+            count=1,
+        )
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        assert flaw.resolved_dt is None
+        affect = flaw.affects.get()
+        assert affect.tracker is None
+
+        # the tracker was filed directly in Jira - the collector is the
+        # first OSIDB component to see it
+        JiraTrackerCollector().collect("RHEL-59830")
+        updated_dt = flaw.updated_dt
+
+        transition_schedule, sync_schedule = self._mock_taskman_transition(monkeypatch)
+        with django_capture_on_commit_callbacks(execute=False) as callbacks:
+            JiraTrackerDownloadManager.link_tracker_with_affects("RHEL-59830")
+            # nothing may touch Jira before the transaction commits
+            assert not transition_schedule.called
+
+        # exactly one taskman job: a task transition, not a full task re-sync
+        assert len(callbacks) == 1
+        callbacks[0]()  # simulate the commit
+        transition_schedule.assert_called_once_with(str(flaw.uuid))
+        assert not sync_schedule.called
+
+        flaw.refresh_from_db()
+        # all affects resolved and tracked, and DONE has no requirements
+        assert flaw.workflow_state == "DONE"
+        assert flaw.resolved_dt is not None
+        # the mid-air collision timestamp must not move
+        assert flaw.updated_dt == updated_dt
+        affect.refresh_from_db()
+        assert affect.tracker.external_system_id == "RHEL-59830"
+
+    @pytest.mark.enable_signals
+    @pytest.mark.vcr
+    @freeze_time(tzdatetime(2024, 8, 6))
+    def test_tracker_sync_task_promotes_flaw(
+        self,
+        auth_client,
+        bugzilla_token,
+        enable_bz_async_sync,
+        enable_jira_task_async_sync,
+        jira_email,
+        jira_token,
+        monkeypatch,
+        setup_sample_external_resources,
+        test_api_v2_uri,
+    ):
+        """
+        the full tracker download task path: the collector schedules the
+        download, sync_task runs the whole chain (fetch, convert, save,
+        link, reclassify) and ends up finished with the flaw promoted -
+        the promotion must not depend on anything else saving the flaw
+        afterwards (OSIDB-5840)
+        """
+        monkeypatch.setattr(JiraTaskmanQuerier, "is_service_account", lambda x: False)
+
+        flaw = self._create_flaw_with_task(
+            auth_client,
+            bugzilla_token,
+            jira_email,
+            jira_token,
+            test_api_v2_uri,
+        )
+        self._create_affects(
+            auth_client,
+            bugzilla_token,
+            jira_email,
+            jira_token,
+            test_api_v2_uri,
+            flaw,
+            count=1,
+        )
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+
+        # production entry: the collector schedules the download task,
+        # the worker runs it over the whole chain
+        JiraTrackerDownloadManager.schedule("RHEL-59830")
+        JiraTrackerDownloadManager.sync_task("RHEL-59830")
+
+        manager = JiraTrackerDownloadManager.objects.get(
+            name=JiraTrackerDownloadManager.__name__, sync_id="RHEL-59830"
+        )
+        assert manager.last_finished_dt is not None
+        assert manager.last_failed_dt is None
+        assert manager.permanently_failed is False
+
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+        assert flaw.resolved_dt is not None
+        affect = flaw.affects.get()
+        assert affect.tracker.external_system_id == "RHEL-59830"
+
+    @pytest.mark.enable_signals
+    @pytest.mark.vcr
+    def test_bz_collector_filed_tracker_promotes_flaw(
+        self, monkeypatch, django_capture_on_commit_callbacks
+    ):
+        """
+        the Bugzilla variant of the collector-filed promotion: a BZ
+        tracker created against the flaw is synced in by the Bugzilla
+        collector and the link promotes the flaw; the promotion must be
+        attributed to the tracker sync in the flaw audit trail
+        (OSIDB-5840)
+        """
+        ps_module = PsModuleFactory(bts_name="bugzilla", name="epel-all")
+        ps_update_stream = PsUpdateStreamFactory(name="epel-all", ps_module=ps_module)
+        flaw = FlawFactory(
+            bz_id="1629662",  # the flaw bug the recorded tracker blocks
+            embargoed=False,
+            task_key="TASK-5840-BZ",
+            impact=Impact.MODERATE,
+            cwe_id="CWE-79",
+            cve_description="a cve description",
+        )
+        affect = AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+            ps_update_stream=ps_update_stream.name,
+            ps_component="jhead",  # the recorded tracker's component
+        )
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        assert affect.tracker is None
+
+        # the tracker was filed directly in Bugzilla - the collector is
+        # the first OSIDB component to see it
+        BugzillaTrackerCollector().sync_tracker("1629664")
+
+        transition_schedule, _ = self._mock_taskman_transition(monkeypatch)
+        with django_capture_on_commit_callbacks(execute=False) as callbacks:
+            BZTrackerDownloadManager.link_tracker_with_affects("1629664")
+            assert not transition_schedule.called
+        assert len(callbacks) == 1
+        callbacks[0]()  # simulate the commit
+        transition_schedule.assert_called_once_with(str(flaw.uuid))
+
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+        assert flaw.resolved_dt is not None
+        affect.refresh_from_db()
+        assert affect.tracker.external_system_id == "1629664"
+
+        # the promotion is attributed to the tracker sync in the audit trail
+        event = (
+            Flaw.pgh_event_model.objects.filter(
+                pgh_obj_id=flaw.uuid, workflow_state="DONE"
+            )
+            .order_by("-pgh_created_at")
+            .first()
+        )
+        assert event is not None
+        assert event.pgh_context.metadata["action"] == "link_tracker_with_affects"
+        assert event.pgh_context.metadata["source"] == "celery"
+
+    @pytest.mark.enable_signals
+    @pytest.mark.vcr
+    @freeze_time(tzdatetime(2024, 8, 6))
+    def test_collector_filed_tracker_promotes_embargoed_flaw(
+        self,
+        auth_client,
+        bugzilla_token,
+        enable_bz_async_sync,
+        enable_jira_task_async_sync,
+        jira_email,
+        jira_token,
+        monkeypatch,
+        setup_sample_external_resources,
+        test_api_v2_uri,
+    ):
+        """
+        the same promotion chain for an embargoed flaw under the real
+        EMBARGOED workflow: linking the last tracker advances the flaw to
+        SECONDARY_ASSESSMENT (DONE stays gated behind the unembargo)
+        (OSIDB-5840)
+        """
+        monkeypatch.setattr(JiraTaskmanQuerier, "is_service_account", lambda x: False)
+
+        flaw = self._create_flaw_with_task(
+            auth_client,
+            bugzilla_token,
+            jira_email,
+            jira_token,
+            test_api_v2_uri,
+            embargoed=True,
+        )
+        self._create_affects(
+            auth_client,
+            bugzilla_token,
+            jira_email,
+            jira_token,
+            test_api_v2_uri,
+            flaw,
+            embargoed=True,
+            count=1,
+        )
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "EMBARGOED"
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+
+        # an embargoed tracker was filed directly in Jira
+        JiraTrackerCollector().collect("RHEL-59828")
+        JiraTrackerDownloadManager.link_tracker_with_affects("RHEL-59828")
+
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "EMBARGOED"
+        assert flaw.workflow_state == "SECONDARY_ASSESSMENT"
+        # DONE requires the unembargo, so no resolution stamp yet
+        assert flaw.resolved_dt is None
+        affect = flaw.affects.get()
+        assert affect.tracker.external_system_id == "RHEL-59828"
+
+    @pytest.mark.enable_signals
+    @pytest.mark.vcr
+    @freeze_time(tzdatetime(2024, 8, 6))
+    def test_last_collector_filed_tracker_triggers_single_promotion(
+        self,
+        auth_client,
+        bugzilla_token,
+        enable_bz_async_sync,
+        enable_jira_task_async_sync,
+        jira_email,
+        jira_token,
+        monkeypatch,
+        setup_sample_external_resources,
+        test_api_v2_uri,
+        django_capture_on_commit_callbacks,
+    ):
+        """
+        the production scenario of the incident: two affects still
+        missing their trackers, two trackers filed and synced
+        sequentially - the first link leaves the flaw untouched in
+        PRE_SECONDARY_ASSESSMENT with no taskman job, only the last link
+        promotes it and schedules exactly one task transition
+        (OSIDB-5840)
+        """
+        monkeypatch.setattr(JiraTaskmanQuerier, "is_service_account", lambda x: False)
+
+        flaw = self._create_flaw_with_task(
+            auth_client,
+            bugzilla_token,
+            jira_email,
+            jira_token,
+            test_api_v2_uri,
+        )
+        streams = self._create_affects(
+            auth_client,
+            bugzilla_token,
+            jira_email,
+            jira_token,
+            test_api_v2_uri,
+            flaw,
+            count=2,
+        )
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        affects = {
+            stream.name: flaw.affects.get(ps_update_stream=stream.name)
+            for stream in streams
+        }
+
+        jc = JiraTrackerCollector()
+        transition_schedule, _ = self._mock_taskman_transition(monkeypatch)
+        with django_capture_on_commit_callbacks(execute=False) as callbacks:
+            # the first link does not change the classification: the
+            # second affect is still untracked
+            jc.collect("RHEL-59830")
+            JiraTrackerDownloadManager.link_tracker_with_affects("RHEL-59830")
+            affects["rhel-8"].refresh_from_db()
+            assert affects["rhel-8"].tracker.external_system_id == "RHEL-59830"
+            flaw.refresh_from_db()
+            assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+            assert not transition_schedule.called
+
+            # the last link promotes the flaw
+            jc.collect("RHEL-59831")
+            JiraTrackerDownloadManager.link_tracker_with_affects("RHEL-59831")
+
+        assert len(callbacks) == 1
+        callbacks[0]()  # simulate the commit
+        transition_schedule.assert_called_once_with(str(flaw.uuid))
+
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+        assert flaw.resolved_dt is not None
+        affects["rhel-8.10.z"].refresh_from_db()
+        assert affects["rhel-8.10.z"].tracker.external_system_id == "RHEL-59831"
+
+    @pytest.mark.enable_signals
+    @pytest.mark.vcr
+    @freeze_time(tzdatetime(2024, 8, 6))
+    def test_external_tracker_unlink_regresses_flaw(
+        self,
+        auth_client,
+        bugzilla_token,
+        enable_bz_async_sync,
+        enable_jira_task_async_sync,
+        jira_email,
+        jira_token,
+        monkeypatch,
+        setup_sample_external_resources,
+        test_api_v2_uri,
+    ):
+        """
+        the regression direction through the whole chain: the external
+        tracker stops referencing the flaw, the next collector sync sees
+        the change, the reconciliation unlinks the affect and the flaw
+        must regress from DONE back to PRE_SECONDARY_ASSESSMENT with its
+        resolution stamp cleared (OSIDB-5840)
+        """
+        monkeypatch.setattr(JiraTaskmanQuerier, "is_service_account", lambda x: False)
+
+        flaw = self._create_flaw_with_task(
+            auth_client,
+            bugzilla_token,
+            jira_email,
+            jira_token,
+            test_api_v2_uri,
+        )
+        self._create_affects(
+            auth_client,
+            bugzilla_token,
+            jira_email,
+            jira_token,
+            test_api_v2_uri,
+            flaw,
+            count=1,
+        )
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+
+        # the tracker is filed, synced in and the flaw promotes to DONE
+        jc = JiraTrackerCollector()
+        jc.collect("RHEL-59830")
+        JiraTrackerDownloadManager.link_tracker_with_affects("RHEL-59830")
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+        assert flaw.resolved_dt is not None
+
+        # the external tracker no longer references the flaw - the next
+        # sync reconciles the link away
+        jc.collect("RHEL-59830")
+        JiraTrackerDownloadManager.link_tracker_with_affects("RHEL-59830")
+
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        assert flaw.resolved_dt is None
+        affect = flaw.affects.get()
+        affect.refresh_from_db()
+        assert affect.tracker is None
+
+    @pytest.mark.enable_signals
+    @pytest.mark.vcr
+    @freeze_time(tzdatetime(2024, 8, 6))
+    def test_taskman_failure_does_not_fail_tracker_sync(
+        self,
+        auth_client,
+        bugzilla_token,
+        enable_bz_async_sync,
+        enable_jira_task_async_sync,
+        jira_email,
+        jira_token,
+        monkeypatch,
+        setup_sample_external_resources,
+        test_api_v2_uri,
+        django_capture_on_commit_callbacks,
+    ):
+        """
+        a failing taskman transition runs in a robust commit hook: the
+        already committed link and classification change must survive and
+        the tracker sync itself must complete - a retry of a failed sync
+        would see no link change anymore, so the transition would never
+        be re-scheduled (OSIDB-5840)
+        """
+        monkeypatch.setattr(JiraTaskmanQuerier, "is_service_account", lambda x: False)
+
+        flaw = self._create_flaw_with_task(
+            auth_client,
+            bugzilla_token,
+            jira_email,
+            jira_token,
+            test_api_v2_uri,
+        )
+        self._create_affects(
+            auth_client,
+            bugzilla_token,
+            jira_email,
+            jira_token,
+            test_api_v2_uri,
+            flaw,
+            count=1,
+        )
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+
+        JiraTrackerCollector().collect("RHEL-59830")
+
+        monkeypatch.setattr("apps.taskman.constants.JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+
+        def broken_tasksync(*args, **kwargs):
+            raise RuntimeError("taskman is down")
+
+        monkeypatch.setattr(Flaw, "tasksync", broken_tasksync)
+
+        # the commit hook fails, yet the tracker sync itself must succeed
+        with django_capture_on_commit_callbacks(execute=True):
+            JiraTrackerDownloadManager.link_tracker_with_affects("RHEL-59830")
+
+        # the committed classification and link survive the taskman failure
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+        affect = flaw.affects.get()
+        affect.refresh_from_db()
+        assert affect.tracker.external_system_id == "RHEL-59830"
