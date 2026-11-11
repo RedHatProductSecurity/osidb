@@ -11,6 +11,7 @@ from django.utils import timezone
 from jira import Issue
 from jira.exceptions import JIRAError
 
+from apps.trackers.jira.constants import JIRA_EMBARGO_SECURITY_LEVEL_NAME
 from apps.trackers.jira.query import JiraPriority
 from collectors.jiraffe.core import JiraQuerier
 from osidb.helpers import safe_get_response_content
@@ -214,6 +215,9 @@ class JiraTaskmanQuerier(JiraQuerier):
                 "description": flaw.comment_zero or "",
                 "labels": labels,
                 "priority": {"name": IMPACT_TO_JIRA_PRIORITY[flaw.impact]},
+                "security": {"name": (JIRA_EMBARGO_SECURITY_LEVEL_NAME)}
+                if flaw.is_embargoed
+                else None,
                 "assignee": {
                     "accountId": Profile.kerberos_to_cloud_id(
                         flaw.owner.removesuffix("@redhat.com")

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deprecate the tracker `sync_to_bz` parameter: it remains accepted but has no effect;
   tracker creation and updates no longer sync related flaws to Bugzilla (OSIDB-5864).
 - Recover the CVE.org collector checkout after interrupted updates (OSIDB-5865)
+- On creation of an embargoed flaw the Jira Security Level is set to Embargoed (OSIDB-5857)
 
 ## [5.23.1] - 2026-11-09
 ### Fixed
