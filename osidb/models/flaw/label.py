@@ -73,7 +73,6 @@ class FlawLabel(PolymorphicModel, ACLMixin, TrackingMixin, ValidateMixin):
             )
         ]
         indexes = TrackingMixin.Meta.indexes + [
-            models.Index(fields=["flaw"]),
             models.Index(fields=["name"]),
             GinIndex(fields=["acl_read"]),
         ]

@@ -172,7 +172,6 @@ class SRPReport(SRPReportBase):
         ordering = ("created_dt", "uuid", "timer_started_at")
 
         indexes = TrackingMixin.Meta.indexes + [
-            models.Index(fields=["flaw"]),
             models.Index(fields=["status"]),
             models.Index(fields=["timer_started_at"]),
             models.Index(fields=["reportable_event_type"]),
