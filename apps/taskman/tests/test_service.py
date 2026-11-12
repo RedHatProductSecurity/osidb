@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 
 from apps.taskman.constants import JIRA_SUMMARY_MAX_LENGTH
 from apps.taskman.service import JiraTaskmanQuerier
+from apps.trackers.jira.constants import JIRA_EMBARGO_SECURITY_LEVEL_NAME
 from osidb.models import Affect, Flaw, Profile
 from osidb.tests.factories import AffectFactory, FlawFactory
 
@@ -137,3 +138,34 @@ class TestTaskmanService(object):
         issue_data = taskman._generate_task_data(flaw)
         assert len(issue_data["fields"]["summary"]) == JIRA_SUMMARY_MAX_LENGTH
         assert issue_data["fields"]["summary"].endswith("...")
+
+    def test_flaw_embargo(self, jira_token, jira_email):
+        """
+        Test that a just-created flaw has the right security level
+        name depending on if it's embargoed or not.
+        """
+        flaw = FlawFactory(
+            embargoed=True,
+            cve_id="CVE-2024-7142",
+            title="On Arista CloudVision Appliance (CVA) affected releases running on appliances that support "
+            "hardware disk encryption (DCA-350E-CV only), the disk encryption might not be successfully "
+            "performed. This results in the disks remaining unsecured and data on them",
+        )
+
+        taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
+        issue_data = taskman._generate_task_data(flaw)
+        assert (
+            issue_data["fields"]["security"]["name"] == JIRA_EMBARGO_SECURITY_LEVEL_NAME
+        )
+
+        flaw = FlawFactory(
+            embargoed=False,
+            cve_id="CVE-2024-7143",
+            title="On Arista CloudVision Appliance (CVA) affected releases running on appliances that support "
+            "hardware disk encryption (DCA-350E-CV only), the disk encryption might not be successfully "
+            "performed. This results in the disks remaining unsecured and data on them",
+        )
+
+        taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
+        issue_data = taskman._generate_task_data(flaw)
+        assert issue_data["fields"]["security"] is None
