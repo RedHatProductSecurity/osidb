@@ -576,12 +576,26 @@ def reclassify_relinked_flaws(changed_affects):
 
     flaw_uuids = {affect.flaw_id for affect in changed_affects}
     for flaw in Flaw.objects.filter(uuid__in=flaw_uuids):
-        old_classification = flaw.classification
         with transaction.atomic():
-            # adjust_classification locks the flaw row, re-bases the old
-            # classification on it and only then computes the new one - the
-            # lock is held through the update below so no concurrent writer
-            # can clobber the classification
+            # take the row lock that adjust_classification() holds through
+            # the update below and re-read the stored classification from
+            # the locked row: a concurrent sync may have reclassified the
+            # flaw since it was loaded above and comparing against that
+            # pre-lock value could then skip a needed change
+            locked = (
+                Flaw._base_manager.select_for_update(no_key=True)
+                .only("workflow_name", "workflow_state")
+                .filter(pk=flaw.pk)
+                .first()
+            )
+            if locked is None:
+                # the flaw is gone, nothing to reclassify
+                continue
+            old_classification = locked.classification
+
+            # adjust_classification re-bases and recomputes under the
+            # same lock so no concurrent writer can clobber the
+            # classification in between
             flaw.adjust_classification()
             if flaw.classification == old_classification:
                 # no classification change - do not touch the flaw at all
@@ -602,6 +616,10 @@ def reclassify_relinked_flaws(changed_affects):
 
         def sync_taskman(flaw=flaw, old_classification=old_classification):
             try:
+                # reload so that a transition in the synchronous taskman
+                # mode cannot be computed from data made stale by a
+                # concurrent flaw change since our load
+                flaw.refresh_from_db()
                 flaw.tasksync(
                     jira_token=None,
                     jira_email=None,
@@ -619,8 +637,11 @@ def reclassify_relinked_flaws(changed_affects):
                 # tracker sync retry would see no link change anymore and
                 # therefore never re-schedule the transition itself
                 logger.exception(f"taskman transition of flaw {flaw.uuid} failed")
-                JiraTaskTransitionManager.check_for_reschedules()
+                # schedule this flaw's retry before the opportunistic
+                # reschedule sweep so that a sweep failure (e.g. while
+                # re-enqueueing some other task) cannot prevent it
                 JiraTaskTransitionManager.schedule(str(flaw.uuid))
+                JiraTaskTransitionManager.check_for_reschedules()
 
         # run after the outermost transaction commits so the taskman task is
         # transitioned only when the new classification is really persisted;
