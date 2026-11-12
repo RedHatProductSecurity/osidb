@@ -1361,9 +1361,10 @@ def test_pre_filter_cross_ecosystem_no_ecosystem():
 
 @pytest.mark.django_db
 def test_pre_filter_cross_ecosystem_with_ecosystem_proceeds():
-    from collectors.component_mapping.models import CrossEcosystemName
+    from collectors.component_mapping.models import CrossEcosystemName, StrictPackage
 
     CrossEcosystemName.objects.create(name="redis", ecosystems=["npm", "pypi"])
+    StrictPackage.objects.create(name="redis", repos=[])
     flaw = FlawFactory(components=["redis"], embargoed=False)
 
     result = _pre_filter_component(flaw, "redis", "npm")
@@ -1393,7 +1394,11 @@ def test_pre_filter_unverified_mapping_manual_triage():
 
 @pytest.mark.django_db
 def test_pre_filter_verified_mapping_proceeds():
-    from collectors.component_mapping.models import ComponentMapEntry, VerifiedMapping
+    from collectors.component_mapping.models import (
+        ComponentMapEntry,
+        StrictPackage,
+        VerifiedMapping,
+    )
 
     ComponentMapEntry.objects.create(
         name="Vault", upstream_packages="github.com/hashicorp/vault"
@@ -1401,6 +1406,7 @@ def test_pre_filter_verified_mapping_proceeds():
     VerifiedMapping.objects.create(
         name="Vault", upstream_package="github.com/hashicorp/vault"
     )
+    StrictPackage.objects.create(name="github.com/hashicorp/vault", repos=[])
     flaw = FlawFactory(components=["Vault"], embargoed=False)
 
     result = _pre_filter_component(flaw, "Vault", "")
@@ -1422,9 +1428,10 @@ def test_pre_filter_verified_mapping_proceeds():
     ],
 )
 def test_pre_filter_trusted_pair_auto_trusted(packages):
-    from collectors.component_mapping.models import ComponentMapEntry
+    from collectors.component_mapping.models import ComponentMapEntry, StrictPackage
 
     ComponentMapEntry.objects.create(name="mapped", upstream_packages=packages)
+    StrictPackage.objects.create(name=packages[0].lower(), repos=[])
     flaw = FlawFactory(components=["mapped"], embargoed=False)
 
     result = _pre_filter_component(flaw, "mapped", "")
@@ -1457,12 +1464,17 @@ def test_pre_filter_non_trusted_pair_unverified_manual(packages):
 
 @pytest.mark.django_db
 def test_pre_filter_non_trusted_pair_verified_proceeds():
-    from collectors.component_mapping.models import ComponentMapEntry, VerifiedMapping
+    from collectors.component_mapping.models import (
+        ComponentMapEntry,
+        StrictPackage,
+        VerifiedMapping,
+    )
 
     ComponentMapEntry.objects.create(
         name="Kafka", upstream_packages=["kafka", "kafka-clients"]
     )
     VerifiedMapping.objects.create(name="Kafka", upstream_package="kafka")
+    StrictPackage.objects.create(name="kafka", repos=[])
     flaw = FlawFactory(components=["Kafka"], embargoed=False)
 
     result = _pre_filter_component(flaw, "Kafka", "")
@@ -1528,8 +1540,13 @@ def test_pre_filter_manual_triage_component_ecosystem_restricted(monkeypatch):
     pypi = _pre_filter_component(flaw, "kernel", "pypi")
 
     assert linux.action is PreFilterAction.MANUAL
+    assert linux.label == LABEL_MANUAL_TRIAGE
     assert cargo.action is PreFilterAction.MANUAL
-    assert pypi.action is not PreFilterAction.MANUAL
+    assert cargo.label == LABEL_MANUAL_TRIAGE
+    # A non-matching ecosystem is not manual-triage. Kernel is not a strict
+    # package, so it falls through to potential-rejection and is still searched.
+    assert pypi.action is PreFilterAction.SEARCH
+    assert pypi.label == LABEL_POTENTIAL_REJECTION
 
 
 # ── Semi-strict review ───────────────────────────────────────────────────────
@@ -1594,6 +1611,45 @@ def test_pre_filter_non_strict_potential_rejection():
     assert result.label == LABEL_POTENTIAL_REJECTION
     assert "not in the strict package list" in result.reason
     assert "low confidence" in result.reason
+
+
+def test_sync_potential_rejection_is_searched(monkeypatch):
+    """Low-confidence components are labeled potential-rejection and queried.
+
+    A strict sibling is searched as well.
+    """
+    from collectors.component_mapping.models import StrictPackage
+
+    monkeypatch.setattr("apps.ace.tasks.HAS_LIB_NEWTOPIA", True)
+    StrictPackage.objects.create(name="openssl", repos=["rhel-9"])
+    flaw = FlawFactory(
+        components=["openssl", "unknown-pkg"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+    )
+    search_terms = []
+
+    def _search(terms, **kwargs):
+        search_terms.append(terms[0])
+        qs = MagicMock()
+        filtered = MagicMock()
+        filtered.all.return_value = []
+        filtered.exclude.return_value = filtered
+        qs.filter.return_value = filtered
+        return qs
+
+    querier = MagicMock()
+    querier.return_value.search.side_effect = _search
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", querier)
+
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert search_terms == ["openssl", "unknown-pkg"]
+    assert stats["created"] == 0
+    assert stats["pre_filtered"] == 0
+    assert flaw.labels.filter(name=LABEL_AUTO_AFFECTS).exists()
+    assert flaw.labels.filter(name=LABEL_POTENTIAL_REJECTION).exists()
+    assert flaw.affects.count() == 0
 
 
 def test_sync_does_not_set_impact_on_created_affects(
@@ -2093,11 +2149,15 @@ def _count_enqueues(monkeypatch):
     return calls
 
 
+def _ace_enqueues(calls):
+    return [fn for fn in calls if fn.__qualname__.startswith("_enqueue_ace")]
+
+
 @pytest.mark.enable_signals
 def test_signal_enqueues_on_components_change_in_eligible_state(
     monkeypatch, signal_ace_enabled
 ):
-    """Changing components while in an eligible state must enqueue both ACE and hummingbird."""
+    """Changing components while eligible enqueues hummingbird only, not ACE."""
     flaw = FlawFactory(
         components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
     )
@@ -2106,17 +2166,20 @@ def test_signal_enqueues_on_components_change_in_eligible_state(
     flaw.components = ["openssl", "gnutls"]
     flaw.save()
 
-    # Both ACE and hummingbird signals fire for eligible flaws with component changes
-    assert len(calls) == 2
+    assert [fn.__qualname__ for fn in calls] == [
+        "_enqueue_hummingbird.<locals>.enqueue_sync"
+    ]
 
 
 @pytest.mark.enable_signals
-def test_signal_enqueues_on_triage_promotion_with_existing_components(
+def test_signal_qualifies_on_triage_promotion_with_strict_component(
     monkeypatch, signal_ace_enabled
 ):
-    """Promoting a flaw from NEW to TRIAGE must enqueue ACE even if components didn't change."""
+    """NEW to TRIAGE qualifies once. A strict component applies auto-affects, which enqueues ACE."""
     from apps.workflows.signals import classification_changed
+    from collectors.component_mapping.models import StrictPackage
 
+    StrictPackage.objects.create(name="openssl", repos=["rhel-9"])
     flaw = FlawFactory(
         components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
     )
@@ -2129,7 +2192,42 @@ def test_signal_enqueues_on_triage_promotion_with_existing_components(
         new_classification={"workflow": "DEFAULT", "state": "TRIAGE"},
     )
 
-    assert len(calls) == 1
+    assert [fn.__qualname__ for fn in calls] == [
+        "qualify_flaw_on_first_entry.<locals>.qualify_on_commit"
+    ]
+    calls[0]()
+
+    flaw.refresh_from_db()
+    assert flaw.labels.filter(name=LABEL_AUTO_AFFECTS).exists()
+    assert flaw.assist_meta["ace_qualified"]["labels"] == [LABEL_AUTO_AFFECTS]
+    assert len(_ace_enqueues(calls)) == 1
+
+
+@pytest.mark.enable_signals
+def test_signal_qualification_potential_rejection_does_not_enqueue_ace(
+    monkeypatch, signal_ace_enabled
+):
+    """A non-strict component is labeled and does not enqueue affect creation."""
+    from apps.workflows.signals import classification_changed
+
+    flaw = FlawFactory(
+        components=["unknown-pkg"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    classification_changed.send(
+        sender=Flaw,
+        instance=flaw,
+        old_classification={"workflow": "DEFAULT", "state": "NEW"},
+        new_classification={"workflow": "DEFAULT", "state": "TRIAGE"},
+    )
+
+    calls[0]()
+
+    flaw.refresh_from_db()
+    assert flaw.labels.filter(name=LABEL_POTENTIAL_REJECTION).exists()
+    assert not flaw.labels.filter(name=LABEL_AUTO_AFFECTS).exists()
+    assert _ace_enqueues(calls) == []
 
 
 @pytest.mark.enable_signals
@@ -2206,8 +2304,8 @@ def test_signal_does_not_enqueue_for_done_state(monkeypatch, signal_ace_enabled)
 
 
 @pytest.mark.enable_signals
-def test_signal_enqueues_on_empty_to_triage_promotion(monkeypatch, signal_ace_enabled):
-    """Legacy flaw (empty workflow) promoted straight to TRIAGE must enqueue ACE."""
+def test_signal_qualifies_on_empty_to_triage_promotion(monkeypatch, signal_ace_enabled):
+    """Legacy flaw (empty workflow) promoted straight to TRIAGE is qualified once."""
     from apps.workflows.signals import classification_changed
 
     flaw = FlawFactory(
@@ -2222,7 +2320,9 @@ def test_signal_enqueues_on_empty_to_triage_promotion(monkeypatch, signal_ace_en
         new_classification={"workflow": "DEFAULT", "state": "TRIAGE"},
     )
 
-    assert len(calls) == 1
+    assert [fn.__qualname__ for fn in calls] == [
+        "qualify_flaw_on_first_entry.<locals>.qualify_on_commit"
+    ]
 
 
 @pytest.mark.enable_signals
@@ -2314,10 +2414,10 @@ def test_signal_does_not_enqueue_on_component_reorder(monkeypatch, signal_ace_en
 
 
 @pytest.mark.enable_signals
-def test_signal_enqueues_on_workflow_transition_to_default(
+def test_signal_does_not_qualify_on_rejected_to_default(
     monkeypatch, signal_ace_enabled
 ):
-    """Transitioning from REJECTED/DONE to DEFAULT/TRIAGE must enqueue ACE."""
+    """Leaving REJECTED does not qualify or enqueue ACE."""
     from apps.workflows.signals import classification_changed
 
     flaw = FlawFactory(
@@ -2332,14 +2432,36 @@ def test_signal_enqueues_on_workflow_transition_to_default(
         new_classification={"workflow": "DEFAULT", "state": "TRIAGE"},
     )
 
-    assert len(calls) == 1
+    assert calls == []
 
 
 @pytest.mark.enable_signals
-def test_signal_enqueues_on_workflow_transition_partial_save(
+def test_signal_does_not_qualify_on_done_to_secondary_assessment(
     monkeypatch, signal_ace_enabled
 ):
-    """Classification change signal fires regardless of partial save semantics."""
+    """Leaving DONE does not qualify or enqueue ACE."""
+    from apps.workflows.signals import classification_changed
+
+    flaw = FlawFactory(
+        components=["openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="SECONDARY_ASSESSMENT",
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    classification_changed.send(
+        sender=Flaw,
+        instance=flaw,
+        old_classification={"workflow": "DEFAULT", "state": "DONE"},
+        new_classification={"workflow": "DEFAULT", "state": "SECONDARY_ASSESSMENT"},
+    )
+
+    assert calls == []
+
+
+@pytest.mark.enable_signals
+def test_signal_does_not_qualify_on_manual_to_default(monkeypatch, signal_ace_enabled):
+    """MANUAL to DEFAULT does not qualify or enqueue ACE."""
     from apps.workflows.signals import classification_changed
 
     flaw = FlawFactory(
@@ -2350,11 +2472,33 @@ def test_signal_enqueues_on_workflow_transition_partial_save(
     classification_changed.send(
         sender=Flaw,
         instance=flaw,
-        old_classification={"workflow": "REJECTED", "state": "DONE"},
+        old_classification={"workflow": "MANUAL", "state": "TRIAGE"},
         new_classification={"workflow": "DEFAULT", "state": "TRIAGE"},
     )
 
-    assert len(calls) == 1
+    assert calls == []
+
+
+@pytest.mark.enable_signals
+def test_signal_qualifies_on_unembargo(monkeypatch, signal_ace_enabled):
+    """Making an embargoed flaw public is its first chance to be qualified."""
+    from apps.workflows.signals import classification_changed
+
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    classification_changed.send(
+        sender=Flaw,
+        instance=flaw,
+        old_classification={"workflow": "EMBARGOED", "state": "SECONDARY_ASSESSMENT"},
+        new_classification={"workflow": "DEFAULT", "state": "TRIAGE"},
+    )
+
+    assert [fn.__qualname__ for fn in calls] == [
+        "qualify_flaw_on_first_entry.<locals>.qualify_on_commit"
+    ]
 
 
 @pytest.mark.enable_signals
@@ -2363,8 +2507,8 @@ def test_ace_triggers_when_workflow_changes_on_same_save(
 ):
     """
     Regression test for CVE-2026-47850: when components are set and workflow
-    transitions to TRIAGE in the same save (e.g. AEGIS submission), ACE must
-    trigger regardless of pre_save signal execution order.
+    transitions to TRIAGE in the same save (e.g. AEGIS submission), qualification
+    must see the committed components and the new state.
 
     Previously, ACE used a pre_save handler that could fire before the workflow
     pre_save handler updated workflow_state, causing ACE to see the old state
@@ -2372,6 +2516,9 @@ def test_ace_triggers_when_workflow_changes_on_same_save(
     """
     flaw = FlawFactory(
         components=["openssl"],
+        embargoed=False,
+        impact="LOW",
+        cwe_id="",  # Keeps the real classifier in NEW until the save below.
         workflow_name="DEFAULT",
         workflow_state="NEW",
         task_key="OSIM-12345",  # Required for adjust_classification to run
@@ -2388,10 +2535,16 @@ def test_ace_triggers_when_workflow_changes_on_same_save(
     flaw.components = ["org.springframework.data/spring-data-rest-webmvc"]
     flaw.save()
 
-    assert len(calls) == 2, (
-        "Both ACE and hummingbird must be triggered when workflow transitions to TRIAGE "
-        "in the same save as a component change"
-    )
+    names = [fn.__qualname__ for fn in calls]
+    assert "qualify_flaw_on_first_entry.<locals>.qualify_on_commit" in names
+    assert "_enqueue_hummingbird.<locals>.enqueue_sync" in names
+
+    next(fn for fn in calls if "qualify_on_commit" in fn.__qualname__)()
+    flaw.refresh_from_db()
+    assert flaw.workflow_state == "TRIAGE"
+    assert flaw.assist_meta["ace_qualified"]["labels"] == [LABEL_POTENTIAL_REJECTION]
+    assert flaw.labels.filter(name=LABEL_POTENTIAL_REJECTION).exists()
+    assert _ace_enqueues(calls) == []
 
 
 def test_apply_label_persists_reason():
@@ -2422,6 +2575,129 @@ def test_apply_label_does_not_overwrite_reason():
 
     label = WorkflowLabel.objects.get(flaw=flaw, name="manual-triage")
     assert label.reason == "First reason"
+
+
+def test_qualification_does_not_repeat_after_stamp():
+    """A second pass does not re-apply labels removed after the first check."""
+    from apps.ace.tasks import qualify_flaw_for_ace
+
+    flaw = FlawFactory(
+        components=["unknown-pkg"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+
+    qualify_flaw_for_ace(str(flaw.uuid))
+    flaw.refresh_from_db()
+    assert flaw.labels.filter(name=LABEL_POTENTIAL_REJECTION).exists()
+
+    flaw.labels.filter(name=LABEL_POTENTIAL_REJECTION).delete()
+    qualify_flaw_for_ace(str(flaw.uuid))
+
+    flaw.refresh_from_db()
+    assert not flaw.labels.filter(name=LABEL_POTENTIAL_REJECTION).exists()
+    assert flaw.assist_meta["ace_qualified"]["labels"] == [LABEL_POTENTIAL_REJECTION]
+
+
+def test_qualification_rolls_back_stamp_when_label_fails(monkeypatch):
+    """A label failure must not leave ace_qualified set."""
+    from apps.ace.tasks import qualify_flaw_for_ace
+
+    flaw = FlawFactory(
+        components=["unknown-pkg"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+
+    def fail_label(*args, **kwargs):
+        raise RuntimeError("label failed")
+
+    monkeypatch.setattr("apps.ace.tasks._apply_label", fail_label)
+
+    with pytest.raises(RuntimeError, match="label failed"):
+        qualify_flaw_for_ace(str(flaw.uuid))
+
+    flaw.refresh_from_db()
+    assert "ace_qualified" not in (flaw.assist_meta or {})
+    assert not flaw.labels.exists()
+
+
+def test_qualification_blocklist_applies_only_auto_rejected():
+    from apps.ace.tasks import qualify_flaw_for_ace
+    from collectors.component_mapping.models import BlocklistEntry, StrictPackage
+
+    BlocklistEntry.objects.create(name="gitlab", reason="Not shipped")
+    StrictPackage.objects.create(name="openssl", repos=["rhel-9"])
+    flaw = FlawFactory(
+        components=["GitLab", "openssl"],
+        workflow_name="DEFAULT",
+        workflow_state="TRIAGE",
+    )
+
+    qualify_flaw_for_ace(str(flaw.uuid))
+
+    flaw.refresh_from_db()
+    assert flaw.labels.filter(name=LABEL_AUTO_REJECTED).exists()
+    assert not flaw.labels.filter(name=LABEL_AUTO_AFFECTS).exists()
+    assert flaw.assist_meta["ace_qualified"]["labels"] == [LABEL_AUTO_REJECTED]
+
+
+@pytest.mark.enable_signals
+def test_auto_affects_label_enqueues_ace(monkeypatch, signal_ace_enabled):
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    calls = _count_enqueues(monkeypatch)
+
+    WorkflowLabel.objects.create(flaw=flaw, name=LABEL_AUTO_AFFECTS)
+
+    assert len(_ace_enqueues(calls)) == 1
+
+
+@pytest.mark.enable_signals
+def test_recreating_existing_auto_affects_label_does_not_enqueue(
+    monkeypatch, signal_ace_enabled
+):
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    calls = _count_enqueues(monkeypatch)
+    WorkflowLabel.objects.create(flaw=flaw, name=LABEL_AUTO_AFFECTS)
+    assert len(_ace_enqueues(calls)) == 1
+
+    WorkflowLabel.objects.get_or_create(flaw=flaw, name=LABEL_AUTO_AFFECTS)
+
+    assert len(_ace_enqueues(calls)) == 1
+
+
+@pytest.mark.enable_signals
+def test_deleting_auto_affects_label_does_not_enqueue(monkeypatch, signal_ace_enabled):
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    label = WorkflowLabel.objects.create(flaw=flaw, name=LABEL_AUTO_AFFECTS)
+    calls = _count_enqueues(monkeypatch)
+
+    label.delete()
+
+    assert calls == []
+
+
+@pytest.mark.enable_signals
+def test_auto_affects_label_on_ineligible_flaw_skips(
+    monkeypatch, signal_ace_enabled, ace_enabled
+):
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="NEW"
+    )
+    calls = _count_enqueues(monkeypatch)
+    WorkflowLabel.objects.create(flaw=flaw, name=LABEL_AUTO_AFFECTS)
+
+    ran = {}
+
+    def delay(flaw_id, trigger="unknown"):
+        ran["result"] = sync_flaw_affects_from_newcli(flaw_id, trigger=trigger)
+
+    monkeypatch.setattr("apps.ace.tasks.sync_flaw_affects_from_newcli.delay", delay)
+    calls[0]()
+
+    assert ran["result"] == {"skipped_reason": "workflow gate: not eligible"}
 
 
 # ============================================================================
@@ -3015,8 +3291,8 @@ def test_hummingbird_signal_no_fire_for_empty_components(
 @pytest.mark.enable_signals
 def test_both_signals_fire_for_eligible_flaw(monkeypatch, signal_ace_enabled):
     """
-    When a flaw in an ACE-eligible state has components changed, both ACE and
-    hummingbird signal handlers fire (concurrent execution is safe).
+    Component changes enqueue hummingbird on create and on edit.
+    They do not enqueue ACE.
     """
     calls = _count_enqueues(monkeypatch)
 
@@ -3027,9 +3303,9 @@ def test_both_signals_fire_for_eligible_flaw(monkeypatch, signal_ace_enabled):
     # Hummingbird fires on creation (1 call)
     assert len(calls) == 1
 
-    # Change components: both ACE and hummingbird should fire
+    # Component edits enqueue hummingbird only
     flaw.components = ["urllib3", "openssl"]
     flaw.save()
 
-    # Total: 1 (creation) + 2 (ACE + hummingbird on change) = 3
-    assert len(calls) == 3
+    assert len(calls) == 2
+    assert all("hummingbird" in fn.__qualname__ for fn in calls)
