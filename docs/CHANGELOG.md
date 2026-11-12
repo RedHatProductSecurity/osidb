@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tracker creation and updates no longer sync related flaws to Bugzilla (OSIDB-5864).
 - Recover the CVE.org collector checkout after interrupted updates (OSIDB-5865)
 
+### Fixed
+- Workflow classification is re-run for flaws whose affect-tracker links change
+  during tracker sync, so collector-filed trackers promoting the last missing
+  link no longer leave flaws stalled e.g. in PRE_SECONDARY_ASSESSMENT (OSIDB-5840)
+
 ## [5.23.1] - 2026-11-09
 ### Fixed
 - Hummingbird only takes into account OSV.NOTAFFECTED for affectedness / resolution
