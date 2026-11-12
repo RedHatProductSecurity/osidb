@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Create ACE affects from the Aegis `_downstream` catalog when the flaw impact
+  is in `OSIDB_AFFECTS_DOWNSTREAM_CATALOG_ENABLED_IMPACTS` (default Important):
+  catalog search runs through lib-newtopia against bomq, and affectedness comes
+  from the sibling `ranges` / `versions` applied per build (OSIDB-5810)
 
 ## [5.23.2] - 2026-11-12
 ### Changed
