@@ -7,6 +7,8 @@ from django.test import TestCase
 from freezegun import freeze_time
 from rhubarb.tasks import LockableTaskWithArgs
 
+from apps.taskman.service import JiraTaskmanQuerier
+from apps.workflows.workflow import WorkflowFramework
 from osidb.models import Affect, Flaw, Impact, Tracker
 from osidb.sync_manager import (
     BZTrackerDownloadManager,
@@ -422,6 +424,18 @@ class TestLinkTrackerReclassification:
     classification for the flaws of the relinked affects itself.
     """
 
+    @pytest.fixture(autouse=True)
+    def real_workflow_definitions(self):
+        """
+        some test modules that run earlier (e.g. test_snippet.py or
+        test_e2e.py) swap the workflow framework singleton for toy workflow
+        definitions without restoring it - drop whatever is loaded so the
+        real definitions from apps/workflows/workflows are lazily reloaded
+        and these tests classify under DEFAULT/EMBARGOED as they assert
+        """
+        WorkflowFramework()._workflows = []
+        yield
+
     def _stream(self, bts_name="jboss"):
         # the tracker type must correspond to the BTS of the affect's module
         ps_module = PsModuleFactory(bts_name=bts_name)
@@ -817,6 +831,55 @@ class TestLinkTrackerReclassification:
         )
 
     @pytest.mark.enable_signals
+    def test_taskman_transition_target_uses_fresh_flaw_data(
+        self, monkeypatch, django_capture_on_commit_callbacks
+    ):
+        """
+        the transition target is computed from the flaw state at
+        commit-callback time, not from data that went stale while the
+        tracker sync was committing: a concurrent flaw edit lands between
+        the reclassification and the commit callback and the transition
+        must follow the fresh data (OSIDB-5840)
+        """
+        ps_update_stream = self._stream()
+        flaw = self._flaw()
+        self._resolved_affect(flaw, ps_update_stream)
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        tracker = self._jira_tracker(flaw, ps_update_stream)
+
+        monkeypatch.setattr("apps.taskman.constants.JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+        # synchronous taskman so that the transition itself runs in the
+        # commit callback and its target can be recorded at the Jira
+        # boundary
+        monkeypatch.setattr(
+            "osidb.models.flaw.flaw.JIRA_TASKMAN_ASYNCHRONOUS_SYNC", False
+        )
+        transition_targets = []
+
+        def record_transition(self, flaw, check_token=True):
+            transition_targets.append(flaw.jira_status())
+
+        monkeypatch.setattr(JiraTaskmanQuerier, "transition_task", record_transition)
+
+        with django_capture_on_commit_callbacks(execute=False) as callbacks:
+            JiraTrackerDownloadManager.link_tracker_with_affects(
+                tracker.external_system_id
+            )
+            # a concurrent edit lands after the reclassification but
+            # before the commit callback runs - a direct update with no
+            # signals, like another writer racing the tracker sync
+            Flaw.objects.filter(pk=flaw.pk).update(auto_timestamps=False, cwe_id="")
+
+        assert len(callbacks) == 1
+        callbacks[0]()  # simulate the commit
+
+        # the transition follows the fresh data: clearing the CWE regressed
+        # the flaw below TRIAGE, so the task must be transitioned to NEW
+        # and not to the DONE the reclassification had computed
+        assert transition_targets == [("New", None)]
+
+    @pytest.mark.enable_signals
     def test_taskman_failure_does_not_fail_committed_tracker_sync(
         self, monkeypatch, django_capture_on_commit_callbacks
     ):
@@ -864,6 +927,55 @@ class TestLinkTrackerReclassification:
         transition_schedule.assert_called_once_with(str(flaw.uuid))
 
         # the committed classification and link survive the taskman failure
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "DONE"
+        affect.refresh_from_db()
+        assert affect.tracker == tracker
+
+    @pytest.mark.enable_signals
+    def test_taskman_retry_survives_reschedule_sweep_failure(
+        self, monkeypatch, django_capture_on_commit_callbacks
+    ):
+        """
+        the failure fallback schedules this flaw's retry before running
+        the opportunistic reschedule sweep, so a failing sweep (e.g. while
+        re-enqueueing some other task) cannot prevent the retry - the
+        transition must not be lost even then (OSIDB-5840)
+        """
+        ps_update_stream = self._stream()
+        flaw = self._flaw()
+        affect = self._resolved_affect(flaw, ps_update_stream)
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        tracker = self._jira_tracker(flaw, ps_update_stream)
+
+        monkeypatch.setattr("apps.taskman.constants.JIRA_TASKMAN_AUTO_SYNC_FLAW", True)
+
+        def broken_tasksync(*args, **kwargs):
+            raise RuntimeError("taskman is down")
+
+        monkeypatch.setattr(Flaw, "tasksync", broken_tasksync)
+        transition_schedule = Mock()
+        monkeypatch.setattr(JiraTaskTransitionManager, "schedule", transition_schedule)
+
+        def broken_sweep():
+            raise RuntimeError("reschedule sweep is down")
+
+        monkeypatch.setattr(
+            JiraTaskTransitionManager, "check_for_reschedules", broken_sweep
+        )
+
+        # both the direct transition and the sweep fail, yet the flaw's
+        # retry must have been scheduled first and the tracker sync
+        # itself must still succeed
+        with django_capture_on_commit_callbacks(execute=True):
+            JiraTrackerDownloadManager.link_tracker_with_affects(
+                tracker.external_system_id
+            )
+
+        transition_schedule.assert_called_once_with(str(flaw.uuid))
+
+        # the committed classification and link survive both failures
         flaw.refresh_from_db()
         assert flaw.workflow_state == "DONE"
         affect.refresh_from_db()
