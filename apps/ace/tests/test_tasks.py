@@ -29,6 +29,7 @@ from apps.ace.tasks import (
     sync_flaw_affects_from_newcli,
 )
 from apps.ace.version import OsvStatus
+from collectors.component_mapping.models import StrictPackage
 from osidb.models import Flaw
 from osidb.models.affect import Affect
 from osidb.models.flaw.label import WorkflowLabel
@@ -181,6 +182,106 @@ def test_sync_includes_builds_as_affects(
     assert {
         str(a.purl) for a in flaw.affects.filter(ps_update_stream="hummingbird-1")
     } == expected
+
+
+def test_sync_empty_results_leaves_no_auto_affects_label(
+    monkeypatch, ace_enabled, mock_querier
+):
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    querier = mock_querier({"openssl": []})
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", querier)
+    StrictPackage.objects.create(name="openssl")
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+    querier.return_value.search.assert_called()
+    assert stats["created"] == 0
+    assert flaw.affects.count() == 0
+    assert not flaw.labels.filter(name=LABEL_AUTO_AFFECTS).exists()
+    assert flaw.labels.filter(name=LABEL_POTENTIAL_REJECTION).exists()
+
+
+def test_sync_skipped_row_leaves_no_auto_affects_label(
+    monkeypatch, ace_enabled, mock_querier
+):
+    flaw = FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    StrictPackage.objects.create(name="openssl")
+    # a result with no ps_update_stream and no purls -> hits the skip branch
+    bad_result = SimpleNamespace(ps_update_stream=None, purls=[], build_nvr="bad-1.0")
+    querier = mock_querier({"openssl": [bad_result]})
+    monkeypatch.setattr("apps.ace.tasks.NewtopiaQuerier", querier)
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+    querier.return_value.search.assert_called()
+    assert stats["created"] == 0
+    assert stats["skipped"] == 1
+    assert flaw.affects.count() == 0
+    assert not flaw.labels.filter(name=LABEL_AUTO_AFFECTS).exists()
+    assert flaw.labels.filter(name=LABEL_POTENTIAL_REJECTION).exists()
+
+
+def test_sync_created_affects_applies_auto_affects_label(
+    monkeypatch, ace_enabled, ostree_results, mock_querier
+):
+    flaw = FlawFactory(
+        components=["ostree"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    StrictPackage.objects.create(name="ostree")
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"ostree": ostree_results})
+    )
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+    assert stats["created"] > 0
+    assert flaw.labels.filter(name=LABEL_AUTO_AFFECTS).exists()
+
+
+def test_sync_twice_keeps_auto_affects_label(
+    monkeypatch, ace_enabled, ostree_results, mock_querier
+):
+    flaw = FlawFactory(
+        components=["ostree"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    StrictPackage.objects.create(name="ostree")
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"ostree": ostree_results})
+    )
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+    assert flaw.labels.filter(name=LABEL_AUTO_AFFECTS).exists()
+
+
+def test_sync_retry_after_missing_label_applies_auto_affects_label(
+    monkeypatch, ace_enabled, ostree_results, mock_querier
+):
+    flaw = FlawFactory(
+        components=["ostree"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    StrictPackage.objects.create(name="ostree")
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"ostree": ostree_results})
+    )
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+    # simulate a first run that created affects but never reached the label step
+    flaw.labels.filter(name=LABEL_AUTO_AFFECTS).delete()
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+    assert stats["created"] == 0
+    assert stats["skipped_existing"] > 0
+    assert flaw.labels.filter(name=LABEL_AUTO_AFFECTS).exists()
+
+
+def test_sync_non_strict_component_does_not_get_auto_affects_label(
+    monkeypatch, ace_enabled, ostree_results, mock_querier
+):
+    flaw = FlawFactory(
+        components=["ostree"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier", mock_querier({"ostree": ostree_results})
+    )
+    stats = sync_flaw_affects_from_newcli(str(flaw.uuid))
+    assert stats["created"] > 0
+    assert not flaw.labels.filter(name=LABEL_AUTO_AFFECTS).exists()
 
 
 def test_sync_multi_stream_with_duplicate(
