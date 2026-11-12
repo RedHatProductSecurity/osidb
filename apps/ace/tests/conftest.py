@@ -41,8 +41,10 @@ def _make_mock_querier(results_by_component: dict) -> MagicMock:
         qs = MagicMock()
         filtered_qs = MagicMock()
         filtered_qs.all.return_value = results_by_component.get(component, [])
-        # Make exclude() return the same object so .exclude().all() works
+        # Chain filter/exclude so build_type then products still returns this list.
+        filtered_qs.filter.return_value = filtered_qs
         filtered_qs.exclude.return_value = filtered_qs
+        filtered_qs.deduplicate.return_value = filtered_qs
         qs.filter.return_value = filtered_qs
         return qs
 

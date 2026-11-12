@@ -680,3 +680,140 @@ def test_match_mixed_ecosystems_not_merged():
     # Only the first ecosystem (Maven) entries should be included
     assert info.ecosystem == "maven"
     assert "||" not in (info.affected_range() or "")
+
+
+# ── richer name matching ─────────────────────────────────────────────────────
+
+
+def _go_chi_entry(name="github.com/go-chi/chi/v5"):
+    return {
+        "purl": f"pkg:golang/{name}",
+        "name": name,
+        "ecosystem": "Go",
+        "ranges": [
+            {
+                "type": "SEMVER",
+                "events": [{"introduced": "0"}, {"fixed": "5.2.2"}],
+            }
+        ],
+        "versions": [],
+    }
+
+
+def test_match_go_major_version_path():
+    purls = [_go_chi_entry()]
+    assert match_component_to_upstream("github.com/go-chi/chi", purls).fixed == "5.2.2"
+    assert (
+        match_component_to_upstream("github.com/go-chi/chi/v5", purls).fixed == "5.2.2"
+    )
+
+
+def test_match_rejects_conflicting_go_majors():
+    """Explicit /vN majors that disagree are different modules (Aegis lockstep)."""
+    purls = [
+        {
+            "name": "example.com/mod/v2",
+            "ecosystem": "Go",
+            "ranges": [
+                {
+                    "type": "SEMVER",
+                    "events": [{"introduced": "0"}, {"fixed": "2.0.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert match_component_to_upstream("example.com/mod/v3", purls) is None
+    assert match_component_to_upstream("example.com/mod", purls).fixed == "2.0.0"
+
+
+def test_match_short_seed_against_module_path():
+    purls = [
+        {
+            "name": "go.mongodb.org/mongo-driver/v2",
+            "ecosystem": "Go",
+            "ranges": [
+                {
+                    "type": "SEMVER",
+                    "events": [{"introduced": "0"}, {"fixed": "2.1.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert match_component_to_upstream("mongo-driver", purls).fixed == "2.1.0"
+
+
+def test_match_does_not_alias_parent_child_paths():
+    purls = [
+        {
+            "name": "example.com/project",
+            "ecosystem": "Go",
+            "ranges": [
+                {
+                    "type": "SEMVER",
+                    "events": [{"introduced": "0"}, {"fixed": "1.0.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert match_component_to_upstream("example.com/project/plugin", purls) is None
+    purls[0]["name"] = "example.com/project/plugin"
+    assert match_component_to_upstream("example.com/project", purls) is None
+
+
+def test_match_does_not_alias_scoped_npm_to_unscoped():
+    """Scoped npm packages are not shortened to an unscoped namesake."""
+    purls = [
+        {
+            "name": "@xmldom/xmldom",
+            "ecosystem": "npm",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "0.9.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert match_component_to_upstream("xmldom", purls) is None
+    assert match_component_to_upstream("@xmldom/xmldom", purls).fixed == "0.9.0"
+
+
+def test_match_maven_colon_vs_slash_and_artifact():
+    purls = [
+        {
+            "name": "com.example:foo",
+            "ecosystem": "Maven",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "1.2.3"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert match_component_to_upstream("com.example/foo", purls).fixed == "1.2.3"
+    assert match_component_to_upstream("foo", purls).fixed == "1.2.3"
+
+
+def test_match_by_product_alias():
+    purls = [
+        {
+            "name": "libssl",
+            "product": "openssl",
+            "ecosystem": "generic",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "3.0.9"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert match_component_to_upstream("openssl", purls).fixed == "3.0.9"
+    assert match_component_to_upstream("libssl", purls).fixed == "3.0.9"
