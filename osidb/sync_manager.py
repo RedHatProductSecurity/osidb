@@ -577,25 +577,22 @@ def reclassify_relinked_flaws(changed_affects):
     flaw_uuids = {affect.flaw_id for affect in changed_affects}
     for flaw in Flaw.objects.filter(uuid__in=flaw_uuids):
         with transaction.atomic():
-            # take the row lock that adjust_classification() holds through
-            # the update below and re-read the stored classification from
-            # the locked row: a concurrent sync may have reclassified the
-            # flaw since it was loaded above and comparing against that
-            # pre-lock value could then skip a needed change
-            locked = (
+            # reload the flaw under the row lock that adjust_classification()
+            # holds through the update below: a concurrent task assignment or
+            # edit since the load above changes task_key (which guards the
+            # classification) and the other classification inputs, so both
+            # the baseline and the reclassification must come from the locked
+            # row or a concurrent reclassification could be clobbered
+            flaw = (
                 Flaw._base_manager.select_for_update(no_key=True)
-                .only("workflow_name", "workflow_state")
                 .filter(pk=flaw.pk)
                 .first()
             )
-            if locked is None:
+            if flaw is None:
                 # the flaw is gone, nothing to reclassify
                 continue
-            old_classification = locked.classification
+            old_classification = flaw.classification
 
-            # adjust_classification re-bases and recomputes under the
-            # same lock so no concurrent writer can clobber the
-            # classification in between
             flaw.adjust_classification()
             if flaw.classification == old_classification:
                 # no classification change - do not touch the flaw at all
