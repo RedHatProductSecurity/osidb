@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [5.23.3] - 2026-11-24
 ### Added
+- Create ACE affects from the Aegis `_downstream` catalog when the flaw impact
+  is in `OSIDB_AFFECTS_DOWNSTREAM_CATALOG_ENABLED_IMPACTS` (default `[]`, off):
+  catalog search runs through lib-newtopia against bomq, and ranging prefers
+  stored UpstreamData (OSV, then CVEORG) before the sibling description-extract
+  `ranges` / `versions` (OSIDB-5810)
+
+### Fixed
+- Catalog package matching (``fuzzy=True``) rejects conflicting Go `/vN` majors
+  and scoped-vs-unscoped npm shorthand, matching Aegis seed matching without
+  changing component-path ranging (OSIDB-5810)
+
+### Added
 - implement affect-based trigger to keep BU labels in sync (OSIDB-5710)
 
 ### Changed

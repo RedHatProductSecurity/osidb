@@ -11,7 +11,7 @@ from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from psqlextra.fields import HStoreField
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from apps.bbsync.constants import RHSCL_BTS_KEY
@@ -64,6 +64,26 @@ class AffectSettings(BaseSettings):
     exclude_ps_modules: list[str] = Field(
         default_factory=lambda: ["hummingbird-1"],
     )
+    # Flaw impacts that use the Aegis ``_downstream`` catalog path instead of
+    # searching ``Flaw.components``. Empty by default (catalog path off);
+    # set e.g. ``["IMPORTANT"]`` to enable.
+    downstream_catalog_enabled_impacts: list[Impact] = Field(
+        default_factory=list,
+    )
+
+    @field_validator("downstream_catalog_enabled_impacts", mode="before")
+    @classmethod
+    def _normalize_downstream_catalog_impacts(cls, value):
+        """Upper-case string impacts before enum validation."""
+        if not isinstance(value, list):
+            return value
+        normalized = []
+        for item in value:
+            if isinstance(item, str):
+                normalized.append(item.strip().upper())
+            else:
+                normalized.append(item)
+        return normalized
 
 
 class NotAffectedJustification(models.TextChoices):
