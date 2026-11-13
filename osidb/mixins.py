@@ -425,6 +425,9 @@ class ACLMixin(models.Model):
         # requesting all the ACLs performs the init
         # caching the ACLs and building the group map
         self.acls_all
+        # this is a variable that's only used to check when the object
+        # was unembargoed and its security level needs to be cleared
+        self._unembargoed = False
 
     def inherit_parent_flaw_acls(self):
         """
@@ -742,6 +745,8 @@ class ACLMixin(models.Model):
         cant_unembargo = hasattr(self, "can_unembargo") and not self.can_unembargo()
         if isnt_embargoed or cant_unembargo:
             return
+
+        self._unembargoed = True
 
         with transaction.atomic():
             self.set_acls(ACL.PUBLIC)

@@ -21,7 +21,6 @@ JIRA_TASKMAN_ASYNCHRONOUS_SYNC = get_env(
 SYNC_REQUIRED_FIELDS = [
     "cve_id",
     "impact",
-    "is_embargoed",
     "owner",
 ]
 TRANSITION_REQUIRED_FIELDS = [

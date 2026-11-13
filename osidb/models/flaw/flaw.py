@@ -1109,7 +1109,12 @@ class Flaw(
                 update_task = True
 
         elif diff is not None:
-            if any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS):
+            # set update_task to true either if the diff changed one of
+            # the specified fields or if unembargo() was run
+            if (
+                any(field in diff.keys() for field in SYNC_REQUIRED_FIELDS)
+                or self._unembargoed
+            ):
                 update_task = True
 
             if any(field in diff.keys() for field in TRANSITION_REQUIRED_FIELDS):
