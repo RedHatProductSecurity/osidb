@@ -758,6 +758,8 @@ class ACLMixin(models.Model):
         if isnt_embargoed or cant_unembargo:
             return
 
+        old_acl_read = list(self.acl_read)
+
         with transaction.atomic():
             self.set_acls(ACL.PUBLIC)
 
@@ -778,6 +780,13 @@ class ACLMixin(models.Model):
             # so a client holding a pre-unembargo updated_dt for a nested
             # object would not hit TrackingMixin's mid-air collision check
             self.set_acls_nested(auto_timestamps=False)
+
+        # the ACL change is persisted by the save above so any following save
+        # of this instance can no longer detect it by comparing to the stored
+        # row - hand the old value forward so that such a save can still report
+        # the change in its diff and trigger whatever the change requires
+        # (for a flaw this is the Jira task sync clearing the security level)
+        self._unembargo_acl_read = old_acl_read
 
     def set_public_nested(self, max_chunk_size=5000):
         """

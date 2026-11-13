@@ -1,12 +1,14 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 from django.utils.timezone import make_aware
+from freezegun import freeze_time
 from jira.exceptions import JIRAError
 from rest_framework.response import Response
 
 from apps.taskman.exceptions import TaskWritePermissionsException
 from apps.taskman.service import JiraTaskmanQuerier
+from apps.trackers.jira.constants import JIRA_EMBARGO_SECURITY_LEVEL_NAME
 from osidb.models import Flaw, FlawSource, Impact
 from osidb.tests.factories import AffectFactory, FlawFactory
 
@@ -220,6 +222,107 @@ class TestFlawModelIntegration(object):
         assert response.status_code == 200
         # changes require sync
         assert sync_count == 1
+
+    def test_flaw_unembargo(
+        self,
+        monkeypatch,
+        auth_client,
+        bugzilla_token,
+        jira_token,
+        jira_email,
+        test_osidb_api_v2_uri,
+    ):
+        c_or_u_count = 0
+        mocked_flaw = None
+
+        def mock_c_or_u(self, flaw):
+            nonlocal c_or_u_count, mocked_flaw
+            c_or_u_count += 1
+            mocked_flaw = flaw
+            return None
+
+        transition_count = 0
+
+        def mock_transition(self, flaw):
+            nonlocal transition_count
+            transition_count += 1
+            return None
+
+        monkeypatch.setattr(JiraTaskmanQuerier, "create_or_update_task", mock_c_or_u)
+        monkeypatch.setattr(JiraTaskmanQuerier, "transition_task", mock_transition)
+
+        flaw = FlawFactory(
+            embargoed=True,
+            unembargo_dt=datetime(2030, 10, 10, tzinfo=timezone.utc),
+        )
+        # no impact override so the flaw impact can later be lowered freely
+        AffectFactory(flaw=flaw, impact=Impact.NOVALUE)
+        flaw.task_key = "TASK-123"
+        flaw.save()
+        response = auth_client().get(f"{test_osidb_api_v2_uri}/flaws/{flaw.uuid}")
+        assert response.status_code == 200
+
+        response = auth_client().put(
+            f"{test_osidb_api_v2_uri}/flaws/{flaw.uuid}",
+            {
+                "uuid": flaw.uuid,
+                "cve_id": flaw.cve_id,
+                "title": f"{flaw.title} appended test title",
+                "comment_zero": flaw.comment_zero,
+                "source": flaw.source,
+                "embargoed": True,
+                "updated_dt": flaw.updated_dt,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+            HTTP_JIRA_API_EMAIL=jira_email,
+        )
+        # no important changes requires no syncing
+        assert response.status_code == 200
+        assert c_or_u_count == 0
+        assert transition_count == 0
+
+        taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
+        issue_data = taskman._generate_task_data(flaw)
+        assert (
+            issue_data["fields"]["security"]["name"] == JIRA_EMBARGO_SECURITY_LEVEL_NAME
+        )
+
+        newtime = datetime(2030, 10, 10, tzinfo=timezone.utc)
+        with freeze_time(newtime):
+            flaw = Flaw.objects.get(uuid=flaw.uuid)
+            response = auth_client().put(
+                f"{test_osidb_api_v2_uri}/flaws/{flaw.uuid}",
+                {
+                    "uuid": flaw.uuid,
+                    "cve_id": flaw.cve_id,
+                    "title": f"{flaw.title} appended test title",
+                    "comment_zero": flaw.comment_zero,
+                    "source": flaw.source,
+                    "embargoed": False,
+                    "updated_dt": flaw.updated_dt,
+                },
+                format="json",
+                HTTP_BUGZILLA_API_KEY=bugzilla_token,
+                HTTP_JIRA_API_KEY=jira_token,
+                HTTP_JIRA_API_EMAIL=jira_email,
+            )
+
+            assert response.status_code == 200
+            # changes require sync
+            assert c_or_u_count == 1
+            assert transition_count == 0
+
+            # check the flaw data sent to Jira
+            taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
+            issue_data = taskman._generate_task_data(mocked_flaw)
+            assert issue_data["fields"]["security"] is None
+
+            # check the persisted row stored locally
+            flaw = Flaw.objects.get(uuid=flaw.uuid)
+            issue_data = taskman._generate_task_data(flaw)
+            assert issue_data["fields"]["security"] is None
 
     def test_create_jira_task_param(
         self,

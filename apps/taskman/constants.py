@@ -19,9 +19,10 @@ JIRA_TASKMAN_ASYNCHRONOUS_SYNC = get_env(
 )
 
 SYNC_REQUIRED_FIELDS = [
+    # the visibility drives the task security level
+    "acl_read",
     "cve_id",
     "impact",
-    "is_embargoed",
     "owner",
 ]
 TRANSITION_REQUIRED_FIELDS = [
