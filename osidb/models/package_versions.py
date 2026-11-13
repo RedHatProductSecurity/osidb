@@ -77,6 +77,7 @@ class Package(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin):
 
         indexes = TrackingMixin.Meta.indexes + [
             GinIndex(fields=["acl_read"]),
+            GinIndex(fields=["acl_write"], name="osidb_package_acl_write_gin"),
         ]
 
 

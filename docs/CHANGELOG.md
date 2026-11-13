@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recover the CVE.org collector checkout after interrupted updates (OSIDB-5865)
 - On creation of an embargoed flaw the Jira Security Level is set to Embargoed (OSIDB-5857)
 
+### Fixed
+- Manage ACL-write indexes and remove redundant database indexes (OSIDB-5854).
+
 ## [5.23.1] - 2026-11-09
 ### Fixed
 - Hummingbird only takes into account OSV.NOTAFFECTED for affectedness / resolution

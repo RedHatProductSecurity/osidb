@@ -134,7 +134,6 @@ class SRPReportMilestone(SRPReportBase):
         ordering = ("srp_report", "created_dt")
 
         indexes = TrackingMixin.Meta.indexes + [
-            models.Index(fields=["srp_report"]),
             models.Index(fields=["milestone_type"]),
             models.Index(fields=["status"]),
             models.Index(fields=["owner"]),

@@ -158,10 +158,8 @@ class UpstreamNotification(ACLMixin, TrackingMixin):
         verbose_name = "Upstream Notification"
         verbose_name_plural = "Upstream Notifications"
         indexes = [
-            models.Index(fields=["flaw"]),
             models.Index(fields=["status"]),
             models.Index(fields=["timer_started_at"]),
-            models.Index(fields=["upstream_project"]),
         ]
 
     def __str__(self):

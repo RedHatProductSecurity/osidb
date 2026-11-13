@@ -159,6 +159,7 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
             models.Index(fields=["cve_id"]),
             models.Index(fields=["external_system_id"]),
             GinIndex(fields=["acl_read"]),
+            GinIndex(fields=["acl_write"], name="osidb_tracker_acl_write_gin"),
         ]
 
     objects = TrackerManager()

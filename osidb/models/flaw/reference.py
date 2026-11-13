@@ -102,6 +102,7 @@ class FlawReference(AlertMixin, ACLMixin, TrackingMixin):
 
         indexes = TrackingMixin.Meta.indexes + [
             GinIndex(fields=["acl_read"]),
+            GinIndex(fields=["acl_write"], name="osidb_flawref_acl_write_gin"),
         ]
 
     def sync_to_trackers(self, jira_token, jira_email):

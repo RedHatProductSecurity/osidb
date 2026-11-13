@@ -83,6 +83,7 @@ class FlawAcknowledgment(AlertMixin, ACLMixin, BugzillaSyncMixin, TrackingMixin)
         unique_together = ["flaw", "name", "affiliation"]
         indexes = TrackingMixin.Meta.indexes + [
             GinIndex(fields=["acl_read"]),
+            GinIndex(fields=["acl_write"], name="osidb_flawack_acl_write_gin"),
         ]
 
     @validator
