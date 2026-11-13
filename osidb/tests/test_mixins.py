@@ -513,6 +513,34 @@ class TestTrackingMixin:
             assert flaw.updated_dt == tzdatetime(2021, 12, 24)
 
     @freeze_time(tzdatetime(2022, 12, 24))
+    def test_partial_save_persists_timestamp_and_requested_fields(self):
+        flaw = FlawFactory(embargoed=False)
+        previous_dt = flaw.updated_dt
+        flaw.title = "new title"
+        flaw.comment_zero = "not saved"
+
+        flaw.save(update_fields=["title"])
+
+        flaw.refresh_from_db()
+        assert flaw.title == "new title"
+        assert flaw.comment_zero != "not saved"
+        assert flaw.updated_dt > previous_dt
+
+    @freeze_time(tzdatetime(2022, 12, 24))
+    def test_empty_update_fields_does_not_change_timestamp(self):
+        flaw = FlawFactory(embargoed=False)
+        previous_dt = flaw.updated_dt
+        flaw.title = "not saved"
+
+        with freeze_time(tzdatetime(2023, 12, 24)):
+            flaw.save(update_fields=[])
+
+        assert flaw.updated_dt == previous_dt
+        flaw.refresh_from_db()
+        assert flaw.title != "not saved"
+        assert flaw.updated_dt == previous_dt
+
+    @freeze_time(tzdatetime(2022, 12, 24))
     def test_conflicting(self):
         """
         test conflicting model changes

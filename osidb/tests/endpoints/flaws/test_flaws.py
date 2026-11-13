@@ -578,12 +578,11 @@ class TestEndpointsFlaws:
         body = response.json()
         assert body["count"] == 0
 
-        # now let's update the tracker during future_dt and verify that the filter picked up the
-        # change in the corresponding flaw
+        # Keep the stored timestamp monotonic; changing the clock must not rewind it.
         with freeze_time(past_dt):
             tracker.external_system_id = "foo"
             tracker.save()
-        assert tracker.updated_dt == past_dt.astimezone(timezone.utc)
+        assert tracker.updated_dt > past_dt
 
         # we should get a result now
         response = auth_client().get(
@@ -618,7 +617,7 @@ class TestEndpointsFlaws:
             affect.ps_component = "foo"
             affect.purl = default_rpm_purl_for_ps_component("foo")
             affect.save()
-        assert affect.updated_dt == past_dt.astimezone(timezone.utc)
+        assert affect.updated_dt > past_dt
 
         response = auth_client().get(
             f"{test_api_uri}/flaws?changed_before={past_dt.strftime('%Y-%m-%dT%H:%M:%SZ')}"
@@ -677,13 +676,12 @@ class TestEndpointsFlaws:
         body = response.json()
         assert body["count"] == 0
 
-        # now let's update the tracker during future_dt and verify that the filter picked up the
-        # change in the corresponding flaw
+        # Keep each stored timestamp monotonic, even if the clock moves backward.
         for tracker in [tracker1, tracker2]:
             with freeze_time(past_dt):
                 tracker.resolution = "foo"
                 tracker.save()
-            assert tracker.updated_dt == past_dt.astimezone(timezone.utc)
+            assert tracker.updated_dt > past_dt
 
         # we should get a result now
         response = auth_client().get(

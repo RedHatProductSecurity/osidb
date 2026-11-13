@@ -83,7 +83,6 @@ from osidb.models import (
     CollaboratorLabelDefinition,
     Flaw,
     FlawLabel,
-    Impact,
     ProductFamilyLabel,
     ProductFamilyLabelDefinition,
     PsModule,
@@ -1617,7 +1616,11 @@ def _prepare_affect_update_for_bulk(instance, old, serializer, streams):
     ):
         if old.affectedness_explanation == instance.affectedness_explanation:
             instance.affectedness_explanation = ""
-    if (instance.ps_module, instance.ps_component) != (old.ps_module, old.ps_component):
+    if (instance.ps_update_stream, instance.ps_module, instance.ps_component) != (
+        old.ps_update_stream,
+        old.ps_module,
+        old.ps_component,
+    ):
         instance.update_denormalized_labels()
     instance.updated_dt = max(
         timezone.now().replace(microsecond=0),
@@ -1736,11 +1739,12 @@ class AffectView(
             )
         flaw = next(iter(instances.values())).flaw
 
-        stream_names = {
+        stream_names = {instance.ps_update_stream for instance in instances.values()}
+        stream_names.update(
             d["ps_update_stream"]
             for d in request.data
             if isinstance(d.get("ps_update_stream"), str) and d["ps_update_stream"]
-        }
+        )
         streams = {
             s.name: s
             for s in PsUpdateStream.objects.filter(
@@ -1806,13 +1810,24 @@ class AffectView(
                 for _, old, new, _ in prepared
                 if (new.acl_read, new.acl_write) != (old.acl_read, old.acl_write)
             ]
-            increasing_trackers = {
-                new.tracker_id
-                for _, old, new, _ in prepared
-                if new.tracker_id
-                and Impact(new.impact) > Impact(old.impact)
-                and Impact(new.impact) > new.tracker.aggregated_impact
-            }
+            increasing_trackers = set()
+            for _, old, new, _ in prepared:
+                if not new.tracker_id or new.aggregated_impact <= old.aggregated_impact:
+                    continue
+                tracker = new.tracker
+                old_impacts = {
+                    affect.pk: affect.aggregated_impact
+                    for affect in tracker.affects.all()
+                }
+                new_impacts = {
+                    updated.pk: updated.aggregated_impact
+                    for _, _, updated, _ in prepared
+                    if updated.tracker_id == tracker.pk
+                }
+                if max(old_impacts.values()) < max(
+                    new_impacts.get(pk, impact) for pk, impact in old_impacts.items()
+                ):
+                    increasing_trackers.add(tracker.pk)
             # Check versions in the UPDATE, without locking rows during validation.
             versions = Case(
                 *[
@@ -1847,6 +1862,10 @@ class AffectView(
             for index, old, new, serializer in prepared:
                 try:
                     with transaction.atomic():
+                        # Bulk writes bypass signals; discard the old prefetched affects.
+                        if new.tracker_id:
+                            new.tracker.refresh_from_db()
+                            new.tracker._prefetched_objects_cache = {}
                         serializer.update_tracker(old, new)
                 except (
                     ValidationError,
