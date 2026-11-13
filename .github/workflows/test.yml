@@ -75,4 +75,6 @@ jobs:
           PRODUCT_DEF_URL: https://example.com
           PS_CONSTANTS_URL: https://example.com
           JIRA_TASKMAN_URL: https://example.com
+          OSIDB_TEST_MIGRATION_USER: postgres
+          OSIDB_TEST_MIGRATION_PASSWORD: test
         run: uvx tox -e ci-osidb

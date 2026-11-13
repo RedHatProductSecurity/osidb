@@ -24,6 +24,7 @@ __all__ = (
     "Flaw",
     "FlawAcknowledgment",
     "FlawComment",
+    "FlawChangeEvent",
     "FlawCVSS",
     "FlawLabel",
     "FlawReference",
@@ -49,6 +50,7 @@ __all__ = (
 
 from .affect import Affect, AffectCVSS, AffectV1, NotAffectedJustification
 from .flaw.acknowledgment import FlawAcknowledgment
+from .flaw.change_event import FlawChangeEvent
 from .flaw.comment import FlawComment
 from .flaw.cvss import FlawCVSS
 from .flaw.flaw import Flaw
