@@ -4506,22 +4506,8 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
+        '204':
+          description: No response body
   /osidb/api/v1/flaws/{flaw_id}/comments:
     get:
       operationId: osidb_api_v1_flaws_comments_list
@@ -5159,22 +5145,8 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
+        '204':
+          description: No response body
   /osidb/api/v1/flaws/{flaw_id}/incident-requests:
     post:
       operationId: osidb_api_v1_flaws_incident_requests_create
@@ -5796,22 +5768,8 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
+        '204':
+          description: No response body
   /osidb/api/v1/flaws/{flaw_id}/promote:
     post:
       operationId: osidb_api_v1_flaws_promote_create
@@ -6257,22 +6215,8 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
+        '204':
+          description: No response body
   /osidb/api/v1/flaws/{flaw_id}/reject:
     post:
       operationId: osidb_api_v1_flaws_reject_create
@@ -9919,22 +9863,8 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
+        '204':
+          description: No response body
   /osidb/api/v2/affects/bulk:
     post:
       operationId: osidb_api_v2_affects_bulk_create
@@ -10059,22 +9989,8 @@ paths:
       security:
       - OsidbTokenAuthentication: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  dt:
-                    type: string
-                    format: date-time
-                  env:
-                    type: string
-                  revision:
-                    type: string
-                  version:
-                    type: string
-          description: ''
+        '204':
+          description: No response body
   /osidb/api/v2/flaws:
     get:
       operationId: osidb_api_v2_flaws_list

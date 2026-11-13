@@ -1100,7 +1100,7 @@ class FlawV1View(FlawView):
 class SubFlawViewDestroyMixin:
     @extend_schema(
         responses={
-            200: {},
+            204: None,
         },
         parameters=[bz_api_key_param],
     )
@@ -1113,7 +1113,7 @@ class SubFlawViewDestroyMixin:
         flaw = instance.flaw
         instance.delete()
         flaw.save(bz_api_key=bz_api_key)
-        return Response(status=HTTP_200_OK)
+        return Response(status=HTTP_204_NO_CONTENT)
 
 
 class SubFlawViewGetMixin:
@@ -1251,7 +1251,7 @@ class FlawCVSSView(
 
     @extend_schema(
         responses={
-            200: {},
+            204: None,
         },
         parameters=[bz_api_key_param],
     )
@@ -1259,7 +1259,7 @@ class FlawCVSSView(
         cvss: FlawCVSS = self.get_object()
         if cvss.issuer == FlawCVSS.CVSSIssuer.REDHAT:
             return super().destroy(request, *args, **kwargs)
-        return Response(status=HTTP_200_OK)
+        return Response(status=HTTP_204_NO_CONTENT)
 
 
 @include_exclude_fields_extend_schema_view
@@ -1877,7 +1877,7 @@ class AffectView(
     @extend_schema(
         methods=["DELETE"],
         responses={
-            200: {},
+            204: None,
         },
         # Ignored because of https://github.com/tfranzel/drf-spectacular/issues/379
         # and https://swagger.io/docs/specification/describing-request-body/#:~:text=GET%2C-,DELETE,-and%20HEAD%20are
@@ -1929,7 +1929,7 @@ class AffectView(
         flaw = Flaw.objects.get(uuid=next(iter(flaws)))
         flaw.save(bz_api_key=bz_api_key)
 
-        return Response(status=HTTP_200_OK)
+        return Response(status=HTTP_204_NO_CONTENT)
 
 
 @extend_schema(description="Read-only view for affects v1")

@@ -102,7 +102,7 @@ class TestEndpointsFlawsCVSSScoresV2:
 
         url = f"{test_api_v2_uri}/flaws/{str(flaw.uuid)}/cvss-scores/{cvss.uuid}"
         response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="foo")
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         set_user_acls(settings.ALL_GROUPS)
         assert FlawCVSS.objects.count() == 0
 
@@ -238,7 +238,7 @@ class TestEndpointsFlawsCVSSScores:
 
         # Tests "DELETE" on flaws/{uuid}/cvss_scores/{uuid}
         response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         assert FlawCVSS.objects.count() == 0
 
     @pytest.mark.enable_signals
@@ -321,7 +321,7 @@ class TestEndpointsFlawsCVSSScores:
 
         # Tests "DELETE" on flaws/{uuid}/cvss_scores/{uuid}
         response = auth_client().delete(url, HTTP_BUGZILLA_API_KEY="SECRET")
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         # Same as above, should be a no-op
         set_user_acls(settings.ALL_GROUPS)
         assert FlawCVSS.objects.count() == 1
