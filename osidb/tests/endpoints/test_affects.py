@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import status
 
 from osidb.core import set_user_acls
-from osidb.models import Affect, AffectCVSS, Tracker
+from osidb.models import Affect, AffectCVSS, Flaw, Tracker
 from osidb.models.ps_constants import UbiPackage
 from osidb.tests.factories import (
     AffectCVSSFactory,
@@ -583,6 +583,72 @@ class TestEndpointsAffectsBulk:
     """
     tests specific to bulk operations on /affects endpoint
     """
+
+    @pytest.mark.enable_signals
+    def test_bulk_put_classifies_once(self, auth_client, test_api_v2_uri, monkeypatch):
+        """Classify a flaw once when several of its affects are updated."""
+        flaw = FlawFactory(
+            cve_id="CVE-2345-6789", task_key="OSIDB-5866", impact="IMPORTANT"
+        )
+        for _ in range(3):
+            AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+            )
+        original_classify = Flaw.classify
+        calls = []
+
+        def classify(instance):
+            """Record classification calls for the affected flaw."""
+            if instance.pk == flaw.pk:
+                calls.append(instance.pk)
+            return original_classify(instance)
+
+        monkeypatch.setattr(Flaw, "classify", classify)
+        data = (
+            auth_client()
+            .get(f"{test_api_v2_uri}/affects?flaw__cve_id={flaw.cve_id}")
+            .json()["results"]
+        )
+        for affect in data:
+            affect["impact"] = "IMPORTANT"
+        response = auth_client().put(
+            f"{test_api_v2_uri}/affects/bulk",
+            data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        assert len(response.json()["results"]) == 3, response.json()
+        assert calls == [flaw.pk]
+
+    @pytest.mark.enable_signals
+    def test_bulk_delete_classifies_once(
+        self, auth_client, test_api_v2_uri, monkeypatch
+    ):
+        """Classify a flaw once when several of its affects are deleted."""
+        flaw = FlawFactory(task_key="OSIDB-5866")
+        affects = [AffectFactory(flaw=flaw) for _ in range(2)]
+        original_classify = Flaw.classify
+        calls = []
+
+        def classify(instance):
+            """Record classification calls for the affected flaw."""
+            if instance.pk == flaw.pk:
+                calls.append(instance.pk)
+            return original_classify(instance)
+
+        monkeypatch.setattr(Flaw, "classify", classify)
+        response = auth_client().delete(
+            f"{test_api_v2_uri}/affects/bulk",
+            [str(affect.uuid) for affect in affects],
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+        assert calls == [flaw.pk]
 
     def test_affect_update_bulk(self, auth_client, test_api_v2_uri):
         """
