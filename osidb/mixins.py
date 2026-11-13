@@ -1,6 +1,7 @@
 import logging
 import uuid
 from collections import defaultdict
+from datetime import timedelta
 from functools import cached_property
 from itertools import batched, chain
 
@@ -67,6 +68,10 @@ class TrackingMixin(models.Model):
         the timestamps may be set to specified
         values by setting auto_timestamps=False
         """
+        # Django treats an explicitly empty update_fields as a no-op.
+        if kwargs.get("update_fields") is not None and not kwargs["update_fields"]:
+            return
+
         # allow disabling timestamp auto-updates
         if auto_timestamps:
             # get DB counterpart of self if any
@@ -90,7 +95,17 @@ class TrackingMixin(models.Model):
             # auto-set updated_dt as now on any change
             # cut off the microseconds to allow mid-air
             # collision comparison as API works in seconds
-            self.updated_dt = timezone.now().replace(microsecond=0)
+            now = timezone.now().replace(microsecond=0)
+            self.updated_dt = (
+                max(
+                    now,
+                    db_self.updated_dt.replace(microsecond=0) + timedelta(seconds=1),
+                )
+                if db_self is not None
+                else now
+            )
+            if kwargs.get("update_fields") is not None:
+                kwargs["update_fields"] = set(kwargs["update_fields"]) | {"updated_dt"}
 
         super().save(*args, **kwargs)
 

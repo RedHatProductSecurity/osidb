@@ -13,7 +13,7 @@ from rest_framework import status
 from osidb.acls import ACL
 from osidb.core import set_user_acls
 from osidb.mixins import Alert
-from osidb.models import Affect, AffectCVSS, Flaw, Tracker
+from osidb.models import Affect, AffectCVSS, Flaw, ProductFamilyLabelDefinition, Tracker
 from osidb.models.ps_constants import UbiPackage
 from osidb.tests.factories import (
     AffectCVSSFactory,
@@ -930,6 +930,176 @@ class TestEndpointsAffectsBulk:
         affect.refresh_from_db()
         assert affect.resolution == "DELEGATED"
 
+    def test_bulk_put_tracker_uses_updated_affect_and_keeps_impact_timestamp(
+        self, auth_client, test_api_v2_uri, bugzilla_token, jira_token
+    ):
+        flaw = FlawFactory(embargoed=False, impact="MODERATE")
+        module = PsModuleFactory(bts_name="jboss")
+        stream = PsUpdateStreamFactory(ps_module=module)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            ps_component="old-component",
+            purl=default_rpm_purl_for_ps_component("old-component"),
+            impact="LOW",
+            affectedness="AFFECTED",
+            resolution="DELEGATED",
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            ps_update_stream=stream.name,
+            type=Tracker.TrackerType.JIRA,
+            embargoed=False,
+            status="Open",
+        )
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+        data.update(
+            ps_component="new-component",
+            impact="",
+            purl=default_rpm_purl_for_ps_component("new-component"),
+        )
+        seen = []
+
+        def inspect_save(current, **kwargs):
+            seen.append(
+                (
+                    current.affects.first().ps_component,
+                    current.aggregated_impact,
+                    current.last_impact_increase_dt,
+                )
+            )
+            # Jira saver may return this tracker and persist all its model fields.
+            Tracker.objects.filter(pk=current.pk).update(
+                last_impact_increase_dt=current.last_impact_increase_dt
+            )
+
+        with patch.object(Tracker, "save", autospec=True, side_effect=inspect_save):
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                [data],
+                format="json",
+                HTTP_BUGZILLA_API_KEY=bugzilla_token,
+                HTTP_JIRA_API_KEY=jira_token,
+            )
+        assert response.status_code == 200, response.data
+        assert seen[0][0] == "new-component"
+        assert seen[0][1] == affect.flaw.impact
+        assert seen[0][2] is not None
+        tracker.refresh_from_db()
+        assert tracker.last_impact_increase_dt == seen[0][2]
+
+    def test_bulk_put_stream_change_recalculates_labels(
+        self, auth_client, test_api_v2_uri, bugzilla_token, jira_token
+    ):
+        module = PsModuleFactory()
+        old_stream = PsUpdateStreamFactory(ps_module=module)
+        new_module = PsModuleFactory()
+        new_stream = PsUpdateStreamFactory(ps_module=new_module)
+        ProductFamilyLabelDefinition.objects.create(
+            name="new-stream-label", ps_modules=[new_module.name]
+        )
+        affect = AffectFactory(
+            flaw=FlawFactory(embargoed=False),
+            ps_update_stream=old_stream.name,
+            ps_component="curl",
+            purl=default_rpm_purl_for_ps_component("curl"),
+        )
+        assert "new-stream-label" not in affect.labels
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+        data["ps_update_stream"] = new_stream.name
+        response = client.put(
+            f"{test_api_v2_uri}/affects/bulk",
+            [data],
+            format="json",
+            HTTP_BUGZILLA_API_KEY=bugzilla_token,
+            HTTP_JIRA_API_KEY=jira_token,
+        )
+        assert response.status_code == 200, response.data
+        affect.refresh_from_db()
+        assert "new-stream-label" in affect.labels
+
+    def test_bulk_put_override_cleared_increases_tracker_impact(
+        self, auth_client, test_api_v2_uri, bugzilla_token, jira_token
+    ):
+        flaw = FlawFactory(embargoed=False, impact="MODERATE")
+        module = PsModuleFactory(bts_name="jboss")
+        stream = PsUpdateStreamFactory(ps_module=module)
+        affect = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            impact="LOW",
+            affectedness="AFFECTED",
+            resolution="DELEGATED",
+        )
+        tracker = TrackerFactory(
+            affects=[affect],
+            ps_update_stream=stream.name,
+            type=Tracker.TrackerType.JIRA,
+            embargoed=False,
+            status="Open",
+        )
+        assert tracker.last_impact_increase_dt is None
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+        data["impact"] = ""
+        with patch.object(Tracker, "save"):
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                [data],
+                format="json",
+                HTTP_BUGZILLA_API_KEY=bugzilla_token,
+                HTTP_JIRA_API_KEY=jira_token,
+            )
+        assert response.status_code == 200, response.data
+        tracker.refresh_from_db()
+        assert tracker.last_impact_increase_dt is not None
+
+    def test_bulk_put_mixed_impacts_does_not_mark_tracker_increase(
+        self, auth_client, test_api_v2_uri, bugzilla_token, jira_token
+    ):
+        flaw = FlawFactory(embargoed=False, impact="IMPORTANT")
+        module = PsModuleFactory(bts_name="jboss")
+        stream = PsUpdateStreamFactory(ps_module=module)
+        high = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            ps_component="curl",
+            impact="IMPORTANT",
+            affectedness="AFFECTED",
+            resolution="DELEGATED",
+        )
+        low = AffectFactory(
+            flaw=FlawFactory(embargoed=False, impact="IMPORTANT"),
+            ps_update_stream=stream.name,
+            ps_component="curl",
+            impact="LOW",
+            affectedness="AFFECTED",
+            resolution="DELEGATED",
+        )
+        tracker = TrackerFactory(
+            affects=[high, low],
+            ps_update_stream=stream.name,
+            type=Tracker.TrackerType.JIRA,
+            embargoed=False,
+            status="Open",
+        )
+        client = auth_client()
+        data = client.get(f"{test_api_v2_uri}/affects/{low.uuid}").json()
+        data["impact"] = "MODERATE"
+        with patch.object(Tracker, "save"):
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                [data],
+                format="json",
+                HTTP_BUGZILLA_API_KEY=bugzilla_token,
+                HTTP_JIRA_API_KEY=jira_token,
+            )
+        assert response.status_code == 200, response.data
+        tracker.refresh_from_db()
+        assert tracker.last_impact_increase_dt is None
+
     def test_affect_update_bulk_filtered_readback(self, auth_client, test_api_v2_uri):
         flaw = FlawFactory(embargoed=False)
         affect = AffectFactory(flaw=flaw, **_community_ps_for_affect())
@@ -1137,6 +1307,57 @@ class TestEndpointsAffectsBulk:
         )
         assert response.status_code == 400
         assert "updated_dt" in response.data
+
+    def test_bulk_then_single_save_rejects_stale_bulk_payload(
+        self, auth_client, test_api_v2_uri
+    ):
+        affect = AffectFactory(
+            flaw=FlawFactory(embargoed=False), affectedness="NEW", resolution=""
+        )
+        client = auth_client()
+        stale = client.get(f"{test_api_v2_uri}/affects/{affect.uuid}").json()
+        stale.update(affectedness="AFFECTED", resolution="WONTFIX")
+        bulk = dict(stale, resolution="DELEGATED")
+        second = timezone.now().replace(microsecond=0)
+        Affect.objects.filter(pk=affect.pk).update(
+            updated_dt=second, auto_timestamps=False
+        )
+        affect.refresh_from_db()
+        stale["updated_dt"] = second.isoformat().replace("+00:00", "Z")
+        bulk["updated_dt"] = stale["updated_dt"]
+
+        with patch("osidb.api_views.timezone.now", return_value=second):
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                [bulk],
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+        assert response.status_code == 200, response.data
+        affect.refresh_from_db()
+        bulk_timestamp = affect.updated_dt
+        assert bulk_timestamp > second
+
+        with patch("osidb.mixins.timezone.now", return_value=second):
+            affect.impact = "LOW"
+            affect.save()
+        assert affect.updated_dt > bulk_timestamp
+
+        with patch("osidb.api_views.timezone.now", return_value=second):
+            response = client.put(
+                f"{test_api_v2_uri}/affects/bulk",
+                [stale],
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+        assert response.status_code == 400
+        assert "updated_dt" in response.data
+        affect.refresh_from_db()
+        assert affect.impact == "LOW"
+        assert affect.resolution == "DELEGATED"
+        assert affect.updated_dt > bulk_timestamp
 
     def test_affect_update_bulk_stale_timestamp(self, auth_client, test_api_v2_uri):
         affect = AffectFactory(
