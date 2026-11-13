@@ -1,5 +1,6 @@
 import enum
 import importlib.metadata
+from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -21,7 +22,11 @@ from apps.ace.constants import (
     LABEL_POTENTIAL_REJECTION,
     NEWTOPIA_ECOSYSTEMS,
 )
-from apps.ace.osv_ranges import OsvPackageInfo, match_component_to_upstream
+from apps.ace.osv_ranges import (
+    OsvPackageInfo,
+    match_component_to_upstream,
+    osv_entry_to_package_info,
+)
 from apps.ace.version import (
     OsvStatus,
     determine_status,
@@ -48,12 +53,58 @@ from osidb.models.flaw.upstream import UpstreamData
 logger = get_task_logger(__name__)
 
 try:
-    from lib_newtopia import NewtopiaQuerier  # type: ignore[import-untyped]
+    from lib_newtopia import (  # type: ignore[import-untyped]
+        DownstreamCatalogQueryError,
+        NewtopiaQuerier,
+    )
 
     HAS_LIB_NEWTOPIA = True
 except ImportError:
+    DownstreamCatalogQueryError = None  # type: ignore[assignment,misc]
     NewtopiaQuerier = None  # type: ignore[assignment,misc]
     HAS_LIB_NEWTOPIA = False
+
+_SKIPPED_BOT_TYPE = "AI-Bot-Skipped"
+
+
+def _latest_downstream_entry(aegis_meta) -> tuple[list, list] | None:
+    """Return ``(value, ranges)`` from the latest usable ``_downstream`` entry.
+
+    Aegis appends newest entries last. Only that last entry is considered.
+    A usable catalog is a list (including an empty list) on an entry whose
+    ``type`` is not ``AI-Bot-Skipped``. Missing or non-list ``ranges`` becomes
+    ``[]``. Missing, malformed, or skipped metadata returns None so ACE keeps
+    the component search.
+    """
+    if not isinstance(aegis_meta, dict):
+        return None
+    entries = aegis_meta.get("_downstream")
+    if not isinstance(entries, list) or not entries:
+        return None
+    last = entries[-1]
+    if not isinstance(last, dict) or last.get("type") == _SKIPPED_BOT_TYPE:
+        return None
+    value = last.get("value")
+    if not isinstance(value, list):
+        return None
+    ranges = last.get("ranges")
+    if not isinstance(ranges, list):
+        ranges = []
+    return value, ranges
+
+
+def _enabled_downstream_catalog(
+    flaw: Flaw, settings: AffectSettings
+) -> tuple[list, list] | None:
+    """Return ``(value, ranges)`` when the flaw impact uses the catalog path."""
+    enabled = {
+        impact.upper()
+        for impact in settings.downstream_catalog_enabled_impacts
+        if isinstance(impact, str) and impact.strip()
+    }
+    if str(flaw.impact).upper() not in enabled:
+        return None
+    return _latest_downstream_entry(flaw.aegis_meta)
 
 
 def _aegis_ecosystems(flaw: Flaw) -> list[str]:
@@ -105,11 +156,85 @@ def _resolve_ecosystems(
     return list(set(e if e in NEWTOPIA_ECOSYSTEMS else "" for e in ecosystems))
 
 
+def _nonempty_components(components) -> list[str]:
+    """Return component names after dropping empty or whitespace-only entries."""
+    return [c for c in (components or []) if c and str(c).strip()]
+
+
 def _flaw_components(flaw: Flaw) -> list[str]:
-    components = [c for c in (flaw.components or []) if c and str(c).strip()]
+    """Return non-empty ``Flaw.components``, or raise if none remain."""
+    components = _nonempty_components(flaw.components)
     if not components:
         raise ValueError(f"Flaw {flaw.uuid} has no non-empty components to search")
     return components
+
+
+def _skip_if_blocklisted(flaw: Flaw, components: list[str]) -> dict[str, int] | None:
+    """Reject the whole flaw when any ``Flaw.components`` entry is blocklisted."""
+    for component in components:
+        block = BlocklistEntry.objects.filter(name=component.strip().lower()).first()
+        if block:
+            reason = (
+                f"Flaws affected by {component} are configured to be "
+                f"auto-rejected: {block.reason}"
+            )
+            _apply_label(flaw, LABEL_AUTO_REJECTED, reason=reason)
+            logger.info("Pre-filter skip for flaw=%s: %s", flaw.uuid, reason)
+            return {
+                "created": 0,
+                "skipped": 0,
+                "skipped_existing": 0,
+                "marked_notaffected": 0,
+                "pre_filtered": 1,
+            }
+    return None
+
+
+def _apply_special_component_workflows(
+    flaw: Flaw,
+    components: list[str],
+    settings: AffectSettings,
+    trigger: str,
+) -> dict[str, int]:
+    """Run Chromium / Go stdlib handlers for matching ``Flaw.components`` entries."""
+    totals: dict[str, int] = {
+        "created": 0,
+        "skipped": 0,
+        "skipped_existing": 0,
+        "marked_notaffected": 0,
+        "pre_filtered": 0,
+    }
+    if not components:
+        return totals
+
+    osv_data = flaw.upstream_data.filter(source=UpstreamData.Source.OSV).first()
+    upstream_purls: list[dict] = osv_data.upstream_purls if osv_data else []
+    chromium_done = False
+
+    for component in components:
+        pf = _pre_filter_component(flaw, component, "")
+        if pf.action is not PreFilterAction.SPECIAL:
+            continue
+        _apply_label(flaw, pf.label, reason=pf.reason)
+        if pf.workflow is SpecialWorkflow.CHROMIUM:
+            if chromium_done:
+                continue
+            chromium_done = True
+            stats = _handle_chromium(flaw)
+        elif pf.workflow is SpecialWorkflow.GO_STDLIB:
+            stats = _handle_go_stdlib(
+                flaw,
+                component,
+                settings.auto_create_ps_modules,
+                upstream_purls,
+                exclude_products=settings.exclude_ps_modules,
+                trigger=trigger,
+            )
+        else:
+            stats = {}
+        for key, value in stats.items():
+            totals[key] = totals.get(key, 0) + value
+    return totals
 
 
 class PreFilterAction(enum.Enum):
@@ -505,6 +630,8 @@ def _handle_chromium(flaw: Flaw) -> dict[str, int]:
                 acl_read=flaw.acl_read,
                 acl_write=flaw.acl_write,
             )
+            # Ensure the numeric score is set even if pre_save did not run.
+            cvss.score = float(cvss.cvss_object.base_score)
             cvss.save()
             cvss_added = True
 
@@ -748,6 +875,18 @@ def _ace_tool_name() -> str:
         return f"osidb {osidb_version}"
 
 
+def _purl_version_ecosystem(purl_str: str) -> str:
+    """Return ``rpm`` when the PURL type is rpm so EVR epochs normalize correctly.
+
+    Catalog sibling ranges are upstream OSV data and keep an empty ecosystem for
+    range parsing. Only the downstream build version needs RPM-aware extraction.
+    """
+    try:
+        return "rpm" if PackageURL.from_string(purl_str).type == "rpm" else ""
+    except Exception:
+        return ""
+
+
 def _extract_version_from_result(
     purl_str: str, result, query_component: str = ""
 ) -> str | None:
@@ -812,6 +951,7 @@ def _osv_version_status(
     pkg_info: OsvPackageInfo | None,
     result=None,
     query_component: str = "",
+    version_ecosystem: str | None = None,
 ) -> tuple[OsvStatus, str | None, str | None]:
     """
     Determine the OSV affectedness status for a single lib_newtopia result purl.
@@ -822,6 +962,10 @@ def _osv_version_status(
         when no range could be determined (NO_MATCH / NO_RANGE)
       - ``version_checked`` is the upstream version extracted from the result purl, or
         ``None`` when no version was available (NO_MATCH / NO_RANGE / NO_VERSION)
+
+    When ``version_ecosystem`` is set, it is used only for extracting the
+    downstream build version (e.g. RPM epoch stripping). Range parsing still
+    uses ``pkg_info.ecosystem``.
     """
     if pkg_info is None:
         return OsvStatus.NO_MATCH, None, None
@@ -833,7 +977,8 @@ def _osv_version_status(
     version_str = _extract_version_from_result(
         purl_str, result, query_component=query_component
     )
-    upstream_version = extract_upstream_version(version_str, pkg_info.ecosystem)
+    extract_eco = pkg_info.ecosystem if version_ecosystem is None else version_ecosystem
+    upstream_version = extract_upstream_version(version_str, extract_eco)
     if upstream_version is None:
         return OsvStatus.NO_VERSION, range_str, None
 
@@ -1114,16 +1259,443 @@ def _ace_qualified(flaw: Flaw, labels: list[str]) -> None:
     _write_flaw_assist_meta(flaw, "ace_qualified", {"labels": labels})
 
 
+def _ranges_by_source_component(ranges: list) -> dict[str, dict]:
+    """Index sibling range objects by exact ``source_component`` string."""
+    indexed: dict[str, dict] = {}
+    for entry in ranges or []:
+        if not isinstance(entry, dict):
+            continue
+        source = entry.get("source_component")
+        if not isinstance(source, str) or not source.strip():
+            continue
+        indexed[source.strip()] = entry
+    return indexed
+
+
+def _is_downstream_catalog_query_error(hit) -> bool:
+    """True when lib-newtopia returned a catalog query failure sentinel."""
+    if DownstreamCatalogQueryError is not None and isinstance(
+        hit, DownstreamCatalogQueryError
+    ):
+        return True
+    return bool(getattr(hit, "query_error", None))
+
+
+def _apply_catalog_range_status(
+    flaw: Flaw,
+    affect: Affect,
+    osv_status: OsvStatus,
+    *,
+    flaw_has_high_cvss_score: bool,
+) -> str:
+    """Apply classic OSV ranging outcomes to a newly created catalog affect."""
+    if osv_status is OsvStatus.NOT_AFFECTED:
+        affect.affectedness = Affect.AffectAffectedness.NOTAFFECTED
+        affect.resolution = Affect.AffectResolution.NOVALUE
+        affect.not_affected_justification = (
+            NotAffectedJustification.VULN_CODE_NOT_PRESENT
+        )
+        affect.affectedness_explanation = (
+            "OSV data indicates the vulnerable code is not present in this version. "
+            "Affectedness set to NOTAFFECTED with justification "
+            "'Vulnerable Code not Present'."
+        )
+        affect._auto_resolved = True
+        return "notaffected"
+
+    if osv_status is OsvStatus.AFFECTED:
+        affect.auto_resolve(flaw_has_high_cvss_score=flaw_has_high_cvss_score)
+        if affect.affectedness == Affect.AffectAffectedness.NEW:
+            _apply_label(
+                flaw,
+                LABEL_MANUAL_TRIAGE,
+                reason=(
+                    f"Downstream catalog range marked "
+                    f"{affect.assist_meta.get('downstream_name')} affected, "
+                    "but its PS update stream or module is not resolvable; "
+                    "left NEW for manual triage."
+                ),
+            )
+            return "new"
+        return "affected"
+
+    affect.affectedness = Affect.AffectAffectedness.NEW
+    affect.resolution = Affect.AffectResolution.NOVALUE
+    _apply_label(
+        flaw,
+        LABEL_MANUAL_TRIAGE,
+        reason=(
+            f"Downstream catalog ranging for "
+            f"{affect.assist_meta.get('downstream_name')} is "
+            f"{osv_status.value}; left NEW for manual triage."
+        ),
+    )
+    return "new"
+
+
+def _catalog_hit_range_outcome(
+    hit,
+    ranges_index: dict[str, dict],
+) -> tuple[OsvStatus, str, str | None, dict[str, Any]]:
+    """Evaluate one porcelain hit against its sibling range entry.
+
+    Returns ``(osv_status, purl_str, ps_component, assist_meta)``.
+    """
+    purl_str = (getattr(hit, "purls", None) or [None])[0]
+    source_component = getattr(hit, "source_component", None)
+    if isinstance(source_component, str):
+        source_component = source_component.strip() or None
+    else:
+        source_component = None
+    downstream_name = getattr(hit, "downstream_name", None)
+    downstream_query = getattr(hit, "downstream_query", None)
+    range_entry = ranges_index.get(source_component) if source_component else None
+
+    assist_meta: dict[str, Any] = {
+        "downstream_name": downstream_name,
+        "downstream_query": downstream_query,
+    }
+    osv_status = OsvStatus.NO_MATCH
+    ps_component = Affect(purl=purl_str).ps_component_from_purl()
+
+    if range_entry is None:
+        osv_status = OsvStatus.NO_MATCH
+    elif isinstance(range_entry.get("ranges"), list) and range_entry.get("ranges"):
+        pkg_info = osv_entry_to_package_info(
+            {
+                "name": source_component,
+                "ranges": range_entry["ranges"],
+            }
+        )
+        osv_status, range_str, version_checked = _osv_version_status(
+            purl_str,
+            pkg_info,
+            result=hit,
+            query_component=source_component or "",
+            version_ecosystem=_purl_version_ecosystem(purl_str),
+        )
+        assist_meta["osv_range_used"] = range_str
+        assist_meta["osv_version_checked"] = version_checked
+        assist_meta["osv_status"] = osv_status.value
+    elif isinstance(range_entry.get("versions"), list) and range_entry.get("versions"):
+        versions_used = [
+            str(v) for v in range_entry["versions"] if v is not None and str(v).strip()
+        ]
+        if not versions_used:
+            osv_status = OsvStatus.NO_RANGE
+        else:
+            version_eco = _purl_version_ecosystem(purl_str)
+            version_str = _extract_version_from_result(
+                purl_str,
+                hit,
+                query_component=source_component or "",
+            )
+            version_checked = extract_upstream_version(version_str, version_eco)
+            versions_normalized = [
+                extract_upstream_version(v, version_eco) for v in versions_used
+            ]
+            versions_normalized = [v for v in versions_normalized if v is not None]
+            if version_checked is None:
+                osv_status = OsvStatus.NO_VERSION
+            elif version_checked in versions_normalized:
+                osv_status = OsvStatus.AFFECTED
+            else:
+                osv_status = OsvStatus.NOT_AFFECTED
+            assist_meta["osv_versions"] = versions_used
+            assist_meta["osv_version_checked"] = version_checked
+        assist_meta["osv_status"] = osv_status.value
+    else:
+        osv_status = OsvStatus.NO_MATCH
+
+    if "osv_status" not in assist_meta:
+        assist_meta["osv_status"] = osv_status.value
+    return osv_status, purl_str, ps_component, assist_meta
+
+
+def _prefer_catalog_range_outcome(
+    current: tuple[OsvStatus, str, str | None, dict[str, Any]] | None,
+    candidate: tuple[OsvStatus, str, str | None, dict[str, Any]],
+) -> tuple[OsvStatus, str, str | None, dict[str, Any]]:
+    """Pick the most-affected ranging outcome for a shared affect key."""
+    if current is None:
+        return candidate
+    cur_status = current[0]
+    new_status = candidate[0]
+    if new_status is OsvStatus.AFFECTED:
+        return candidate
+    if cur_status is OsvStatus.AFFECTED:
+        return current
+    if (
+        cur_status is OsvStatus.NOT_AFFECTED
+        and new_status is not OsvStatus.NOT_AFFECTED
+    ):
+        return candidate
+    return current
+
+
+def _run_chromium_workflow_if_needed(
+    flaw: Flaw, components: list[str]
+) -> dict[str, int]:
+    """Run the legacy Chromium handler when a component selects that workflow."""
+    empty = {
+        "created": 0,
+        "skipped": 0,
+        "skipped_existing": 0,
+        "marked_notaffected": 0,
+        "pre_filtered": 0,
+    }
+    for component in components:
+        pf = _pre_filter_component(flaw, component, "")
+        if pf.action is not PreFilterAction.SPECIAL:
+            continue
+        if pf.workflow is not SpecialWorkflow.CHROMIUM:
+            continue
+        _apply_label(flaw, pf.label, reason=pf.reason)
+        return _handle_chromium(flaw)
+    return empty
+
+
+def _sync_downstream_affects(
+    flaw: Flaw,
+    hits: list,
+    ranges: list,
+) -> dict[str, int]:
+    """Create affects from porcelain hits and apply sibling ranges per build.
+
+    Catalog ranging uses the sibling ``ranges`` list only. It does not read
+    ``UpstreamData`` or call ``match_component_to_upstream``.
+
+    Multiple builds that share ``(ps_update_stream, ps_component)`` are combined
+    before save: any ``AFFECTED`` hit wins; ``NOT_AFFECTED`` only when every hit
+    in the group is out of range. Chromium stream keys are left to
+    :func:`_handle_chromium`.
+    """
+    created = 0
+    skipped = 0
+    skipped_existing = 0
+    marked_notaffected = 0
+    flaw_has_high_cvss_score = flaw.has_high_cvss_score
+    ranges_index = _ranges_by_source_component(ranges)
+    chromium_keys = frozenset(CHROMIUM_STREAMS)
+    grouped: dict[tuple[str, str | None], list] = defaultdict(list)
+
+    with transaction.atomic():
+        for hit in hits:
+            if _is_downstream_catalog_query_error(hit):
+                _apply_label(
+                    flaw,
+                    LABEL_MANUAL_TRIAGE,
+                    reason=(
+                        "Downstream catalog query failed for "
+                        f"{getattr(hit, 'downstream_name', None) or 'unknown'}; "
+                        f"{getattr(hit, 'query_error', 'unknown error')}. "
+                        "No affect created; left for manual triage."
+                    ),
+                )
+                skipped += 1
+                continue
+
+            ps_update_stream = getattr(hit, "ps_update_stream", None)
+            purls = getattr(hit, "purls", None) or []
+            purl_str = purls[0] if purls else None
+            if not ps_update_stream or not purl_str:
+                logger.warning(
+                    "Skipping _downstream result missing ps_update_stream or purl: %s",
+                    getattr(hit, "build_nvr", None),
+                )
+                skipped += 1
+                continue
+
+            try:
+                ps_component = Affect(purl=purl_str).ps_component_from_purl()
+            except Exception:
+                logger.exception(
+                    "Skipping _downstream result with invalid purl for flaw=%s stream=%s",
+                    flaw.uuid,
+                    ps_update_stream,
+                )
+                try:
+                    with transaction.atomic():
+                        _apply_label(
+                            flaw,
+                            LABEL_MANUAL_TRIAGE,
+                            reason=(
+                                "Downstream catalog ranging failed for "
+                                f"{getattr(hit, 'downstream_name', None)}; "
+                                "left for manual triage."
+                            ),
+                        )
+                except Exception:
+                    logger.exception(
+                        "Failed to apply manual-triage label for flaw=%s", flaw.uuid
+                    )
+                skipped += 1
+                continue
+            key = (ps_update_stream, ps_component)
+            if key in chromium_keys:
+                skipped_existing += 1
+                continue
+            grouped[key].append(hit)
+
+        for (ps_update_stream, ps_component), group_hits in grouped.items():
+            if (
+                ps_component
+                and Affect.objects.filter(
+                    flaw=flaw,
+                    ps_update_stream=ps_update_stream,
+                    ps_component=ps_component,
+                ).exists()
+            ):
+                skipped_existing += len(group_hits)
+                continue
+
+            chosen: tuple[OsvStatus, str, str | None, dict[str, Any]] | None = None
+            downstream_name = None
+            try:
+                with transaction.atomic():
+                    for hit in group_hits:
+                        downstream_name = getattr(hit, "downstream_name", None)
+                        outcome = _catalog_hit_range_outcome(hit, ranges_index)
+                        chosen = _prefer_catalog_range_outcome(chosen, outcome)
+
+                    assert chosen is not None
+                    osv_status, purl_str, resolved_component, assist_meta = chosen
+                    affect = Affect(
+                        flaw=flaw,
+                        ps_update_stream=ps_update_stream,
+                        purl=purl_str,
+                        ps_component=resolved_component or ps_component,
+                        acl_read=flaw.acl_read,
+                        acl_write=flaw.acl_write,
+                        created_by="AffectCreationEngine",
+                        updated_by="AffectCreationEngine",
+                        assist_meta=assist_meta,
+                    )
+                    apply_outcome = _apply_catalog_range_status(
+                        flaw,
+                        affect,
+                        osv_status,
+                        flaw_has_high_cvss_score=flaw_has_high_cvss_score,
+                    )
+                    affect.save(raise_validation_error=False)
+            except Exception:
+                logger.exception(
+                    "Failed to save _downstream affect for flaw=%s stream=%s",
+                    flaw.uuid,
+                    ps_update_stream,
+                )
+                try:
+                    with transaction.atomic():
+                        _apply_label(
+                            flaw,
+                            LABEL_MANUAL_TRIAGE,
+                            reason=(
+                                f"Downstream catalog ranging failed for "
+                                f"{downstream_name}; left for manual triage."
+                            ),
+                        )
+                except Exception:
+                    logger.exception(
+                        "Failed to apply manual-triage label for flaw=%s", flaw.uuid
+                    )
+                skipped += len(group_hits)
+                continue
+
+            created += 1
+            if apply_outcome == "notaffected":
+                marked_notaffected += 1
+
+    return {
+        "created": created,
+        "skipped": skipped,
+        "skipped_existing": skipped_existing,
+        "marked_notaffected": marked_notaffected,
+    }
+
+
+def _sync_downstream_catalog(
+    flaw: Flaw,
+    catalog: list,
+    ranges: list,
+    settings: AffectSettings,
+    trigger: str,
+) -> dict[str, int]:
+    """Search bomq via lib-newtopia porcelain and range each hit."""
+    totals: dict[str, int] = {
+        "created": 0,
+        "skipped": 0,
+        "skipped_existing": 0,
+        "marked_notaffected": 0,
+        "pre_filtered": 0,
+    }
+    querier = NewtopiaQuerier()  # type: ignore[misc]
+    desc = (
+        "NewtopiaQuerier().search_from_downstream_catalog("
+        f"catalog, products={settings.auto_create_ps_modules!r}, "
+        f"exclude_products={settings.exclude_ps_modules!r})"
+    )
+    try:
+        hits = querier.search_from_downstream_catalog(
+            catalog,
+            products=settings.auto_create_ps_modules,
+            exclude_products=settings.exclude_ps_modules,
+        )
+    except Exception:
+        logger.exception(
+            "Failed to search _downstream catalog for flaw=%s",
+            flaw.uuid,
+        )
+        _apply_label(
+            flaw,
+            LABEL_MANUAL_TRIAGE,
+            reason=("Downstream catalog search failed; left for manual triage."),
+        )
+        hits = []
+
+    _write_flaw_assist_meta(
+        flaw,
+        "ace",
+        {
+            "tool_name": _ace_tool_name(),
+            "trigger": trigger,
+            "queries": [
+                {
+                    "tool_input": desc,
+                    "results": [repr(hit) for hit in hits],
+                }
+            ],
+        },
+    )
+    stats = _sync_downstream_affects(flaw, hits, ranges)
+    for key in stats:
+        totals[key] += stats[key]
+
+    logger.info(
+        "sync_flaw_affects_from_newcli flaw=%s downstream_records=%s %s",
+        flaw.uuid,
+        len(catalog),
+        totals,
+    )
+    return totals
+
+
 @app.task(queue="high")
 @bypass_rls
 def sync_flaw_affects_from_newcli(
     flaw_id: str, trigger: str = "unknown"
 ) -> dict[str, Any]:
     """
-    For each entry in ``Flaw.components``, query lib_newtopia and create affects for each
-    result: ``ps_update_stream`` and ``purl`` are taken from the result objects returned by
-    ``NewtopiaQuerier``. Existing affects for the same flaw, stream, and ``ps_component``
-    (inferred from the purl) are left unchanged.
+    When the latest ``aegis_meta["_downstream"]`` entry is a usable catalog and
+    the flaw impact is in
+    :attr:`osidb.models.affect.AffectSettings.downstream_catalog_enabled_impacts`
+    (default Important), ACE searches bomq through
+    ``NewtopiaQuerier.search_from_downstream_catalog`` and applies the sibling
+    ``ranges`` / ``versions`` per build. ``Flaw.components`` is not searched on
+    that path. Otherwise, for each entry in ``Flaw.components``, query
+    lib_newtopia and create affects for each result: ``ps_update_stream`` and
+    ``purl`` are taken from the result objects returned by ``NewtopiaQuerier``.
+    Existing affects for the same flaw, stream, and ``ps_component`` (inferred
+    from the purl) are left unchanged.
 
     ``SEARCH`` results are queried, including low-confidence components labeled
     ``potential-rejection``. Chromium and Go stdlib keep their special-case handlers.
@@ -1161,8 +1733,38 @@ def sync_flaw_affects_from_newcli(
         )
         return {"skipped_reason": "workflow gate: not eligible"}
 
-    components = _flaw_components(flaw)
+    components = _nonempty_components(flaw.components)
+    blocked = _skip_if_blocklisted(flaw, components)
+    if blocked is not None:
+        return blocked
+
     settings = AffectSettings()
+    catalog_entry = _enabled_downstream_catalog(flaw, settings)
+    if catalog_entry is not None:
+        catalog, ranges = catalog_entry
+        # Empty catalog with no Flaw.components means nothing to search.
+        if not catalog and not components:
+            raise ValueError(f"Flaw {flaw.uuid} has no non-empty components to search")
+        # Chromium owns fedora-all / epel-all before catalog ranging; catalog
+        # skips those keys. Go stdlib still runs after the catalog.
+        totals = _run_chromium_workflow_if_needed(flaw, components)
+        # Advisory CVSS must be visible when catalog affects call auto_resolve.
+        flaw.refresh_from_db()
+        catalog_totals = _sync_downstream_catalog(
+            flaw, catalog, ranges, settings, trigger
+        )
+        for key, value in catalog_totals.items():
+            totals[key] = totals.get(key, 0) + value
+        special = _apply_special_component_workflows(
+            flaw, components, settings, trigger
+        )
+        for key, value in special.items():
+            totals[key] = totals.get(key, 0) + value
+        return totals
+
+    if not components:
+        raise ValueError(f"Flaw {flaw.uuid} has no non-empty components to search")
+
     ps_modules = settings.auto_create_ps_modules
     exclude_ps_modules = settings.exclude_ps_modules
     totals: dict[str, int] = {
@@ -1176,8 +1778,9 @@ def sync_flaw_affects_from_newcli(
     osv_data = flaw.upstream_data.filter(source=UpstreamData.Source.OSV).first()
     upstream_purls: list[dict] = osv_data.upstream_purls if osv_data else []
 
-    # Pre-filter all components first. If any component triggers a skip
-    # (e.g. blocklist), the entire flaw is skipped — matching vulncli behavior.
+    # Pre-filter all components first. Blocklist was already applied above for
+    # the catalog path; if any component still triggers a skip (e.g. blocklist),
+    # the entire flaw is skipped — matching vulncli behavior.
     pre_filter_results = _collect_pre_filter_results(flaw)
 
     skip_result = next(
@@ -1193,6 +1796,7 @@ def sync_flaw_affects_from_newcli(
         )
         totals["pre_filtered"] += 1
         return totals
+
     query_log: list[dict] = []
 
     for flaw_component, ecosystem, pre_filter in pre_filter_results:

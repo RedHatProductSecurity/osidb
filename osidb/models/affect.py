@@ -63,6 +63,11 @@ class AffectSettings(BaseSettings):
     exclude_ps_modules: list[str] = Field(
         default_factory=lambda: ["hummingbird-1"],
     )
+    # Flaw impacts that use the Aegis ``_downstream`` catalog path instead of
+    # searching ``Flaw.components``. Default Important only.
+    downstream_catalog_enabled_impacts: list[str] = Field(
+        default_factory=lambda: ["IMPORTANT"],
+    )
 
 
 class NotAffectedJustification(models.TextChoices):
