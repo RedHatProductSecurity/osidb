@@ -399,49 +399,104 @@ class TestManualWorkflow:
         flaw.refresh_from_db()
         assert flaw.workflow_name == "MANUAL"
 
+
+class TestReviewWorkflow:
     @pytest.mark.enable_signals
-    def test_critical_impact_triggers_manual_workflow(self):
+    def test_review_needed_label_triggers_review_workflow(self):
         """
-        A flaw with CRITICAL impact should be classified under the MANUAL
-        workflow even without any manual-triage or potential-rejection label.
+        A flaw with a review-needed label should be classified under the
+        REVIEW workflow instead of MANUAL.
         """
         flaw = FlawFactory(
             embargoed=False,
-            task_key="TASK-MANUAL-5",
-            impact=Impact.CRITICAL,
+            task_key="TASK-REVIEW-1",
+            impact=Impact.MODERATE,
         )
-        assert flaw.workflow_name == "MANUAL"
-
-    @pytest.mark.enable_signals
-    def test_non_critical_impact_stays_default(self):
-        """
-        A flaw with non-CRITICAL impact and no manual labels should remain
-        in the DEFAULT workflow.
-        """
-        for impact in [Impact.LOW, Impact.MODERATE, Impact.IMPORTANT]:
-            flaw = FlawFactory(
-                embargoed=False,
-                task_key=f"TASK-MANUAL-6-{impact}",
-                impact=impact,
-            )
-            assert flaw.workflow_name == "DEFAULT"
-
-    @pytest.mark.enable_signals
-    def test_lowering_impact_from_critical_reverts_to_default(self):
-        """
-        Changing a flaw's impact from CRITICAL to a lower value should
-        reclassify it back to the DEFAULT workflow (if no manual labels).
-        """
-        flaw = FlawFactory(
-            embargoed=False,
-            task_key="TASK-MANUAL-7",
-            impact=Impact.CRITICAL,
-        )
-        assert flaw.workflow_name == "MANUAL"
-
-        flaw.impact = Impact.MODERATE
-        flaw.save(raise_validation_error=False)
         assert flaw.workflow_name == "DEFAULT"
+
+        WorkflowLabel.objects.create(flaw=flaw, name="review-needed")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "REVIEW"
+
+    @pytest.mark.enable_signals
+    def test_removing_label_reverts_to_default_workflow(self):
+        """
+        Removing the review-needed label should reclassify the flaw
+        back to the DEFAULT workflow.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-REVIEW-1",
+            impact=Impact.MODERATE,
+        )
+        label = WorkflowLabel.objects.create(flaw=flaw, name="review-needed")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "REVIEW"
+
+        label.delete()
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "DEFAULT"
+
+    @pytest.mark.enable_signals
+    def test_approved_label_reverts_to_default_workflow(self):
+        """
+        Removing the review-needed label should reclassify the flaw
+        back to the DEFAULT workflow.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-REVIEW-1",
+            impact=Impact.MODERATE,
+        )
+        WorkflowLabel.objects.create(flaw=flaw, name="review-needed")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "REVIEW"
+
+        WorkflowLabel.objects.create(flaw=flaw, name="approved")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "DEFAULT"
+
+    @pytest.mark.enable_signals
+    def test_review_state_transitions(self):
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-REVIEW-2",
+            impact=Impact.MODERATE,
+            components=[],
+            cve_description="",
+            reported_dt=None,
+            source="",
+        )
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state == "NEW"
+
+        WorkflowLabel.objects.create(flaw=flaw, name="review-needed")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "REVIEW"
+        assert flaw.workflow_state == "NEW"
+
+        flaw.components = ["Dummy component"]
+        flaw.cve_description = "Dummy description here"
+        flaw.cwe_id = "CWE-9999"
+        flaw.reported_dt = flaw.created_dt
+        flaw.source = "INTERNET"
+        flaw.title = "Dummy title"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_name == "REVIEW"
+        assert flaw.workflow_state == "TRIAGE"
+
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        assert flaw.workflow_name == "REVIEW"
+        assert flaw.workflow_state == "ANALYSIS"
+
+        WorkflowLabel.objects.create(flaw=flaw, name="approved")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state == "ANALYSIS"
 
 
 class TestWorkflowFullTraversal:

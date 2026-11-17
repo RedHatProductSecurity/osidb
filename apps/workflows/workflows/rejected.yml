@@ -2,7 +2,7 @@
 name: REJECTED
 description: >
   Rejected vulnerability workflow.
-priority: 3
+priority: 4
 conditions:
   - condition: OR
     requirements:

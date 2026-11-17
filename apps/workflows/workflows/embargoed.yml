@@ -4,7 +4,7 @@ description: >
   Embargoed vulnerability workflow. Applies to flaws with embargo ACLs.
   The flaw must be unembargoed (made public) to reach DONE, at which
   point it falls off this workflow for final classification.
-priority: 2
+priority: 3
 conditions:
   - is embargoed
 states:
