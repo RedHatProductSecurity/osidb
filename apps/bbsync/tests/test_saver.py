@@ -12,6 +12,7 @@ pytestmark = pytest.mark.unit
 
 
 class TestBugzillaSaver:
+    @pytest.mark.vcr("TestBBSyncIntegration.test_update.yaml")
     def test_update(self, test_flaw, sentinel_err_message, monkeypatch):
         def update_bugs(*args, **kwargs):
             raise requests.exceptions.HTTPError(sentinel_err_message)

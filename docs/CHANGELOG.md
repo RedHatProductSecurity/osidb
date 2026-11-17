@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - implement affect-based trigger to keep BU labels in sync (OSIDB-5710)
+- Add Review Workflow to Flaws (OSIDB-5888)
 
 ### Changed
 - Bulk `PUT /affects/bulk` updates valid batches in one write and rejects the whole batch if any affect is invalid (OSIDB-4946)
@@ -15,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Remove an N+1 query over affects when serializing the flaw `trackers` field on `GET /flaws` (OSIDB-5681)
-
 
 ## [5.23.2] - 2026-11-12
 ### Changed
