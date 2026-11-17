@@ -193,6 +193,8 @@ def update_local_updated_dt_tracker(sender, instance, **kwargs):
 @receiver(post_save, sender=Affect)
 @receiver(post_delete, sender=Affect)
 def update_local_updated_dt_affect(sender, instance, **kwargs):
+    if getattr(instance, "_defer_flaw_save", False):
+        return
     flaw = instance.flaw
     flaw.refresh_from_db()
     with signal_pghistory_context(

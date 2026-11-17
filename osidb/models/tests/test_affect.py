@@ -19,6 +19,29 @@ pytestmark = pytest.mark.unit
 
 
 class TestAffect:
+    @pytest.mark.enable_signals
+    def test_deferred_flaw_save_restores_signal_on_failure(self, monkeypatch):
+        """Restore the affect signal even when a deferred batch fails."""
+        flaw = FlawFactory(task_key="OSIDB-5866")
+        affect = AffectFactory(flaw=flaw)
+        calls = []
+        original = type(flaw).classify
+
+        def classify(instance):
+            """Record classification calls for the affected flaw."""
+            if instance.pk == flaw.pk:
+                calls.append(instance.pk)
+            return original(instance)
+
+        monkeypatch.setattr(type(flaw), "classify", classify)
+        with pytest.raises(RuntimeError):
+            with affect.defer_flaw_save():
+                affect.save()
+                raise RuntimeError("interrupted batch")
+        assert calls == []
+        affect.save()
+        assert calls == [flaw.pk]
+
     @pytest.mark.parametrize(
         "affectedness,resolution,is_resolved",
         [
