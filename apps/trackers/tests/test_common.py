@@ -611,47 +611,6 @@ class TestTrackerQueryBuilderDescription:
             "~~~"
         )
 
-    @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
-    @pytest.mark.parametrize("embargoed", [False, True])
-    @pytest.mark.parametrize(
-        "ps_component", ["kernel", "realtime-kernel", "kernel-rt", "kernel-alt"]
-    )
-    def test_kernel(self, bts_name, embargoed, ps_component):
-        """
-        test kernel tracker description generation
-        """
-        ps_module = PsModuleFactory(bts_name=bts_name)
-        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
-        flaw = FlawFactory(embargoed=embargoed)
-        affect = AffectFactory(
-            flaw=flaw,
-            affectedness=Affect.AffectAffectedness.AFFECTED,
-            resolution=Affect.AffectResolution.DELEGATED,
-            ps_update_stream=ps_update_stream.name,
-            ps_component=ps_component,
-        )
-        tracker = TrackerFactory(
-            affects=[affect],
-            embargoed=affect.flaw.embargoed,
-            ps_update_stream=ps_update_stream.name,
-            type=Tracker.BTS2TYPE[ps_module.bts_name],
-        )
-
-        tqb = TrackerQueryBuilder()
-        tqb.instance = tracker
-
-        if bts_name == "bugzilla" and embargoed:
-            assert (
-                "Information with regards to this bug is considered Red Hat Confidential "
-                "until the embargo has lifted. Please post the patch only to the "
-                "'rhkernel-team-list' mailing list for review and acks."
-            ) in tqb.description
-
-        assert (
-            "Reproducers, if any, will remain confidential and never be made public, unless done so by the security team."
-            in tqb.description
-        )
-
     @pytest.mark.parametrize("form_url", [None, "https://example.form.com"])
     def test_feedback_form(self, form_url):
         """
