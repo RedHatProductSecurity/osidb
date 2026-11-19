@@ -2180,6 +2180,8 @@ class FlawLabelV1View(
             raise PermissionDenied(
                 {"label": "Product family labels cannot be deleted."}
             )
+        if instance.type == FlawLabel.LabelType.BU:
+            raise PermissionDenied({"label": "BU labels cannot be deleted."})
         return super().destroy(request, *args, **kwargs)
 
 
@@ -2217,6 +2219,8 @@ class FlawLabelView(
         instance = self.get_object()
         if instance.type == FlawLabel.LabelType.PRODUCT_FAMILY:
             raise PermissionDenied({"name": "Product family labels cannot be deleted."})
+        if instance.type == FlawLabel.LabelType.BU:
+            raise PermissionDenied({"name": "BU labels cannot be deleted."})
         return super().destroy(request, *args, **kwargs)
 
 
