@@ -5,15 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-### Changed
-- Bulk `PUT /affects/bulk` updates valid batches in one write and rejects the whole batch if any affect is invalid (OSIDB-4946)
-
-
 ### Added
 - implement affect-based trigger to keep BU labels in sync (OSIDB-5710)
 
 ### Changed
+- Bulk `PUT /affects/bulk` updates valid batches in one write and rejects the whole batch if any affect is invalid (OSIDB-4946)
 - Restrict the BU labels from being created/updated/deleted through API (OSIDB-5709)
+- Recognize middleware and services via the product definitions label attribute (OSIDB-5903)
 
 ## [5.23.2] - 2026-11-12
 ### Changed

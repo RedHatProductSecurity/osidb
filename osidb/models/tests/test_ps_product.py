@@ -7,18 +7,32 @@ pytestmark = pytest.mark.unit
 
 class TestPsProduct:
     @pytest.mark.parametrize(
-        "team,is_middleware",
+        "label,is_middleware",
         [
             ("middleware", True),
+            ("services", False),
             ("platforms", False),
-            ("cloudplatform", False),
             ("", False),
             (None, False),
         ],
     )
-    def test_is_middleware(self, team, is_middleware):
-        # is_middleware is derived purely from the team attribute
-        assert PsProduct(team=team).is_middleware == is_middleware
+    def test_is_middleware(self, label, is_middleware):
+        # is_middleware is derived purely from the label attribute
+        assert PsProduct(label=label).is_middleware == is_middleware
+
+    @pytest.mark.parametrize(
+        "label,is_service",
+        [
+            ("services", True),
+            ("middleware", False),
+            ("platforms", False),
+            ("", False),
+            (None, False),
+        ],
+    )
+    def test_is_service(self, label, is_service):
+        # is_service is derived purely from the label attribute
+        assert PsProduct(label=label).is_service == is_service
 
     @pytest.mark.parametrize(
         "business_unit,is_community",
