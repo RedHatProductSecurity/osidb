@@ -1833,8 +1833,7 @@ interactions:
     body: '{"fields": {"issuetype": {"name": "Bug"}, "project": {"key": "RHEL"}, "components":
       [{"name": "kernel"}], "priority": {"name": "Normal"}, "description": "Public
       Security Tracking Issue\n\nFlaw:\n-----\n\ntest validations\nhttps://bugzilla.stage.redhat.com/show_bug.cgi?id=2298479\n\nthis
-      is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-      never be made public, unless done so by the security team.", "labels": ["Security",
+      is a simple test\n\n~~~", "labels": ["Security",
       "SecurityTracking", "flaw:bz#2298479", "flawuuid:ea09fd50-c039-4656-8bb7-b3081b564f86",
       "pscomponent:kernel"], "duedate": "2024-09-28T13:27:06+00:00", "summary": "kernel:
       test validations [rhel-8]", "security": null}}'
@@ -2036,8 +2035,7 @@ interactions:
         null, "customfield_12322140": null, "customfield_12322141": null, "customfield_12316142":
         null, "customfield_12322142": null, "timeoriginalestimate": null, "description":
         "Public Security Tracking Issue\n\nFlaw:\n-----\n\ntest validations\nhttps://example.com/show_bug.cgi?id=2298479\n\nthis
-        is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-        never be made public, unless done so by the security team.", "customfield_12324843":
+        is a simple test\n\n~~~", "customfield_12324843":
         null, "customfield_12322148": null, "customfield_12324842": [], "timetracking":
         {}, "security": {"self": "https://example.com/rest/api/2/securitylevel/11694",
         "id": "11694", "description": "Restricts access to Red Hat employees who are
@@ -2274,8 +2272,7 @@ interactions:
         null, "customfield_12322140": null, "customfield_12322141": null, "customfield_12316142":
         null, "customfield_12322142": null, "timeoriginalestimate": null, "description":
         "Public Security Tracking Issue\n\nFlaw:\n-----\n\ntest validations\nhttps://example.com/show_bug.cgi?id=2298479\n\nthis
-        is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-        never be made public, unless done so by the security team.", "customfield_12324843":
+        is a simple test\n\n~~~", "customfield_12324843":
         null, "customfield_12322148": null, "customfield_12324842": [], "timetracking":
         {}, "security": {"self": "https://example.com/rest/api/2/securitylevel/11694",
         "id": "11694", "description": "Restricts access to Red Hat employees who are

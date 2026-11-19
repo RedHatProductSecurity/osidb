@@ -666,8 +666,7 @@ interactions:
       [{"name": "kernel / Other"}], "priority": {"name": "Critical"}, "description":
       "Security Tracking Issue\n\nDo not make this issue public.\n\nFlaw:\n-----\n\ntest
       validations\nhttps://bugzilla.stage.redhat.com/show_bug.cgi?id=2312352\n\nthis
-      is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-      never be made public, unless done so by the security team.", "labels": ["Security",
+      is a simple test\n\n~~~", "labels": ["Security",
       "SecurityTracking", "flaw:bz#2312352", "flawuuid:d3fe4e81-df6b-4aee-b1be-6d4a41564892",
       "pscomponent:kernel"], "summary": "kernel: test validations [rhel-8]", "security":
       {"name": "Red Hat Employee"}}}'
@@ -878,8 +877,7 @@ interactions:
         null, "customfield_12316142": null, "customfield_12322141": null, "customfield_12322142":
         null, "timeoriginalestimate": null, "description": "Security Tracking Issue\n\nDo
         not make this issue public.\n\nFlaw:\n-----\n\ntest validations\nhttps://example.com/show_bug.cgi?id=2312352\n\nthis
-        is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-        never be made public, unless done so by the security team.", "customfield_12322148":
+        is a simple test\n\n~~~", "customfield_12322148":
         null, "timetracking": {}, "security": {"self": "https://example.com/rest/api/2/securitylevel/11694",
         "id": "11694", "description": "Restricts access to Red Hat employees who are
         approved to view product development information", "name": "Red Hat Engineering
@@ -1110,8 +1108,7 @@ interactions:
         null, "customfield_12316142": null, "customfield_12322141": null, "customfield_12322142":
         null, "timeoriginalestimate": null, "description": "Security Tracking Issue\n\nDo
         not make this issue public.\n\nFlaw:\n-----\n\ntest validations\nhttps://example.com/show_bug.cgi?id=2312352\n\nthis
-        is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-        never be made public, unless done so by the security team.", "customfield_12322148":
+        is a simple test\n\n~~~", "customfield_12322148":
         null, "timetracking": {}, "security": {"self": "https://example.com/rest/api/2/securitylevel/11694",
         "id": "11694", "description": "Restricts access to Red Hat employees who are
         approved to view product development information", "name": "Red Hat Engineering
@@ -1207,8 +1204,7 @@ interactions:
       [{"name": "kernel / Other"}], "priority": {"name": "Critical"}, "description":
       "Security Tracking Issue\n\nDo not make this issue public.\n\nFlaw:\n-----\n\ntest
       validations\nhttps://bugzilla.stage.redhat.com/show_bug.cgi?id=2312352\n\nthis
-      is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-      never be made public, unless done so by the security team.", "labels": ["Security",
+      is a simple test\n\n~~~", "labels": ["Security",
       "SecurityTracking", "flaw:bz#2312352", "flawuuid:d3fe4e81-df6b-4aee-b1be-6d4a41564892",
       "pscomponent:kernel"], "summary": "kernel: test validations [rhel-8.10.z]",
       "security": {"name": "Red Hat Employee"}}}'
@@ -1422,8 +1418,7 @@ interactions:
         null, "customfield_12316142": null, "customfield_12322141": null, "customfield_12322142":
         null, "timeoriginalestimate": null, "description": "Security Tracking Issue\n\nDo
         not make this issue public.\n\nFlaw:\n-----\n\ntest validations\nhttps://example.com/show_bug.cgi?id=2312352\n\nthis
-        is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-        never be made public, unless done so by the security team.", "customfield_12322148":
+        is a simple test\n\n~~~", "customfield_12322148":
         null, "timetracking": {}, "security": {"self": "https://example.com/rest/api/2/securitylevel/11694",
         "id": "11694", "description": "Restricts access to Red Hat employees who are
         approved to view product development information", "name": "Red Hat Engineering
@@ -1654,8 +1649,7 @@ interactions:
         null, "customfield_12316142": null, "customfield_12322141": null, "customfield_12322142":
         null, "timeoriginalestimate": null, "description": "Security Tracking Issue\n\nDo
         not make this issue public.\n\nFlaw:\n-----\n\ntest validations\nhttps://example.com/show_bug.cgi?id=2312352\n\nthis
-        is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-        never be made public, unless done so by the security team.", "customfield_12322148":
+        is a simple test\n\n~~~", "customfield_12322148":
         null, "timetracking": {}, "security": {"self": "https://example.com/rest/api/2/securitylevel/11694",
         "id": "11694", "description": "Restricts access to Red Hat employees who are
         approved to view product development information", "name": "Red Hat Engineering

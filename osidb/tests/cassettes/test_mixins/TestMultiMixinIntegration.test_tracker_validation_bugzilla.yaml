@@ -1939,8 +1939,7 @@ interactions:
       "description": "fedora-all tracking bug for kernel: see the bugs linked in the
       \"Blocks\" field of this bug for full details of the security issue(s).\n\nThis
       bug is never intended to be made public, please put any public notes in the
-      blocked bugs.\n\nReproducers, if any, will remain confidential and never be
-      made public, unless done so by the security team.", "comment_is_private": false,
+      blocked bugs.", "comment_is_private": false,
       "flags": [], "groups": [], "keywords": ["Security", "SecurityTracking"], "summary":
       "kernel: test validations [fedora-all]", "whiteboard": "{\"flaws\": [\"c9073f7c-b538-41a7-8712-688ea3e75e57\"]}"}'
     headers:
@@ -2115,9 +2114,7 @@ interactions:
         "creation_time": "2024-08-09T13:26:54Z", "text": "fedora-all tracking bug
         for kernel: see the bugs linked in the \"Blocks\" field of this bug for full
         details of the security issue(s).\n\nThis bug is never intended to be made
-        public, please put any public notes in the blocked bugs.\n\nReproducers, if
-        any, will remain confidential and never be made public, unless done so by
-        the security team.", "id": 18026267, "time": "2024-08-09T13:26:54Z", "creator_id":
+        public, please put any public notes in the blocked bugs.", "id": 18026267, "time": "2024-08-09T13:26:54Z", "creator_id":
         482384, "private_groups": []}], "cf_clone_of": null, "creator_detail": {"active":
         true, "name": "conrado@redhat.com", "insider": true, "real_name": "Conrado
         Costa", "email": "conrado@redhat.com", "id": 482384, "partner": false}, "platform":
@@ -2177,9 +2174,7 @@ interactions:
         "active": false}, "target_milestone": "---", "description": "fedora-all tracking
         bug for kernel: see the bugs linked in the \"Blocks\" field of this bug for
         full details of the security issue(s).\n\nThis bug is never intended to be
-        made public, please put any public notes in the blocked bugs.\n\nReproducers,
-        if any, will remain confidential and never be made public, unless done so
-        by the security team.", "cf_qa_whiteboard": ""}]}'
+        made public, please put any public notes in the blocked bugs.", "cf_qa_whiteboard": ""}]}'
     headers:
       Access-Control-Allow-Headers:
       - origin, content-type, accept, x-requested-with

@@ -7,7 +7,6 @@ from functools import cached_property
 from apps.bbsync.constants import MAX_SUMMARY_LENGTH, MULTIPLE_DESCRIPTIONS_SUBSTITUTION
 from apps.bbsync.query import summary_shorten
 from apps.trackers.constants import (
-    KERNEL_PACKAGES,
     OSIM_URL,
     VIRTUALIZATION_PACKAGES,
     VULN_MGMT_INFO_URL,
@@ -195,23 +194,19 @@ class TrackerQueryBuilder:
             if self.tracker.type == Tracker.TrackerType.BUGZILLA:
                 description_parts.extend(self._description_bugzilla_footer())
 
-        # 4) another extra bit for kernel
-        if self.ps_component in KERNEL_PACKAGES:
-            description_parts.extend(TrackerQueryBuilder._description_kernel())
-
-        # 5) Link to vulnerability management information (internal trackers only)
+        # 4) Link to vulnerability management information (internal trackers only)
         if not self.ps_module.ps_product.is_community:
             description_parts.extend(self._description_vuln_mgmt_info())
 
-        # 5b) Manifest reference (internal trackers only)
+        # 4b) Manifest reference (internal trackers only)
         if not self.ps_module.ps_product.is_community:
             description_parts.extend(self._description_manifest())
 
-        # 6) Tracker feedback form for Jira
+        # 5) Tracker feedback form for Jira
         if self.tracker.type == Tracker.TrackerType.JIRA:
             description_parts.extend(self._description_feedback_form())
 
-        # 7) join the parts by empty lines
+        # 6) join the parts by empty lines
         return "\n\n".join(description_parts)
 
     def _description_bugzilla_footer(self):
@@ -221,13 +216,6 @@ class TrackerQueryBuilder:
         description_parts = []
 
         if self.tracker.is_embargoed:
-            if self.ps_component in KERNEL_PACKAGES:
-                description_parts.append(
-                    "Information with regards to this bug is considered Red Hat Confidential "
-                    "until the embargo has lifted. Please post the patch only to the "
-                    "'rhkernel-team-list' mailing list for review and acks."
-                )
-
             if self.ps_component in VIRTUALIZATION_PACKAGES:
                 description_parts.append(
                     "Information with regards to this bug is considered Red Hat Confidential "
@@ -330,15 +318,6 @@ class TrackerQueryBuilder:
             description_parts.append("Do not make this issue public.")
 
         return description_parts
-
-    def _description_kernel():
-        """
-        generate kernel tracker description text
-        """
-        return [
-            "Reproducers, if any, will remain confidential and never be made public, "
-            "unless done so by the security team."
-        ]
 
     def _description_feedback_form(self):
         """
