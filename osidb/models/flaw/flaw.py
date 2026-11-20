@@ -354,6 +354,7 @@ class Flaw(
 
         # provide the save diff as an argument
         # so we can freely save and still have it
+        old_acl_read = None
         if not self._state.adding:
             old_flaw = Flaw.objects.get(uuid=self.uuid)
 
@@ -364,9 +365,23 @@ class Flaw(
                         "old": getattr(old_flaw, field.name),
                         "new": getattr(self, field.name),
                     }
+
+            # unembargo() persists the ACL change in a save of its own so the
+            # comparison above cannot see it any more - it hands the old value
+            # forward instead and we record it here as a regular diff entry
+            old_acl_read = getattr(self, "_unembargo_acl_read", None)
+            if old_acl_read is not None:
+                diff.setdefault("acl_read", {"old": old_acl_read, "new": self.acl_read})
+
             kwargs["diff"] = diff
 
         super().save(*args, **kwargs)
+
+        # consume the handed-forward value only once the save has succeeded so
+        # that a rejected save - the validations run inside the save above -
+        # keeps it for a possible retry of the very same instance
+        if old_acl_read is not None:
+            self._unembargo_acl_read = None
 
     @validator
     def _validate_major_incident_state_reset(self, **kwargs) -> None:
