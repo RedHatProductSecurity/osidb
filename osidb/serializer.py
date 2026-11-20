@@ -1499,6 +1499,32 @@ class PackageSerializer(AlertMixinSerializer):
         fields = ["package", "versions"] + AlertMixinSerializer.Meta.fields
 
 
+# Written with Claude Code (claude-opus-5).
+def tracker_ids_by_flaw(flaw_ids):
+    """
+    Map flaw UUID (str) -> set of Tracker external system IDs, in a single query.
+
+    Lets the computed `trackers` field be serialized for a whole page of flaws
+    without issuing one query per flaw (OSIDB-5681).
+    """
+    mapping = defaultdict(set)
+    if not flaw_ids:
+        return mapping
+
+    # Important: the default Affect manager adds heavy annotations/subqueries,
+    # so go through the base manager. order_by() clears Affect.Meta.ordering,
+    # which would otherwise be folded into the DISTINCT.
+    rows = (
+        Affect._base_manager.filter(flaw_id__in=flaw_ids, tracker__isnull=False)
+        .values_list("flaw_id", "tracker__external_system_id")
+        .order_by()
+        .distinct()
+    )
+    for flaw_id, external_system_id in rows:
+        mapping[str(flaw_id)].add(external_system_id)
+    return mapping
+
+
 @extend_schema_field({"type": "array", "items": {"type": "string"}})
 class FlawAffectsTrackersField(serializers.Field):
     """All Tracker keys from all Flaw Affects are serialized into one list"""
@@ -1517,6 +1543,11 @@ class FlawAffectsTrackersField(serializers.Field):
                 }
             )
 
+        # A page of flaws is batched up-front by FlawListSerializer.
+        batched = self.context.get("trackers_by_flaw")
+        if batched is not None:
+            return list(batched.get(str(value.pk), set()))
+
         return list(
             set(
                 Affect._base_manager.filter(flaw_id=value.pk, tracker__isnull=False)
@@ -1524,6 +1555,34 @@ class FlawAffectsTrackersField(serializers.Field):
                 .distinct()
             )
         )
+
+
+class FlawListSerializer(serializers.ListSerializer):
+    """
+    ListSerializer for FlawSerializer that batches per-flaw lookups across a page.
+
+    Without this, the computed `trackers` field issues one query per flaw whenever
+    the affects prefetch is absent, which happens when the request excludes affects
+    or when IncludeFieldsFilterSet discards the prefetch because `trackers` is not
+    a Flaw model field (OSIDB-5681).
+    """
+
+    def to_representation(self, data):
+        instances = list(data)
+
+        # the field is dropped by IncludeExcludeFieldsMixin when not requested,
+        # in which case there is nothing to batch
+        if "trackers" in self.child.fields:
+            # flaws whose affects are already prefetched are served from memory
+            pending = [
+                flaw.pk
+                for flaw in instances
+                if "affects" not in getattr(flaw, "_prefetched_objects_cache", {})
+            ]
+            if pending:
+                self.child.context["trackers_by_flaw"] = tracker_ids_by_flaw(pending)
+
+        return super().to_representation(instances)
 
 
 class FlawAcknowledgmentSerializer(
@@ -2408,6 +2467,7 @@ class FlawSerializer(
         """filter fields"""
 
         model = Flaw
+        list_serializer_class = FlawListSerializer
         fields = (
             [
                 "uuid",

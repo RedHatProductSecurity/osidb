@@ -493,3 +493,102 @@ class TestQuerySetRegression:
                 format="json",
                 **headers,
             )
+
+
+# Written with Claude Code (claude-opus-5).
+def is_per_flaw_tracker_query(sql):
+    """
+    Identify the per-flaw tracker lookup issued by FlawAffectsTrackersField.
+
+    This is the query reported as an N+1 by Datadog (OSIDB-5681):
+
+        SELECT DISTINCT "osidb_tracker"."external_system_id", ...
+        FROM "osidb_affect" INNER JOIN "osidb_tracker" ON (...)
+        WHERE ("osidb_affect"."flaw_id" = ... AND "osidb_affect"."tracker_id" IS NOT NULL)
+    """
+    return (
+        "SELECT DISTINCT" in sql
+        and '"osidb_tracker"."external_system_id"' in sql
+        and 'FROM "osidb_affect"' in sql
+        and '"osidb_affect"."flaw_id" =' in sql
+    )
+
+
+class TestFlawListTrackersNPlusOne:
+    """
+    OSIDB-5681: the computed `trackers` field on GET /flaws must be resolved in a
+    bounded number of queries for the whole page, not one query per flaw.
+    """
+
+    NUM_FLAWS = 5
+    TRACKERS_PER_FLAW = 2
+
+    def build_flaws(self):
+        """Create NUM_FLAWS flaws, each with TRACKERS_PER_FLAW tracked affects."""
+        expected = {}
+        for _ in range(self.NUM_FLAWS):
+            flaw = FlawFactory(
+                embargoed=False,
+                impact=Impact.MODERATE,
+                major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+            )
+            external_ids = set()
+            for _ in range(self.TRACKERS_PER_FLAW):
+                ps_module = PsModuleFactory()
+                ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+                affect = AffectFactory(
+                    flaw=flaw,
+                    affectedness=Affect.AffectAffectedness.AFFECTED,
+                    resolution=Affect.AffectResolution.DELEGATED,
+                    impact=Impact.MODERATE,
+                    ps_update_stream=ps_update_stream.name,
+                )
+                tracker = TrackerFactory(
+                    affects=[affect],
+                    embargoed=False,
+                    ps_update_stream=ps_update_stream.name,
+                    type=Tracker.BTS2TYPE[ps_module.bts_name],
+                )
+                external_ids.add(tracker.external_system_id)
+            expected[str(flaw.uuid)] = external_ids
+        return expected
+
+    @pytest.mark.parametrize(
+        "query_params",
+        [
+            # the view prefetches affects for this, but IncludeFieldsFilterSet
+            # discards the prefetch because `trackers` is not a Flaw model field
+            "include_fields=uuid,cve_id,trackers",
+            # the view skips the affects prefetch, but `trackers` is still rendered
+            "exclude_fields=affects",
+        ],
+    )
+    def test_trackers_resolved_without_per_flaw_query(
+        self, auth_client, test_api_v2_uri, query_params
+    ):
+        """
+        Serializing `trackers` for a page of flaws must not scale with page size,
+        and must still return the correct tracker IDs for every flaw.
+        """
+        expected = self.build_flaws()
+
+        with CaptureQueriesContext(connection) as ctx:
+            response = auth_client().get(f"{test_api_v2_uri}/flaws?{query_params}")
+            assert response.status_code == 200
+            results = response.json()["results"]
+
+        # correctness: a batched implementation must not lose or mix up trackers
+        assert len(results) == self.NUM_FLAWS
+        actual = {flaw["uuid"]: set(flaw["trackers"]) for flaw in results}
+        assert actual == expected
+
+        # performance: at most one tracker lookup for the whole page
+        per_flaw_queries = [
+            q["sql"]
+            for q in ctx.captured_queries
+            if is_per_flaw_tracker_query(q["sql"])
+        ]
+        assert len(per_flaw_queries) <= 1, (
+            f"{len(per_flaw_queries)} per-flaw tracker queries for "
+            f"{self.NUM_FLAWS} flaws (N+1); first was:\n{per_flaw_queries[0]}"
+        )
