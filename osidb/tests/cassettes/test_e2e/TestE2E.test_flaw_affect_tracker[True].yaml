@@ -670,8 +670,7 @@ interactions:
       IS CURRENTLY EMBARGOED, DO NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.\n\nWARNING:
       NOTICE THAT CHANGING THE SECURITY LEVEL FROM \"SECURITY ISSUE\" TO \"RED HAT
       INTERNAL\" MAY BREAK THE EMBARGO.\n\nFlaw:\n-----\n\ntest validations\nhttps://bugzilla.stage.redhat.com/show_bug.cgi?id=2312351\n\nthis
-      is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-      never be made public, unless done so by the security team.", "labels": ["Security",
+      is a simple test\n\n~~~", "labels": ["Security",
       "SecurityTracking", "flaw:bz#2312351", "flawuuid:bff85e2a-bdd9-4c5e-8b54-e1cc426a4104",
       "pscomponent:kernel"], "summary": "EMBARGOED kernel: test validations [rhel-8]",
       "security": {"name": "Embargoed Security Issue"}}}'
@@ -885,8 +884,7 @@ interactions:
         NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.\n\nWARNING: NOTICE THAT
         CHANGING THE SECURITY LEVEL FROM \"SECURITY ISSUE\" TO \"RED HAT INTERNAL\"
         MAY BREAK THE EMBARGO.\n\nFlaw:\n-----\n\ntest validations\nhttps://example.com/show_bug.cgi?id=2312351\n\nthis
-        is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-        never be made public, unless done so by the security team.", "customfield_12322148":
+        is a simple test\n\n~~~", "customfield_12322148":
         null, "timetracking": {}, "security": {"self": "https://example.com/rest/api/2/securitylevel/11690",
         "id": "11690", "description": "Restricts access to Product Security and the
         people involved in resolving the issue. Only Product Security can remove this
@@ -1121,8 +1119,7 @@ interactions:
         NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.\n\nWARNING: NOTICE THAT
         CHANGING THE SECURITY LEVEL FROM \"SECURITY ISSUE\" TO \"RED HAT INTERNAL\"
         MAY BREAK THE EMBARGO.\n\nFlaw:\n-----\n\ntest validations\nhttps://example.com/show_bug.cgi?id=2312351\n\nthis
-        is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-        never be made public, unless done so by the security team.", "customfield_12322148":
+        is a simple test\n\n~~~", "customfield_12322148":
         null, "timetracking": {}, "security": {"self": "https://example.com/rest/api/2/securitylevel/11690",
         "id": "11690", "description": "Restricts access to Product Security and the
         people involved in resolving the issue. Only Product Security can remove this
@@ -1221,8 +1218,7 @@ interactions:
       IS CURRENTLY EMBARGOED, DO NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.\n\nWARNING:
       NOTICE THAT CHANGING THE SECURITY LEVEL FROM \"SECURITY ISSUE\" TO \"RED HAT
       INTERNAL\" MAY BREAK THE EMBARGO.\n\nFlaw:\n-----\n\ntest validations\nhttps://bugzilla.stage.redhat.com/show_bug.cgi?id=2312351\n\nthis
-      is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-      never be made public, unless done so by the security team.", "labels": ["Security",
+      is a simple test\n\n~~~", "labels": ["Security",
       "SecurityTracking", "flaw:bz#2312351", "flawuuid:bff85e2a-bdd9-4c5e-8b54-e1cc426a4104",
       "pscomponent:kernel"], "summary": "EMBARGOED kernel: test validations [rhel-8.10.z]",
       "security": {"name": "Embargoed Security Issue"}}}'
@@ -1436,8 +1432,7 @@ interactions:
         NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.\n\nWARNING: NOTICE THAT
         CHANGING THE SECURITY LEVEL FROM \"SECURITY ISSUE\" TO \"RED HAT INTERNAL\"
         MAY BREAK THE EMBARGO.\n\nFlaw:\n-----\n\ntest validations\nhttps://example.com/show_bug.cgi?id=2312351\n\nthis
-        is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-        never be made public, unless done so by the security team.", "customfield_12322148":
+        is a simple test\n\n~~~", "customfield_12322148":
         null, "timetracking": {}, "security": {"self": "https://example.com/rest/api/2/securitylevel/11690",
         "id": "11690", "description": "Restricts access to Product Security and the
         people involved in resolving the issue. Only Product Security can remove this
@@ -1672,8 +1667,7 @@ interactions:
         NOT MAKE PUBLIC COMMITS OR COMMENTS ABOUT THIS ISSUE.\n\nWARNING: NOTICE THAT
         CHANGING THE SECURITY LEVEL FROM \"SECURITY ISSUE\" TO \"RED HAT INTERNAL\"
         MAY BREAK THE EMBARGO.\n\nFlaw:\n-----\n\ntest validations\nhttps://example.com/show_bug.cgi?id=2312351\n\nthis
-        is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-        never be made public, unless done so by the security team.", "customfield_12322148":
+        is a simple test\n\n~~~", "customfield_12322148":
         null, "timetracking": {}, "security": {"self": "https://example.com/rest/api/2/securitylevel/11690",
         "id": "11690", "description": "Restricts access to Product Security and the
         people involved in resolving the issue. Only Product Security can remove this
@@ -1769,8 +1763,7 @@ interactions:
     body: '{"fields": {"issuetype": {"name": "Bug"}, "project": {"key": "RHEL"}, "priority":
       {"name": "Critical"}, "description": "Security Tracking Issue\n\nDo not make
       this issue public.\n\nFlaw:\n-----\n\ntest validations\nhttps://bugzilla.stage.redhat.com/show_bug.cgi?id=2312351\n\nthis
-      is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-      never be made public, unless done so by the security team.", "labels": ["Security",
+      is a simple test\n\n~~~", "labels": ["Security",
       "SecurityTracking", "flaw:bz#2312351", "flawuuid:bff85e2a-bdd9-4c5e-8b54-e1cc426a4104",
       "flawuuid:bff85e2a-bdd9-4c5e-8b54-e1cc426a4104", "pscomponent:kernel"], "summary":
       "kernel: test validations [rhel-8]", "security": {"name": "Red Hat Employee"}},
@@ -1841,8 +1834,7 @@ interactions:
     body: '{"fields": {"issuetype": {"name": "Bug"}, "project": {"key": "RHEL"}, "priority":
       {"name": "Critical"}, "description": "Security Tracking Issue\n\nDo not make
       this issue public.\n\nFlaw:\n-----\n\ntest validations\nhttps://bugzilla.stage.redhat.com/show_bug.cgi?id=2312351\n\nthis
-      is a simple test\n\n~~~\n\nReproducers, if any, will remain confidential and
-      never be made public, unless done so by the security team.", "labels": ["Security",
+      is a simple test\n\n~~~", "labels": ["Security",
       "SecurityTracking", "flaw:bz#2312351", "flawuuid:bff85e2a-bdd9-4c5e-8b54-e1cc426a4104",
       "flawuuid:bff85e2a-bdd9-4c5e-8b54-e1cc426a4104", "pscomponent:kernel"], "summary":
       "kernel: test validations [rhel-8.10.z]", "security": {"name": "Red Hat Employee"}},
