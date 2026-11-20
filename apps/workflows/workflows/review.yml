@@ -1,0 +1,52 @@
+---
+name: REVIEW
+description: >
+  Automated vulnerability processing workflow with a mandatory human review
+  to either approve or update the flaw before the trackers can be filed.
+priority: 2
+conditions:
+  - has label review-needed
+  - has not label approved
+states:
+  - name: NEW
+    description: >
+      A new flaw arrived into the queue.
+    jira_state: New
+    jira_resolution: null
+    requirements: []
+
+  - name: TRIAGE
+    description: >
+      The flaw has passed automated initial triage. Basic data has been
+      filled in and the flaw is ready for affect creation and to get public.
+    jira_state: Refinement
+    jira_resolution: null
+    visibility: PUBLIC
+    requirements:
+      - has components
+      - has cve_description
+      - has CWE
+      - has reported_dt
+      - has source
+      - has title
+      
+  - name: ANALYSIS
+    description: >
+      Affects have been created and are being analysed. Each affect
+      needs to be resolved before the flaw can proceed.
+    jira_state: Refinement
+    jira_resolution: null
+    requirements:
+      - has affects
+
+  - name: PRE_SECONDARY_ASSESSMENT
+    description: >
+      Reaching PRE_SECONDARY_ASSESSMENT requires the flaw to get the approval
+      which makes it effectively unreachable (due to conflicting workflow condition).
+      This serves as a gating mechanism making sure it eventually falls off this
+      workflow and gets finalized the standard way when the approval is granted.
+    jira_state: To Do
+    jira_resolution: null
+    requirements:
+      - has label approved
+      - has affects resolved

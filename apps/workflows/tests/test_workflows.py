@@ -444,6 +444,105 @@ class TestManualWorkflow:
         assert flaw.workflow_name == "DEFAULT"
 
 
+class TestReviewWorkflow:
+    @pytest.mark.enable_signals
+    def test_review_needed_label_triggers_review_workflow(self):
+        """
+        A flaw with a review-needed label should be classified under the
+        REVIEW workflow instead of MANUAL.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-REVIEW-1",
+            impact=Impact.MODERATE,
+        )
+        assert flaw.workflow_name == "DEFAULT"
+
+        WorkflowLabel.objects.create(flaw=flaw, name="review-needed")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "REVIEW"
+
+    @pytest.mark.enable_signals
+    def test_removing_label_reverts_to_default_workflow(self):
+        """
+        Removing the review-needed label should reclassify the flaw
+        back to the DEFAULT workflow.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-REVIEW-1",
+            impact=Impact.MODERATE,
+        )
+        label = WorkflowLabel.objects.create(flaw=flaw, name="review-needed")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "REVIEW"
+
+        label.delete()
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "DEFAULT"
+
+    @pytest.mark.enable_signals
+    def test_approved_label_reverts_to_default_workflow(self):
+        """
+        Removing the review-needed label should reclassify the flaw
+        back to the DEFAULT workflow.
+        """
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-REVIEW-1",
+            impact=Impact.MODERATE,
+        )
+        WorkflowLabel.objects.create(flaw=flaw, name="review-needed")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "REVIEW"
+
+        WorkflowLabel.objects.create(flaw=flaw, name="approved")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "DEFAULT"
+
+    @pytest.mark.enable_signals
+    def test_review_state_transitions(self):
+        flaw = FlawFactory(
+            embargoed=False,
+            task_key="TASK-REVIEW-2",
+            impact=Impact.MODERATE,
+            components=[],
+            cve_description="",
+            reported_dt=None,
+            source="",
+        )
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state == "NEW"
+
+        WorkflowLabel.objects.create(flaw=flaw, name="review-needed")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "REVIEW"
+        assert flaw.workflow_state == "NEW"
+
+        flaw.components = ["Dummy component"]
+        flaw.cve_description = "Dummy description here"
+        flaw.cwe_id = "CWE-9999"
+        flaw.reported_dt = flaw.created_dt
+        flaw.source = "INTERNET"
+        flaw.title = "Dummy title"
+        flaw.save(raise_validation_error=False)
+        assert flaw.workflow_name == "REVIEW"
+        assert flaw.workflow_state == "TRIAGE"
+
+        AffectFactory(
+            flaw=flaw,
+            affectedness=Affect.AffectAffectedness.NEW,
+            resolution=Affect.AffectResolution.NOVALUE,
+        )
+        assert flaw.workflow_name == "REVIEW"
+        assert flaw.workflow_state == "ANALYSIS"
+
+        WorkflowLabel.objects.create(flaw=flaw, name="approved")
+        flaw.refresh_from_db()
+        assert flaw.workflow_name == "DEFAULT"
+        assert flaw.workflow_state == "ANALYSIS"
+
+
 class TestWorkflowFullTraversal:
     """
     End-to-end traversals of each workflow, walking a flaw through every state

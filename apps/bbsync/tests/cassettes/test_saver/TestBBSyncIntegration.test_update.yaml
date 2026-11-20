@@ -1,0 +1,461 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh97"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '24'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 14 Jun 2024 13:37:30 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.692645f.1718372250.246fb78
+      x-rh-edge-request-id:
+      - 246fb78
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"real_name": "Need Real Name", "id": 1, "email": "aander07@packetmaster.com",
+        "name": "aander07@packetmaster.com", "can_login": true}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '137'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 14 Jun 2024 13:37:30 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.692645f.1718372250.246fea0
+      x-rh-edge-request-id:
+      - 246fea0
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"product": "Security Response", "op_sys": "Linux", "platform": "All",
+      "version": "unspecified", "component": "vulnerability-draft", "cf_release_notes":
+      "", "severity": "low", "priority": "low", "summary": "CVE-2024-0126 curl: Foo",
+      "description": "test", "comment_is_private": false, "alias": ["CVE-2024-0126"],
+      "keywords": ["Security"], "flags": [], "groups": [], "cc": [], "cf_srtnotes":
+      "{\"public\": \"2000-01-01T22:03:26Z\", \"reported\": \"2022-11-22T15:55:22Z\",
+      \"impact\": \"low\", \"source\": \"internet\", \"mitigation\": \"mitigation\"}"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '551'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: POST
+    uri: https://example.com/rest/bug
+  response:
+    body:
+      string: '{"id": 2293325}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '14'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 14 Jun 2024 13:37:31 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.692645f.1718372250.24704ac
+      x-rh-edge-request-id:
+      - 24704ac
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/version
+  response:
+    body:
+      string: '{"version": "5.0.4.rh97"}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '24'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 14 Jun 2024 13:37:32 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.692645f.1718372251.2471f62
+      x-rh-edge-request-id:
+      - 2471f62
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/user?ids=1
+  response:
+    body:
+      string: '{"users": [{"real_name": "Need Real Name", "can_login": true, "name":
+        "aander07@packetmaster.com", "email": "aander07@packetmaster.com", "id": 1}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '137'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 14 Jun 2024 13:37:32 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.692645f.1718372252.247240e
+      x-rh-edge-request-id:
+      - 247240e
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/bug/2293325?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
+  response:
+    body:
+      string: '{"faults": [], "bugs": [{"assigned_to_detail": {"id": 377884, "email":
+        "prodsec-dev@redhat.com", "name": "prodsec-dev@redhat.com", "partner": false,
+        "insider": true, "active": true, "real_name": "Product Security DevOps Team"},
+        "target_release": ["---"], "platform": "All", "assigned_to": "prodsec-dev@redhat.com",
+        "cf_clone_of": null, "cf_major_incident": null, "cf_pgm_internal": "", "is_cc_accessible":
+        true, "cf_devel_whiteboard": "", "is_creator_accessible": true, "qa_contact":
+        "", "cf_srtnotes": "{\"public\": \"2000-01-01T22:03:26Z\", \"reported\": \"2022-11-22T15:55:22Z\",
+        \"impact\": \"low\", \"source\": \"internet\", \"mitigation\": \"mitigation\"}",
+        "data_category": "Public", "classification": "Other", "sub_components": {},
+        "component": ["vulnerability-draft"], "cf_doc_type": "If docs needed, set
+        a value", "description": "test", "alias": ["CVE-2024-0126"], "cf_cust_facing":
+        "---", "cc": [], "id": 2293325, "priority": "low", "url": "", "cc_detail":
+        [], "version": ["unspecified"], "cf_internal_whiteboard": "", "severity":
+        "low", "cf_environment": "", "flags": [], "comments": [{"bug_id": 2293325,
+        "is_private": false, "attachment_id": null, "creation_time": "2024-06-14T13:37:31Z",
+        "id": 18019930, "private_groups": [], "count": 0, "tags": [], "creator": "osoukup@redhat.com",
+        "text": "test", "creator_id": 412888, "time": "2024-06-14T13:37:31Z"}], "depends_on":
+        [], "cf_conditional_nak": [], "keywords": ["Security"], "docs_contact": "",
+        "cf_qa_whiteboard": "", "cf_embargoed": null, "product": "Security Response",
+        "creation_time": "2024-06-14T13:37:31Z", "external_bugs": [], "estimated_time":
+        0, "creator_detail": {"insider": true, "real_name": "Ondrej Soukup", "active":
+        true, "partner": false, "name": "osoukup@redhat.com", "id": 412888, "email":
+        "osoukup@redhat.com"}, "summary": "CVE-2024-0126 curl: Foo", "cf_qe_conditional_nak":
+        [], "op_sys": "Linux", "tags": [], "deadline": null, "is_confirmed": true,
+        "blocks": [], "actual_time": 0, "resolution": "",
+        "cf_build_id": "", "cf_pm_score": "0", "last_change_time": "2024-06-14T13:37:31Z",
+        "cf_last_closed": null, "dupe_of": null, "target_milestone": "---", "cf_release_notes":
+        "", "is_open": true, "status": "NEW", "whiteboard": "", "cf_fixed_in": "",
+        "remaining_time": 0, "creator": "osoukup@redhat.com", "groups": []}]}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 14 Jun 2024 13:37:32 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '2190'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.692645f.1718372252.2472a4b
+      x-rh-edge-request-id:
+      - 2472a4b
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/bug/2293325?extra_fields=comments&extra_fields=description&extra_fields=external_bugs&extra_fields=flags&extra_fields=sub_components&extra_fields=tags
+  response:
+    body:
+      string: '{"bugs": [{"cf_embargoed": null, "cf_qa_whiteboard": "", "docs_contact":
+        "", "keywords": ["Security"], "cf_conditional_nak": [], "depends_on": [],
+        "comments": [{"time": "2024-06-14T13:37:31Z", "creator_id": 412888, "creator":
+        "osoukup@redhat.com", "text": "test", "tags": [], "count": 0, "id": 18019930,
+        "private_groups": [], "bug_id": 2293325, "attachment_id": null, "creation_time":
+        "2024-06-14T13:37:31Z", "is_private": false}], "cf_environment": "", "flags":
+        [], "version": ["unspecified"], "severity": "low", "cf_internal_whiteboard":
+        "", "cc_detail": [], "url": "", "priority": "low", "id": 2293325, "cc": [],
+        "cf_cust_facing": "---", "alias": ["CVE-2024-0126"], "component": ["vulnerability-draft"],
+        "cf_doc_type": "If docs needed, set a value", "description": "test", "sub_components":
+        {}, "classification": "Other", "data_category": "Public", "qa_contact": "",
+        "cf_srtnotes": "{\"public\": \"2000-01-01T22:03:26Z\", \"reported\": \"2022-11-22T15:55:22Z\",
+        \"impact\": \"low\", \"source\": \"internet\", \"mitigation\": \"mitigation\"}",
+        "is_creator_accessible": true, "cf_devel_whiteboard": "", "cf_pgm_internal":
+        "", "is_cc_accessible": true, "cf_major_incident": null, "cf_clone_of": null,
+        "platform": "All", "assigned_to": "prodsec-dev@redhat.com", "target_release":
+        ["---"], "assigned_to_detail": {"active": true, "real_name": "Product Security
+        DevOps Team", "insider": true, "partner": false, "name": "prodsec-dev@redhat.com",
+        "email": "prodsec-dev@redhat.com", "id": 377884}, "groups": [], "remaining_time":
+        0, "creator": "osoukup@redhat.com", "cf_fixed_in": "", "status": "NEW", "whiteboard":
+        "", "is_open": true, "cf_release_notes": "", "target_milestone": "---", "dupe_of":
+        null, "cf_last_closed": null, "last_change_time": "2024-06-14T13:37:31Z",
+        "cf_pm_score": "0",
+        "cf_build_id": "", "resolution": "", "is_confirmed": true, "blocks": [], "actual_time":
+        0, "deadline": null, "tags": [], "op_sys": "Linux", "cf_qe_conditional_nak":
+        [], "creator_detail": {"partner": false, "active": true, "real_name": "Ondrej
+        Soukup", "insider": true, "email": "osoukup@redhat.com", "id": 412888, "name":
+        "osoukup@redhat.com"}, "summary": "CVE-2024-0126 curl: Foo", "estimated_time":
+        0, "product": "Security Response", "creation_time": "2024-06-14T13:37:31Z",
+        "external_bugs": []}], "faults": []}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 14 Jun 2024 13:37:33 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      Vary:
+      - Accept-Encoding
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      content-length:
+      - '2190'
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.692645f.1718372252.2473594
+      x-rh-edge-request-id:
+      - '2473594'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-bugzilla/3.2.0
+    method: GET
+    uri: https://example.com/rest/bug/2293325/comment
+  response:
+    body:
+      string: '{"comments": {}, "bugs": {"2293325": {"comments": [{"attachment_id":
+        null, "count": 0, "id": 18019930, "is_private": false, "creator_id": 412888,
+        "tags": [], "time": "2024-06-14T13:37:31Z", "bug_id": 2293325, "creator":
+        "osoukup@redhat.com", "creation_time": "2024-06-14T13:37:31Z", "text": "test",
+        "private_groups": []}]}}}'
+    headers:
+      Access-Control-Allow-Headers:
+      - origin, content-type, accept, x-requested-with
+      Access-Control-Allow-Origin:
+      - '*'
+      Cache-Control:
+      - private, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '296'
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Fri, 14 Jun 2024 13:37:34 GMT
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains
+      X-content-type-options:
+      - nosniff
+      X-xss-protection:
+      - 1; mode=block
+      x-rh-edge-cache-status:
+      - Miss from child, Miss from parent
+      x-rh-edge-reference-id:
+      - 0.692645f.1718372253.24742a4
+      x-rh-edge-request-id:
+      - 24742a4
+    status:
+      code: 200
+      message: OK
+version: 1
