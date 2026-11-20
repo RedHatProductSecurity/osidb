@@ -72,6 +72,11 @@ class OsvPackageInfo:
     fixed: str  # "" means "no fix yet / unknown"
     last_affected: str  # alternative to fixed (inclusive upper bound)
     range_groups: list[_RangeGroup] | None = None
+    # Status of versions outside the converted intervals. CVE.org sets ranges
+    # from defaultStatus; unknown means the record does not establish it.
+    outside_status: str = "unaffected"
+    # CVE platforms this range applies to. Empty means every platform.
+    platforms: tuple[str, ...] = ()
 
     def affected_range(self) -> str | None:
         """
@@ -182,28 +187,31 @@ def osv_entry_to_package_info(entry: dict) -> OsvPackageInfo:
         fixed=first.fixed,
         last_affected=first.last_affected,
         range_groups=range_groups or None,
+        outside_status=entry.get("outside_status", "unaffected"),
+        platforms=_entry_platforms(entry),
     )
 
 
-def _entry_matches(needle: str, entry: dict, parsed_purl, ecosystem: str) -> bool:
-    """Check if an upstream_purls entry matches the component name and ecosystem."""
-    if ecosystem:
-        if parsed_purl:
-            purl_type = parsed_purl.type
-        else:
-            raw_eco = (entry.get("ecosystem") or "").lower()
-            purl_type = OSV_ECOSYSTEM_MAP.get(raw_eco, raw_eco)
-        if purl_type != ecosystem:
-            return False
+def _entry_platforms(entry: dict) -> tuple[str, ...]:
+    raw = entry.get("platforms")
+    if not isinstance(raw, list):
+        return ()
+    return tuple(raw)
 
-    entry_name = (entry.get("name") or "").strip().lower()
-    if entry_name and entry_name == needle:
+
+def _entry_ecosystem_matches(entry: dict, parsed_purl, ecosystem: str) -> bool:
+    """True when the entry's package type matches ``ecosystem``.
+
+    An empty ecosystem accepts every entry.
+    """
+    if not ecosystem:
         return True
-
-    if parsed_purl and parsed_purl.name.lower() == needle:
-        return True
-
-    return False
+    if parsed_purl:
+        purl_type = parsed_purl.type
+    else:
+        raw_eco = (entry.get("ecosystem") or "").lower()
+        purl_type = OSV_ECOSYSTEM_MAP.get(raw_eco, raw_eco)
+    return purl_type == ecosystem
 
 
 def match_component_to_upstream(
@@ -222,9 +230,11 @@ def match_component_to_upstream(
     ecosystem are considered. This prevents selecting the wrong OSV range when
     the same component exists in multiple ecosystems.
 
-    Matching is case-insensitive and tries two strategies in order:
-      1. ``entry["name"]`` directly
-      2. The ``name`` part of ``entry["purl"]`` (via PackageURL)
+    Matching is case-insensitive. A package name wins over a different
+    product alias, and the PURL name is used only when neither matches.
+    Entries at the winning level are merged. A platform-restricted entry
+    is not usable: ACE has no CVE platform on a build, so any restricted
+    match is left unresolved, including one beside an unrestricted sibling.
 
     Returns a merged OsvPackageInfo, or None if no entry matches.
     """
@@ -232,7 +242,9 @@ def match_component_to_upstream(
     if not needle:
         return None
 
-    matches: list[OsvPackageInfo] = []
+    named: list[OsvPackageInfo] = []
+    aliased: list[OsvPackageInfo] = []
+    purled: list[OsvPackageInfo] = []
 
     for entry in upstream_purls or []:
         purl_str = entry.get("purl") or ""
@@ -244,9 +256,22 @@ def match_component_to_upstream(
                 log.debug("Skipping malformed upstream PURL %r", purl_str)
                 continue
 
-        if _entry_matches(needle, entry, parsed_purl, ecosystem):
-            matches.append(osv_entry_to_package_info(entry))
+        if not _entry_ecosystem_matches(entry, parsed_purl, ecosystem):
+            continue
+        name = (entry.get("name") or "").strip().lower()
+        product = (entry.get("product") or "").strip().lower()
+        purl_name = parsed_purl.name.lower() if parsed_purl else ""
+        if needle not in (name, product, purl_name):
+            continue
+        info = osv_entry_to_package_info(entry)
+        if name == needle:
+            named.append(info)
+        elif product == needle:
+            aliased.append(info)
+        else:
+            purled.append(info)
 
+    matches = named or aliased or purled
     if not matches:
         return None
 
@@ -256,6 +281,8 @@ def match_component_to_upstream(
     # first match, so that version comparison uses the correct algorithm.
     first = matches[0]
     matches = [m for m in matches if m.ecosystem == first.ecosystem]
+    if any(info.platforms for info in matches):
+        return None
 
     if len(matches) == 1:
         return matches[0]
@@ -279,6 +306,9 @@ def match_component_to_upstream(
 
     # Derive legacy fields from the first collected group
     first_group = all_groups[0] if all_groups else _RangeGroup("", "", "")
+    outside = matches[0].outside_status
+    if any(info.outside_status != outside for info in matches):
+        outside = "unknown"
     return OsvPackageInfo(
         name=first.name,
         ecosystem=first.ecosystem,
@@ -287,4 +317,5 @@ def match_component_to_upstream(
         fixed=first_group.fixed,
         last_affected=first_group.last_affected,
         range_groups=all_groups or None,
+        outside_status=outside,
     )

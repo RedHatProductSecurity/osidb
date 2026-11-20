@@ -176,6 +176,59 @@ def test_match_by_name_case_insensitive():
     assert result.name == "openssl"
 
 
+def test_match_by_product_alias():
+    upstream_purls = _make_upstream_purls()
+    openssl = upstream_purls[1]
+    openssl["name"] = "libssl"
+    openssl["product"] = "openssl"
+    openssl["purl"] = "pkg:rpm/redhat/libssl"
+    result = match_component_to_upstream("openssl", upstream_purls)
+    assert result is not None
+    assert result.fixed == "3.0.9"
+
+
+def _named_entry(name, fixed, product="", introduced="0", platforms=None):
+    result = {
+        "name": name,
+        "ecosystem": "generic",
+        "ranges": [
+            {
+                "type": "ECOSYSTEM",
+                "events": [{"introduced": introduced}, {"fixed": fixed}],
+            }
+        ],
+        "versions": [],
+    }
+    if product:
+        result["product"] = product
+    if platforms is not None:
+        result["platforms"] = platforms
+    return result
+
+
+def test_package_name_is_preferred_when_it_differs_from_product():
+    entries = [
+        _named_entry("libssl", "3.0.9", "openssl"),
+        _named_entry("openssl", "9.9.9"),
+    ]
+    result = match_component_to_upstream("openssl", entries)
+    assert result is not None
+    assert result.fixed == "9.9.9"
+    display_name = _named_entry("NGINX Open Source", "1.2.3")
+    assert match_component_to_upstream("nginx", [display_name]) is None
+
+
+def test_platform_restricted_match_is_unresolved():
+    linux = _named_entry("demo", "4", introduced="3", platforms=["Linux"])
+    windows = _named_entry("demo", "2", introduced="1", platforms=["Windows"])
+    open_range = _named_entry("demo", "4", introduced="3")
+    assert match_component_to_upstream("demo", [linux, windows]) is None
+    assert match_component_to_upstream("demo", [open_range, windows]) is None
+    result = match_component_to_upstream("demo", [open_range])
+    assert result is not None
+    assert result.affected_range() == ">= 3, < 4"
+
+
 def test_match_by_purl_name():
     upstream_purls = _make_upstream_purls()
     upstream_purls[0]["name"] = "different-display-name"

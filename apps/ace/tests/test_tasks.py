@@ -24,6 +24,7 @@ from apps.ace.tasks import (
     SpecialWorkflow,
     _aegis_ecosystems,
     _is_go_stdlib_component,
+    _package_info_for_component,
     _pre_filter_component,
     _resolve_component,
     sync_flaw_affects_from_newcli,
@@ -610,6 +611,273 @@ def test_sync_returns_marked_notaffected_count(
         "marked_notaffected": 2,
         "pre_filtered": 0,
     }
+
+
+def _cve_record(
+    product,
+    less_than="3.0.9",
+    default_status=None,
+    *,
+    version="0",
+    version_type="semver",
+):
+    entry = {"version": version, "status": "affected", "versionType": version_type}
+    if less_than is not None:
+        entry["lessThan"] = less_than
+    affected = {"product": product, "versions": [entry]}
+    if default_status:
+        affected["defaultStatus"] = default_status
+    return {"containers": {"cna": {"affected": [affected]}}}
+
+
+def _openssl_flaw():
+    return FlawFactory(
+        components=["openssl"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+
+
+def _query_openssl(monkeypatch, mock_querier, result, version):
+    purl = f"pkg:rpm/redhat/openssl@{version}?arch=src"
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        mock_querier({"openssl": [result("rhel-9.8.z", purl)]}),
+    )
+
+
+def _cveorg_entry(name, ecosystem, fixed, purl=""):
+    return {
+        "name": name,
+        "ecosystem": ecosystem,
+        "purl": purl,
+        "ranges": [
+            {"type": "ECOSYSTEM", "events": [{"introduced": "0"}, {"fixed": fixed}]}
+        ],
+        "versions": [],
+    }
+
+
+@pytest.mark.parametrize(
+    "entries, ecosystem, expected_range",
+    [
+        ([("demo", "npm", "1.5.0"), ("demo", "maven", "5.0.0")], "maven", "< 5.0.0"),
+        ([("demo", "npm", "1.5.0")], "maven", None),
+        (
+            [("demo", "generic", "1.5.0"), ("demo", "maven", "5.0.0")],
+            "maven",
+            "< 5.0.0",
+        ),
+        ([("demo", "generic", "5.0.0")], "maven", "< 5.0.0"),
+        ([("demo", "generic", "1.5.0", "pkg:npm/demo")], "maven", None),
+        (
+            [("demo", "generic", "5.0.0", "pkg:maven/org.example/demo")],
+            "maven",
+            "< 5.0.0",
+        ),
+        ([("openssl", "generic", "3.0.9")], "", "< 3.0.9"),
+        ([("demo", "npm", "1.5.0"), ("demo", "maven", "5.0.0")], "", None),
+    ],
+)
+def test_cveorg_fallback_selects_one_ecosystem(entries, ecosystem, expected_range):
+    purls = [_cveorg_entry(*entry) for entry in entries]
+    info, source = _package_info_for_component(
+        entries[0][0], [], ecosystem, lambda: purls
+    )
+    if expected_range is None:
+        assert info is None
+        assert source == "osv"
+        return
+    assert source == "cveorg"
+    assert info is not None
+    assert info.ecosystem == ecosystem
+    assert info.affected_range() == expected_range
+
+
+def test_purl_keeps_both_version_type_intervals():
+    from collectors.cveorg.affected import affected_to_upstream_purls
+
+    def affected_range(purl=""):
+        product = {
+            "product": "demo",
+            "versions": [
+                {
+                    "version": "0",
+                    "lessThan": "1.0",
+                    "versionType": "semver",
+                    "status": "affected",
+                },
+                {
+                    "version": "2.0",
+                    "lessThan": "3.0",
+                    "versionType": "maven",
+                    "status": "affected",
+                },
+            ],
+        }
+        if purl:
+            product["packageURL"] = purl
+        entries = affected_to_upstream_purls(
+            {"containers": {"cna": {"affected": [product]}}}
+        )
+        info, _ = _package_info_for_component("demo", [], "maven", lambda: entries)
+        return info.affected_range()
+
+    assert affected_range("pkg:maven/org.example/demo") == "< 1.0 || >= 2.0, < 3.0"
+    assert affected_range() == ">= 2.0, < 3.0"
+
+
+@pytest.mark.parametrize(
+    "version, default_status, listed, expected",
+    [
+        ("1.0", None, None, OsvStatus.AFFECTED),
+        ("2.0", None, None, OsvStatus.UNKNOWN),
+        ("2.0", "affected", None, OsvStatus.AFFECTED),
+        ("2.0", "unaffected", None, OsvStatus.NOT_AFFECTED),
+        ("2.0", "affected", ("2.0", "unaffected"), OsvStatus.UNKNOWN),
+        ("2.0", "unaffected", ("2.0", "unknown"), OsvStatus.UNKNOWN),
+        ("2.0", "unaffected", ("2.0", "unaffected"), OsvStatus.NOT_AFFECTED),
+    ],
+)
+def test_cveorg_outside_range_follows_default_status(
+    version, default_status, listed, expected
+):
+    from apps.ace.osv_ranges import match_component_to_upstream
+    from apps.ace.tasks import _osv_version_status
+    from collectors.cveorg.affected import affected_to_upstream_purls
+
+    def version_entry(version, status="affected"):
+        return {"version": version, "status": status, "versionType": "semver"}
+
+    versions = [version_entry("1.0")]
+    if listed:
+        versions.append(version_entry(*listed))
+    product = {"product": "demo", "versions": versions}
+    if default_status:
+        product["defaultStatus"] = default_status
+    entries = affected_to_upstream_purls(
+        {"containers": {"cna": {"affected": [product]}}}
+    )
+    info = match_component_to_upstream("demo", entries)
+    result, _, _ = _osv_version_status(f"pkg:generic/demo@{version}", info)
+    assert result is expected
+
+
+def test_sync_does_not_fetch_cveorg_when_osv_has_a_range(
+    monkeypatch, ace_enabled, mock_querier, result, upstream_purls_openssl_rpm
+):
+    flaw = _openssl_flaw()
+    UpstreamDataFactory(flaw=flaw, upstream_purls=upstream_purls_openssl_rpm)
+    calls = []
+    monkeypatch.setattr(
+        "apps.ace.tasks.fetch_cve_record", lambda cve_id: calls.append(cve_id)
+    )
+    _query_openssl(monkeypatch, mock_querier, result, "3.5.1-7.el9_7")
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    assert calls == []
+
+
+@pytest.mark.parametrize(
+    "version, affectedness, default_status",
+    [
+        ("3.0.7-18.el9_2", Affect.AffectAffectedness.AFFECTED, None),
+        ("3.5.1-7.el9_7", Affect.AffectAffectedness.NOTAFFECTED, "unaffected"),
+    ],
+)
+def test_sync_uses_cveorg_range_when_osv_has_none(
+    monkeypatch,
+    ace_enabled,
+    mock_querier,
+    result,
+    version,
+    affectedness,
+    default_status,
+):
+    PsUpdateStreamFactory(name="rhel-9.8.z")
+    flaw = _openssl_flaw()
+    monkeypatch.setattr(
+        "apps.ace.tasks.fetch_cve_record",
+        lambda cve_id: _cve_record("openssl", "3.0.9", default_status),
+    )
+    _query_openssl(monkeypatch, mock_querier, result, version)
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    affect = flaw.affects.get()
+    assert affect.affectedness == affectedness
+    assert affect.assist_meta["range_source"] == "cveorg"
+    assert affect.assist_meta["osv_range_used"] == "< 3.0.9"
+
+
+def test_sync_cveorg_without_usable_range_stays_unresolved(
+    monkeypatch, ace_enabled, mock_querier, result
+):
+    flaw = _openssl_flaw()
+    monkeypatch.setattr(
+        "apps.ace.tasks.fetch_cve_record",
+        lambda cve_id: _cve_record("openssl", None, version="abc", version_type="git"),
+    )
+    _query_openssl(monkeypatch, mock_querier, result, "3.0.7-18.el9_2")
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.NEW
+    assert affect.resolution == Affect.AffectResolution.NOVALUE
+    assert not flaw.upstream_data.filter(source="CVEORG").exists()
+
+
+def test_sync_uses_stored_cveorg_range_without_calling_api(
+    monkeypatch, ace_enabled, mock_querier, result
+):
+    PsUpdateStreamFactory(name="rhel-9.8.z")
+    flaw = _openssl_flaw()
+    UpstreamDataFactory(
+        flaw=flaw,
+        source="CVEORG",
+        upstream_purls=[_cveorg_entry("openssl", "generic", "3.0.9")],
+    )
+
+    def fail(cve_id):
+        raise AssertionError(cve_id)
+
+    monkeypatch.setattr("apps.ace.tasks.fetch_cve_record", fail)
+    _query_openssl(monkeypatch, mock_querier, result, "3.0.7-18.el9_2")
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.AFFECTED
+    assert affect.assist_meta["range_source"] == "cveorg"
+
+
+def test_hummingbird_sync_uses_cveorg_range_for_notaffected(
+    monkeypatch, ace_enabled, mock_querier, result
+):
+    from apps.ace.tasks import sync_hummingbird_affects
+
+    module = PsModuleFactory(name="hummingbird-1", bts_key="HUM")
+    stream = PsUpdateStreamFactory(
+        name="hummingbird-1", ps_module=module, default_to_ps_module=module
+    )
+    flaw = FlawFactory(components=["grafana"])
+    monkeypatch.setattr(
+        "apps.ace.tasks.fetch_cve_record",
+        lambda cve_id: _cve_record("grafana", "0.5", "unaffected"),
+    )
+    monkeypatch.setattr(
+        "apps.ace.tasks.NewtopiaQuerier",
+        mock_querier(
+            {"grafana": [result(stream.name, "pkg:rpm/redhat/grafana@1.0-1.hum1")]}
+        ),
+    )
+
+    sync_hummingbird_affects(str(flaw.uuid))
+
+    affect = flaw.affects.get()
+    assert affect.affectedness == Affect.AffectAffectedness.NOTAFFECTED
+    assert affect.assist_meta["range_source"] == "cveorg"
+    assert "CVE.org" in affect.affectedness_explanation
 
 
 # ── NO_VERSION fallback tests ──────────────────────────────────────────────────
