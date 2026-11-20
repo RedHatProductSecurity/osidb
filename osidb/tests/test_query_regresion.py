@@ -7,11 +7,18 @@ from osidb.acls import ACL
 from osidb.api_views import FlawView
 from osidb.models import Affect, Flaw, FlawSource, Impact, Tracker
 from osidb.tests.factories import (
+    AffectCVSSFactory,
     AffectFactory,
+    FlawAcknowledgmentFactory,
+    FlawCommentFactory,
+    FlawCVSSFactory,
     FlawFactory,
+    FlawReferenceFactory,
+    PackageFactory,
     PsModuleFactory,
     PsUpdateStreamFactory,
     TrackerFactory,
+    UpstreamDataFactory,
 )
 
 pytestmark = pytest.mark.queryset
@@ -591,4 +598,202 @@ class TestFlawListTrackersNPlusOne:
         assert len(per_flaw_queries) <= 1, (
             f"{len(per_flaw_queries)} per-flaw tracker queries for "
             f"{self.NUM_FLAWS} flaws (N+1); first was:\n{per_flaw_queries[0]}"
+        )
+
+
+def is_per_object_alert_query(sql):
+    """
+    Identify a single-object alert lookup issued by AlertMixinSerializer.
+
+    This is the query reported as an N+1 by Datadog (OSIDB-5680):
+
+        SELECT "osidb_alert"."acl_read", ... "django_content_type"."model"
+        FROM "osidb_alert" INNER JOIN "django_content_type" ON (...)
+        WHERE ("osidb_alert"."content_type_id" = N AND "osidb_alert"."object_id" = ...)
+
+    A batched lookup uses `object_id IN (...)` instead and is not matched here.
+    """
+    return (
+        'FROM "osidb_alert"' in sql
+        and '"osidb_alert"."content_type_id" =' in sql
+        and '"osidb_alert"."object_id" =' in sql
+    )
+
+
+def collect_alerts(node, found):
+    """
+    Walk a serialized response and collect {object uuid: {alert names}}.
+
+    Every object rendered by AlertMixinSerializer carries both `uuid` and
+    `alerts`, so this finds flaws and all of their alert-bearing children.
+    """
+    if isinstance(node, list):
+        for item in node:
+            collect_alerts(item, found)
+    elif isinstance(node, dict):
+        if "uuid" in node and isinstance(node.get("alerts"), list):
+            found[str(node["uuid"])] = {alert["name"] for alert in node["alerts"]}
+        for value in node.values():
+            collect_alerts(value, found)
+    return found
+
+
+# Alert-bearing objects built per flaw by TestFlawListAlertsNPlusOne, keyed by
+# the name used to declare which of them a request variant must render.
+#
+# "package" is deliberately absent: PackageSerializer renders no `uuid`, so a
+# package cannot be matched by uuid in the response. Packages are still covered
+# by the per-object query assertion.
+ALERT_CATEGORIES = (
+    "flaw",
+    "affect",
+    "affect_cvss",
+    "comment",
+    "flaw_cvss",
+    "reference",
+    "acknowledgment",
+    "upstream_data",
+)
+
+
+def categories_except(*excluded):
+    """The alert-bearing categories a response variant renders."""
+    return tuple(c for c in ALERT_CATEGORIES if c not in excluded)
+
+
+class TestFlawListAlertsNPlusOne:
+    """
+    OSIDB-5680: the `alerts` field of a flaw and of each of its alert-bearing
+    children must be resolved in a bounded number of queries for the whole page,
+    not one query per serialized object.
+    """
+
+    NUM_FLAWS = 3
+
+    def build_flaws(self):
+        """
+        Create NUM_FLAWS flaws, each with one of every alert-bearing child, and
+        put a distinguishable alert on every one of those objects so that no
+        object's expected alert set is empty.
+
+        Returns {category: {object uuid: {alert names}}} read back from the
+        database.
+        """
+        created = {}
+
+        def add_alert(category, instance):
+            instance.alert(
+                name=f"osidb_5680_{str(instance.uuid)[:8]}",
+                description="alert used to verify batched alert serialization",
+            )
+            created.setdefault(category, []).append(instance)
+            return instance
+
+        for _ in range(self.NUM_FLAWS):
+            flaw = add_alert(
+                "flaw",
+                FlawFactory(
+                    embargoed=False,
+                    impact=Impact.MODERATE,
+                    # a private source is required for acknowledgments
+                    source=FlawSource.CUSTOMER,
+                    major_incident_state=Flaw.FlawMajorIncident.NOVALUE,
+                ),
+            )
+            affect = add_alert(
+                "affect",
+                AffectFactory(
+                    flaw=flaw,
+                    affectedness=Affect.AffectAffectedness.AFFECTED,
+                    resolution=Affect.AffectResolution.DELEGATED,
+                    impact=Impact.MODERATE,
+                ),
+            )
+            add_alert("affect_cvss", AffectCVSSFactory(affect=affect))
+            add_alert("comment", FlawCommentFactory(flaw=flaw))
+            add_alert("flaw_cvss", FlawCVSSFactory(flaw=flaw))
+            add_alert("reference", FlawReferenceFactory(flaw=flaw))
+            add_alert("acknowledgment", FlawAcknowledgmentFactory(flaw=flaw))
+            add_alert("upstream_data", UpstreamDataFactory(flaw=flaw))
+            add_alert("package", PackageFactory(flaw=flaw))
+
+        # every alert an object has is valid here: validation alerts are written
+        # by save() right after it bumps last_validated_dt, and add_alert() runs
+        # later still
+        return {
+            category: {
+                str(instance.uuid): set(instance.alerts.values_list("name", flat=True))
+                for instance in instances
+            }
+            for category, instances in created.items()
+        }
+
+    @pytest.mark.parametrize(
+        "query_params,rendered_categories",
+        [
+            # the plain listing reported by Datadog: everything is rendered
+            ("", ALERT_CATEGORIES),
+            # affects and their children are dropped from the response
+            ("exclude_fields=affects", categories_except("affect", "affect_cvss")),
+            # IncludeFieldsFilterSet drops the view's prefetches and rebuilds
+            # them from the requested fields. The flaw itself renders no
+            # `alerts` here because `alerts` is not among the requested
+            # top-level fields.
+            #
+            # `affects` is left out of the request on purpose:
+            # IncludeFieldsFilterSet only prefetches one relation level, so an
+            # affect's own children (its cvss_scores and tracker) are not
+            # prefetched at all and keep costing a query each. That is a
+            # pre-existing limitation of these filters, documented in
+            # SparseFieldsFilterSet._filter_fields, and it is not specific to
+            # alerts. The affects path is covered by the two variants above,
+            # which go through the view's prefetches.
+            (
+                "include_fields=uuid,comments,cvss_scores,references,"
+                "acknowledgments,package_versions,upstream_data",
+                categories_except("flaw", "affect", "affect_cvss"),
+            ),
+        ],
+    )
+    def test_alerts_resolved_without_per_object_query(
+        self, auth_client, test_api_v2_uri, query_params, rendered_categories
+    ):
+        """
+        Serializing `alerts` for a page of flaws must not scale with the number
+        of serialized objects, and must still return every object's own alerts.
+        """
+        created = self.build_flaws()
+
+        # the expected objects are chosen from the fixture by category, not
+        # read back out of the response, so that a response which silently
+        # drops a whole relation fails here
+        expected = {
+            uuid: alert_names
+            for category in rendered_categories
+            for uuid, alert_names in created[category].items()
+        }
+        assert len(expected) == self.NUM_FLAWS * len(rendered_categories)
+
+        with CaptureQueriesContext(connection) as ctx:
+            response = auth_client().get(f"{test_api_v2_uri}/flaws?{query_params}")
+            assert response.status_code == 200
+            results = response.json()["results"]
+
+        assert len(results) == self.NUM_FLAWS
+
+        # correctness: every expected object must be present, with its own
+        # alerts and nobody else's
+        rendered = collect_alerts(results, {})
+        assert rendered == expected
+
+        # performance: no object may be looked up on its own
+        per_object_queries = [
+            q["sql"]
+            for q in ctx.captured_queries
+            if is_per_object_alert_query(q["sql"])
+        ]
+        assert not per_object_queries, (
+            f"{len(per_object_queries)} per-object alert queries for "
+            f"{len(rendered)} serialized objects (N+1); "
+            f"first was:\n{per_object_queries[0]}"
         )

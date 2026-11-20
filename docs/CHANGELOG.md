@@ -15,7 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Remove an N+1 query over affects when serializing the flaw `trackers` field on `GET /flaws` (OSIDB-5681)
-
+- Remove an N+1 query over alerts when serializing the children of a flaw
+  (comments, CVSS scores, references, acknowledgments, package versions and
+  upstream data) on `GET /flaws` (OSIDB-5680)
 
 ## [5.23.2] - 2026-11-12
 ### Changed
