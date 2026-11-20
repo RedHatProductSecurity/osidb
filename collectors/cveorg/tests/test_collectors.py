@@ -9,7 +9,7 @@ from jira.exceptions import JIRAError
 
 from apps.taskman.service import JiraTaskmanQuerier
 from collectors.cveorg.collectors import CVEorgCollector, CVEorgCollectorException
-from osidb.models import Flaw, Snippet
+from osidb.models import Flaw, Snippet, UpstreamData
 from osidb.tests.factories import FlawFactory
 
 pytestmark = pytest.mark.integration
@@ -212,6 +212,14 @@ class TestCVEorgCollector:
         assert snippet
         assert snippet.flaw == flaw
         assert result == f"Flaw for {cve_id} was created successfully."
+        upstream = flaw.upstream_data.get(source=UpstreamData.Source.CVEORG)
+        assert (
+            upstream.upstream_purls[0]["name"] == "Nueva Ecija Engineer Online Portal"
+        )
+        assert upstream.upstream_purls[0]["ranges"][0]["events"] == [
+            {"introduced": "1.0"},
+            {"last_affected": "1.0"},
+        ]
 
 
 class TestCVEorgCollectorException:

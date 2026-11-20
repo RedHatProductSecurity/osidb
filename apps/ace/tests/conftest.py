@@ -114,6 +114,12 @@ def mock_querier():
     return _make_mock_querier
 
 
+@pytest.fixture(autouse=True)
+def disable_cveorg_api(monkeypatch):
+    """Affect-creation tests stay off the CVE Services API unless they opt in."""
+    monkeypatch.setattr("apps.ace.tasks.fetch_cve_record", lambda cve_id: None)
+
+
 @pytest.fixture
 def ace_enabled(monkeypatch):
     """Patch HAS_LIB_NEWTOPIA=True so the task does not short-circuit."""
