@@ -943,19 +943,29 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
     http_method_names = get_valid_http_methods(ModelViewSet, excluded=["delete"])
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    # every relation serialized by AlertMixinSerializer must prefetch its
+    # "alerts" too, otherwise the alerts of each child object are fetched
+    # one query at a time (OSIDB-5680)
     _BASE_PREFETCH_RELATED = (
         "acknowledgments",
+        "acknowledgments__alerts",
         "comments",
+        "comments__alerts",
         "cvss_scores",
+        "cvss_scores__alerts",
         "package_versions",
+        "package_versions__alerts",
         "references",
+        "references__alerts",
         "labels",
         "alerts",
         "upstream_data",
+        "upstream_data__alerts",
     )
     _AFFECTS_PREFETCH_RELATED = (
         "affects",
         "affects__cvss_scores",
+        "affects__cvss_scores__alerts",
         "affects__tracker",
         "affects__tracker__affects",
         "affects__alerts",
@@ -967,14 +977,14 @@ class FlawView(RudimentaryUserPathLoggingMixin, BulkHistoryMixin, ModelViewSet):
     )
 
     _PREFETCH_RELATED_BY_FIELD = {
-        "acknowledgments": ("acknowledgments",),
-        "comments": ("comments",),
-        "cvss_scores": ("cvss_scores",),
-        "package_versions": ("package_versions",),
-        "references": ("references",),
+        "acknowledgments": ("acknowledgments", "acknowledgments__alerts"),
+        "comments": ("comments", "comments__alerts"),
+        "cvss_scores": ("cvss_scores", "cvss_scores__alerts"),
+        "package_versions": ("package_versions", "package_versions__alerts"),
+        "references": ("references", "references__alerts"),
         "labels": ("labels",),
         "alerts": ("alerts",),
-        "upstream_data": ("upstream_data",),
+        "upstream_data": ("upstream_data", "upstream_data__alerts"),
         # "affects" and "trackers" handled explicitly below because they are more nuanced.
     }
 

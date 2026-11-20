@@ -13,7 +13,7 @@ from django.contrib.postgres.search import (
     SearchVector,
     TrigramSimilarity,
 )
-from django.core.exceptions import ValidationError
+from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.core.validators import EMPTY_VALUES
 from django.db import models
 from django.db.models import F, Max, Min, Q
@@ -34,7 +34,7 @@ from django_filters.rest_framework import (
 from djangoql.queryset import apply_search
 from packageurl import PackageURL
 
-from osidb.mixins import SearchVectorMixin
+from osidb.mixins import AlertMixin, SearchVectorMixin
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -472,7 +472,31 @@ class SparseFieldsFilterSet(OSIDBFilterSet):
                     prefetch_set.add(relation)
                 continue
             field_set.add(fname)
+
+        # a relation serialized by AlertMixinSerializer needs its alerts
+        # prefetched as well, otherwise every serialized object of that
+        # relation costs one alert query of its own (OSIDB-5680)
+        prefetch_set |= {
+            f"{relation}__alerts"
+            for relation in prefetch_set
+            if self._has_alerts(relation)
+        }
         return prefetch_set, field_set
+
+    def _has_alerts(self, relation):
+        """
+        Whether the model at the end of the given relation path carries alerts.
+        """
+        model = self._meta.model
+        for field_name in relation.split("__"):
+            try:
+                field = model._meta.get_field(field_name)
+            except FieldDoesNotExist:
+                return False
+            if not field.is_relation or field.related_model is None:
+                return False
+            model = field.related_model
+        return issubclass(model, AlertMixin)
 
 
 class IncludeFieldsFilterSet(SparseFieldsFilterSet):
