@@ -1,6 +1,7 @@
 import logging
 import uuid
 from collections import defaultdict
+from datetime import timedelta
 from functools import cached_property
 from itertools import batched, chain
 
@@ -67,6 +68,10 @@ class TrackingMixin(models.Model):
         the timestamps may be set to specified
         values by setting auto_timestamps=False
         """
+        # Django treats an explicitly empty update_fields as a no-op.
+        if kwargs.get("update_fields") is not None and not kwargs["update_fields"]:
+            return
+
         # allow disabling timestamp auto-updates
         if auto_timestamps:
             # get DB counterpart of self if any
@@ -90,7 +95,17 @@ class TrackingMixin(models.Model):
             # auto-set updated_dt as now on any change
             # cut off the microseconds to allow mid-air
             # collision comparison as API works in seconds
-            self.updated_dt = timezone.now().replace(microsecond=0)
+            now = timezone.now().replace(microsecond=0)
+            self.updated_dt = (
+                max(
+                    now,
+                    db_self.updated_dt.replace(microsecond=0) + timedelta(seconds=1),
+                )
+                if db_self is not None
+                else now
+            )
+            if kwargs.get("update_fields") is not None:
+                kwargs["update_fields"] = set(kwargs["update_fields"]) | {"updated_dt"}
 
         super().save(*args, **kwargs)
 
@@ -1241,7 +1256,9 @@ class AlertMixin(ValidateMixin):
             # ValidationError may be raised here
             setattr(self, f.attname, f.to_python(getattr(self, f.attname)))
 
-    def validate(self, raise_validation_error=True, dry_run=False):
+    def validate(
+        self, raise_validation_error=True, dry_run=False, validate_unique=True
+    ):
         """
         Run custom validations first and then standard Django validations as the
         custom ones offer more specific errors. This may raise ValidationError.
@@ -1266,7 +1283,8 @@ class AlertMixin(ValidateMixin):
                 f.name
                 for f in self._meta.fields
                 if not isinstance(f, fields.ArrayField)
-            ]
+            ],
+            validate_unique=validate_unique,
         )
 
         # custom validations
@@ -1292,5 +1310,6 @@ class AlertMixin(ValidateMixin):
         self.full_clean(
             exclude=["meta_attr"]
             # array fields were already validated before
-            + [f.name for f in self._meta.fields if isinstance(f, fields.ArrayField)]
+            + [f.name for f in self._meta.fields if isinstance(f, fields.ArrayField)],
+            validate_unique=validate_unique,
         )
