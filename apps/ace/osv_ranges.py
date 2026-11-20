@@ -11,6 +11,7 @@ Depends on apps/ace/version.py for version comparison.
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass
 
 from packageurl import PackageURL
@@ -185,6 +186,106 @@ def osv_entry_to_package_info(entry: dict) -> OsvPackageInfo:
     )
 
 
+def _go_major_suffix(path: str) -> str | None:
+    """Terminal ``/vN`` major-version segment, if present."""
+    if "/" not in path:
+        return None
+    tail = path.rsplit("/", 1)[1]
+    return tail if re.fullmatch(r"v[0-9]+", tail) else None
+
+
+def _strip_go_major(path: str) -> str:
+    """Drop a terminal ``/vN`` major-version segment from a Go module path."""
+    if _go_major_suffix(path) is None:
+        return path
+    return path.rsplit("/", 1)[0]
+
+
+def _maven_coords(name: str) -> tuple[str, str] | None:
+    """Parse Maven ``group:artifact`` or two-segment ``group/artifact``."""
+    if ":" in name:
+        group, _, artifact = name.partition(":")
+    else:
+        parts = name.split("/")
+        if len(parts) != 2:
+            return None
+        group, artifact = parts
+        # Require a dotted groupId so Go hosts like github.com/… stay out
+        # when they have more than two segments; two-segment dotted hosts
+        # (go.mongodb.org/mongo-driver) are also possible Maven GAV paths
+        # from PURLs and are disambiguated by comparing both forms below.
+        if "." not in group:
+            return None
+    group = group.strip()
+    artifact = artifact.strip()
+    if not group or not artifact:
+        return None
+    return group, artifact
+
+
+def _package_name_matches(needle: str, candidate: str) -> bool:
+    """True when ``candidate`` refers to the same project as ``needle``.
+
+    Matches exact names, Go ``/vN`` major aliases (bare↔versioned only when
+    explicit majors do not conflict), short seeds against a module's final
+    segment, and Maven ``group:artifact`` vs ``group/artifact``. Does not
+    treat an arbitrary path child (``…/project/plugin``) as the parent
+    module, or match scoped npm packages to an unscoped namesake.
+
+    Kept in lockstep with Aegis ``_osv_package_matches`` so catalog seeds
+    that omit a sibling extract because OSV matched still match here.
+    """
+    folded = candidate.casefold().rstrip("/")
+    row = needle.casefold().rstrip("/")
+    if not folded or not row:
+        return False
+    if folded == row:
+        return True
+
+    entry_maven = _maven_coords(folded)
+    row_maven = _maven_coords(row)
+    # Cross-form Maven identity (colon vs slash). Do not match a short
+    # artifact-only seed via this path — that is handled below.
+    if entry_maven and row_maven and entry_maven == row_maven:
+        return True
+    if (
+        ":" in folded
+        and entry_maven
+        and (row == f"{entry_maven[0]}/{entry_maven[1]}" or row == entry_maven[1])
+    ):
+        return True
+    if (
+        ":" in row
+        and row_maven
+        and (folded == f"{row_maven[0]}/{row_maven[1]}" or folded == row_maven[1])
+    ):
+        return True
+
+    entry_major = _go_major_suffix(folded)
+    row_major = _go_major_suffix(row)
+    if entry_major and row_major and entry_major != row_major:
+        return False
+
+    entry_base = _strip_go_major(folded)
+    row_base = _strip_go_major(row)
+    if entry_base == row_base:
+        return True
+
+    # Short seed vs full module path (after stripping /vN). Exclude scoped
+    # npm identities from unscoped shorthand matching.
+    if (
+        "/" not in row
+        and not entry_base.startswith("@")
+        and (entry_base == row or entry_base.endswith("/" + row))
+    ):
+        return True
+    return bool(
+        "/" not in folded
+        and not row_base.startswith("@")
+        and (row_base == folded or row_base.endswith("/" + folded))
+    )
+
+
 def _entry_matches(needle: str, entry: dict, parsed_purl, ecosystem: str) -> bool:
     """Check if an upstream_purls entry matches the component name and ecosystem."""
     if ecosystem:
@@ -196,12 +297,24 @@ def _entry_matches(needle: str, entry: dict, parsed_purl, ecosystem: str) -> boo
         if purl_type != ecosystem:
             return False
 
-    entry_name = (entry.get("name") or "").strip().lower()
-    if entry_name and entry_name == needle:
+    entry_name = (entry.get("name") or "").strip()
+    if entry_name and _package_name_matches(needle, entry_name):
         return True
 
-    if parsed_purl and parsed_purl.name.lower() == needle:
+    # CVE.org product alias (exact, case-insensitive).
+    product = (entry.get("product") or "").strip().lower()
+    if product and product == needle:
         return True
+
+    if parsed_purl:
+        purl_name = (parsed_purl.name or "").strip()
+        if purl_name and _package_name_matches(needle, purl_name):
+            return True
+        namespace = (parsed_purl.namespace or "").strip()
+        if namespace and purl_name:
+            full = f"{namespace}/{purl_name}"
+            if _package_name_matches(needle, full):
+                return True
 
     return False
 
@@ -222,9 +335,10 @@ def match_component_to_upstream(
     ecosystem are considered. This prevents selecting the wrong OSV range when
     the same component exists in multiple ecosystems.
 
-    Matching is case-insensitive and tries two strategies in order:
-      1. ``entry["name"]`` directly
-      2. The ``name`` part of ``entry["purl"]`` (via PackageURL)
+    Matching is case-insensitive and covers:
+      1. ``entry["name"]`` (exact, Go ``/vN``, short seed, Maven coords)
+      2. ``entry["product"]`` (exact CVE.org product alias)
+      3. PURL ``name`` / ``namespace/name`` via PackageURL
 
     Returns a merged OsvPackageInfo, or None if no entry matches.
     """
