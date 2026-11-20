@@ -26,12 +26,12 @@ class TestSignalHistoryContext:
         loaded_ref = FlawReference.objects.select_related("flaw").get(pk=ref.pk)
         assert loaded_ref.flaw.mitigation == ""
 
-        Flaw.objects.filter(pk=flaw.pk).update(mitigation=MITIGATION_TEXT)
+        Flaw.objects.filter(pk=flaw.pk).update(mitigation=MITIGATION_TEXT, cve_id="")
         assert Flaw.objects.get(pk=flaw.pk).mitigation == MITIGATION_TEXT
 
         loaded_ref.save()
 
-        assert Flaw.objects.get(pk=flaw.pk).mitigation == ""
+        assert Flaw.objects.get(pk=flaw.pk).mitigation == MITIGATION_TEXT
 
         events = (
             pghistory.models.Events.objects.tracks(flaw)
@@ -51,7 +51,7 @@ class TestSignalHistoryContext:
         ref = FlawReferenceFactory(flaw=flaw)
         loaded_ref = FlawReference.objects.select_related("flaw").get(pk=ref.pk)
 
-        Flaw.objects.filter(pk=flaw.pk).update(mitigation=MITIGATION_TEXT)
+        Flaw.objects.filter(pk=flaw.pk).update(mitigation=MITIGATION_TEXT, cve_id="")
 
         with pghistory.context(user="analyst@redhat.com", path="/osidb/api/v2/flaws"):
             loaded_ref.save()

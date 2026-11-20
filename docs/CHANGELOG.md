@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Manage ACL-write indexes and remove redundant database indexes (OSIDB-5854).
 
+### Fixed
+- Saving a CVSS record can revert a public flaw to internal visibility through a stale 
+  cached parent, without changing its workflow state (OSIDB-5846)
+
 ## [5.23.1] - 2026-11-09
 ### Fixed
 - Hummingbird only takes into account OSV.NOTAFFECTED for affectedness / resolution

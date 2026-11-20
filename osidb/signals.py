@@ -5,6 +5,7 @@ from typing import Any, Iterator
 import pghistory
 from bugzilla import Bugzilla
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 from django.template.loader import render_to_string
@@ -178,7 +179,9 @@ def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
     with signal_pghistory_context(
         "flaw_dependant_update_local_updated_dt", sender=sender, instance=instance
     ):
-        instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
+        with transaction.atomic():
+            flaw = Flaw.objects.select_for_update().get(pk=instance.flaw_id)
+            flaw.save(auto_timestamps=False, raise_validation_error=False)
 
 
 @receiver(post_save, sender=Tracker)
