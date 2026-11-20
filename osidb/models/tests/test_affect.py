@@ -1,7 +1,6 @@
 import pytest
 from django.core.exceptions import ValidationError
 
-from osidb.constants import SERVICES_PRODUCTS
 from osidb.models import Affect, Impact, Tracker
 from osidb.models.ps_constants import UbiPackage
 from osidb.tests.factories import (
@@ -275,7 +274,7 @@ class TestAffect:
         """
         Test that PURLs are not required for service affects.
         """
-        ps_product = PsProductFactory(short_name=SERVICES_PRODUCTS[0])
+        ps_product = PsProductFactory(label="services")
         ps_module = PsModuleFactory(ps_product=ps_product)
         ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
         flaw = FlawFactory()

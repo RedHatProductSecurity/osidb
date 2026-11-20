@@ -2420,16 +2420,7 @@ class TestFlawValidators:
             flaw=flaw, affectedness=affectedness, resolution=resolution
         )
 
-        # Service product and low/medium impact is needed to test pass WONTREPORT affects validations
-        if resolution == Affect.AffectResolution.WONTREPORT:
-            ps_module = PsModuleFactory(
-                name="other-services-test-module",
-                ps_product=PsProductFactory(short_name="other-services"),
-            )
-            ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
-            affect.ps_update_stream = ps_update_stream.name
-            affect.impact = Impact.LOW
-        elif affect.ps_component and not affect.purl:
+        if affect.ps_component and not affect.purl:
             affect.purl = default_rpm_purl_for_ps_component(affect.ps_component)
 
         if should_raise:

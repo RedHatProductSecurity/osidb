@@ -694,36 +694,6 @@ class Affect(
             )
 
     @validator
-    def _validate_wontreport_products(self, **kwargs):
-        """
-        Validate that wontreport resolution only can be used for
-        products associated with services.
-        """
-
-        if self.resolution == Affect.AffectResolution.WONTREPORT:
-            ps_module = PsModule.objects.filter(name=self.ps_module).first()
-            if not ps_module or not ps_module.ps_product.is_service:
-                raise ValidationError(
-                    f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} is marked as WONTREPORT, "
-                    f"which can only be used for service products."
-                )
-
-    @validator
-    def _validate_wontreport_severity(self, **kwargs):
-        """
-        Validate that wontreport only can be used for
-        low or moderate severity flaws.
-        """
-        if (
-            self.resolution == Affect.AffectResolution.WONTREPORT
-            and self.impact not in [Impact.LOW, Impact.MODERATE]
-        ):
-            raise ValidationError(
-                f"Affect ({self.uuid}) for {self.ps_update_stream}/{self.ps_component} has impact {self.impact} "
-                f"and is marked as WONTREPORT, which can only be used with low or moderate impact."
-            )
-
-    @validator
     def _validate_special_consideration_flaw(self, **kwargs):
         """
         Checks that a flaw affecting special consideration package(s) has both
