@@ -10,7 +10,7 @@ from packageurl import PackageURL
 
 from apps.ace.constants import (
     CHROMIUM_CVSS_TABLE,
-    CHROMIUM_NAMES,
+    CHROMIUM_MANUAL_TRIAGE_REASON,
     CHROMIUM_STATEMENT,
     CHROMIUM_STREAMS,
     GO_STDLIB_BUILDER_PRODUCTS,
@@ -346,6 +346,17 @@ def _is_manual_triage_component(resolved: list[str], ecosystem: str) -> bool:
     return False
 
 
+def _is_chromium_component(component: str) -> bool:
+    """
+    Check whether the component identifies a Chromium CVE, as configured
+    via ``OSIDB_AFFECTS_CHROMIUM_COMPONENTS``.
+    """
+    chromium_components = AffectSettings().chromium_components
+    return component.strip().lower() in {
+        name.strip().lower() for name in chromium_components
+    }
+
+
 def _apply_label(flaw: Flaw, label: str, reason: str = "") -> None:
     if not label:
         return
@@ -399,7 +410,7 @@ def _pre_filter_component(
         )
 
     # Chromium check
-    if component_lower in CHROMIUM_NAMES:
+    if _is_chromium_component(component):
         return PreFilterResult(
             action=PreFilterAction.SPECIAL,
             label=LABEL_AUTO_AFFECTS,
@@ -1804,6 +1815,11 @@ def sync_flaw_affects_from_newcli(
     blocked = _skip_if_blocklisted(flaw, components)
     if blocked is not None:
         return blocked
+
+    # Chromium CVEs get no automatic trackers (OSIDB-5873). Label before
+    # any affect is created, on both the catalog and component paths.
+    if any(_is_chromium_component(component) for component in components):
+        _apply_label(flaw, LABEL_MANUAL_TRIAGE, reason=CHROMIUM_MANUAL_TRIAGE_REASON)
 
     settings = AffectSettings()
     catalog_entry = _enabled_downstream_catalog(flaw, settings)

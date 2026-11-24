@@ -14,6 +14,7 @@ from psqlextra.fields import HStoreField
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from apps.ace.constants import CHROMIUM_NAMES
 from apps.bbsync.constants import RHSCL_BTS_KEY
 from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.bbsync.models import BugzillaComponent
@@ -54,6 +55,12 @@ class AffectSettings(BaseSettings):
     # Maps a lowercase component name to the lowercase ecosystems it should
     # apply to; an empty ecosystem list means "any ecosystem".
     manual_triage_components: dict[str, list[str]] = Field(default_factory=dict)
+    # Flaw component names identifying a Chromium CVE. ACE runs its Chromium
+    # workflow for these and moves the flaw to manual triage so that no
+    # trackers are filed automatically (OSIDB-5873).
+    chromium_components: list[str] = Field(
+        default_factory=lambda: sorted(CHROMIUM_NAMES),
+    )
     # PS modules to include when querying lib-newtopia for hummingbird affects.
     # Hummingbird affects are created immediately on component change, with no workflow gate.
     hummingbird_ps_modules: list[str] = Field(
