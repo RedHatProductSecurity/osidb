@@ -17,6 +17,7 @@ from django.utils.dateparse import parse_datetime
 from apps.taskman.constants import JIRA_AUTH_TOKEN, JIRA_EMAIL
 from collectors.cmd import Cmd
 from collectors.constants import SNIPPET_CREATION_ENABLED
+from collectors.cveorg.affected import upsert_affected_from_record
 from collectors.cveorg.constants import (
     CELERY_PVC_PATH,
     CISA_ORG_ID,
@@ -389,6 +390,7 @@ class CVEorgCollector(Collector):
                         content["cve_id"], content["mitre_cve_description"]
                     )
                 self.upsert_cvss_scores(content["cve_id"], content["cvss_scores"])
+                upsert_affected_from_record(content["cve_id"], file_content)
 
                 return new_snippet_cve_id, new_flaw_cve_id
 

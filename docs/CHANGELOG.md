@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tracker creation and updates no longer sync related flaws to Bugzilla (OSIDB-5864).
 - Recover the CVE.org collector checkout after interrupted updates (OSIDB-5865)
 - On creation of an embargoed flaw the Jira Security Level is set to Embargoed (OSIDB-5857)
+- Collect and use CVE.org affected version ranges when cve.dev is missing range metadata (OSIDB-5632)
 
 ### Fixed
 - Manage ACL-write indexes and remove redundant database indexes (OSIDB-5854).

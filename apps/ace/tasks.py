@@ -20,6 +20,7 @@ from apps.ace.constants import (
     LABEL_MANUAL_TRIAGE,
     LABEL_POTENTIAL_REJECTION,
     NEWTOPIA_ECOSYSTEMS,
+    OSV_ECOSYSTEM_MAP,
 )
 from apps.ace.osv_ranges import OsvPackageInfo, match_component_to_upstream
 from apps.ace.version import (
@@ -37,6 +38,11 @@ from collectors.component_mapping.models import (
     StrictNpmPackage,
     StrictPackage,
     VerifiedMapping,
+)
+from collectors.cveorg.affected import (
+    affected_to_upstream_purls,
+    fetch_cve_record,
+    store_cveorg_upstream,
 )
 from config.celery import app
 from osidb.helpers import bypass_rls
@@ -531,6 +537,7 @@ def _handle_go_stdlib(
     upstream_purls: list[dict],
     exclude_products: list[str] | None = None,
     trigger: str = "unknown",
+    cveorg_purls_loader=None,
 ) -> dict[str, int]:
     """
     Handle Go stdlib CVEs with a 4-phase affect creation workflow.
@@ -559,6 +566,7 @@ def _handle_go_stdlib(
             resolved_name=query_name or component,
             exclude_products=exclude_products,
             trigger=trigger,
+            cveorg_purls_loader=cveorg_purls_loader,
         )
         for key in stats:
             totals[key] += stats[key]
@@ -807,6 +815,149 @@ def _extract_version_from_result(
     return None
 
 
+def load_cveorg_upstream_purls(flaw: Flaw) -> list[dict]:
+    """
+    Return stored CVE.org ranges, fetching them when the row is missing.
+
+    A row written by the collector is kept, including an empty list. An empty
+    parse from this fetch is not stored, so a later fetch or cvelist sync can
+    still supply ranges. Request failures also return an empty list and do not
+    store a row.
+    """
+    existing = flaw.upstream_data.filter(source=UpstreamData.Source.CVEORG).first()
+    if existing is not None:
+        return list(existing.upstream_purls or [])
+    cve_id = (flaw.cve_id or "").strip()
+    if not cve_id:
+        return []
+    record = fetch_cve_record(cve_id)
+    if record is None:
+        return []
+    purls = affected_to_upstream_purls(record)
+    if purls:
+        store_cveorg_upstream(flaw, purls)
+    return purls
+
+
+def _cveorg_purls_loader(flaw: Flaw):
+    """Load CVE.org ranges on first use and reuse them for the rest of the task."""
+    cached: dict[str, list[dict]] = {}
+
+    def load() -> list[dict]:
+        if "purls" not in cached:
+            cached["purls"] = load_cveorg_upstream_purls(flaw)
+        return cached["purls"]
+
+    return load
+
+
+# Ecosystems whose version ordering is not interchangeable. A semver, custom,
+# or rpm CVE range is neutral and can be compared with the build ecosystem.
+_CVEORG_SPECIFIC_ECOSYSTEMS = frozenset(
+    {"cargo", "gem", "golang", "maven", "npm", "nuget", "pypi"}
+)
+
+
+def _cveorg_entry_ecosystem(entry: dict) -> str:
+    """Normalized package type of one CVE.org entry. PURL type wins."""
+    purl_str = entry.get("purl") or ""
+    if purl_str:
+        try:
+            purl_type = (PackageURL.from_string(purl_str).type or "").lower()
+        except Exception:
+            purl_type = ""
+        if purl_type:
+            return OSV_ECOSYSTEM_MAP.get(purl_type, purl_type)
+    raw = (entry.get("ecosystem") or "").strip().lower()
+    return OSV_ECOSYSTEM_MAP.get(raw, raw)
+
+
+def _cveorg_candidates(purls: list[dict], ecosystem: str) -> list[dict]:
+    """Specific-ecosystem entries, or neutral ranges when that ecosystem is absent."""
+    classified = [(_cveorg_entry_ecosystem(entry), entry) for entry in purls]
+    if ecosystem in _CVEORG_SPECIFIC_ECOSYSTEMS:
+        specific = [entry for eco, entry in classified if eco == ecosystem]
+        if specific:
+            return specific
+    return [
+        entry for eco, entry in classified if eco not in _CVEORG_SPECIFIC_ECOSYSTEMS
+    ]
+
+
+def _cveorg_package_info(
+    component: str, purls: list[dict], ecosystem: str
+) -> OsvPackageInfo | None:
+    """Match one CVE.org interval for ``component`` and ``ecosystem``."""
+    ecosystem = (ecosystem or "").strip().lower()
+    info = match_component_to_upstream(
+        component, _cveorg_candidates(purls, ecosystem), ecosystem=""
+    )
+    if info is None or not info.affected_range():
+        return None
+    info.ecosystem = ecosystem
+    return info
+
+
+def _package_info_for_component(
+    flaw_component: str,
+    upstream_purls: list[dict] | None,
+    ecosystem: str,
+    cveorg_purls_loader=None,
+) -> tuple[OsvPackageInfo | None, str]:
+    """
+    Prefer an OSV range. Fall back to a name-matched CVE.org range.
+
+    The returned source is ``cveorg`` only when that fallback range is usable.
+    CVE.org entries for another ecosystem are not relabeled as this one.
+    """
+    pkg_info = match_component_to_upstream(
+        flaw_component, upstream_purls or [], ecosystem=ecosystem
+    )
+    if pkg_info is not None and pkg_info.affected_range():
+        return pkg_info, "osv"
+    if cveorg_purls_loader is None:
+        return pkg_info, "osv"
+    cve_pkg = _cveorg_package_info(
+        flaw_component, cveorg_purls_loader() or [], ecosystem
+    )
+    if cve_pkg is not None:
+        return cve_pkg, "cveorg"
+    return pkg_info, "osv"
+
+
+def _range_assist_meta(
+    range_str: str | None,
+    version_checked: str | None,
+    osv_status: OsvStatus,
+    range_source: str,
+) -> dict[str, str | None]:
+    meta: dict[str, str | None] = {
+        "osv_range_used": range_str,
+        "osv_version_checked": version_checked,
+        "osv_status": osv_status.value,
+    }
+    if range_source == "cveorg":
+        meta["range_source"] = "cveorg"
+    return meta
+
+
+def _not_affected_explanation(range_source: str) -> str:
+    source = "CVE.org" if range_source == "cveorg" else "OSV"
+    return (
+        f"{source} data indicates the vulnerable code is not present in this version. "
+        "Affectedness set to NOTAFFECTED with justification 'Vulnerable Code not Present'."
+    )
+
+
+def _apply_outside_status(status: OsvStatus, outside_status: str) -> OsvStatus:
+    """Keep NOTAFFECTED only when versions outside the range are unaffected."""
+    if status is not OsvStatus.NOT_AFFECTED or outside_status == "unaffected":
+        return status
+    if outside_status == "affected":
+        return OsvStatus.AFFECTED
+    return OsvStatus.UNKNOWN
+
+
 def _osv_version_status(
     purl_str: str,
     pkg_info: OsvPackageInfo | None,
@@ -840,7 +991,11 @@ def _osv_version_status(
     status = determine_status(
         upstream_version, parse_version_range_or(range_str, pkg_info.ecosystem)
     )
-    return status, range_str, upstream_version
+    return (
+        _apply_outside_status(status, pkg_info.outside_status),
+        range_str,
+        upstream_version,
+    )
 
 
 def _sync_affects_from_results(
@@ -854,6 +1009,7 @@ def _sync_affects_from_results(
     apply_labels: bool = True,
     exclude_products: list[str] | None = None,
     trigger: str = "unknown",
+    cveorg_purls_loader=None,
 ) -> dict[str, int]:
     """Create affects on ``flaw`` for each entry in ``results``.
 
@@ -862,7 +1018,9 @@ def _sync_affects_from_results(
 
     When ``upstream_purls`` is provided (from ``UpstreamData``), each result's purl
     version is checked against the OSV version range for the matched component.
-    Results whose version falls outside the range are created as NOTAFFECTED affects.
+    A CVE.org range is used when OSV has no usable range. Results whose version
+    falls outside the range are created as NOTAFFECTED affects. A missing range
+    or build version stays NEW / NOVALUE.
 
     When ``apply_labels`` is False, no labels are applied to the flaw.
     """
@@ -872,8 +1030,8 @@ def _sync_affects_from_results(
     marked_notaffected = 0
     flaw_has_high_cvss_score = flaw.has_high_cvss_score
 
-    pkg_info = match_component_to_upstream(
-        flaw_component, upstream_purls or [], ecosystem=ecosystem
+    pkg_info, range_source = _package_info_for_component(
+        flaw_component, upstream_purls, ecosystem, cveorg_purls_loader
     )
 
     with transaction.atomic():
@@ -919,11 +1077,9 @@ def _sync_affects_from_results(
                 acl_write=flaw.acl_write,
                 created_by="AffectCreationEngine",
                 updated_by="AffectCreationEngine",
-                assist_meta={
-                    "osv_range_used": range_str,
-                    "osv_version_checked": version_checked,
-                    "osv_status": osv_status.value,
-                },
+                assist_meta=_range_assist_meta(
+                    range_str, version_checked, osv_status, range_source
+                ),
             )
 
             if osv_status is OsvStatus.NOT_AFFECTED:
@@ -932,9 +1088,8 @@ def _sync_affects_from_results(
                 affect.not_affected_justification = (
                     NotAffectedJustification.VULN_CODE_NOT_PRESENT
                 )
-                affect.affectedness_explanation = (
-                    "OSV data indicates the vulnerable code is not present in this version. "
-                    "Affectedness set to NOTAFFECTED with justification 'Vulnerable Code not Present'."
+                affect.affectedness_explanation = _not_affected_explanation(
+                    range_source
                 )
                 affect._auto_resolved = True
                 marked_notaffected += 1
@@ -970,11 +1125,12 @@ def _sync_hummingbird_affects_from_results(
     ecosystem: str = "",
     upstream_purls: list[dict] | None = None,
     resolved_name: str = "",
+    cveorg_purls_loader=None,
 ) -> dict[str, int]:
     """Create Hummingbird affects independently of ACE's resolution policy."""
     stats = {"created": 0, "skipped": 0, "skipped_existing": 0, "marked_notaffected": 0}
-    pkg_info = match_component_to_upstream(
-        flaw_component, upstream_purls or [], ecosystem=ecosystem
+    pkg_info, range_source = _package_info_for_component(
+        flaw_component, upstream_purls, ecosystem, cveorg_purls_loader
     )
 
     with transaction.atomic():
@@ -1017,11 +1173,9 @@ def _sync_hummingbird_affects_from_results(
                 acl_write=flaw.acl_write,
                 created_by="AffectCreationEngine",
                 updated_by="AffectCreationEngine",
-                assist_meta={
-                    "osv_range_used": range_str,
-                    "osv_version_checked": version_checked,
-                    "osv_status": osv_status.value,
-                },
+                assist_meta=_range_assist_meta(
+                    range_str, version_checked, osv_status, range_source
+                ),
             )
             if osv_status is OsvStatus.NOT_AFFECTED:
                 affect.affectedness = Affect.AffectAffectedness.NOTAFFECTED
@@ -1029,18 +1183,19 @@ def _sync_hummingbird_affects_from_results(
                 affect.not_affected_justification = (
                     NotAffectedJustification.VULN_CODE_NOT_PRESENT
                 )
-                affect.affectedness_explanation = (
-                    "OSV data indicates the vulnerable code is not present in this version. "
-                    "Affectedness set to NOTAFFECTED with justification 'Vulnerable Code not Present'."
+                affect.affectedness_explanation = _not_affected_explanation(
+                    range_source
                 )
                 stats["marked_notaffected"] += 1
             else:
                 affect.affectedness = Affect.AffectAffectedness.AFFECTED
                 affect.resolution = Affect.AffectResolution.DELEGATED
+                origin = "CVE.org" if range_source == "cveorg" else "OSV"
                 affect.affectedness_explanation = (
-                    f"OSV status '{osv_status.value}' does not establish that the vulnerable code "
-                    "is absent. Hummingbird affects default to AFFECTED/DELEGATED so a tracker "
-                    "can be filed regardless of impact or CVSS score."
+                    f"{origin} status '{osv_status.value}' does not establish that "
+                    "the vulnerable code is absent. Hummingbird affects default to "
+                    "AFFECTED/DELEGATED so a tracker can be filed regardless of "
+                    "impact or CVSS score."
                 )
 
             affect._auto_resolved = True
@@ -1194,6 +1349,7 @@ def sync_flaw_affects_from_newcli(
         totals["pre_filtered"] += 1
         return totals
     query_log: list[dict] = []
+    cveorg_purls = _cveorg_purls_loader(flaw)
 
     for flaw_component, ecosystem, pre_filter in pre_filter_results:
         _apply_label(flaw, pre_filter.label, reason=pre_filter.reason)
@@ -1210,6 +1366,7 @@ def sync_flaw_affects_from_newcli(
                     upstream_purls,
                     exclude_products=exclude_ps_modules,
                     trigger=trigger,
+                    cveorg_purls_loader=cveorg_purls,
                 )
             else:
                 stats = {}
@@ -1246,6 +1403,7 @@ def sync_flaw_affects_from_newcli(
                 resolved_name=resolved_name,
                 exclude_products=exclude_ps_modules,
                 trigger=trigger,
+                cveorg_purls_loader=cveorg_purls,
             )
             for key in stats:
                 totals[key] += stats[key]
@@ -1328,6 +1486,7 @@ def sync_hummingbird_affects(flaw_id: str, trigger: str = "unknown") -> dict[str
     component_ecosystems = osv_data.component_ecosystems if osv_data else {}
     aegis_ecosystems = _aegis_ecosystems(flaw)
     query_log: list[dict] = []
+    cveorg_purls = _cveorg_purls_loader(flaw)
 
     for flaw_component in components:
         component_lower = flaw_component.strip().lower()
@@ -1367,6 +1526,7 @@ def sync_hummingbird_affects(flaw_id: str, trigger: str = "unknown") -> dict[str
                     ecosystem=ecosystem,
                     upstream_purls=upstream_purls,
                     resolved_name=resolved_name,
+                    cveorg_purls_loader=cveorg_purls,
                 )
                 for key in stats:
                     totals[key] += stats[key]
