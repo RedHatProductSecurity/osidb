@@ -12,10 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bulk `PUT /affects/bulk` updates valid batches in one write and rejects the whole batch if any affect is invalid (OSIDB-4946)
 - Restrict the BU labels from being created/updated/deleted through API (OSIDB-5709)
 - Recognize middleware and services via the product definitions label attribute (OSIDB-5903)
+- Kernel trackers are no longer filed with the reproducer confidentiality text
+  in the description (OSIDB-5892)
 
 ### Fixed
 - Remove an N+1 query over affects when serializing the flaw `trackers` field on `GET /flaws` (OSIDB-5681)
-
 
 ## [5.23.2] - 2026-11-12
 ### Changed
