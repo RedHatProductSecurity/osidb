@@ -17,7 +17,10 @@ from psqlextra.fields import HStoreField
 from apps.bbsync.constants import SYNC_FLAWS_TO_BZ, SYNC_FLAWS_TO_BZ_ASYNCHRONOUSLY
 from apps.bbsync.mixins import BugzillaSyncMixin
 from apps.taskman.constants import (
+    JIRA_AUTH_TOKEN,
+    JIRA_EMAIL,
     JIRA_TASKMAN_ASYNCHRONOUS_SYNC,
+    JIRA_TASKMAN_AUTO_SYNC_FLAW,
     SYNC_REQUIRED_FIELDS,
     TRANSITION_REQUIRED_FIELDS,
 )
@@ -1084,6 +1087,18 @@ class Flaw(
         # db that was used for fetch for DELETE and UPDATE operations as of 4.2
         # see https://code.djangoproject.com/ticket/32965
         self.alerts.filter(name="bzsync_failed").using("default").delete()
+
+    def tasksync_bu_label_owners(self):
+        """
+        sync the owners of the BU labels to the Jira task of this flaw
+        """
+        if not (JIRA_TASKMAN_AUTO_SYNC_FLAW and JIRA_AUTH_TOKEN and self.task_key):
+            return
+        self.tasksync(
+            jira_token=JIRA_AUTH_TOKEN,
+            jira_email=JIRA_EMAIL,
+            diff={"bu_label_owners": {}},
+        )
 
     def tasksync(
         self,

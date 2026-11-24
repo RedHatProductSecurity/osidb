@@ -21,3 +21,7 @@ class InvalidTestEnvironmentException(OSIDBException):
 
 class JiraUserMappingException(OSIDBException):
     """Exception raised when Jira user mapping lookup fails."""
+
+
+class JiraConnectionException(JiraUserMappingException):
+    """Exception raised when Jira Cannot be reached during the user mapping lookup"""

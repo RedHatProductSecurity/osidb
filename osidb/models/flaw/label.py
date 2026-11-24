@@ -228,12 +228,16 @@ class BULabel(FlawLabel):
         }
 
         # Delete labels of teams with no affects left, update labels whose state changed.
+        owners_changed = False
         for name, label in existing_labels.items():
             if name not in desired:
+                owners_changed = owners_changed or bool(label.contributor)
                 label.delete()
             elif label.state != desired[name]:
                 label.state = desired[name]
                 label.save()
+        if owners_changed:
+            flaw.tasksync_bu_label_owners()
 
         # names used by labels of any type
         taken_names = set(flaw.labels.values_list("name", flat=True))

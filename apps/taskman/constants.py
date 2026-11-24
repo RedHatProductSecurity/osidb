@@ -10,6 +10,9 @@ JIRA_STORY_ISSUE_TYPE_ID = get_env("JIRA_STORY_ISSUE_TYPE_ID")
 JIRA_TASKMAN_URL = get_env("JIRA_TASKMAN_URL", default="https://redhat.atlassian.net")
 JIRA_TASKMAN_PROJECT_ID = get_env("JIRA_TASKMAN_PROJECT_ID")
 JIRA_TASKMAN_PROJECT_KEY = get_env("JIRA_TASKMAN_PROJECT_KEY", default="OSIM")
+JIRA_TASKMAN_CONTRIBUTORS_FIELD_ID = get_env(
+    "JIRA_TASKMAN_CONTRIBUTORS_FIELD_ID", default="customfield_12315950"
+)
 HTTPS_JIRA_PROXY = get_env("HTTPS_JIRA_PROXY")
 JIRA_TASKMAN_AUTO_SYNC_FLAW = get_env(
     "JIRA_TASKMAN_AUTO_SYNC_FLAW", default="0", is_bool=True
@@ -23,6 +26,7 @@ SYNC_REQUIRED_FIELDS = [
     "impact",
     "is_embargoed",
     "owner",
+    "bu_label_owners",
 ]
 TRANSITION_REQUIRED_FIELDS = [
     "workflow_state",
