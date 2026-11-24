@@ -582,7 +582,7 @@ class TrackerFactory(BaseFactory):
         )
     )
 
-    meta_attr = {"test": "1"}
+    meta_attr = factory.LazyFunction(lambda: {"test": "1"})
 
     created_dt = factory.Faker("date_time", tzinfo=UTC)
     updated_dt = factory.LazyAttribute(lambda f: f.created_dt)
@@ -595,6 +595,9 @@ class TrackerFactory(BaseFactory):
         if extracted:
             for affect in extracted:
                 self.affects.add(affect)
+
+                if affect.ps_component and self.meta_attr.get("ps_component") is None:
+                    self.meta_attr["ps_component"] = affect.ps_component
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
@@ -617,6 +620,8 @@ class TrackerFactory(BaseFactory):
         # embargoed is a factory-level param used to set acl_read/acl_write; it is
         # not a real model kwarg (GeneratedField), so strip it before construction.
         kwargs.pop("embargoed")
+        if "meta_attr" in kwargs:
+            kwargs["meta_attr"] = kwargs["meta_attr"].copy()
         return super()._build(model_class, *args, **kwargs)
 
 

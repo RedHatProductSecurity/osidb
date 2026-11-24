@@ -180,6 +180,107 @@ class TestEndpointsTrackers:
         assert tracker.affects.count() == 1
 
     @pytest.mark.enable_signals
+    def test_tracker_update_affect_components(self, auth_client, test_api_v2_uri):
+        """An affect that shares a tracker's component is accepted while
+        one that differs is rejected."""
+        flaw = FlawFactory()
+        stream = PsUpdateStreamFactory(ps_module=PsModuleFactory(bts_name="bugzilla"))
+        linked = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        tracker = TrackerFactory(
+            affects=[linked],
+            embargoed=flaw.embargoed,
+            ps_update_stream=stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        other_right = AffectFactory(
+            flaw=FlawFactory(embargoed=flaw.embargoed),
+            ps_update_stream=stream.name,
+            ps_component=linked.ps_component,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+
+        url = f"{test_api_v2_uri}/trackers/{tracker.uuid}"
+        data = auth_client().get(url).json()
+        data["affects"] = [str(other_right.uuid)]
+        response = auth_client().put(
+            url,
+            data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 200
+
+        other_wrong = AffectFactory(
+            flaw=FlawFactory(embargoed=flaw.embargoed),
+            ps_update_stream=stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        url = f"{test_api_v2_uri}/trackers/{tracker.uuid}"
+        data = auth_client().get(url).json()
+        data["affects"] = [str(other_wrong.uuid)]
+        response = auth_client().put(
+            url,
+            data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 400
+        set_user_acls(settings.ALL_GROUPS)
+        other_wrong.refresh_from_db()
+        assert other_wrong.tracker is None
+        assert tracker.affects.count() == 1
+
+    @pytest.mark.enable_signals
+    def test_tracker_with_empty_component(self, auth_client, test_api_v2_uri):
+        """A tracker created without a component should reject all new trackers"""
+        flaw = FlawFactory()
+        stream = PsUpdateStreamFactory(ps_module=PsModuleFactory(bts_name="bugzilla"))
+        linked = AffectFactory(
+            flaw=flaw,
+            ps_update_stream=stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        tracker = TrackerFactory(
+            embargoed=flaw.embargoed,
+            affects=[linked],
+            meta_attr={"test": "1", "ps_component": ""},
+            ps_update_stream=stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+        )
+        other_right = AffectFactory(
+            flaw=FlawFactory(embargoed=flaw.embargoed),
+            ps_update_stream=stream.name,
+            ps_component=linked.ps_component,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        url = f"{test_api_v2_uri}/trackers/{tracker.uuid}"
+        data = auth_client().get(url).json()
+        data["affects"] = [str(other_right.uuid)]
+        response = auth_client().put(
+            url,
+            data,
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 400
+        set_user_acls(settings.ALL_GROUPS)
+        other_right.refresh_from_db()
+        assert other_right.tracker is None
+        assert tracker.affects.count() == 1
+
+    @pytest.mark.enable_signals
     def test_tracker_links_classify_once(
         self, auth_client, test_api_v2_uri, monkeypatch
     ):
@@ -432,12 +533,14 @@ class TestEndpointsTrackers:
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             ps_update_stream=ps_update_stream.name,
+            ps_component="ps-component-0",
         )
         affect2 = AffectFactory(
             flaw=flaw2,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             ps_update_stream=ps_update_stream.name,
+            ps_component="ps-component-0",
         )
         tracker = TrackerFactory(
             affects=[affect1],

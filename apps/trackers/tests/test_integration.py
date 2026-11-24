@@ -574,7 +574,6 @@ class TestTrackerAPI:
         ).order_by("name")
         ps_module = ps_update_streams.first().active_to_ps_module
         ps_component1 = setup_sample_external_resources["jboss_components"][0]
-        ps_component2 = setup_sample_external_resources["jboss_components"][1]
 
         # 2) define all the context
 
@@ -747,7 +746,7 @@ class TestTrackerAPI:
             uuid="8db199fd-86eb-45eb-aa3a-8fd7ecd32c2e",
             flaw=flaw,
             ps_update_stream=ps_update_streams[1].name,
-            ps_component=ps_component2,
+            ps_component=ps_component1,
             affectedness=Affect.AffectAffectedness.AFFECTED,
             resolution=Affect.AffectResolution.DELEGATED,
             impact=flaw.impact,

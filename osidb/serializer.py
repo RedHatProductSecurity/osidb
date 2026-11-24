@@ -817,9 +817,30 @@ class TrackerSerializer(
             with affect.defer_flaw_save():
                 affect.save()
 
+        # if the tracker doesn't have any ps_components, reject attempts
+        # to add new affects
+        tracker_ps_component = tracker.meta_attr.get("ps_component")
+
+        if not tracker_ps_component and added_affects:
+            raise serializers.ValidationError(
+                {
+                    "affects": "Tracker PS component is missing, and therefore it is not "
+                    "valid to add any new affects to it"
+                }
+            )
+
         # Add tracker to newly associated affects
         for affect in added_affects:
             affect.tracker = tracker
+            affect_ps_component = affect.ps_component
+
+            if affect_ps_component != tracker_ps_component:
+                raise serializers.ValidationError(
+                    {
+                        "affects": f"Tracker PS component {tracker_ps_component} does not correspond "
+                        f"to the related affect's PS component {affect_ps_component}"
+                    }
+                )
             with affect.defer_flaw_save():
                 affect.save()
 

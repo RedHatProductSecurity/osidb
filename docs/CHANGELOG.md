@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recognize middleware and services via the product definitions label attribute (OSIDB-5903)
 - Kernel trackers are no longer filed with the reproducer confidentiality text
   in the description (OSIDB-5892)
+- Trackers reject linked Affects with components different from Tracker's (OSIDB-5907)
 
 ### Fixed
 - Remove an N+1 query over affects when serializing the flaw `trackers` field on `GET /flaws` (OSIDB-5681)
