@@ -1053,6 +1053,17 @@ class Affect(
             name=self.ps_update_stream, ps_module__bts_key="HUM"
         ).exists()
 
+    def is_pre_ga(self) -> bool:
+        """
+        check and return whether the given affect is targeting a pre-GA stream
+        which is a stream with supported from date (GA date) in the future
+
+        streams with no supported from date are considered as already GA
+        """
+        return PsUpdateStream.objects.filter(
+            name=self.ps_update_stream, supported_from_dt__gt=timezone.now()
+        ).exists()
+
     def is_ubi(self) -> bool:
         """
         Check whether this affect's component is a UBI package AND
