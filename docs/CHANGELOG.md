@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in the description (OSIDB-5892)
 
 ### Fixed
+- Reject tracker creation and updates that would take an affect from another tracker (OSIDB-5914)
 - Remove an N+1 query over affects when serializing the flaw `trackers` field on `GET /flaws` (OSIDB-5681)
 
 ## [5.23.2] - 2026-11-12
