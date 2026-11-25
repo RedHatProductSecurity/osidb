@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 - Source BU labels directly from PS product team values (OSIDB-5922)
 
+### Added
+- Collect PS update stream lifecycle (supported from/until) from product definitions (OSIDB-5661)
+
 ## [5.23.3] - 2026-11-24
 ### Added
 - implement affect-based trigger to keep BU labels in sync (OSIDB-5710)

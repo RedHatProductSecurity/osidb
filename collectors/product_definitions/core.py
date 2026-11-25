@@ -71,6 +71,16 @@ def sanitize_product_definitions(data: dict) -> Tuple[dict, dict, dict, dict]:
     )
 
 
+def parse_lifecycle_dates(data: dict) -> None:
+    """
+    convert the lifecycle string dates in the given
+    data to objects aware of a given time zone
+    """
+    for supported_dt in ["supported_from_dt", "supported_until_dt"]:
+        if date := data.get(supported_dt):
+            data[supported_dt] = make_aware(datetime.strptime(date, "%Y-%m-%d"))
+
+
 def sync_ps_contacts(data: dict):
     """
     clean and re-create PS contacts from given data
@@ -105,6 +115,7 @@ def sync_ps_update_streams(data: dict):
         # while OSIDB Impact choices are uppercase
         if "impact" in filtered_stream_data:
             filtered_stream_data["impact"] = filtered_stream_data["impact"].upper()
+        parse_lifecycle_dates(filtered_stream_data)
 
         PsUpdateStream.objects.create(name=stream_name, **filtered_stream_data)
 
@@ -150,12 +161,7 @@ def sync_ps_products_modules(ps_products_data: dict, ps_modules_data: dict):
             # we're attempting to set multiple related objects with string
             # values but Django doesn't seem to care?
 
-            # convert string date to an object aware of a given time zone
-            for supported_dt in ["supported_from_dt", "supported_until_dt"]:
-                if date := filtered_module_data.get(supported_dt):
-                    filtered_module_data[supported_dt] = make_aware(
-                        datetime.strptime(date, "%Y-%m-%d")
-                    )
+            parse_lifecycle_dates(filtered_module_data)
 
             ps_module = PsModule.objects.create(
                 name=module_name, ps_product=ps_product, **filtered_module_data

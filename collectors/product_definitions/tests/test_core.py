@@ -2,6 +2,7 @@ from typing import Type
 
 import pytest
 from django.db import models
+from django.utils.timezone import datetime, make_aware
 
 from osidb.helpers import get_model_fields
 from osidb.models import Impact, PsContact, PsModule, PsProduct, PsUpdateStream
@@ -161,6 +162,37 @@ class TestProductDefinitionsCollection:
         sync_ps_update_streams({"rhel-10.0": {"impact": "critical"}})
 
         assert PsUpdateStream.objects.get(name="rhel-10.0").impact == Impact.CRITICAL
+
+    def test_ps_update_streams_sync_lifecycle(self):
+        """
+        test that the nested product definitions stream lifecycle
+        is remapped and synced to the time zone aware datetimes
+        """
+        raw_data = {
+            "ps_products": {},
+            "ps_modules": {},
+            "ps_update_streams": {
+                "rhel-10.4": {
+                    "lifecycle": {
+                        "supported_from": "2027-05-12",
+                        "supported_until": None,
+                    }
+                },
+                "rhel-10.0": {},
+            },
+            "contacts": {},
+        }
+        _, _, ps_update_streams, _ = sanitize_product_definitions(raw_data)
+
+        sync_ps_update_streams(ps_update_streams)
+
+        stream = PsUpdateStream.objects.get(name="rhel-10.4")
+        assert stream.supported_from_dt == make_aware(datetime(2027, 5, 12))
+        assert stream.supported_until_dt is None
+
+        stream = PsUpdateStream.objects.get(name="rhel-10.0")
+        assert stream.supported_from_dt is None
+        assert stream.supported_until_dt is None
 
     @pytest.mark.default_cassette(PRODUCT_DEFINITIONS_CASSETTE)
     @pytest.mark.vcr
