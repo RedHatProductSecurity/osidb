@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Collect PS update stream lifecycle (supported from/until) from product definitions (OSIDB-5661)
+- Introduce the `is pre ga` affect check usable in SLA/SLO policies (OSIDB-5661)
+
+### Changed
 - Source BU labels directly from PS product team values (OSIDB-5922)
 
 ## [5.23.3] - 2026-11-24

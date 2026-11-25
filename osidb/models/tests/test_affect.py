@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 import pytest
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from osidb.models import Affect, Impact, Tracker
 from osidb.models.ps_constants import UbiPackage
@@ -1245,6 +1248,38 @@ class TestAffectIsUbi:
 
         assert affect_9_9.is_ubi() is True
         assert affect_9_10.is_ubi() is True
+
+
+class TestAffectIsPreGa:
+    """Test pre-GA stream detection for affects"""
+
+    @pytest.mark.parametrize(
+        "supported_from_delta,expected",
+        [
+            (timedelta(days=30), True),
+            (timedelta(days=-30), False),
+            (None, False),
+        ],
+    )
+    def test_is_pre_ga(self, supported_from_delta, expected):
+        """
+        stream with supported from date in the future is pre-GA
+        while stream with past or no supported from date is not
+        """
+        ps_update_stream = PsUpdateStreamFactory(
+            supported_from_dt=(
+                timezone.now() + supported_from_delta
+                if supported_from_delta is not None
+                else None
+            ),
+        )
+        affect = AffectFactory(
+            ps_update_stream=ps_update_stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+
+        assert affect.is_pre_ga() is expected
 
 
 @pytest.mark.enable_signals

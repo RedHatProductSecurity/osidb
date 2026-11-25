@@ -63,6 +63,10 @@ class PsUpdateStream(NullStrFieldsMixin, ValidateMixin):
     target_release = models.CharField(max_length=50, blank=True)
     rhsa_sla_applicable = models.BooleanField(default=True)
 
+    # stream lifecycle where supported from is effectively the stream GA date
+    supported_from_dt = models.DateTimeField(null=True, blank=True)
+    supported_until_dt = models.DateTimeField(null=True, blank=True)
+
     additional_fields = models.JSONField(default=dict, blank=True)
     collections = fields.ArrayField(models.TextField(), default=list, blank=True)
     flags = fields.ArrayField(models.TextField(), default=list, blank=True)

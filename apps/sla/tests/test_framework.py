@@ -2,7 +2,7 @@ import pytest
 import yaml
 from django.utils.timezone import datetime, make_aware, timedelta
 
-from apps.sla.models import SLOPolicy, TemporalContext
+from apps.sla.models import SLAPolicy, SLOPolicy, TemporalContext
 from osidb.models import Affect, Flaw, Impact, PsUpdateStream, Tracker
 from osidb.tests.factories import (
     AffectFactory,
@@ -729,6 +729,70 @@ slo:
                 assert slo_context.policy
                 assert slo_context.start == flaw.reported_dt
                 assert slo_context.end == flaw.created_dt + timedelta(days=5)
+
+        @pytest.mark.parametrize(
+            "supported_from_delta,excluded",
+            [
+                (timedelta(days=30), True),
+                (timedelta(days=-30), False),
+                (None, False),
+            ],
+        )
+        def test_pre_ga_exclusion(self, supported_from_delta, excluded):
+            """
+            Test that the pre-GA exclusion policy does not apply SLA to trackers
+            of streams with supported from date (GA date) in the future
+            """
+            sla_file = """
+---
+name: Pre-GA
+description: SLA exclusion policy for pre-GA streams
+conditions:
+  affect:
+    - is pre ga
+sla: null
+---
+name: Low
+description: SLA policy applied to low impact
+conditions:
+  affect:
+    - aggregated impact is low
+sla:
+  duration: 5
+  start: reported date
+  type: calendar days
+"""
+            flaw = FlawFactory(embargoed=False, impact=Impact.LOW)
+            ps_module = PsModuleFactory()
+            ps_update_stream = PsUpdateStreamFactory(
+                ps_module=ps_module,
+                supported_from_dt=(
+                    make_aware(datetime.now()) + supported_from_delta
+                    if supported_from_delta is not None
+                    else None
+                ),
+            )
+            affect = AffectFactory(
+                flaw=flaw,
+                affectedness=Affect.AffectAffectedness.AFFECTED,
+                resolution=Affect.AffectResolution.DELEGATED,
+                ps_update_stream=ps_update_stream.name,
+                impact=Impact.LOW,
+            )
+            tracker = TrackerFactory(
+                affects=[affect],
+                embargoed=flaw.embargoed,
+                ps_update_stream=ps_update_stream.name,
+                type=Tracker.BTS2TYPE[ps_module.bts_name],
+            )
+
+            load_policies(SLAPolicy, sla_file)
+            sla_context = SLAPolicy.classify(tracker)
+            if excluded:
+                assert not sla_context.policy
+            else:
+                assert sla_context.policy
+                assert sla_context.start == flaw.reported_dt
 
         @pytest.mark.parametrize(
             "embargoed",

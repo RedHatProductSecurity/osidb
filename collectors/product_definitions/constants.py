@@ -24,7 +24,13 @@ PROPERTIES_MAP = {
             "default": "default_component",
             "override": "component_overrides",
         },
-    }
+    },
+    "ps_update_streams": {
+        "lifecycle": {
+            "supported_from": "supported_from_dt",
+            "supported_until": "supported_until_dt",
+        },
+    },
 }
 
 # List of relationship types between PS Update Stream and PS Module
