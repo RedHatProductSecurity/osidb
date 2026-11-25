@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [5.23.3] - 2026-11-24
 ### Added
 - implement affect-based trigger to keep BU labels in sync (OSIDB-5710)
 
@@ -14,27 +14,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recognize middleware and services via the product definitions label attribute (OSIDB-5903)
 - Kernel trackers are no longer filed with the reproducer confidentiality text
   in the description (OSIDB-5892)
+- On creation of an embargoed flaw the Jira Security Level is set to Embargoed (OSIDB-5857)
+- ACE qualifies a flaw once and creates affects only when the `auto-affects` label is applied. Low-confidence components receive `potential-rejection` and no affects (OSIDB-5735)
 
 ### Fixed
 - Remove an N+1 query over affects when serializing the flaw `trackers` field on `GET /flaws` (OSIDB-5681)
+- Manage ACL-write indexes and remove redundant database indexes (OSIDB-5854).
 
 ## [5.23.2] - 2026-11-12
 ### Changed
 - Deprecate the tracker `sync_to_bz` parameter: it remains accepted but has no effect;
   tracker creation and updates no longer sync related flaws to Bugzilla (OSIDB-5864).
 - Recover the CVE.org collector checkout after interrupted updates (OSIDB-5865)
-- On creation of an embargoed flaw the Jira Security Level is set to Embargoed (OSIDB-5857)
-
-### Fixed
-- Manage ACL-write indexes and remove redundant database indexes (OSIDB-5854).
+- Flaw components filter is now case-insensitive (OSIDB-5499)
 
 ## [5.23.1] - 2026-11-09
 ### Fixed
 - Hummingbird only takes into account OSV.NOTAFFECTED for affectedness / resolution
   determination and nothing else (OSIDB-5870)
-
-### Changed
-- Flaw components filter is now case-insensitive (OSIDB-5499)
 
 ## [5.23.0] - 2026-11-05
 ### Added
@@ -53,9 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   manual triage regardless of stream (OSIDB-5450)
 - ACE: require an affirmative OSV affected result before auto-resolving and route
   unresolved statuses to manual triage (OSIDB-5800)
-
-### Changed
-- ACE qualifies a flaw once and creates affects only when the `auto-affects` label is applied. Low-confidence components receive `potential-rejection` and no affects (OSIDB-5735)
 
 ## [5.22.0] - 2026-11-02
 ### Added
