@@ -16,7 +16,6 @@ from osidb.models.affect import Affect
 from osidb.models.flaw.label import (
     AliasLabel,
     BULabel,
-    BULabelDefinition,
     CollaboratorLabel,
     CollaboratorLabelDefinition,
     FlawLabel,
@@ -39,7 +38,7 @@ def label_definitions():
     """
     Create common label definitions for tests that need pre-registered labels.
 
-    This is required because CollaboratorLabel and BULabel require pre-registration.
+    This is required because CollaboratorLabel requires pre-registration.
     Tests that create label instances should use this fixture.
     Tests that test definition models themselves should NOT use this fixture.
     """
@@ -56,21 +55,6 @@ def label_definitions():
         "label-DONE",
     ]:
         CollaboratorLabelDefinition.objects.get_or_create(name=name)
-
-    # BU label names used in label instance tests
-    for name in [
-        "bu-label",
-        "test5",
-        "bu",
-        "test",
-        "test2",
-        "test3",
-        "test4",
-        "platform-bu",
-        "middleware-bu",
-        "bu-security",
-    ]:
-        BULabelDefinition.objects.get_or_create(name=name)
 
     # Product family label (minimal - tests create their own with specific filters)
     ProductFamilyLabelDefinition.objects.get_or_create(
@@ -623,7 +607,6 @@ class TestBULabel:
 
     def test_sync_for_flaw_creates_label(self):
         """Test that a BU label is created for the team of an affect"""
-        BULabelDefinition.objects.create(name="team-a")
         flaw = FlawFactory(embargoed=False)
         self._make_affect(flaw, self._make_stream("team-a"))
         BULabel.sync_for_flaw(flaw)
@@ -635,7 +618,6 @@ class TestBULabel:
 
     def test_sync_for_flaw_is_idempotent(self):
         """Test that syncing twice does not duplicate the label"""
-        BULabelDefinition.objects.create(name="team-a")
         flaw = FlawFactory(embargoed=False)
         self._make_affect(flaw, self._make_stream("team-a"))
         BULabel.sync_for_flaw(flaw)
@@ -644,7 +626,6 @@ class TestBULabel:
 
     def test_sync_for_flaw_updates_state_and_keeps_owner(self):
         """Test that a state change keeps the contributor"""
-        BULabelDefinition.objects.create(name="team-a")
         flaw = FlawFactory(embargoed=False)
         affect = self._make_affect(flaw, self._make_stream("team-a"))
         BULabel.sync_for_flaw(flaw)
@@ -660,12 +641,12 @@ class TestBULabel:
         assert label.state == BULabel.State.DONE
         assert label.contributor == "owner@example.com"
 
-    def test_sync_for_flaw_without_definition(self):
-        """Test that a team without a BU label definition is skipped"""
+    def test_sync_for_flaw_any_team(self):
+        """Test that every PS product team gets a label, with no pre-registration"""
         flaw = FlawFactory(embargoed=False)
         self._make_affect(flaw, self._make_stream("team-x"))
         BULabel.sync_for_flaw(flaw)
-        assert not BULabel.objects.filter(flaw=flaw).exists()
+        assert BULabel.objects.filter(flaw=flaw, name="team-x").exists()
 
     def test_sync_for_flaw_blank_team(self):
         """Test that an affect whose product has no team creates no label"""
@@ -676,7 +657,6 @@ class TestBULabel:
 
     def test_sync_for_flaw_deleting_last_affect(self):
         """Test that the label is deleted with the last affect of the team"""
-        BULabelDefinition.objects.create(name="team-a")
         flaw = FlawFactory(embargoed=False)
         affect = self._make_affect(flaw, self._make_stream("team-a"))
         BULabel.sync_for_flaw(flaw)
@@ -687,7 +667,6 @@ class TestBULabel:
 
     def test_sync_for_flaw_deleting_one_of_two_affects(self):
         """Test that the label stays while the team still has an affect"""
-        BULabelDefinition.objects.create(name="team-a")
         flaw = FlawFactory(embargoed=False)
         stream = self._make_stream("team-a")
         affect = self._make_affect(flaw, stream, component="comp-1")
@@ -699,8 +678,6 @@ class TestBULabel:
 
     def test_sync_for_flaw_two_teams(self):
         """Test that each team gets its own label state"""
-        BULabelDefinition.objects.create(name="team-a")
-        BULabelDefinition.objects.create(name="team-b")
         flaw = FlawFactory(embargoed=False)
         self._make_affect(flaw, self._make_stream("team-a"))
         self._make_affect(
@@ -715,7 +692,6 @@ class TestBULabel:
 
     def test_sync_for_flaw_name_taken_by_other_label_type(self):
         """Test that a name used by another label type does not break the sync"""
-        BULabelDefinition.objects.create(name="team-a")
         flaw = FlawFactory(embargoed=False)
         AliasLabel.objects.create(flaw=flaw, name="team-a")
         self._make_affect(flaw, self._make_stream("team-a"))
@@ -725,7 +701,6 @@ class TestBULabel:
     @pytest.mark.enable_signals
     def test_affect_creation_syncs_bu_label(self):
         """Test that creating an affect creates the BU label"""
-        BULabelDefinition.objects.create(name="team-a")
         flaw = FlawFactory(embargoed=False)
         self._make_affect(flaw, self._make_stream("team-a"))
         label = BULabel.objects.get(flaw=flaw, name="team-a")
@@ -734,7 +709,6 @@ class TestBULabel:
     @pytest.mark.enable_signals
     def test_affect_update_syncs_bu_label(self):
         """Test that resolving the affect moves the BU label to DONE"""
-        BULabelDefinition.objects.create(name="team-a")
         flaw = FlawFactory(embargoed=False)
         affect = self._make_affect(flaw, self._make_stream("team-a"))
         affect.affectedness = Affect.AffectAffectedness.AFFECTED
@@ -746,7 +720,6 @@ class TestBULabel:
     @pytest.mark.enable_signals
     def test_affect_deletion_syncs_bu_label(self):
         """Test that deleting the last affect removes the BU label"""
-        BULabelDefinition.objects.create(name="team-a")
         flaw = FlawFactory(embargoed=False)
         affect = self._make_affect(flaw, self._make_stream("team-a"))
         assert BULabel.objects.filter(flaw=flaw, name="team-a").exists()
@@ -756,7 +729,6 @@ class TestBULabel:
     @pytest.mark.enable_signals
     def test_flaw_deletion_with_bu_labels(self):
         """Test that deleting a flaw with BU labels raises no error"""
-        BULabelDefinition.objects.create(name="team-a")
         flaw = FlawFactory(embargoed=False)
         self._make_affect(flaw, self._make_stream("team-a"))
         assert BULabel.objects.filter(flaw=flaw).exists()
@@ -766,8 +738,6 @@ class TestBULabel:
     @pytest.mark.enable_signals
     def test_affect_stream_change_moves_label_to_new_team(self):
         """Test that changing the PS update stream changes the team's label"""
-        BULabelDefinition.objects.create(name="team-a")
-        BULabelDefinition.objects.create(name="team-b")
         flaw = FlawFactory(embargoed=False)
         affect = self._make_affect(flaw, self._make_stream("team-a"))
         assert BULabel.objects.filter(flaw=flaw, name="team-a").exists()
@@ -782,7 +752,6 @@ class TestBULabel:
     ):
         """BU label appears after the bulk affect creation"""
         team = "team-a"
-        BULabelDefinition.objects.create(name=team)
         stream = self._make_stream(team)
         flaw = FlawFactory(embargoed=False)
         for i in range(2):
@@ -846,20 +815,12 @@ class TestLabelDefinitions:
         assert definition.ps_components == ["openshift"]
         assert definition.ps_modules_exclude == ["openshift-old"]
 
-    def test_create_bu_label_definition(self):
-        """Test creating a BU label definition"""
-        definition = BULabelDefinition.objects.create(name="security-bu")
-
-        assert definition.name == "security-bu"
-        assert definition.uuid is not None
-
     def test_unique_label_name_per_type(self):
         """Test that label names must be unique within each definition type"""
         CollaboratorLabelDefinition.objects.create(name="test-label")
 
         # Same name in different type is allowed
         ProductFamilyLabelDefinition.objects.create(name="test-label")
-        BULabelDefinition.objects.create(name="test-label")
 
         # Duplicate in same type fails
         with pytest.raises(IntegrityError):
@@ -964,39 +925,20 @@ class TestLabelAndDefinitionIntegration:
         assert label.name == "security-review"
         assert CollaboratorLabelDefinition.objects.filter(name=label.name).exists()
 
-    def test_bu_label_requires_definition(self):
-        """Test that BULabel requires pre-registration"""
+    def test_bu_label_needs_no_definition(self):
+        """Test that BULabel no longer requires pre-registration"""
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw)
 
-        # Attempt to create without definition - should fail
-        with pytest.raises(ValidationError) as exc_info:
-            BULabel.objects.create(
-                flaw=flaw,
-                name="unregistered-bu",
-                state=BULabel.State.NEW,
-            )
-
-        assert "must be pre-registered" in str(exc_info.value)
-
-    def test_bu_label_with_definition(self):
-        """Test that BULabel works when definition exists"""
-        # Create definition first
-        BULabelDefinition.objects.create(name="platform-bu")
-
-        flaw = FlawFactory(embargoed=False)
-        AffectFactory(flaw=flaw)
-
-        # Create label instance - should succeed
+        # BU labels are sourced from PS product team values, not a registry
         label = BULabel.objects.create(
             flaw=flaw,
             name="platform-bu",
             state=BULabel.State.REQ,
         )
 
-        # Verify both exist
         assert label.name == "platform-bu"
-        assert BULabelDefinition.objects.filter(name=label.name).exists()
+        assert BULabel.objects.filter(flaw=flaw, name="platform-bu").exists()
 
     def test_product_family_label_with_filters(self):
         """Test ProductFamilyLabel with definition filters for auto-creation logic"""
@@ -1037,7 +979,7 @@ class TestLabelAndDefinitionIntegration:
 
         # Verify label exists but no definition needed
         assert label.name == "incident-12345"
-        # No CollaboratorLabelDefinition, BULabelDefinition, or ProductFamilyLabelDefinition
+        # No CollaboratorLabelDefinition or ProductFamilyLabelDefinition
         assert not CollaboratorLabelDefinition.objects.filter(
             name="incident-12345"
         ).exists()
@@ -1079,7 +1021,6 @@ class TestLabelAndDefinitionIntegration:
         """Test that definitions can be pre-registered without any instances"""
         # Create definitions without any label instances
         CollaboratorLabelDefinition.objects.create(name="unused-label")
-        BULabelDefinition.objects.create(name="future-bu")
         ProductFamilyLabelDefinition.objects.create(
             name="rh-rhel",
             ps_modules=["rhel-8"],
@@ -1087,12 +1028,10 @@ class TestLabelAndDefinitionIntegration:
 
         # Definitions exist
         assert CollaboratorLabelDefinition.objects.count() == 1
-        assert BULabelDefinition.objects.count() == 1
         assert ProductFamilyLabelDefinition.objects.count() == 1
 
         # But no label instances
         assert CollaboratorLabel.objects.count() == 0
-        assert BULabel.objects.count() == 0
         assert ProductFamilyLabel.objects.count() == 0
 
     def test_product_family_definition_filter_logic(self):

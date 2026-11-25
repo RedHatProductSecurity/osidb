@@ -15,7 +15,6 @@ __all__ = (
     "AffectCVSS",
     "AliasLabel",
     "BULabel",
-    "BULabelDefinition",
     "CollaboratorLabel",
     "CollaboratorLabelDefinition",
     "ComparableTextChoices",
@@ -55,7 +54,6 @@ from .flaw.flaw import Flaw
 from .flaw.label import (
     AliasLabel,
     BULabel,
-    BULabelDefinition,
     CollaboratorLabel,
     CollaboratorLabelDefinition,
     FlawLabel,

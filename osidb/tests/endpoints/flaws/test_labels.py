@@ -4,7 +4,6 @@ from rest_framework import status
 from osidb.models import (
     AliasLabel,
     BULabel,
-    BULabelDefinition,
     CollaboratorLabel,
     CollaboratorLabelDefinition,
     Flaw,
@@ -219,7 +218,6 @@ class TestEndpointsFlawsLabels:
 
     def test_update_bu_label_contributor_allowed(self, auth_client, test_api_uri):
         flaw = Flaw.objects.first()
-        BULabelDefinition.objects.create(name="test_bu")
         label = BULabel.objects.create(name="test_bu", flaw=flaw)
         response = auth_client().put(
             f"{test_api_uri}/flaws/{flaw.uuid}/labels/{label.uuid}",
@@ -450,8 +448,6 @@ class TestBULabels:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        BULabelDefinition.objects.create(name="test_bu_label")
-
         self.flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=self.flaw)
 
@@ -471,19 +467,6 @@ class TestBULabels:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "BU labels cannot be created" in str(response.json())
         assert not BULabel.objects.filter(name="test_bu_label").exists()
-
-    def test_create_bu_label_without_definition_fails(self, auth_client, test_api_uri):
-        """Test that BU labels require pre-registration in BULabelDefinition"""
-        response = auth_client().post(
-            f"{test_api_uri}/flaws/{self.flaw.uuid}/labels",
-            {
-                "label": "undefined_bu_label",
-                "type": "bu",
-                "state": "NEW",
-            },
-        )
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_delete_bu_label(self, auth_client, test_api_uri):
         """Test that BU labels cannot be deleted through API"""
@@ -768,7 +751,6 @@ class TestFlawLabelsV2CRUD:
     def setup(self):
         CollaboratorLabelDefinition.objects.create(name="context-label")
         CollaboratorLabelDefinition.objects.create(name="other-context")
-        BULabelDefinition.objects.create(name="bu-label")
         ProductFamilyLabelDefinition.objects.create(name="pf-label")
 
         self.flaw = FlawFactory(embargoed=False)
@@ -944,7 +926,6 @@ class TestFlawLabelsV2CRUD:
         assert label.contributor == ""
 
     def test_delete_bu_label_blocked(self, auth_client, test_api_v2_uri):
-        BULabelDefinition.objects.create(name="test_bu")
         label = BULabel.objects.create(flaw=self.flaw, name="test_bu")
         response = auth_client().delete(
             f"{test_api_v2_uri}/flaws/{self.flaw.uuid}/labels/{label.uuid}"
@@ -954,7 +935,6 @@ class TestFlawLabelsV2CRUD:
         assert FlawLabel.objects.filter(uuid=label.uuid).exists()
 
     def test_update_bu_label_contributor_allowed(self, auth_client, test_api_v2_uri):
-        BULabelDefinition.objects.create(name="test_bu")
         label = BULabel.objects.create(flaw=self.flaw, name="test_bu")
         response = auth_client().put(
             f"{test_api_v2_uri}/flaws/{self.flaw.uuid}/labels/{label.uuid}",
@@ -966,7 +946,6 @@ class TestFlawLabelsV2CRUD:
         assert label.contributor == "someone"
 
     def test_update_bu_label_with_reason_ignored(self, auth_client, test_api_v2_uri):
-        BULabelDefinition.objects.create(name="test_bu")
         label = BULabel.objects.create(flaw=self.flaw, name="test_bu")
         response = auth_client().put(
             f"{test_api_v2_uri}/flaws/{self.flaw.uuid}/labels/{label.uuid}",
@@ -1163,7 +1142,6 @@ class TestFlawLabelsV2ResponseShape:
         assert data["relevant"] is True
 
     def test_bu_label_full_fields(self, auth_client, test_api_v2_uri):
-        BULabelDefinition.objects.create(name="bu-test")
         label = BULabel.objects.create(
             flaw=self.flaw, name="bu-test", state="DONE", contributor="admin"
         )

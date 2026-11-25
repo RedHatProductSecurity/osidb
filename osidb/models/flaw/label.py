@@ -6,7 +6,6 @@ The polymorphic content type field automatically tracks which subclass
 each instance belongs to.
 """
 
-import logging
 import uuid
 
 import pghistory
@@ -25,8 +24,6 @@ from osidb.mixins import (
     ValidateMixin,
     validator,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class FlawLabelManager(PolymorphicManager, TrackingMixinManager):
@@ -133,7 +130,8 @@ class BULabel(FlawLabel):
     Business unit labels with state tracking.
 
     Similar to CollaboratorLabel but for business unit-specific workflows.
-    Requires pre-registration in BULabelDefinition.
+    Sourced from product definitions - one label per PS product team with
+    affects on the flaw. Auto-managed based on affects except the owner.
     """
 
     flawlabel_ptr = models.OneToOneField(
@@ -164,14 +162,6 @@ class BULabel(FlawLabel):
     class Meta:
         verbose_name = "BU Label"
         verbose_name_plural = "BU Labels"
-
-    @validator
-    def _validate_pre_registration(self, **kwargs):
-        """Validate that the label name is pre-registered"""
-        if not BULabelDefinition.objects.filter(name=self.name).exists():
-            raise ValidationError(
-                {"name": f"BU label '{self.name}' must be pre-registered."}
-            )
 
     @staticmethod
     def compute_state(affects):
@@ -211,16 +201,11 @@ class BULabel(FlawLabel):
             if team:
                 affects_by_team.setdefault(team, []).append(affect)
 
-        # Only teams with a BU label definition get a label.
-        teams_with_definition = set(
-            BULabelDefinition.objects.filter(
-                name__in=list(affects_by_team)
-            ).values_list("name", flat=True)
-        )
+        # Every team (a PS product team value) with affects gets a label.
         # Label state per team, derived from the team's affects.
         desired = {
-            team: BULabel.compute_state(affects_by_team[team])
-            for team in teams_with_definition
+            team: BULabel.compute_state(team_affects)
+            for team, team_affects in affects_by_team.items()
         }
         # The BU labels the flaw has now, by team name.
         existing_labels = {
@@ -240,11 +225,6 @@ class BULabel(FlawLabel):
 
         # create missing labels with an empty owner
         for name in affects_by_team:
-            if name not in teams_with_definition:
-                logger.warning(
-                    f"No BU label definition for team {name} (flaw {flaw.uuid})"
-                )
-                continue
             state = desired[name]
             if name not in taken_names:
                 BULabel.objects.get_or_create(
@@ -457,19 +437,6 @@ class BaseLabelDefinition(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class BULabelDefinition(BaseLabelDefinition):
-    """
-    Registry for Business Unit labels.
-
-    These labels must be pre-registered before they can be used.
-    No additional fields needed - just name validation.
-    """
-
-    class Meta:
-        verbose_name = "BU Label Definition"
-        verbose_name_plural = "BU Label Definitions"
 
 
 class CollaboratorLabelDefinition(BaseLabelDefinition):
