@@ -169,9 +169,6 @@ def flaw_metadata_update_local_updated_dt(sender, instance, **kwargs):
 @receiver(post_save, sender=FlawCVSS)
 @receiver(post_save, sender=FlawReference)
 @receiver(post_save, sender=WorkflowLabel)
-@receiver(
-    post_delete, sender=FlawLabel
-)  # cascade deletion of multi-table inheritance fires from the parent
 def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
     # these nested entities either feed flaw-level validators/alerts
     # or drive workflow so the full flaw save is necessary
@@ -179,6 +176,23 @@ def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
         "flaw_dependant_update_local_updated_dt", sender=sender, instance=instance
     ):
         instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
+
+
+@receiver(post_delete, sender=FlawLabel)
+def flaw_label_delete_update_local_updated_dt(sender, instance, **kwargs):
+    # only WorkflowLabel presence drives workflow classification
+    # so the other labels do not require full save
+    if instance.get_real_instance_class() is WorkflowLabel:
+        with signal_pghistory_context(
+            "flaw_label_delete_update_local_updated_dt",
+            sender=sender,
+            instance=instance,
+        ):
+            instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
+    else:
+        Flaw.objects.filter(uuid=instance.flaw_id).update(
+            auto_timestamps=False, local_updated_dt=timezone.now()
+        )
 
 
 @receiver(post_save, sender=Tracker)

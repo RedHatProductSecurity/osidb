@@ -62,14 +62,15 @@ class TestFlawLabelsV2:
             ps_component="test_component",
             ps_update_stream=ps_update_stream1.name,
         )
-        assert flaw.labels.count() == 2
+        # two product family labels plus the BU label for the product's team
+        assert flaw.labels.count() == 3
 
         AffectFactory(
             flaw=flaw,
             ps_component="test_component",
             ps_update_stream=ps_update_stream2.name,
         )
-        assert flaw.labels.count() == 2
+        assert flaw.labels.count() == 3
 
     @pytest.mark.enable_signals
     def test_update_label_on_affect_update(self):
@@ -91,12 +92,15 @@ class TestFlawLabelsV2:
             ps_component="test_component",
             ps_update_stream=ps_update_stream1.name,
         )
-        assert flaw.labels.count() == 2
+        # two product family labels plus the BU label for the product's team
+        assert flaw.labels.count() == 3
 
         affect.ps_update_stream = ps_update_stream2.name
         affect.save()
 
-        assert flaw.labels.count() == 2
+        # the module label turns irrelevant, the component label and the BU label
+        # (now for the new team) remain
+        assert flaw.labels.count() == 3
         assert ProductFamilyLabel.objects.filter(flaw=flaw, relevant=False).count() == 1
 
     @pytest.mark.enable_signals
@@ -111,7 +115,8 @@ class TestFlawLabelsV2:
 
         flaw = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw, ps_update_stream=ps_update_stream.name)
-        assert flaw.labels.count() == 1
+        # the product family label plus the BU label for the product's team
+        assert flaw.labels.count() == 2
 
         definition.delete()
         label = ProductFamilyLabel.objects.first()

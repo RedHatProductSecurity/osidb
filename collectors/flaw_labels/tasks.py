@@ -8,7 +8,6 @@ from django.utils import timezone
 
 from collectors.framework.models import collector
 from osidb.models import (
-    BULabelDefinition,
     CollaboratorLabelDefinition,
     ProductFamilyLabelDefinition,
 )
@@ -36,7 +35,6 @@ FLAW_LABELS_URL = "/".join(
     # Execute this every 3 hours
     crontab=crontab(minute="27", hour="*/3"),
     data_models=[
-        BULabelDefinition,
         CollaboratorLabelDefinition,
         ProductFamilyLabelDefinition,
     ],
@@ -46,18 +44,17 @@ def flaw_labels_collector(collector_obj) -> None:
 
     # Fetch raw yaml data from GitLab
     logger.info(f"Fetching Flaw labels from '{FLAW_LABELS_URL}'")
-    (context_based, product_family, bu_labels) = fetch_flaw_labels(FLAW_LABELS_URL)
+    (context_based, product_family) = fetch_flaw_labels(FLAW_LABELS_URL)
 
     logger.info(
         (
             f"Fetched {len(context_based)} Context Based labels "
-            f"and {len(product_family)} Product Family labels "
-            f"and {len(bu_labels)} BU labels"
+            f"and {len(product_family)} Product Family labels"
         )
     )
 
     # Sync all flaw labels in a single transaction
-    sync_flaw_labels(context_based, product_family, bu_labels)
+    sync_flaw_labels(context_based, product_family)
 
     collector_obj.store(updated_until_dt=timezone.now())
     logger.info("Flaw labels sync was successful.")

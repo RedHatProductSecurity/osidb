@@ -80,7 +80,6 @@ from osidb.models import (
     AffectCVSS,
     AffectV1,
     BULabel,
-    BULabelDefinition,
     CollaboratorLabelDefinition,
     Flaw,
     FlawLabel,
@@ -2429,7 +2428,6 @@ class LabelView(
             cls._DEFINITION_MODELS = [
                 (CollaboratorLabelDefinition, FlawLabel.LabelType.CONTEXT_BASED),
                 (ProductFamilyLabelDefinition, FlawLabel.LabelType.PRODUCT_FAMILY),
-                (BULabelDefinition, FlawLabel.LabelType.BU),
             ]
         return cls._DEFINITION_MODELS
 

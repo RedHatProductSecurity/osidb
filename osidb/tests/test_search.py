@@ -5,7 +5,6 @@ import pytest
 from osidb.models import (
     AliasLabel,
     BULabel,
-    BULabelDefinition,
     CollaboratorLabel,
     CollaboratorLabelDefinition,
     Flaw,
@@ -647,7 +646,6 @@ class TestSearch:
         # ProductFamilyLabel, so the OR-across-subclasses lookup in
         # FlawLabelPropertyField is actually exercised for those subclasses
         # too, not just CollaboratorLabel.
-        BULabelDefinition.objects.create(name="bu-a")
         flaw3 = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw3)
         BULabel.objects.create(
@@ -875,7 +873,6 @@ class TestSearch:
         see test_search_flaws_by_label_any_parity for why.
         """
         CollaboratorLabelDefinition.objects.create(name="collab-a")
-        BULabelDefinition.objects.create(name="bu-a")
 
         flaw_bu_only = FlawFactory(embargoed=False)
         AffectFactory(flaw=flaw_bu_only)
