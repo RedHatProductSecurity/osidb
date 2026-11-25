@@ -1047,7 +1047,7 @@ class JiraTrackerDownloadManager(SyncManager):
         return result
 
     @staticmethod
-    def link_tracker_with_affects(tracker_id):
+    def link_tracker_with_affects(tracker_id, task="UNKNOWN"):
         # Code adapted from collectors.jiraffe.convertors.JiraTrackerConvertor.affects
 
         from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
@@ -1108,7 +1108,13 @@ class JiraTrackerDownloadManager(SyncManager):
 
             affects.append(affect)
 
-        with transaction.atomic():
+        with (
+            transaction.atomic(),
+            pghistory_context(
+                action="link_tracker_with_affects",
+                celery_task_id=getattr(getattr(task, "request", None), "id", None),
+            ),
+        ):
             changed_affects = tracker.relink_affects(affects)
             tracker.save(raise_validation_error=False, auto_timestamps=False)
             reclassify_relinked_flaws(changed_affects)
@@ -1137,7 +1143,9 @@ class JiraTrackerDownloadManager(SyncManager):
                     tracker.save()
 
             # Link this Jira tracker to OSIDB Affects as part of the sync process.
-            result = JiraTrackerDownloadManager.link_tracker_with_affects(tracker_id)
+            result = JiraTrackerDownloadManager.link_tracker_with_affects(
+                tracker_id, task
+            )
 
             # Handle link failures
             affects, failed_flaws, failed_affects = result

@@ -977,6 +977,17 @@ class TestE2ETrackerRelink:
         affect.refresh_from_db()
         assert affect.tracker.external_system_id == "RHEL-59830"
 
+        # the promotion is attributed to the tracker sync in the audit trail
+        event = (
+            Flaw.pgh_event_model.objects.filter(
+                pgh_obj_id=flaw.uuid, workflow_state="DONE"
+            )
+            .order_by("-pgh_created_at")
+            .first()
+        )
+        assert event is not None
+        assert event.pgh_context.metadata["action"] == "link_tracker_with_affects"
+
     @pytest.mark.enable_signals
     @pytest.mark.vcr
     @freeze_time(tzdatetime(2024, 8, 6))
