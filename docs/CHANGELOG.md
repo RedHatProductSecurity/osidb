@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ACE qualifies a flaw once and creates affects only when the `auto-affects` label is applied. Low-confidence components receive `potential-rejection` and no affects (OSIDB-5735)
 
 ### Fixed
+- Reject tracker creation and updates that would take an affect from another tracker (OSIDB-5914)
 - Remove an N+1 query over affects when serializing the flaw `trackers` field on `GET /flaws` (OSIDB-5681)
 - Manage ACL-write indexes and remove redundant database indexes (OSIDB-5854).
 

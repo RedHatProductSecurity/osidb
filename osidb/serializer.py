@@ -707,6 +707,22 @@ class TrackerSerializer(
             "resolved_dt",
         ]
 
+    @staticmethod
+    def _check_existing_trackers(affects, tracker=None):
+        # Lock in a fixed order so competing requests cannot both pass the check.
+        for affect in (
+            Affect.objects.select_for_update()
+            .filter(pk__in=[affect.pk for affect in affects])
+            .order_by("pk")
+        ):
+            existing = affect.tracker
+            if existing and existing != tracker:
+                raise serializers.ValidationError(
+                    {
+                        "affects": f"Affect {affect.uuid} ({affect.ps_update_stream}/{affect.ps_component}) already has tracker {existing.uuid} ({existing.external_system_id})."
+                    }
+                )
+
     @transaction.atomic
     def create(self, validated_data):
         """
@@ -735,6 +751,7 @@ class TrackerSerializer(
             )
 
         affects = validated_data.pop("affects", [])
+        self._check_existing_trackers(affects)
         validated_data.pop("sync_to_bz", None)
         tracker = self.Meta.model(**validated_data)
 
@@ -810,6 +827,7 @@ class TrackerSerializer(
 
         removed_affects = old_affects - new_affects
         added_affects = new_affects - old_affects
+        self._check_existing_trackers(new_affects, tracker)
 
         # Remove tracker from affects that are no longer associated
         for affect in removed_affects:

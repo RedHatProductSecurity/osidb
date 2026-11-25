@@ -1,10 +1,15 @@
+import time
+from threading import Event, Thread
+
 import pghistory
 import pytest
 from django.conf import settings
+from django.db import connection
 from rest_framework import status
 
 from osidb.core import set_user_acls
 from osidb.models import Affect, Flaw, Tracker
+from osidb.serializer import TrackerSerializer
 from osidb.tests.factories import (
     AffectFactory,
     FlawFactory,
@@ -56,6 +61,195 @@ class TestEndpointsTrackers:
         tracker = Tracker.objects.first()
         assert tracker.affects.count() == 1
         assert tracker.affects.first().uuid == affect.uuid
+
+    @pytest.mark.parametrize("bts_name", ["bugzilla", "jboss"])
+    @pytest.mark.parametrize("operation", ["create", "update"])
+    def test_existing_tracker_is_not_stolen(
+        self, auth_client, test_api_v2_uri, bts_name, operation
+    ):
+        stream = PsUpdateStreamFactory(ps_module=PsModuleFactory(bts_name=bts_name))
+        affect = AffectFactory(
+            ps_update_stream=stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        existing = TrackerFactory(
+            affects=[affect],
+            status="NEW",
+            resolution="",
+            ps_update_stream=stream.name,
+            type=Tracker.BTS2TYPE[bts_name],
+            embargoed=affect.flaw.embargoed,
+        )
+        other_affect = AffectFactory(
+            flaw__embargoed=affect.flaw.embargoed,
+            ps_update_stream=stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        other = (
+            TrackerFactory(
+                affects=[other_affect],
+                status="NEW",
+                resolution="",
+                ps_update_stream=stream.name,
+                type=Tracker.BTS2TYPE[bts_name],
+                embargoed=affect.flaw.embargoed,
+            )
+            if operation == "update"
+            else None
+        )
+        if other:
+            body = auth_client().get(f"{test_api_v2_uri}/trackers/{other.uuid}").json()
+            response = auth_client().put(
+                f"{test_api_v2_uri}/trackers/{other.uuid}",
+                {**body, "affects": [str(other_affect.uuid), str(affect.uuid)]},
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+        else:
+            response = auth_client().post(
+                f"{test_api_v2_uri}/trackers",
+                {
+                    "affects": [str(affect.uuid)],
+                    "embargoed": affect.flaw.embargoed,
+                    "ps_update_stream": stream.name,
+                },
+                format="json",
+                HTTP_BUGZILLA_API_KEY="SECRET",
+                HTTP_JIRA_API_KEY="SECRET",
+            )
+        assert response.status_code == 400, response.json()
+        error = str(response.json()["affects"])
+        assert str(existing.uuid) in error
+        assert affect.ps_update_stream in error
+        assert affect.ps_component in error
+        set_user_acls(settings.ALL_GROUPS)
+        affect.refresh_from_db()
+        assert affect.tracker_id == existing.uuid
+        assert Tracker.objects.count() == (2 if other else 1)
+
+    @pytest.mark.parametrize(
+        "status_value,resolution",
+        [("CLOSED", ""), ("NEW", "duplicate"), ("NEW", "")],
+    )
+    def test_tracker_create_existing_tracker_state(
+        self, auth_client, test_api_v2_uri, status_value, resolution
+    ):
+        stream = PsUpdateStreamFactory(ps_module=PsModuleFactory(bts_name="bugzilla"))
+        affect = AffectFactory(
+            ps_update_stream=stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        existing = TrackerFactory(
+            affects=[affect],
+            status=status_value,
+            resolution=resolution,
+            ps_update_stream=stream.name,
+            type=Tracker.TrackerType.BUGZILLA,
+            embargoed=affect.flaw.embargoed,
+        )
+        response = auth_client().post(
+            f"{test_api_v2_uri}/trackers",
+            {
+                "affects": [str(affect.uuid)],
+                "embargoed": affect.flaw.embargoed,
+                "ps_update_stream": stream.name,
+            },
+            format="json",
+            HTTP_BUGZILLA_API_KEY="SECRET",
+            HTTP_JIRA_API_KEY="SECRET",
+        )
+        assert response.status_code == 400, response.json()
+        assert str(existing.uuid) in str(response.json()["affects"])
+        set_user_acls(settings.ALL_GROUPS)
+        affect.refresh_from_db()
+        assert affect.tracker_id == existing.uuid
+        assert Tracker.objects.count() == 1
+
+    @pytest.mark.django_db(transaction=True)
+    def test_concurrent_tracker_create_rejects_second_request(
+        self, auth_client, test_api_v2_uri, monkeypatch
+    ):
+        """A second request waits for the first to finish, then gets a 400."""
+        stream = PsUpdateStreamFactory(ps_module=PsModuleFactory(bts_name="bugzilla"))
+        affect = AffectFactory(
+            ps_update_stream=stream.name,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        client = auth_client()
+        first_locked = Event()
+        release_first = Event()
+        original_check = TrackerSerializer._check_existing_trackers
+        responses = {}
+        errors = []
+
+        def check(affects, tracker=None):
+            original_check(affects, tracker)
+            if not first_locked.is_set():
+                first_locked.set()
+                assert release_first.wait(timeout=10)
+
+        monkeypatch.setattr(
+            TrackerSerializer, "_check_existing_trackers", staticmethod(check)
+        )
+
+        def create(index):
+            try:
+                responses[index] = client.post(
+                    f"{test_api_v2_uri}/trackers",
+                    {
+                        "affects": [str(affect.uuid)],
+                        "embargoed": affect.flaw.embargoed,
+                        "ps_update_stream": stream.name,
+                    },
+                    format="json",
+                    HTTP_BUGZILLA_API_KEY="SECRET",
+                    HTTP_JIRA_API_KEY="SECRET",
+                )
+            except BaseException as exc:  # noqa: BLE001
+                errors.append(exc)
+            finally:
+                connection.close()
+
+        first = Thread(target=create, args=(1,))
+        second = Thread(target=create, args=(2,))
+        first.start()
+        try:
+            assert first_locked.wait(timeout=10)
+            second.start()
+            # Do not release the first transaction until PostgreSQL confirms
+            # that the second is blocked on the affect row lock.
+            deadline = time.monotonic() + 10
+            blocked = False
+            while time.monotonic() < deadline:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT count(*) FROM pg_stat_activity "
+                        "WHERE wait_event_type = 'Lock' AND pid <> pg_backend_pid() "
+                        "AND query ILIKE '%osidb_affect%'"
+                    )
+                    blocked = cursor.fetchone()[0] > 0
+                if blocked:
+                    break
+                time.sleep(0.05)
+            assert blocked, "second request never blocked on the affect row lock"
+        finally:
+            release_first.set()
+            first.join(timeout=15)
+            if second.ident is not None:
+                second.join(timeout=15)
+        assert not first.is_alive() and not second.is_alive()
+        assert not errors, errors
+        assert responses[1].status_code == 201, responses[1].json()
+        assert responses[2].status_code == 400, responses[2].json()
+        set_user_acls(settings.ALL_GROUPS)
+        affect.refresh_from_db()
+        assert Tracker.objects.count() == 1
+        assert affect.tracker_id == Tracker.objects.get().uuid
 
     @pytest.mark.enable_signals
     def test_tracker_create_classifies_once(
