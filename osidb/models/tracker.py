@@ -541,6 +541,13 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
 
         an affect with no tracker linked is always linked even by a duplicate
         tracker as showing a duplicate is better than showing nothing
+
+        returns the set of affects whose tracker link the reconciliation
+        writes: every affect linked to or unlinked from this tracker,
+        including affects that only look unchanged in the initial snapshot,
+        as a concurrent sync may re-point them between the snapshot and
+        the write - callers must reclassify the flaws of all written links
+        to match the final link state
         """
         target = set(target_affects)
         current = set(self.affects.all())
@@ -560,6 +567,13 @@ class Tracker(AlertMixin, TrackingMixin, NullStrFieldsMixin, ACLMixin):
         # unlink the affects this tracker no longer covers
         self.affects.remove(*(current - to_link))
         self.affects.add(*to_link)
+
+        # report every affect whose link the bulk writes above touch, not
+        # just the ones that differ from the snapshot: a concurrent sync may
+        # re-point an affect between the snapshot and the write, and the
+        # flaw of such an affect must be reclassified to match the final
+        # link state
+        return (current - to_link) | to_link
 
     @property
     def is_acked(self):

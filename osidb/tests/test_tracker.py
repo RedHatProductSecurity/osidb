@@ -657,3 +657,78 @@ class TestTrackerRelinkAffects:
         unlinked.refresh_from_db()
         assert on_relevant.tracker == relevant
         assert unlinked.tracker == duplicate
+
+    def test_relink_returns_all_linked_affects(self):
+        """
+        relink_affects reports every affect it links: an affect already
+        linked to this tracker is reported as well, because a concurrent
+        sync may have re-pointed it between the snapshot and the write
+        (OSIDB-5840)
+        """
+        ps_module, ps_update_stream = self._stream()
+        stays = self._affect(ps_update_stream, ps_component="component")
+        newcomer = self._affect(ps_update_stream, ps_component="component")
+        tracker = self._tracker(ps_module, ps_update_stream, "Done", affects=[stays])
+
+        changed = tracker.relink_affects([stays, newcomer])
+
+        assert changed == {stays, newcomer}
+
+    def test_relink_returns_unlinked_and_linked_affects(self):
+        """
+        relink_affects reports affects unlinked from the tracker, i.e. those
+        previously covered but no longer in the target set, together with
+        every affect it (re)links (OSIDB-5840)
+        """
+        ps_module, ps_update_stream = self._stream()
+        kept = self._affect(ps_update_stream, ps_component="component")
+        dropped = self._affect(ps_update_stream, ps_component="component")
+        tracker = self._tracker(
+            ps_module, ps_update_stream, "Done", affects=[kept, dropped]
+        )
+
+        changed = tracker.relink_affects([kept])
+
+        assert changed == {kept, dropped}
+
+    def test_relink_returns_both_linked_and_unlinked(self):
+        """
+        a relink that swaps coverage in one call reports both directions:
+        the affect that lost the link and the affect that gained it
+        """
+        ps_module, ps_update_stream = self._stream()
+        dropped = self._affect(ps_update_stream, ps_component="component")
+        newcomer = self._affect(ps_update_stream, ps_component="component")
+        tracker = self._tracker(ps_module, ps_update_stream, "Done", affects=[dropped])
+
+        changed = tracker.relink_affects([newcomer])
+
+        assert changed == {dropped, newcomer}
+
+    def test_relink_returns_already_linked_affects(self):
+        """
+        relinking the very same links still reports them: the bulk writes
+        touch every link, so a concurrent relink cannot leave a flaw with a
+        stale classification - an unchanged classification is later skipped
+        without touching the flaw at all (OSIDB-5840)
+        """
+        ps_module, ps_update_stream = self._stream()
+        affect = self._affect(ps_update_stream, ps_component="component")
+        tracker = self._tracker(ps_module, ps_update_stream, "Done", affects=[affect])
+
+        assert tracker.relink_affects([affect]) == {affect}
+
+    def test_relink_returns_nothing_when_duplicate_declines_to_steal(self):
+        """
+        when a duplicate incoming tracker declines to steal an affect from a
+        relevant one no link changes, so nothing may be reported - the flaw
+        of that affect must not be needlessly reclassified (OSIDB-5840)
+        """
+        ps_module, ps_update_stream = self._stream()
+        affect = self._affect(ps_update_stream, ps_component="component")
+        relevant = self._tracker(ps_module, ps_update_stream, "Done", affects=[affect])
+        duplicate = self._tracker(ps_module, ps_update_stream, "Duplicate")
+
+        assert duplicate.relink_affects([affect]) == set()
+        affect.refresh_from_db()
+        assert affect.tracker == relevant

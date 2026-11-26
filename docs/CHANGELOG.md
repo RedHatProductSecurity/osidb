@@ -32,6 +32,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Recover the CVE.org collector checkout after interrupted updates (OSIDB-5865)
 - Flaw components filter is now case-insensitive (OSIDB-5499)
 
+### Fixed
+- Workflow classification is re-run for flaws whose affect-tracker links change
+  during tracker sync, so collector-filed trackers promoting the last missing
+  link no longer leave flaws stalled e.g. in PRE_SECONDARY_ASSESSMENT (OSIDB-5840)
+- Jira tracker syncs attribute the reclassification of relinked flaws to the
+  tracker link step in the flaw audit trail (OSIDB-5840)
+
 ## [5.23.1] - 2026-11-09
 ### Fixed
 - Hummingbird only takes into account OSV.NOTAFFECTED for affectedness / resolution

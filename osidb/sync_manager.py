@@ -1,3 +1,4 @@
+import hashlib
 import json
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -8,7 +9,7 @@ import pghistory
 from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.db import models, transaction
+from django.db import connection, models, transaction
 from django.db.models import F, Q
 from django.utils import timezone
 from rhubarb.tasks import LockableTaskWithArgs
@@ -557,6 +558,137 @@ class SyncManager(models.Model):
         )
 
 
+@contextmanager
+def taskman_transition_lock(flaw_uuid):
+    """
+    serialize the direct taskman transitions of a single flaw
+
+    in the synchronous taskman mode the transition is sent straight from
+    the commit callback and two concurrent callbacks for the same flaw
+    could otherwise interleave their state reads and sends so that the
+    older workflow state is transitioned in Jira after the newer one -
+    the asynchronous mode needs no ordering here as its transitions are
+    sent by the per-flaw locked JiraTaskTransitionManager task instead
+
+    the lock is a session-level Postgres advisory lock keyed by the flaw
+    UUID: it takes no row locks so it cannot deadlock with the flaw or
+    classification locking and it is released automatically once the
+    connection closes even when a worker dies mid-transition
+    """
+    # read the very switch Flaw.tasksync uses so that the lock guards
+    # exactly the paths that send the transition directly
+    from osidb.models.flaw.flaw import JIRA_TASKMAN_ASYNCHRONOUS_SYNC
+
+    if JIRA_TASKMAN_ASYNCHRONOUS_SYNC:
+        yield
+        return
+
+    key = int.from_bytes(
+        hashlib.sha256(str(flaw_uuid).encode()).digest()[:8], "big", signed=True
+    )
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT pg_advisory_lock(%s)", [key])
+        try:
+            yield
+        finally:
+            cursor.execute("SELECT pg_advisory_unlock(%s)", [key])
+
+
+def reclassify_relinked_flaws(changed_affects):
+    """
+    re-run workflow classification for the flaws of the given affects
+
+    relink_affects changes affect-tracker links by plain bulk updates which
+    fire no save signals, so without an explicit reclassification the flaw
+    workflow would never see the final link state and flaws could stall e.g.
+    in PRE_SECONDARY_ASSESSMENT until some unrelated change re-saves them
+
+    the classification is persisted by a narrow update to avoid a full flaw
+    save (see OSIDB-5817) and the taskman task transition is scheduled only
+    after the changes are committed so that no Jira network I/O happens
+    under the classification row lock
+    """
+    from apps.taskman.constants import JIRA_TASKMAN_AUTO_SYNC_FLAW
+    from osidb.models import Flaw
+
+    flaw_uuids = {affect.flaw_id for affect in changed_affects}
+    for flaw in Flaw.objects.filter(uuid__in=flaw_uuids):
+        with transaction.atomic():
+            # reload the flaw under the row lock that adjust_classification()
+            # holds through the update below: a concurrent task assignment or
+            # edit since the load above changes task_key (which guards the
+            # classification) and the other classification inputs, so both
+            # the baseline and the reclassification must come from the locked
+            # row or a concurrent reclassification could be clobbered
+            flaw = (
+                Flaw._base_manager.select_for_update(no_key=True)
+                .filter(pk=flaw.pk)
+                .first()
+            )
+            if flaw is None:
+                # the flaw is gone, nothing to reclassify
+                continue
+            old_classification = flaw.classification
+
+            flaw.adjust_classification()
+            if flaw.classification == old_classification:
+                # no classification change - do not touch the flaw at all
+                continue
+
+            # auto_timestamps=False keeps updated_dt untouched so concurrent
+            # flaw editors do not trip over the mid-air collision check
+            Flaw.objects.filter(uuid=flaw.uuid).update(
+                auto_timestamps=False,
+                workflow_name=flaw.workflow_name,
+                workflow_state=flaw.workflow_state,
+                classification_meta=flaw.classification_meta,
+                resolved_dt=flaw.resolved_dt,
+            )
+
+        if not JIRA_TASKMAN_AUTO_SYNC_FLAW:
+            continue
+
+        def sync_taskman(flaw=flaw, old_classification=old_classification):
+            try:
+                # the state reload and the direct transition send must be
+                # ordered per flaw: without the lock a concurrent callback
+                # could send its older workflow state to Jira after this
+                # newer one
+                with taskman_transition_lock(flaw.uuid):
+                    # reload so that a transition in the synchronous taskman
+                    # mode cannot be computed from data made stale by a
+                    # concurrent flaw change since our load
+                    flaw.refresh_from_db()
+                    flaw.tasksync(
+                        jira_token=None,
+                        jira_email=None,
+                        diff={
+                            "workflow_state": {
+                                "old": old_classification["state"],
+                                "new": flaw.workflow_state,
+                            }
+                        },
+                    )
+            except Exception:
+                # the direct transition failed (e.g. a Jira outage in the
+                # synchronous taskman mode) - schedule the retryable
+                # transition manager job so the change is not lost: a
+                # tracker sync retry would see no link change anymore and
+                # therefore never re-schedule the transition itself
+                logger.exception(f"taskman transition of flaw {flaw.uuid} failed")
+                # schedule this flaw's retry before the opportunistic
+                # reschedule sweep so that a sweep failure (e.g. while
+                # re-enqueueing some other task) cannot prevent it
+                JiraTaskTransitionManager.schedule(str(flaw.uuid))
+                JiraTaskTransitionManager.check_for_reschedules()
+
+        # run after the outermost transaction commits so the taskman task is
+        # transitioned only when the new classification is really persisted;
+        # robust keeps a taskman failure from failing the already committed
+        # tracker sync - its retry would see no link change anymore
+        transaction.on_commit(sync_taskman, robust=True)
+
+
 class BZTrackerDownloadManager(SyncManager):
     """
     Sync manager class for Bugzilla => OSIDB Tracker synchronization.
@@ -658,8 +790,9 @@ class BZTrackerDownloadManager(SyncManager):
                 celery_task_id=getattr(getattr(task, "request", None), "id", None),
             ),
         ):
-            tracker.relink_affects(affects)
+            changed_affects = tracker.relink_affects(affects)
             tracker.save(raise_validation_error=False, auto_timestamps=False)
+            reclassify_relinked_flaws(changed_affects)
 
         return affects, failed_flaws, failed_affects
 
@@ -956,7 +1089,7 @@ class JiraTrackerDownloadManager(SyncManager):
         return result
 
     @staticmethod
-    def link_tracker_with_affects(tracker_id):
+    def link_tracker_with_affects(tracker_id, task="UNKNOWN"):
         # Code adapted from collectors.jiraffe.convertors.JiraTrackerConvertor.affects
 
         from collectors.jiraffe.constants import JIRA_BZ_ID_LABEL_RE
@@ -1017,9 +1150,16 @@ class JiraTrackerDownloadManager(SyncManager):
 
             affects.append(affect)
 
-        with transaction.atomic():
-            tracker.relink_affects(affects)
+        with (
+            transaction.atomic(),
+            pghistory_context(
+                action="link_tracker_with_affects",
+                celery_task_id=getattr(getattr(task, "request", None), "id", None),
+            ),
+        ):
+            changed_affects = tracker.relink_affects(affects)
             tracker.save(raise_validation_error=False, auto_timestamps=False)
+            reclassify_relinked_flaws(changed_affects)
 
         return affects, failed_flaws, failed_affects
 
@@ -1045,7 +1185,9 @@ class JiraTrackerDownloadManager(SyncManager):
                     tracker.save()
 
             # Link this Jira tracker to OSIDB Affects as part of the sync process.
-            result = JiraTrackerDownloadManager.link_tracker_with_affects(tracker_id)
+            result = JiraTrackerDownloadManager.link_tracker_with_affects(
+                tracker_id, task
+            )
 
             # Handle link failures
             affects, failed_flaws, failed_affects = result
