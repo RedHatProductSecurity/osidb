@@ -251,6 +251,68 @@ class TestAffect:
         assert "is missing a PURL." in str(exc_info.value)
         assert str(affect.uuid) in str(exc_info.value)
 
+    def test_team_set_from_ps_product(self):
+        """Test that an affect gets the team of its PS product when saved"""
+        ps_product = PsProductFactory(team="team-A")
+        ps_module = PsModuleFactory(ps_product=ps_product)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=FlawFactory(),
+            ps_update_stream=ps_update_stream.name,
+            ps_component="example",
+        )
+        assert affect.team == "team-A"
+
+    def test_team_empty_when_product_has_no_team(self):
+        """Test that the affect team is empty when the PS product has no team"""
+        ps_product = PsProductFactory(team="")
+        ps_module = PsModuleFactory(ps_product=ps_product)
+        ps_update_stream = PsUpdateStreamFactory(ps_module=ps_module)
+        affect = AffectFactory(
+            flaw=FlawFactory(),
+            ps_update_stream=ps_update_stream.name,
+            ps_component="example",
+        )
+        assert affect.team == ""
+
+    def test_team_updated_on_stream_change(self):
+        """Test that the affect team is updated when the affect moves to a
+        stream of a different PS product.
+        """
+        old_module = PsModuleFactory(ps_product=PsProductFactory(team="team-A"))
+        old_stream = PsUpdateStreamFactory(ps_module=old_module)
+        new_module = PsModuleFactory(ps_product=PsProductFactory(team="team-B"))
+        new_stream = PsUpdateStreamFactory(ps_module=new_module)
+        affect = AffectFactory(
+            flaw=FlawFactory(),
+            ps_update_stream=old_stream.name,
+            ps_component="example",
+        )
+        assert affect.team == "team-A"
+        affect.ps_update_stream = new_stream.name
+        affect.save()
+        affect.refresh_from_db()
+        assert affect.team == "team-B"
+
+    def test_team_saved_on_partial_save(self):
+        """
+        Test that the affect team is persisted when a partial save
+        changes the update stream.
+        """
+        old_module = PsModuleFactory(ps_product=PsProductFactory(team="team-A"))
+        old_stream = PsUpdateStreamFactory(ps_module=old_module)
+        new_module = PsModuleFactory(ps_product=PsProductFactory(team="team-B"))
+        new_stream = PsUpdateStreamFactory(ps_module=new_module)
+        affect = AffectFactory(
+            flaw=FlawFactory(),
+            ps_update_stream=old_stream.name,
+            ps_component="example",
+        )
+        affect.ps_update_stream = new_stream.name
+        affect.save(update_fields=["ps_update_stream"])
+        affect.refresh_from_db()
+        assert affect.team == "team-B"
+
     def test_validate_purl_existence_skipped_for_community_product(self):
         """
         Test that PURLs are not required for community affects.

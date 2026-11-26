@@ -1148,6 +1148,7 @@ class AffectSerializer(
         max_length=255, allow_blank=True, allow_null=True, default=""
     )
     ps_module = serializers.CharField(read_only=True)
+    team = serializers.CharField(read_only=True)
     purl = serializers.CharField(allow_blank=True, allow_null=True, default="")
     resolved_dt = serializers.DateTimeField(read_only=True, allow_null=True)
     cve_id = serializers.CharField(allow_blank=True, read_only=True)
@@ -1200,6 +1201,7 @@ class AffectSerializer(
                 "ps_module",
                 "cve_id",
                 "ps_product",
+                "team",
                 "ps_component",
                 "impact",
                 "tracker",

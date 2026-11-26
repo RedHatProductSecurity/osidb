@@ -218,6 +218,8 @@ class Affect(
     ps_update_stream = models.CharField()
     # ps_module is denormalized as it is still used extensively
     ps_module = models.CharField(blank=True)
+    # derived from the ps_product team in product definitions
+    team = models.CharField(max_length=50, blank=True, default="")
 
     tracker = models.ForeignKey(
         "Tracker",
@@ -367,8 +369,17 @@ class Affect(
         ).first()
         if ps_update_stream and ps_update_stream.ps_module:
             self.ps_module = ps_update_stream.ps_module.name
+            self.team = ps_update_stream.ps_module.ps_product.team
         else:
             self.ps_module = None
+            self.team = ""
+
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None:
+            update_fields = set(update_fields)
+            if update_fields & {"ps_update_stream", "ps_module"}:
+                update_fields.add("team")
+            kwargs["update_fields"] = update_fields
 
         super().save(*args, **kwargs)
 
