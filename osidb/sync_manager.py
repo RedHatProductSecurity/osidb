@@ -1,3 +1,4 @@
+import hashlib
 import json
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -8,7 +9,7 @@ import pghistory
 from celery.exceptions import Ignore
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.db import models, transaction
+from django.db import connection, models, transaction
 from django.db.models import F, Q
 from django.utils import timezone
 from rhubarb.tasks import LockableTaskWithArgs
@@ -557,6 +558,42 @@ class SyncManager(models.Model):
         )
 
 
+@contextmanager
+def taskman_transition_lock(flaw_uuid):
+    """
+    serialize the direct taskman transitions of a single flaw
+
+    in the synchronous taskman mode the transition is sent straight from
+    the commit callback and two concurrent callbacks for the same flaw
+    could otherwise interleave their state reads and sends so that the
+    older workflow state is transitioned in Jira after the newer one -
+    the asynchronous mode needs no ordering here as its transitions are
+    sent by the per-flaw locked JiraTaskTransitionManager task instead
+
+    the lock is a session-level Postgres advisory lock keyed by the flaw
+    UUID: it takes no row locks so it cannot deadlock with the flaw or
+    classification locking and it is released automatically once the
+    connection closes even when a worker dies mid-transition
+    """
+    # read the very switch Flaw.tasksync uses so that the lock guards
+    # exactly the paths that send the transition directly
+    from osidb.models.flaw.flaw import JIRA_TASKMAN_ASYNCHRONOUS_SYNC
+
+    if JIRA_TASKMAN_ASYNCHRONOUS_SYNC:
+        yield
+        return
+
+    key = int.from_bytes(
+        hashlib.sha256(str(flaw_uuid).encode()).digest()[:8], "big", signed=True
+    )
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT pg_advisory_lock(%s)", [key])
+        try:
+            yield
+        finally:
+            cursor.execute("SELECT pg_advisory_unlock(%s)", [key])
+
+
 def reclassify_relinked_flaws(changed_affects):
     """
     re-run workflow classification for the flaws of the given affects
@@ -613,20 +650,25 @@ def reclassify_relinked_flaws(changed_affects):
 
         def sync_taskman(flaw=flaw, old_classification=old_classification):
             try:
-                # reload so that a transition in the synchronous taskman
-                # mode cannot be computed from data made stale by a
-                # concurrent flaw change since our load
-                flaw.refresh_from_db()
-                flaw.tasksync(
-                    jira_token=None,
-                    jira_email=None,
-                    diff={
-                        "workflow_state": {
-                            "old": old_classification["state"],
-                            "new": flaw.workflow_state,
-                        }
-                    },
-                )
+                # the state reload and the direct transition send must be
+                # ordered per flaw: without the lock a concurrent callback
+                # could send its older workflow state to Jira after this
+                # newer one
+                with taskman_transition_lock(flaw.uuid):
+                    # reload so that a transition in the synchronous taskman
+                    # mode cannot be computed from data made stale by a
+                    # concurrent flaw change since our load
+                    flaw.refresh_from_db()
+                    flaw.tasksync(
+                        jira_token=None,
+                        jira_email=None,
+                        diff={
+                            "workflow_state": {
+                                "old": old_classification["state"],
+                                "new": flaw.workflow_state,
+                            }
+                        },
+                    )
             except Exception:
                 # the direct transition failed (e.g. a Jira outage in the
                 # synchronous taskman mode) - schedule the retryable
