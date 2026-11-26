@@ -66,8 +66,8 @@ response = requests.get(TOKEN_URL, headers=headers)
 assert response.ok
 
 body = response.json()
-token = body['access']
-refresh = body['refresh']
+token = body["access"]
+refresh = body["refresh"]
 print(token)
 ```
 
@@ -274,7 +274,9 @@ import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
 params = {"changed_after": "2021-11-18"}
-response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get(
+    "${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params
+)
 assert response.ok
 ```
 
@@ -301,7 +303,9 @@ import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
 params = {"search": "openjdk"}
-response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get(
+    "${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params
+)
 assert response.ok
 ```
 
@@ -341,7 +345,9 @@ import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
 params = {"include_fields": ["cve_id", "comments"]}
-response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get(
+    "${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params
+)
 assert response.ok
 ```
 
@@ -350,7 +356,9 @@ import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
 params = {"exclude_fields": ["comments"]}
-response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get(
+    "${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params
+)
 assert response.ok
 ```
 
@@ -359,7 +367,9 @@ import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
 params = {"include_meta_attr": ["*"]}
-response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get(
+    "${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params
+)
 assert response.ok
 ```
 
@@ -405,7 +415,9 @@ import requests
 
 headers = {"Authorization": "Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847"}
 params = {"include_fields": ["affects.ps_module"]}
-response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get(
+    "${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params
+)
 assert response.ok
 ```
 
@@ -414,7 +426,9 @@ import requests
 
 headers = {"Authorization": "Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847"}
 params = {"exclude_fields": ["affects.trackers.external_system_id"]}
-response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get(
+    "${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params
+)
 assert response.ok
 ```
 
@@ -423,7 +437,9 @@ import requests
 
 headers = {"Authorization": "Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847"}
 params = {"include_meta_attr": ["affects.*", "affects.trackers.*"]}
-response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get(
+    "${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params
+)
 assert response.ok
 ```
 
@@ -446,7 +462,9 @@ import requests
 
 headers = {"Authorization": "Token 835b5dd8b69d2a6f79adaf3f29e926e138b6c847"}
 params = {"tracker_ids": ["AAH-1284", "2038382"]}
-response = requests.get("${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params)
+response = requests.get(
+    "${SERVICE_URL}/osidb/api/v1/flaws", headers=headers, params=params
+)
 assert response.ok
 ```
 
@@ -486,7 +504,9 @@ data = {
     "title": "Retrieve the water chip",
     "comment_zero": "We need the water chip to survive, explore the wasteland and find a replacement",
 }
-response = requests.post("${SERVICE_URL}/osidb/api/v2/flaws", headers=headers, json=data)
+response = requests.post(
+    "${SERVICE_URL}/osidb/api/v2/flaws", headers=headers, json=data
+)
 assert response.ok
 ```
 
@@ -522,11 +542,13 @@ headers = {
 }
 data = {
     "cve_id": "CVE-2161-0013",
-    "impact": "CRITICAL",           # from MODERATE to CRITICAL
+    "impact": "CRITICAL",  # from MODERATE to CRITICAL
     "title": "Retrieve the water chip",
     "comment_zero": "We need the water chip to survive, explore the wasteland and find a replacement",
 }
-response = requests.put("${SERVICE_URL}/osidb/api/v2/flaws/CVE-2161-0013", headers=headers, json=data)
+response = requests.put(
+    "${SERVICE_URL}/osidb/api/v2/flaws/CVE-2161-0013", headers=headers, json=data
+)
 assert response.ok
 ```
 
@@ -552,7 +574,9 @@ With python
 import requests
 
 headers = {"Authorization": "Bearer <access_token>"}
-response = requests.delete("${SERVICE_URL}/osidb/api/v2/flaws/CVE-2161-0013", headers=headers)
+response = requests.delete(
+    "${SERVICE_URL}/osidb/api/v2/flaws/CVE-2161-0013", headers=headers
+)
 assert response.ok
 ```
 
@@ -579,7 +603,9 @@ import requests
 
 flaw_id = "2fe16efb-11cb-4cd2-b31b-d769ba821073"
 headers = {"Authorization": "Bearer <access_token>"}
-response = requests.get(f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments", headers=headers)
+response = requests.get(
+    f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments", headers=headers
+)
 assert response.ok
 ```
 
@@ -612,7 +638,10 @@ import requests
 flaw_id = "2fe16efb-11cb-4cd2-b31b-d769ba821073"
 order = 3
 headers = {"Authorization": "Bearer <access_token>"}
-response = requests.get(f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments?order={order}", headers=headers)
+response = requests.get(
+    f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments?order={order}",
+    headers=headers,
+)
 assert response.ok
 ```
 
@@ -635,7 +664,10 @@ import requests
 flaw_id = "CVE-2005-0001"
 external_system_id = "15567963"
 headers = {"Authorization": "Bearer <access_token>"}
-response = requests.get(f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments?external_system_id={external_system_id}", headers=headers)
+response = requests.get(
+    f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments?external_system_id={external_system_id}",
+    headers=headers,
+)
 assert response.ok
 ```
 
@@ -659,7 +691,9 @@ import requests
 flaw_id = "CVE-2005-0001"
 comment_id = "acef1a6c-890b-4abb-85c1-d81e76cd7858"
 headers = {"Authorization": "Bearer <access_token>"}
-response = requests.get(f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments/{comment_id}", headers=headers)
+response = requests.get(
+    f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments/{comment_id}", headers=headers
+)
 assert response.ok
 ```
 
@@ -694,7 +728,9 @@ data = {
     "text": "A jacket was found.",
     "embargoed": False,
 }
-response = requests.post(f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments", headers=headers, json=data)
+response = requests.post(
+    f"{SERVICE_URL}/osidb/api/v1/flaws/{flaw_id}/comments", headers=headers, json=data
+)
 assert response.ok
 ```
 

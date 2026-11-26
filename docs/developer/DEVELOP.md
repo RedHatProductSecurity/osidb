@@ -767,9 +767,8 @@ that the breaking changes are introduced only in major releases. The standard pr
 
 ```python
 class MyModel(models.Model):
-
     def extrapolate_foo(self):
-      return self.new_foo
+        return self.new_foo
 
     foo = deprecate_field(models.CharField(), return_instead=extrapolate_foo)
 ```

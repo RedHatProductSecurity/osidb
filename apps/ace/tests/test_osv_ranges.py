@@ -680,3 +680,280 @@ def test_match_mixed_ecosystems_not_merged():
     # Only the first ecosystem (Maven) entries should be included
     assert info.ecosystem == "maven"
     assert "||" not in (info.affected_range() or "")
+
+
+# ── richer name matching ─────────────────────────────────────────────────────
+
+
+def _go_chi_entry(name="github.com/go-chi/chi/v5"):
+    return {
+        "purl": f"pkg:golang/{name}",
+        "name": name,
+        "ecosystem": "Go",
+        "ranges": [
+            {
+                "type": "SEMVER",
+                "events": [{"introduced": "0"}, {"fixed": "5.2.2"}],
+            }
+        ],
+        "versions": [],
+    }
+
+
+def test_match_go_major_version_path():
+    purls = [_go_chi_entry()]
+    assert (
+        match_component_to_upstream("github.com/go-chi/chi", purls, fuzzy=True).fixed
+        == "5.2.2"
+    )
+    assert (
+        match_component_to_upstream("github.com/go-chi/chi/v5", purls, fuzzy=True).fixed
+        == "5.2.2"
+    )
+
+
+def test_match_rejects_conflicting_go_majors():
+    """Explicit /vN majors that disagree are different modules (Aegis lockstep)."""
+    purls = [
+        {
+            "name": "example.com/mod/v2",
+            "ecosystem": "Go",
+            "ranges": [
+                {
+                    "type": "SEMVER",
+                    "events": [{"introduced": "0"}, {"fixed": "2.0.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert match_component_to_upstream("example.com/mod/v3", purls, fuzzy=True) is None
+    assert (
+        match_component_to_upstream("example.com/mod", purls, fuzzy=True).fixed
+        == "2.0.0"
+    )
+
+
+def test_match_short_seed_against_module_path():
+    purls = [
+        {
+            "name": "go.mongodb.org/mongo-driver/v2",
+            "ecosystem": "Go",
+            "ranges": [
+                {
+                    "type": "SEMVER",
+                    "events": [{"introduced": "0"}, {"fixed": "2.1.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert (
+        match_component_to_upstream("mongo-driver", purls, fuzzy=True).fixed == "2.1.0"
+    )
+
+
+def test_match_does_not_alias_parent_child_paths():
+    purls = [
+        {
+            "name": "example.com/project",
+            "ecosystem": "Go",
+            "ranges": [
+                {
+                    "type": "SEMVER",
+                    "events": [{"introduced": "0"}, {"fixed": "1.0.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert (
+        match_component_to_upstream("example.com/project/plugin", purls, fuzzy=True)
+        is None
+    )
+    purls[0]["name"] = "example.com/project/plugin"
+    assert match_component_to_upstream("example.com/project", purls, fuzzy=True) is None
+
+
+def test_match_does_not_alias_scoped_npm_to_unscoped():
+    """Scoped npm packages are not shortened to an unscoped namesake."""
+    purls = [
+        {
+            "name": "@xmldom/xmldom",
+            "ecosystem": "npm",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "0.9.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert match_component_to_upstream("xmldom", purls, fuzzy=True) is None
+    assert (
+        match_component_to_upstream("@xmldom/xmldom", purls, fuzzy=True).fixed
+        == "0.9.0"
+    )
+
+
+def test_match_reverse_short_name_only_for_go():
+    """A short OSV name covers a module-path seed only when the record is Go."""
+    npm_purls = [
+        {
+            "name": "bridge",
+            "ecosystem": "npm",
+            "purl": "pkg:npm/bridge",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "1.0.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert (
+        match_component_to_upstream("example.com/acme/bridge", npm_purls, fuzzy=True)
+        is None
+    )
+
+    go_purls = [
+        {
+            "name": "bridge",
+            "ecosystem": "Go",
+            "purl": "pkg:golang/example.com/acme/bridge",
+            "ranges": [
+                {
+                    "type": "SEMVER",
+                    "events": [{"introduced": "0"}, {"fixed": "1.2.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert (
+        match_component_to_upstream(
+            "example.com/acme/bridge", go_purls, fuzzy=True
+        ).fixed
+        == "1.2.0"
+    )
+
+    # Forward short-seed alias still matches a full Go module entry name.
+    forward_purls = [
+        {
+            "name": "example.com/acme/bridge",
+            "ecosystem": "Go",
+            "purl": "pkg:golang/example.com/acme/bridge",
+            "ranges": [
+                {
+                    "type": "SEMVER",
+                    "events": [{"introduced": "0"}, {"fixed": "2.0.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert (
+        match_component_to_upstream("bridge", forward_purls, fuzzy=True).fixed
+        == "2.0.0"
+    )
+
+
+def test_match_maven_colon_vs_slash_and_artifact():
+    purls = [
+        {
+            "name": "com.example:foo",
+            "ecosystem": "Maven",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "1.2.3"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert (
+        match_component_to_upstream("com.example/foo", purls, fuzzy=True).fixed
+        == "1.2.3"
+    )
+    assert match_component_to_upstream("foo", purls, fuzzy=True).fixed == "1.2.3"
+
+
+def test_match_by_product_alias():
+    purls = [
+        {
+            "name": "libssl",
+            "product": "openssl",
+            "ecosystem": "generic",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "3.0.9"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert match_component_to_upstream("openssl", purls, fuzzy=True).fixed == "3.0.9"
+    assert match_component_to_upstream("libssl", purls, fuzzy=True).fixed == "3.0.9"
+
+
+def test_match_default_path_rejects_fuzzy_aliases():
+    """Component-path matching stays exact; fuzzy aliases need fuzzy=True.
+
+    PURL ``name`` equality remains allowed on the exact path (master behavior),
+    so short-seed negatives use name-only entries without a matching PURL name.
+    """
+    go_purls = [
+        {
+            "name": "example.com/acme/bridge",
+            "ecosystem": "Go",
+            "ranges": [
+                {
+                    "type": "SEMVER",
+                    "events": [{"introduced": "0"}, {"fixed": "2.0.0"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert match_component_to_upstream("bridge", go_purls) is None
+    assert match_component_to_upstream("bridge", go_purls, fuzzy=True).fixed == "2.0.0"
+    assert (
+        match_component_to_upstream("github.com/go-chi/chi", [_go_chi_entry()]) is None
+    )
+
+    maven_purls = [
+        {
+            "name": "com.example:foo",
+            "ecosystem": "Maven",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "1.2.3"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert match_component_to_upstream("com.example/foo", maven_purls) is None
+    assert match_component_to_upstream("foo", maven_purls) is None
+
+    product_purls = [
+        {
+            "name": "libssl",
+            "product": "openssl",
+            "ecosystem": "generic",
+            "ranges": [
+                {
+                    "type": "ECOSYSTEM",
+                    "events": [{"introduced": "0"}, {"fixed": "3.0.9"}],
+                }
+            ],
+            "versions": [],
+        }
+    ]
+    assert match_component_to_upstream("openssl", product_purls) is None
+    assert match_component_to_upstream("libssl", product_purls).fixed == "3.0.9"
