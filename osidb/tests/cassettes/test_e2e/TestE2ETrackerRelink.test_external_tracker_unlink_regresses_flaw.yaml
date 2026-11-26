@@ -900,29 +900,7 @@ interactions:
         null, "customfield_12323646": null, "customfield_12323645": null, "environment":
         null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
         "0.0", "duedate": null, "customfield_12311140": null, "customfield_12319940":
-        null, "customfield_12319269": null, "customfield_12317366": null, "comment":
-        {"comments": [{"self": "https://example.com/rest/api/2/issue/16349375/comment/25583149",
-        "id": "25583149", "author": {"self": "https://example.com/rest/api/2/user?username=autobot-jira-api",
-        "name": "autobot-jira-api", "key": "autobot-jira-api", "emailAddress": "pme-bot@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=48",
-        "24x24": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=24",
-        "16x16": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=16",
-        "32x32": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=32"},
-        "displayName": "pme bot", "active": true, "timeZone": "UTC"}, "body": "\n                    h4.
-        Found errors for component \u201ckernel / Other\u201d while setting the following
-        fields according to [ownership mapping information in the source repository|https://example.com/bugzilla-data/components/-/blob/main/RHEL9/kernel
-        / Other]:\n\n                    {quote}\n                    * Pool Team:
-        no matching Jira value found for value \u201csst_kernel_maintainers_rhel_9\u201d
-        provided in the repository.\n\n                    {quote}\n                ",
-        "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=autobot-jira-api",
-        "name": "autobot-jira-api", "key": "autobot-jira-api", "emailAddress": "pme-bot@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=48",
-        "24x24": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=24",
-        "16x16": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=16",
-        "32x32": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=32"},
-        "displayName": "pme bot", "active": true, "timeZone": "UTC"}, "created": "2025-01-23T14:08:03.064+0000",
-        "updated": "2025-01-23T14:08:03.064+0000", "visibility": {"type": "group",
-        "value": "Red Hat Employee"}}], "maxResults": 1, "total": 1, "startAt": 0},
+        null, "customfield_12319269": null, "customfield_12317366": null, "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt": 0},
         "customfield_12325141": null, "customfield_12325140": null, "customfield_12310213":
         null, "customfield_12311940": "2|i27tkv:"}}'
     headers:
@@ -1212,29 +1190,7 @@ interactions:
         null, "customfield_12323646": null, "customfield_12323645": null, "environment":
         null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
         "0.0", "duedate": null, "customfield_12311140": null, "customfield_12319940":
-        null, "customfield_12319269": null, "customfield_12317366": null, "comment":
-        {"comments": [{"self": "https://example.com/rest/api/2/issue/16349281/comment/25583048",
-        "id": "25583048", "author": {"self": "https://example.com/rest/api/2/user?username=autobot-jira-api",
-        "name": "autobot-jira-api", "key": "autobot-jira-api", "emailAddress": "pme-bot@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=48",
-        "24x24": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=24",
-        "16x16": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=16",
-        "32x32": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=32"},
-        "displayName": "pme bot", "active": true, "timeZone": "UTC"}, "body": "\n                    h4.
-        Found errors for component \u201ckernel / Other\u201d while setting the following
-        fields according to [ownership mapping information in the source repository|https://example.com/bugzilla-data/components/-/blob/main/RHEL9/kernel
-        / Other]:\n\n                    {quote}\n                    * Pool Team:
-        no matching Jira value found for value \u201csst_kernel_maintainers_rhel_9\u201d
-        provided in the repository.\n\n                    {quote}\n                ",
-        "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=autobot-jira-api",
-        "name": "autobot-jira-api", "key": "autobot-jira-api", "emailAddress": "pme-bot@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=48",
-        "24x24": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=24",
-        "16x16": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=16",
-        "32x32": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=32"},
-        "displayName": "pme bot", "active": true, "timeZone": "UTC"}, "created": "2025-01-23T14:08:26.060+0000",
-        "updated": "2025-01-23T14:08:26.060+0000", "visibility": {"type": "group",
-        "value": "Red Hat Employee"}}], "maxResults": 1, "total": 1, "startAt": 0},
+        null, "customfield_12319269": null, "customfield_12317366": null, "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt": 0},
         "customfield_12325141": null, "customfield_12325140": null, "customfield_12310213":
         null, "customfield_12311940": "2|i27tlb:"}}'
     headers:
@@ -1444,29 +1400,7 @@ interactions:
         null, "customfield_12323646": null, "customfield_12323645": null, "environment":
         null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
         "0.0", "duedate": null, "customfield_12311140": null, "customfield_12319940":
-        null, "customfield_12319269": null, "customfield_12317366": null, "comment":
-        {"comments": [{"self": "https://example.com/rest/api/2/issue/16349281/comment/25583048",
-        "id": "25583048", "author": {"self": "https://example.com/rest/api/2/user?username=autobot-jira-api",
-        "name": "autobot-jira-api", "key": "autobot-jira-api", "emailAddress": "pme-bot@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=48",
-        "24x24": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=24",
-        "16x16": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=16",
-        "32x32": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=32"},
-        "displayName": "pme bot", "active": true, "timeZone": "UTC"}, "body": "\n                    h4.
-        Found errors for component \u201ckernel / Other\u201d while setting the following
-        fields according to [ownership mapping information in the source repository|https://example.com/bugzilla-data/components/-/blob/main/RHEL9/kernel
-        / Other]:\n\n                    {quote}\n                    * Pool Team:
-        no matching Jira value found for value \u201csst_kernel_maintainers_rhel_9\u201d
-        provided in the repository.\n\n                    {quote}\n                ",
-        "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=autobot-jira-api",
-        "name": "autobot-jira-api", "key": "autobot-jira-api", "emailAddress": "pme-bot@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=48",
-        "24x24": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=24",
-        "16x16": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=16",
-        "32x32": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=32"},
-        "displayName": "pme bot", "active": true, "timeZone": "UTC"}, "created": "2025-01-23T14:08:26.060+0000",
-        "updated": "2025-01-23T14:08:26.060+0000", "visibility": {"type": "group",
-        "value": "Red Hat Employee"}}], "maxResults": 1, "total": 1, "startAt": 0},
+        null, "customfield_12319269": null, "customfield_12317366": null, "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt": 0},
         "customfield_12325141": null, "customfield_12325140": null, "customfield_12310213":
         null, "customfield_12311940": "2|i27tlb:"}}'
     headers:
@@ -2081,29 +2015,7 @@ interactions:
         null, "customfield_12323646": null, "customfield_12323645": null, "environment":
         null, "customfield_12315740": null, "customfield_12313441": "", "customfield_12313440":
         "0.0", "duedate": null, "customfield_12311140": null, "customfield_12319940":
-        null, "customfield_12319269": null, "customfield_12317366": null, "comment":
-        {"comments": [{"self": "https://example.com/rest/api/2/issue/16349375/comment/25583149",
-        "id": "25583149", "author": {"self": "https://example.com/rest/api/2/user?username=autobot-jira-api",
-        "name": "autobot-jira-api", "key": "autobot-jira-api", "emailAddress": "pme-bot@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=48",
-        "24x24": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=24",
-        "16x16": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=16",
-        "32x32": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=32"},
-        "displayName": "pme bot", "active": true, "timeZone": "UTC"}, "body": "\n                    h4.
-        Found errors for component \u201ckernel / Other\u201d while setting the following
-        fields according to [ownership mapping information in the source repository|https://example.com/bugzilla-data/components/-/blob/main/RHEL9/kernel
-        / Other]:\n\n                    {quote}\n                    * Pool Team:
-        no matching Jira value found for value \u201csst_kernel_maintainers_rhel_9\u201d
-        provided in the repository.\n\n                    {quote}\n                ",
-        "updateAuthor": {"self": "https://example.com/rest/api/2/user?username=autobot-jira-api",
-        "name": "autobot-jira-api", "key": "autobot-jira-api", "emailAddress": "pme-bot@redhat.com",
-        "avatarUrls": {"48x48": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=48",
-        "24x24": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=24",
-        "16x16": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=16",
-        "32x32": "https://example.com/avatar/573dcb2fa1491b2623023b4ce48e2ea2?d=mm&s=32"},
-        "displayName": "pme bot", "active": true, "timeZone": "UTC"}, "created": "2025-01-23T14:08:03.064+0000",
-        "updated": "2025-01-23T14:08:03.064+0000", "visibility": {"type": "group",
-        "value": "Red Hat Employee"}}], "maxResults": 1, "total": 1, "startAt": 0},
+        null, "customfield_12319269": null, "customfield_12317366": null, "comment": {"comments": [], "maxResults": 0, "total": 0, "startAt": 0},
         "customfield_12325141": null, "customfield_12325140": null, "customfield_12310213":
         null, "customfield_12311940": "2|i27tkv:"}}'
     headers:

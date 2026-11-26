@@ -1013,20 +1013,21 @@ class TestLinkTrackerReclassification:
         tasksync = Mock()
         monkeypatch.setattr(Flaw, "tasksync", tasksync)
 
+        # the first link does not change the classification: the second
+        # affect is still untracked, so this link must not register any
+        # transition callback either
         with django_capture_on_commit_callbacks(execute=False) as callbacks:
-            # the first link does not change the classification: the second
-            # affect is still untracked
             JiraTrackerDownloadManager.link_tracker_with_affects(
                 tracker1.external_system_id
             )
-            affect1.refresh_from_db()
-            assert affect1.tracker == tracker1
-            assert (
-                Flaw.objects.get(pk=flaw.pk).workflow_state
-                == "PRE_SECONDARY_ASSESSMENT"
-            )
-            assert not tasksync.called
+        affect1.refresh_from_db()
+        assert affect1.tracker == tracker1
+        assert Flaw.objects.get(pk=flaw.pk).workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        assert not callbacks
 
+        # the last link promotes the flaw and registers the single
+        # transition callback
+        with django_capture_on_commit_callbacks(execute=False) as callbacks:
             JiraTrackerDownloadManager.link_tracker_with_affects(
                 tracker2.external_system_id
             )

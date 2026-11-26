@@ -956,11 +956,18 @@ class TestE2ETrackerRelink:
         JiraTrackerCollector().collect("RHEL-59830")
         updated_dt = flaw.updated_dt
 
-        transition_schedule, sync_schedule = self._mock_taskman_transition(monkeypatch)
-        with django_capture_on_commit_callbacks(execute=False) as callbacks:
-            JiraTrackerDownloadManager.link_tracker_with_affects("RHEL-59830")
-            # nothing may touch Jira before the transaction commits
-            assert not transition_schedule.called
+        # advance the frozen clock so that the equality assertion below
+        # really proves that the reconciliation leaves the timestamp
+        # alone: with the clock still frozen an automatic timestamp
+        # write would store the very same time and go unnoticed
+        with freeze_time(tzdatetime(2024, 8, 7)):
+            transition_schedule, sync_schedule = self._mock_taskman_transition(
+                monkeypatch
+            )
+            with django_capture_on_commit_callbacks(execute=False) as callbacks:
+                JiraTrackerDownloadManager.link_tracker_with_affects("RHEL-59830")
+                # nothing may touch Jira before the transaction commits
+                assert not transition_schedule.called
 
         # exactly one taskman job: a task transition, not a full task re-sync
         assert len(callbacks) == 1
@@ -1221,21 +1228,23 @@ class TestE2ETrackerRelink:
 
         jc = JiraTrackerCollector()
         transition_schedule, _ = self._mock_taskman_transition(monkeypatch)
+        # the first link does not change the classification: the second
+        # affect is still untracked, so this link must not register any
+        # transition callback either
         with django_capture_on_commit_callbacks(execute=False) as callbacks:
-            # the first link does not change the classification: the
-            # second affect is still untracked
             jc.collect("RHEL-59830")
             JiraTrackerDownloadManager.link_tracker_with_affects("RHEL-59830")
-            affects["rhel-8"].refresh_from_db()
-            assert affects["rhel-8"].tracker.external_system_id == "RHEL-59830"
-            flaw.refresh_from_db()
-            assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
-            assert not transition_schedule.called
+        affects["rhel-8"].refresh_from_db()
+        assert affects["rhel-8"].tracker.external_system_id == "RHEL-59830"
+        flaw.refresh_from_db()
+        assert flaw.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        assert not callbacks
 
-            # the last link promotes the flaw
+        # the last link promotes the flaw and registers the single
+        # transition callback
+        with django_capture_on_commit_callbacks(execute=False) as callbacks:
             jc.collect("RHEL-59831")
             JiraTrackerDownloadManager.link_tracker_with_affects("RHEL-59831")
-
         assert len(callbacks) == 1
         callbacks[0]()  # simulate the commit
         transition_schedule.assert_called_once_with(str(flaw.uuid))
