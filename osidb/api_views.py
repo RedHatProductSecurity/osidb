@@ -1559,8 +1559,10 @@ def _prepare_affect_for_bulk(instance, flaw, ps_update_stream_map):
     ps_update_stream_obj = ps_update_stream_map.get(instance.ps_update_stream)
     if ps_update_stream_obj and ps_update_stream_obj.ps_module:
         instance.ps_module = ps_update_stream_obj.ps_module.name
+        instance.team = ps_update_stream_obj.ps_module.ps_product.team
     else:
         instance.ps_module = None
+        instance.team = ""
 
     # --- pre_save signal: mirror_parent_cve_id ---
     instance.cve_id = flaw.cve_id
@@ -1607,6 +1609,9 @@ def _prepare_affect_update_for_bulk(instance, old, serializer, streams):
         instance.resolved_dt = None
     stream = streams.get(instance.ps_update_stream)
     instance.ps_module = stream.ps_module.name if stream and stream.ps_module else None
+    instance.team = (
+        stream.ps_module.ps_product.team if stream and stream.ps_module else ""
+    )
     instance.cve_id = instance.flaw.cve_id
     if instance.affectedness != Affect.AffectAffectedness.NOTAFFECTED:
         instance.not_affected_justification = ""
@@ -1751,7 +1756,7 @@ class AffectView(
             s.name: s
             for s in PsUpdateStream.objects.filter(
                 name__in=stream_names
-            ).select_related("ps_module")
+            ).select_related("ps_module__ps_product")
         }
         actor = self._actor(request.user)
         prepared = []
@@ -1793,6 +1798,7 @@ class AffectView(
                 "resolution",
                 "ps_update_stream",
                 "ps_module",
+                "team",
                 "cve_id",
                 "ps_component",
                 "purl",
@@ -1967,7 +1973,7 @@ class AffectView(
             obj.name: obj
             for obj in PsUpdateStream.objects.filter(
                 name__in=stream_names
-            ).select_related("ps_module")
+            ).select_related("ps_module__ps_product")
         }
 
         # All items in a bulk request must share the same embargoed value

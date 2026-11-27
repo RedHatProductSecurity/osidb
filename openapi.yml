@@ -16432,6 +16432,9 @@ components:
         ps_product:
           type: string
           readOnly: true
+        team:
+          type: string
+          readOnly: true
         ps_component:
           type:
           - string
@@ -16537,6 +16540,7 @@ components:
       - ps_product
       - ps_update_stream
       - resolved_dt
+      - team
       - tracker
       - updated_by
       - updated_dt
@@ -16919,6 +16923,9 @@ components:
         ps_product:
           type: string
           readOnly: true
+        team:
+          type: string
+          readOnly: true
         ps_component:
           type:
           - string
@@ -17023,6 +17030,7 @@ components:
       - ps_product
       - ps_update_stream
       - resolved_dt
+      - team
       - tracker
       - updated_by
       - updated_dt
