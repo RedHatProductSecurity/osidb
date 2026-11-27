@@ -314,15 +314,35 @@ def _is_trusted_pair(resolved: list[str]) -> bool:
     )
 
 
+def _is_identity_mapping(component: str, resolved: list[str]) -> bool:
+    """
+    Return True when the component resolves to exactly its own name.
+
+    component_map.json contains such identity rows for plain RPM source
+    package names (e.g. ``"avahi" -> "avahi"``). They add no resolution
+    value over the space-to-dash fallback used when no mapping row exists,
+    so they must not arm the verified mapping guard.
+    """
+    if len(resolved) != 1:
+        return False
+    return resolved[0].strip().lower() == component.strip().lower()
+
+
 def _is_verified_mapping(component: str, resolved: list[str]) -> bool:
     """
     Check if the component has a verified mapping using the table collected
     by the component_mapping collector.
 
-    Trusted pairs do not require a ``VerifiedMapping`` row. Other multi-name
-    lists must be verified before they are treated as trusted.
+    Trusted pairs and identity mappings do not require a ``VerifiedMapping``
+    row: a component without any component_map row resolves to its own name
+    via the fallback and bypasses this guard entirely, so an explicit
+    identity row must not be treated as less trusted than no row at all.
+    Other multi-name lists must be verified before they are treated as
+    trusted.
     """
     if _is_trusted_pair(resolved):
+        return True
+    if _is_identity_mapping(component, resolved):
         return True
     return VerifiedMapping.objects.filter(name__iexact=component).exists()
 
@@ -477,7 +497,7 @@ def _pre_filter_component(
 
 def _is_strict_package(resolved: list[str], ecosystem: str) -> bool:
     """A resolved name is strict when it is safe to search without manual review."""
-    resolved_lower = [r.lower() for r in resolved]
+    resolved_lower = [r.strip().lower() for r in resolved]
     is_strict = StrictPackage.objects.filter(name__in=resolved_lower).exists()
     is_strict_npm = StrictNpmPackage.objects.filter(name__in=resolved_lower).exists()
     is_ambiguous_npm = AmbiguousNpmPackage.objects.filter(

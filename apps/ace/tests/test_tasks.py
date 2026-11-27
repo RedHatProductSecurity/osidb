@@ -1482,6 +1482,64 @@ def test_pre_filter_non_trusted_pair_unverified_manual(packages):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "name,upstream",
+    [
+        ("avahi", "avahi"),
+        ("Avahi", "avahi"),
+        # a padded identity row must both pass the identity guard and
+        # still match the strict package row after normalization
+        ("avahi", " avahi "),
+    ],
+)
+def test_pre_filter_identity_mapping_auto_trusted(name, upstream):
+    """
+    A component that resolves to exactly itself is inherently verified.
+
+    Without the component_map row the space-to-dash fallback would resolve
+    to the same name and skip the verified mapping guard entirely, so an
+    explicit identity row (as component_map.json carries for plain RPM
+    source package names) must not be treated as less trusted than no row.
+    """
+    from collectors.component_mapping.models import ComponentMapEntry, StrictPackage
+
+    ComponentMapEntry.objects.create(name=name, upstream_packages=upstream)
+    StrictPackage.objects.create(name=upstream.strip().lower(), repos=[])
+    flaw = FlawFactory(components=[name], embargoed=False)
+
+    result = _pre_filter_component(flaw, name, "")
+
+    assert result.action is PreFilterAction.SEARCH
+    assert result.label == LABEL_AUTO_AFFECTS
+    assert "no verified source component mapping" not in result.reason
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "upstream",
+    [
+        "avahi-compat",  # single different name: a real mapping decision
+        ["avahi", "avahi-glib"],  # multi-name: not an identity mapping
+    ],
+)
+def test_pre_filter_identity_check_requires_exact_self_resolution(upstream):
+    """
+    Only exact self-resolution counts as an identity mapping. Anything that
+    changes or extends the resolved names still requires verification.
+    """
+    from collectors.component_mapping.models import ComponentMapEntry
+
+    ComponentMapEntry.objects.create(name="avahi", upstream_packages=upstream)
+    flaw = FlawFactory(components=["avahi"], embargoed=False)
+
+    result = _pre_filter_component(flaw, "avahi", "")
+
+    assert result.action is PreFilterAction.MANUAL
+    assert result.label == LABEL_MANUAL_TRIAGE
+    assert "no verified source component mapping" in result.reason
+
+
+@pytest.mark.django_db
 def test_pre_filter_non_trusted_pair_verified_proceeds():
     from collectors.component_mapping.models import (
         ComponentMapEntry,
