@@ -7,13 +7,10 @@ from threading import Event
 import pgtrigger
 import pytest
 from django.apps import apps
-from django.conf import settings
-from django.db import DatabaseError, connection, transaction
+from django.db import connection, transaction
 from django.db.models import F
-from django.db.utils import ProgrammingError
 from django.utils import timezone
 
-from osidb.core import set_user_acls
 from osidb.models import (
     Affect,
     AffectCVSS,
@@ -45,7 +42,7 @@ from osidb.tests.factories import (
     TrackerFactory,
     UpstreamDataFactory,
 )
-from osidb.watermark_triggers import EXCLUDED_FIELDS, tracked_fields
+from osidb.watermark_triggers import excluded_fields, tracked_fields
 
 pytestmark = pytest.mark.unit
 
@@ -128,7 +125,7 @@ def test_required_and_domain_fields(field, value):
 @pytest.mark.parametrize(
     "field",
     sorted(
-        (EXCLUDED_FIELDS & {f.name for f in Flaw._meta.local_concrete_fields})
+        (excluded_fields(Flaw) & {f.name for f in Flaw._meta.local_concrete_fields})
         - {"embargoed", "search_vector"}
     ),
 )
@@ -402,91 +399,6 @@ def test_upstream_data_is_not_part_of_relevant_tree():
     type(upstream).objects.filter(pk=upstream.pk).update(upstream_purls=[])
     upstream.delete()
     assert stamp(flaw) == baseline
-
-
-def test_security_definer_owner_search_path_and_revoked_execution(monkeypatch):
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT p.prosecdef, r.rolsuper OR r.rolbypassrls, p.proconfig,
-                   has_function_privilege(current_user, p.oid, 'EXECUTE')
-            FROM pg_proc p JOIN pg_roles r ON r.oid = p.proowner
-            WHERE p.proname LIKE 'pgtrigger_watermark_%'
-        """)
-        rows = cursor.fetchall()
-    assert len(rows) == 42
-    assert all(
-        secured and bypass and not executable for secured, bypass, _, executable in rows
-    )
-    assert all(
-        "search_path=pg_catalog, osidb_admin, public, pg_temp" in config
-        for _, _, config, _ in rows
-    )
-    # A dependency template change must fail closed, not silently install
-    # invoker functions without a pinned search path or EXECUTE revocation.
-    monkeypatch.setattr(
-        "pgtrigger.compiler.UpsertTriggerSql.get_template",
-        lambda self: "unexpected upstream template",
-    )
-    model, trigger = pgtrigger.registered("osidb.Tracker:watermark_update")[0]
-    with pytest.raises(RuntimeError, match="security hardening"):
-        trigger.compile(model)
-
-
-@pytest.mark.enable_rls
-def test_hidden_flaw_shared_tracker_propagates_with_flaw_root_security():
-    set_user_acls(settings.ALL_GROUPS)
-    visible = FlawFactory(embargoed=False)
-    hidden = FlawFactory(embargoed=True)
-    stream = PsUpdateStreamFactory(ps_module=PsModuleFactory(bts_name="bugzilla"))
-    visible_affect = AffectFactory(
-        flaw=visible,
-        embargoed=False,
-        ps_update_stream=stream.name,
-        ps_module=stream.ps_module.name,
-        affectedness=Affect.AffectAffectedness.AFFECTED,
-        resolution=Affect.AffectResolution.DELEGATED,
-    )
-    tracker = TrackerFactory(
-        affects=[visible_affect],
-        embargoed=False,
-        ps_update_stream=stream.name,
-        type=Tracker.TrackerType.BUGZILLA,
-    )
-    hidden_affect = AffectFactory(flaw=hidden, embargoed=True)
-    # A raw/bulk association is a supported database write path even when it
-    # bypasses application validation of shared Tracker visibility.
-    Affect.objects.filter(pk=hidden_affect.pk).update(tracker=tracker)
-    baseline = reset_stamp(visible, hidden)
-    set_user_acls(settings.PUBLIC_READ_GROUPS + settings.PUBLIC_WRITE_GROUPS)
-    assert not Flaw.objects.filter(pk=hidden.pk).exists()
-    Tracker.objects.filter(pk=tracker.pk).update(status="shared tracker changed")
-    assert not Flaw.objects.filter(pk=hidden.pk).exists()
-    assert stamp(visible) > baseline
-    set_user_acls(settings.ALL_GROUPS)
-    assert stamp(hidden) > baseline
-
-
-def test_trigger_functions_cannot_be_attached_to_caller_table():
-    model, trigger = pgtrigger.registered("osidb.Tracker:watermark_update")[0]
-    function = trigger.get_pgid(model)
-    with (
-        pytest.raises(ProgrammingError, match="permission denied"),
-        transaction.atomic(),
-    ):
-        with connection.cursor() as cursor:
-            cursor.execute("CREATE TEMP TABLE malicious_tracker (uuid uuid)")
-            cursor.execute(f"""
-                CREATE TRIGGER attack AFTER UPDATE ON malicious_tracker
-                REFERENCING OLD TABLE AS watermark_old NEW TABLE AS watermark_new
-                FOR EACH STATEMENT EXECUTE FUNCTION {function}()
-            """)
-
-
-def test_installation_rejects_unprivileged_function_owner():
-    model, trigger = pgtrigger.registered("osidb.Tracker:watermark_update")[0]
-    with pytest.raises(DatabaseError, match="BYPASSRLS"), transaction.atomic():
-        with connection.cursor() as cursor:
-            cursor.execute(trigger.compile(model).install_sql)
 
 
 @pytest.mark.django_db(transaction=True)

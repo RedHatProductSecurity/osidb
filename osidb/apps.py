@@ -10,6 +10,3 @@ class OSIDBConfig(AppConfig):
 
     def ready(self):
         from . import signals  # noqa: F401
-        from .watermark_triggers import register_all_watermark_triggers
-
-        register_all_watermark_triggers()

@@ -11,29 +11,6 @@ function accepting arbitrary Flaw IDs. SQL is compiled into pgtrigger migrations
 import pgtrigger
 from pgtrigger import compiler
 
-# Explicit exclusions, not an allowlist: new concrete business fields participate
-# automatically. Do not exclude all GeneratedFields (visibility is meaningful),
-# all *_dt fields (reported/unembargo dates are meaningful), or all JSON fields.
-EXCLUDED_FIELDS = frozenset(
-    {
-        "acl_read",
-        "acl_write",
-        "embargoed",
-        "created_dt",
-        "updated_dt",
-        "local_updated_dt",
-        "last_validated_dt",
-        "last_impact_increase_dt",
-        "task_updated_dt",
-        "resolved_dt",
-        "meta_attr",
-        "aegis_meta",
-        "assist_meta",
-        "classification_meta",
-        "search_vector",
-    }
-)
-
 
 class WatermarkTriggerSqlV1(compiler.UpsertTriggerSql):
     """Versioned migration SQL: keep this template stable for historical replay."""
@@ -45,22 +22,7 @@ class WatermarkTriggerSqlV1(compiler.UpsertTriggerSql):
             raise RuntimeError(
                 "Unsupported pgtrigger template: cannot apply watermark security hardening"
             )
-        # Unlike the generic ignore helper, the trigger itself needs to resolve
-        # hidden parents. Installation must use the trusted BYPASSRLS migration
-        # role, never the runtime role. FORCE RLS would otherwise silently omit
-        # hidden Flaws even with SECURITY DEFINER.
-        return """
-            DO $owner$
-            BEGIN
-                IF NOT EXISTS (
-                    SELECT 1 FROM pg_catalog.pg_roles
-                    WHERE rolname = current_user AND (rolsuper OR rolbypassrls)
-                ) THEN
-                    RAISE EXCEPTION 'Watermark triggers require a BYPASSRLS migration owner';
-                END IF;
-            END;
-            $owner$;
-        """ + template.replace(
+        return template.replace(
             marker,
             """$$ LANGUAGE plpgsql SECURITY DEFINER
                 SET search_path = pg_catalog, osidb_admin, public, pg_temp;
@@ -80,9 +42,18 @@ class WatermarkTrigger(pgtrigger.Trigger):
         )
 
 
+def excluded_fields(model):
+    """Combine bookkeeping declarations from the model and its owning mixins."""
+    return frozenset(
+        field
+        for base in model.__mro__
+        for field in base.__dict__.get("flaw_change_exclude", ())
+    )
+
+
 def tracked_fields(model, *, exclude=()):
     """Columns physically present on this table, including subclass-only fields."""
-    excluded = EXCLUDED_FIELDS | set(exclude)
+    excluded = excluded_fields(model) | set(exclude)
     return sorted(
         (f for f in model._meta.local_concrete_fields if f.name not in excluded),
         key=lambda f: f.column,
@@ -144,8 +115,7 @@ def register_watermark_triggers(model, *, parent="flaw", exclude=()):
     parent_sql = parents[parent]
     for operation in (pgtrigger.Insert, pgtrigger.Update, pgtrigger.Delete):
         suffix = str(operation).lower()
-        # Django may populate an isolated app registry more than once in tests.
-        # Re-running ready() must not register a second object for the same URI.
+        # Reapplying the decorator must not register a second object for the URI.
         if any(
             registered_model is model and trigger.name == f"watermark_{suffix}"
             for registered_model, trigger in pgtrigger.registered()
@@ -208,29 +178,20 @@ def register_watermark_triggers(model, *, parent="flaw", exclude=()):
         ).register(model)
 
 
-def register_all_watermark_triggers():
-    from osidb import models
+def track_flaw_changes(*, parent="flaw", exclude=()):
+    """Opt a concrete source table into statement-level Flaw change tracking.
 
-    register_watermark_triggers(models.Flaw, parent="self")
-    register_watermark_triggers(models.Affect, parent="affect_owner")
-    for model in (
-        models.FlawComment,
-        models.FlawReference,
-        models.FlawAcknowledgment,
-        models.FlawCVSS,
-        models.FlawLabel,
-    ):
-        register_watermark_triggers(model)
-    register_watermark_triggers(models.AffectCVSS, parent="affect")
-    register_watermark_triggers(models.Tracker, parent="tracker")
-    # Discover concrete descendants, including future label types. Skip proxies
-    # and abstract models so no physical table gets duplicate maintenance.
-    from django.apps import apps
+    New business fields participate by default, including generated visibility.
+    Each multi-table child opts in separately because it owns a separate table.
+    Bookkeeping exclusions belong on the model or the mixin owning those fields.
+    """
 
-    for model in apps.get_models():
-        if (
-            model is not models.FlawLabel
-            and issubclass(model, models.FlawLabel)
-            and not model._meta.proxy
-        ):
-            register_watermark_triggers(model, parent="label")
+    def decorate(model):
+        model.flaw_change_exclude = (
+            *model.__dict__.get("flaw_change_exclude", ()),
+            *exclude,
+        )
+        register_watermark_triggers(model, parent=parent)
+        return model
+
+    return decorate

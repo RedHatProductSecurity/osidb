@@ -4,6 +4,7 @@ from django.db import models
 
 
 class FlawChangeEvent(models.Model):
+    # Logical ORM relation only: no parent FK locks or deletion cascade.
     flaw = models.ForeignKey(
         "Flaw",
         db_constraint=False,

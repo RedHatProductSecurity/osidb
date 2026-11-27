@@ -155,6 +155,8 @@ class WorkflowModelManager(models.Manager):
 class WorkflowModel(models.Model):
     """workflow model base class"""
 
+    flaw_change_exclude = ("task_updated_dt", "resolved_dt", "classification_meta")
+
     workflow_name = models.CharField(max_length=50, blank=True)
     workflow_state = models.CharField(max_length=50, blank=True)
     owner = models.CharField(max_length=60, blank=True)

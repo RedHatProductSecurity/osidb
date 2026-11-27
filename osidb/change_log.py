@@ -5,26 +5,13 @@ project's bypass_rls decorator so hidden live parents cannot look like orphans.
 """
 
 import time
+from datetime import timedelta
 
 from django.db import connection, transaction
+from django.db.models import Exists, OuterRef, Q
+from django.db.models.functions import Now
 
-PRUNE_BATCH_SQL = """
-    WITH victims AS MATERIALIZED (
-        SELECT e.id FROM osidb_flawchangeevent e
-        WHERE e.id > %s AND (
-            NOT EXISTS (SELECT 1 FROM osidb_flaw f WHERE f.uuid=e.flaw_id)
-            OR ((%s=0 OR e.local_updated_dt < statement_timestamp()
-                 - make_interval(days => %s)) AND EXISTS (
-                SELECT 1 FROM osidb_flawchangeevent newer
-                WHERE newer.flaw_id=e.flaw_id
-                  AND (newer.local_updated_dt, newer.id) > (e.local_updated_dt, e.id)
-            ))
-        ) ORDER BY e.id LIMIT %s FOR UPDATE OF e SKIP LOCKED
-    ), removed AS (
-        DELETE FROM osidb_flawchangeevent e USING victims v
-        WHERE e.id=v.id RETURNING e.id
-    ) SELECT count(*), COALESCE(max(id),%s) FROM removed
-"""
+from osidb.models import Flaw, FlawChangeEvent
 
 
 def compact_change_events(
@@ -44,15 +31,27 @@ def compact_change_events(
     started = time.monotonic()
     after_id = deleted = batches = 0
     exhausted = False
+    newer = FlawChangeEvent.objects.filter(flaw_id=OuterRef("flaw_id")).filter(
+        Q(local_updated_dt__gt=OuterRef("local_updated_dt"))
+        | Q(local_updated_dt=OuterRef("local_updated_dt"), id__gt=OuterRef("id"))
+    )
+    eligible = Q(Exists(newer))
+    if history_days:
+        eligible &= Q(local_updated_dt__lt=Now() - timedelta(days=history_days))
+    eligible |= Q(~Exists(Flaw.objects.filter(uuid=OuterRef("flaw_id"))))
     while batches < max_batches and time.monotonic() - started < seconds:
         with transaction.atomic(), connection.cursor() as cursor:
             cursor.execute("SET LOCAL lock_timeout='1s'")
             cursor.execute("SET LOCAL statement_timeout='10s'")
-            cursor.execute(
-                PRUNE_BATCH_SQL,
-                [after_id, history_days, history_days, batch_size, after_id],
+            ids = list(
+                FlawChangeEvent.objects.filter(eligible, id__gt=after_id)
+                .order_by("id")
+                .select_for_update(skip_locked=True)
+                .values_list("id", flat=True)[:batch_size]
             )
-            count, after_id = cursor.fetchone()
+            count, _ = FlawChangeEvent.objects.filter(pk__in=ids).delete()
+            if ids:
+                after_id = ids[-1]
         batches += 1
         deleted += count
         if not count:

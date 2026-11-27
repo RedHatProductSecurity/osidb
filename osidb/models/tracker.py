@@ -24,6 +24,7 @@ from osidb.mixins import (
 )
 from osidb.models.affect import Affect, NotAffectedJustification
 from osidb.models.fields import CVEIDField
+from osidb.watermark_triggers import track_flaw_changes
 
 from .ps_module import PsModule
 from .ps_update_stream import PsUpdateStream
@@ -66,6 +67,9 @@ class TrackerManager(TrackingMixinManager):
         return tracker
 
 
+@track_flaw_changes(
+    parent="tracker", exclude=("last_impact_increase_dt", "resolved_dt", "meta_attr")
+)
 @pghistory.track(
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),

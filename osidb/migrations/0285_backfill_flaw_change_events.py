@@ -5,39 +5,42 @@ there is no parent UPDATE, row lock, historical repair, or head overwrite.
 """
 
 from django.db import migrations, transaction
+from django.db.models import Exists, OuterRef
+
+from osidb.helpers import bypass_rls
 
 BATCH_SIZE = 2000
 
 
+@bypass_rls
 def backfill_events(apps, schema_editor):
-    connection = schema_editor.connection
+    alias = schema_editor.connection.alias
+    Flaw = apps.get_model("osidb", "Flaw")
+    FlawChangeEvent = apps.get_model("osidb", "FlawChangeEvent")
+    events = FlawChangeEvent.objects.using(alias)
     last_uuid = None
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "SELECT rolsuper OR rolbypassrls FROM pg_roles WHERE rolname=current_user"
-        )
-        if not cursor.fetchone()[0]:
-            raise RuntimeError(
-                "Change-log backfill requires a BYPASSRLS migration owner"
-            )
     while True:
-        with transaction.atomic(using=connection.alias), connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT uuid FROM osidb_flaw "
-                "WHERE (%s::uuid IS NULL OR uuid > %s::uuid) ORDER BY uuid LIMIT %s",
-                [last_uuid, last_uuid, BATCH_SIZE],
+        with transaction.atomic(using=alias):
+            flaws = (
+                Flaw.objects.using(alias)
+                .annotate(has_event=Exists(events.filter(flaw_id=OuterRef("uuid"))))
+                .order_by("uuid")
             )
-            ids = [row[0] for row in cursor.fetchall()]
-            if not ids:
+            if last_uuid is not None:
+                flaws = flaws.filter(uuid__gt=last_uuid)
+            rows = list(
+                flaws.values_list("uuid", "local_updated_dt", "has_event")[:BATCH_SIZE]
+            )
+            if not rows:
                 break
-            cursor.execute(
-                "INSERT INTO osidb_flawchangeevent (flaw_id, local_updated_dt) "
-                "SELECT f.uuid, f.local_updated_dt FROM osidb_flaw f "
-                "WHERE f.uuid = ANY(%s::uuid[]) AND NOT EXISTS ("
-                "SELECT 1 FROM osidb_flawchangeevent e WHERE e.flaw_id=f.uuid)",
-                [ids],
+            events.bulk_create(
+                [
+                    FlawChangeEvent(flaw_id=pk, local_updated_dt=timestamp)
+                    for pk, timestamp, has_event in rows
+                    if not has_event
+                ]
             )
-            last_uuid = ids[-1]
+            last_uuid = rows[-1][0]
 
 
 class Migration(migrations.Migration):

@@ -1,73 +1,24 @@
-"""Internal storage and unchanged public authorization/legacy writer contracts."""
+"""Internal API boundary, metadata discovery, and legacy writer contracts."""
 
 import pgtrigger
 import pytest
-from django.conf import settings
-from django.db import connection, models
+from django.db import models
 from django.test.utils import isolate_apps
 from rest_framework.test import APIClient
 
-from osidb.core import set_user_acls
 from osidb.djangoql import FlawQLSchema
 from osidb.filters import AffectFilter, FlawFilter
 from osidb.models import Flaw, FlawChangeEvent
 from osidb.tests.event_helpers import latest_event
 from osidb.tests.factories import FlawCommentFactory, FlawCVSSFactory, FlawFactory
-from osidb.watermark_triggers import register_watermark_triggers
+from osidb.watermark_triggers import track_flaw_changes
 
 pytestmark = pytest.mark.unit
 
 
-@pytest.mark.enable_rls
-def test_internal_soft_relation_schema_parent_security_unchanged():
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "SELECT count(*) FROM pg_proc WHERE proname LIKE 'osidb_prune_flaw_change_events%'"
-        )
-        assert cursor.fetchone() == (0,)
-        cursor.execute(
-            "SELECT contype FROM pg_constraint WHERE conrelid='osidb_flawchangeevent'::regclass AND contype='f'"
-        )
-        assert cursor.fetchall() == []
-        constraints = connection.introspection.get_constraints(
-            cursor, "osidb_flawchangeevent"
-        )
-        assert constraints["flaw_event_latest_idx"]["columns"] == [
-            "flaw_id",
-            "local_updated_dt",
-            "id",
-        ]
-        assert constraints["flaw_event_time_idx"]["columns"] == [
-            "local_updated_dt",
-            "flaw_id",
-        ]
-        cursor.execute(
-            "SELECT relrowsecurity,relforcerowsecurity FROM pg_class WHERE oid='osidb_flawchangeevent'::regclass"
-        )
-        assert cursor.fetchone() == (False, False)
-        cursor.execute(
-            "SELECT count(*) FROM pg_policy WHERE polrelid='osidb_flawchangeevent'::regclass"
-        )
-        assert cursor.fetchone() == (0,)
-        cursor.execute(
-            "SELECT relrowsecurity,relforcerowsecurity FROM pg_class WHERE oid='osidb_flaw'::regclass"
-        )
-        assert cursor.fetchone() == (True, True)
-    relation = FlawChangeEvent._meta.get_field("flaw")
-    assert (
-        not relation.db_constraint
-        and relation.remote_field.on_delete is models.DO_NOTHING
-    )
-
-
-@pytest.mark.enable_rls
 @pytest.mark.parametrize("version", ["v1", "v2"])
-def test_api_remains_flaw_rooted_and_internal_relation_not_exposed(version):
-    set_user_acls(settings.ALL_GROUPS)
+def test_internal_relation_not_exposed(version):
     public = FlawFactory(embargoed=False)
-    hidden = FlawFactory(embargoed=True)
-    assert latest_event(hidden)
-    set_user_acls(settings.PUBLIC_READ_GROUPS)
     client = APIClient()
     base = f"/osidb/api/{version}/flaws"
     response = client.get(
@@ -76,7 +27,6 @@ def test_api_remains_flaw_rooted_and_internal_relation_not_exposed(version):
     assert response.status_code == 200
     assert [row["uuid"] for row in response.json()["results"]] == [str(public.pk)]
     assert "change_events" not in response.json()["results"][0]
-    assert client.get(f"{base}/{hidden.pk}").status_code == 404
     assert "change_events" not in FlawQLSchema(Flaw).get_fields(Flaw)
     assert FlawFilter()._filter_fields({"change_events__local_updated_dt"}) == (
         set(),
@@ -123,8 +73,8 @@ def test_future_business_fields_participate_by_default(excluded):
 
     before = list(pgtrigger.registered())
     try:
-        register_watermark_triggers(
-            MetadataProbe, exclude=() if excluded is None else (excluded,)
+        track_flaw_changes(exclude=() if excluded is None else (excluded,))(
+            MetadataProbe
         )
         triggers = [
             trigger

@@ -6,6 +6,7 @@ from django.db import models
 from osidb.mixins import TrackingMixin, TrackingMixinManager
 from osidb.models.abstract import CVSS
 from osidb.query_sets import CustomQuerySetUpdatedDt
+from osidb.watermark_triggers import track_flaw_changes
 
 from .flaw import Flaw
 
@@ -26,6 +27,7 @@ class FlawCVSSManager(TrackingMixinManager):
             return FlawCVSS(flaw=flaw, issuer=issuer, version=version, **extra_fields)
 
 
+@track_flaw_changes()
 @pghistory.track(
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),

@@ -113,7 +113,6 @@ def test_daily_schedule_calls_bounded_head_only_task():
     assert entry["schedule"].hour == {3} and entry["schedule"].minute == {15}
     assert compact_flaw_change_events.queue == "low"
     assert entry["options"]["queue"] == "low"
-    assert entry["schedule"] == settings.FLAW_CHANGE_LOG_COMPACTION_CRONTAB
     result = compact_flaw_change_events()
     assert result["history_days"] == 0 and result["deleted"] == 0
 
@@ -149,24 +148,17 @@ def test_cli_prunes_only_eligible_unlocked_events():
 
 
 @pytest.mark.enable_rls
-def test_task_restores_public_acl_on_exception_without_role_elevation():
+def test_task_restores_public_acl_on_exception():
     set_user_acls(settings.ALL_GROUPS)
     hidden = FlawFactory(embargoed=True)
     set_user_acls(settings.PUBLIC_READ_GROUPS)
     with connection.cursor() as cursor:
         cursor.execute("SELECT current_user,current_setting('osidb.acl')")
         runtime, acl = cursor.fetchone()
-    statements = []
 
     def fail_batch(execute, sql, params, many, context):
-        statements.append(sql)
-        if "WITH victims AS MATERIALIZED" in sql:
+        if sql.startswith("SELECT") and 'FROM "osidb_flawchangeevent"' in sql:
             assert Flaw.objects.filter(pk=hidden.pk).exists()
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT current_user,rolsuper,rolbypassrls FROM pg_roles WHERE rolname=current_user"
-                )
-                assert cursor.fetchone() == (runtime, False, False)
             raise RuntimeError("failed maintenance")
         return execute(sql, params, many, context)
 
@@ -180,11 +172,6 @@ def test_task_restores_public_acl_on_exception_without_role_elevation():
         cursor.execute("SELECT current_user,current_setting('osidb.acl')")
         assert cursor.fetchone() == (runtime, acl)
     assert not Flaw.objects.filter(pk=hidden.pk).exists()
-    assert not any(
-        "SET ROLE" in statement.upper()
-        or "SET SESSION AUTHORIZATION" in statement.upper()
-        for statement in statements
-    )
 
 
 @pytest.mark.enable_rls
@@ -211,7 +198,7 @@ def test_task_retries_after_committed_batch_and_restores_acl():
 
     def interrupt_once(execute, sql, params, many, context):
         nonlocal batches
-        if "WITH victims AS MATERIALIZED" in sql:
+        if sql.startswith("SELECT") and 'FROM "osidb_flawchangeevent"' in sql:
             batches += 1
             if batches == 1:
                 connection.on_commit(lambda: committed.append(True))

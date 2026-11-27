@@ -51,6 +51,8 @@ class TrackingMixin(models.Model):
     Mixin for tracking create/update datetimes and other changes to records.
     """
 
+    flaw_change_exclude = ("created_dt", "updated_dt")
+
     created_dt = models.DateTimeField(blank=True)
     updated_dt = models.DateTimeField(blank=True)
 
@@ -195,6 +197,8 @@ class SearchVectorMixin(models.Model):
     A BEFORE INSERT/UPDATE trigger keeping the column in sync is registered automatically
     once the model class is prepared; search_vector must never be set in application code.
     """
+
+    flaw_change_exclude = ("search_vector",)
 
     search_vector = SearchVectorField(null=True, editable=False)
     search_vector_fields: tuple = ()
@@ -390,6 +394,8 @@ class ACLMixin(models.Model):
     mixin for models requiring access controls
     defining necessary attributes and validations
     """
+
+    flaw_change_exclude = ("acl_read", "acl_write", "embargoed")
 
     acl_read = fields.ArrayField(models.UUIDField(), default=list)
     acl_write = fields.ArrayField(models.UUIDField(), default=list)
@@ -1122,6 +1128,8 @@ class AlertMixin(ValidateMixin):
     """
 
     alerts = GenericRelation(Alert)
+
+    flaw_change_exclude = ("last_validated_dt",)
 
     last_validated_dt = models.DateTimeField(blank=True, default=timezone.now)
 
