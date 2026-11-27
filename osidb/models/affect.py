@@ -31,6 +31,7 @@ from osidb.mixins import (
 )
 from osidb.models.fields import CVEIDField, PURLField
 from osidb.query_sets import CustomQuerySetUpdatedDt
+from osidb.watermark_triggers import track_flaw_changes
 
 from .abstract import CVSS, Impact
 from .flaw.flaw import Flaw
@@ -146,6 +147,9 @@ class AffectV1Manager(TrackingMixinManager):
         )
 
 
+@track_flaw_changes(
+    parent="affect_owner", exclude=("resolved_dt", "meta_attr", "assist_meta")
+)
 @pghistory.track(
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),
@@ -1401,6 +1405,7 @@ class AffectCVSSManager(TrackingMixinManager):
             )
 
 
+@track_flaw_changes(parent="affect")
 @pghistory.track(
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),

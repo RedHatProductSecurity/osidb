@@ -175,6 +175,11 @@ CELERY_BROKER_URL = CELERY_RESULT_BACKEND = "redis://redis:6379/"
 CELERY_TASK_SOFT_TIME_LIMIT = 3600
 CELERY_TASK_IGNORE_RESULT = False
 CELERY_BEAT_SCHEDULE = {
+    "compact_flaw_change_events": {
+        "task": "osidb.tasks.compact_flaw_change_events",
+        "schedule": crontab(minute=15, hour=3),
+        "options": {"expires": 3600, "queue": "low"},
+    },
     "check_for_non_periodic_reschedules": {
         "task": "osidb.tasks.check_for_non_periodic_reschedules",
         # Run every ten minutes

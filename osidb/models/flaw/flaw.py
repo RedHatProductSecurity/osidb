@@ -52,6 +52,7 @@ from osidb.sync_manager import (
     JiraTaskTransitionManager,
 )
 from osidb.validators import no_future_date, validate_cwe_id
+from osidb.watermark_triggers import track_flaw_changes
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +116,10 @@ class FlawManager(TrackingMixinManager, WorkflowModelManager):
         return queryset.get(pk=id)
 
 
+@track_flaw_changes(
+    parent="self",
+    exclude=("local_updated_dt", "meta_attr", "aegis_meta", "assist_meta"),
+)
 @pghistory.track(
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),

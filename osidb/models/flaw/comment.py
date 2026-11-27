@@ -6,10 +6,12 @@ from django.db import models
 
 from apps.bbsync.mixins import BugzillaSyncMixin
 from osidb.mixins import ACLMixin, AlertMixin, TrackingMixin
+from osidb.watermark_triggers import track_flaw_changes
 
 from .flaw import Flaw
 
 
+@track_flaw_changes()
 @pghistory.track(
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),

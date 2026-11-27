@@ -13,6 +13,7 @@ from osidb.mixins import (
     validator,
 )
 from osidb.query_sets import CustomQuerySetUpdatedDt
+from osidb.watermark_triggers import track_flaw_changes
 
 from .flaw import Flaw
 
@@ -33,6 +34,7 @@ class FlawReferenceManager(TrackingMixinManager):
             return FlawReference(flaw=flaw, url=url, **extra_fields)
 
 
+@track_flaw_changes()
 @pghistory.track(
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),

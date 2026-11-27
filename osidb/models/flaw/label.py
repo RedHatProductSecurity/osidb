@@ -24,12 +24,14 @@ from osidb.mixins import (
     ValidateMixin,
     validator,
 )
+from osidb.watermark_triggers import track_flaw_changes
 
 
 class FlawLabelManager(PolymorphicManager, TrackingMixinManager):
     """Manager combining ACL annotations with polymorphic queries."""
 
 
+@track_flaw_changes()
 @pghistory.track(
     pghistory.InsertEvent(),
     pghistory.UpdateEvent(),
@@ -99,6 +101,7 @@ class FlawLabel(PolymorphicModel, ACLMixin, TrackingMixin, ValidateMixin):
         super().validate()
 
 
+@track_flaw_changes(parent="label")
 class AliasLabel(FlawLabel):
     """
     Free-form alias labels.
@@ -125,6 +128,7 @@ class AliasLabel(FlawLabel):
         verbose_name_plural = "Alias Labels"
 
 
+@track_flaw_changes(parent="label")
 class BULabel(FlawLabel):
     """
     Business unit labels with state tracking.
@@ -238,6 +242,7 @@ class BULabel(FlawLabel):
                 )
 
 
+@track_flaw_changes(parent="label")
 class CollaboratorLabel(FlawLabel):
     """
     Context-based labels with full state management.
@@ -284,6 +289,7 @@ class CollaboratorLabel(FlawLabel):
             )
 
 
+@track_flaw_changes(parent="label")
 class ProductFamilyLabel(FlawLabel):
     """
     Auto-created labels based on product definitions.
@@ -377,6 +383,7 @@ class ProductFamilyLabel(FlawLabel):
                 )
 
 
+@track_flaw_changes(parent="label")
 class WorkflowLabel(FlawLabel):
     """
     Workflow classification markers.
