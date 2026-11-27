@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Read incremental flaw-sync timestamps and filters from change events behind a
+  default-off rollout flag, preserving API versions and live flaw access controls
+  (OSIDB-5640, OSIDB-5828, OSIDB-5829)
 - Track flaw changes with append-only database events and bounded compaction,
   retaining legacy timestamps while event readers are disabled (OSIDB-5826, OSIDB-5827)
 
