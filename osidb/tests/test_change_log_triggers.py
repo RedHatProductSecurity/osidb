@@ -16,7 +16,6 @@ from osidb.models import (
     AffectCVSS,
     AliasLabel,
     BULabel,
-    BULabelDefinition,
     CollaboratorLabel,
     CollaboratorLabelDefinition,
     Flaw,
@@ -228,8 +227,6 @@ def test_affect_cvss_old_and_new_parent():
 )
 def test_concrete_label_tables(model, kwargs, field, value):
     flaw = FlawFactory()
-    if model is BULabel:
-        BULabelDefinition.objects.create(name="watermark label")
     if model is CollaboratorLabel:
         CollaboratorLabelDefinition.objects.create(name="watermark label")
     baseline = reset_stamp(flaw)

@@ -45,5 +45,5 @@ def backfill_events(apps, schema_editor):
 
 class Migration(migrations.Migration):
     atomic = False
-    dependencies = [("osidb", "0284_flaw_change_events")]
+    dependencies = [("osidb", "0292_flaw_change_events")]
     operations = [migrations.RunPython(backfill_events, migrations.RunPython.noop)]
