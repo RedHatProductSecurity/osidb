@@ -1361,6 +1361,26 @@ def test_pre_filter_chromium_special():
     assert result.workflow is SpecialWorkflow.CHROMIUM
 
 
+class _FakeAffectSettingsCustomChromium:
+    chromium_components = ["My-Chromium"]
+    manual_triage_components: dict = {}
+
+
+@pytest.mark.django_db
+def test_pre_filter_chromium_components_configurable(monkeypatch):
+    """Chromium detection uses the configured names, case-insensitively."""
+    monkeypatch.setattr(
+        "apps.ace.tasks.AffectSettings", _FakeAffectSettingsCustomChromium
+    )
+    flaw = FlawFactory(components=["my-chromium", "chromium"], embargoed=False)
+
+    custom = _pre_filter_component(flaw, "my-chromium", "")
+    default = _pre_filter_component(flaw, "chromium", "")
+
+    assert custom.workflow is SpecialWorkflow.CHROMIUM
+    assert default.workflow is SpecialWorkflow.NONE
+
+
 # ── Cross-ecosystem guard ────────────────────────────────────────────────────
 
 
@@ -1506,10 +1526,12 @@ def test_pre_filter_non_trusted_pair_verified_proceeds():
 
 
 class _FakeAffectSettingsUnrestricted:
+    chromium_components = []
     manual_triage_components = {"kernel": []}
 
 
 class _FakeAffectSettingsEcosystemRestricted:
+    chromium_components = []
     manual_triage_components = {"kernel": ["Linux", "cargo"]}
 
 
@@ -1857,6 +1879,21 @@ def test_handle_chromium_skips_cvss_if_exists(monkeypatch, chromium_streams):
         ).count()
         == 1
     )
+
+
+@pytest.mark.django_db
+def test_sync_chromium_applies_manual_triage(ace_enabled, chromium_streams):
+    """Chromium CVEs get manual-triage so no trackers are filed (OSIDB-5873)."""
+    from apps.ace.constants import CHROMIUM_MANUAL_TRIAGE_REASON
+
+    flaw = FlawFactory(
+        components=["chromium"], workflow_name="DEFAULT", workflow_state="TRIAGE"
+    )
+
+    sync_flaw_affects_from_newcli(str(flaw.uuid))
+
+    label = WorkflowLabel.objects.get(flaw=flaw, name=LABEL_MANUAL_TRIAGE)
+    assert label.reason == CHROMIUM_MANUAL_TRIAGE_REASON
 
 
 # ── Go stdlib workflow ────────────────────────────────────────────────────────

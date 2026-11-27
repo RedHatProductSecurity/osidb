@@ -69,6 +69,7 @@ ACE reads its settings from environment variables via `AffectSettings` (pydantic
 | `OSIDB_AFFECTS_AUTO_CREATE` | `false` | Enable qualification on first entry and affect creation when the `auto-affects` label is created. |
 | `OSIDB_AFFECTS_AUTO_CREATE_PS_MODULES` | `["hummingbird-1"]` | JSON list of PS module names passed to `NewtopiaQuerier.filter(products=…)`. |
 | `OSIDB_AFFECTS_DOWNSTREAM_CATALOG_ENABLED_IMPACTS` | `[]` | JSON list of flaw impacts that use the Aegis `_downstream` catalog path instead of `Flaw.components` (e.g. `["IMPORTANT"]`). Empty keeps the component search. |
+| `OSIDB_AFFECTS_CHROMIUM_COMPONENTS` | `["chrome", "chromium", "chromium-browser", "google-chrome"]` | JSON list of flaw component names identifying a Chromium CVE. Such flaws run the Chromium workflow and get the `manual-triage` label, so no trackers are filed automatically. |
 
 ## Structure
 

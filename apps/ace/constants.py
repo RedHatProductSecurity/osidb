@@ -77,6 +77,7 @@ GO_STDLIB_PACKAGES = frozenset(
     }
 )
 
+# Default for OSIDB_AFFECTS_CHROMIUM_COMPONENTS (see AffectSettings)
 CHROMIUM_NAMES = frozenset(
     {
         "chromium",
@@ -98,6 +99,10 @@ CHROMIUM_CVSS_TABLE: dict[str, str] = {
     "MODERATE": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:N",
     "LOW": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:L",
 }
+
+CHROMIUM_MANUAL_TRIAGE_REASON = (
+    "Chromium CVEs require manual triage: trackers are not filed automatically."
+)
 
 CHROMIUM_STREAMS = [
     ("fedora-all", "chromium"),
