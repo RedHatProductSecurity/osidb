@@ -2174,7 +2174,16 @@ class FlawCollaboratorSerializer(TrackingMixinSerializer):
 
         self._strip_unsupported_fields(type(instance), validated_data)
 
-        return super().update(instance, validated_data)
+        contributor_changed = (
+            instance.type == FlawLabel.LabelType.BU
+            and "contributor" in validated_data
+            and validated_data["contributor"] != instance.contributor
+        )
+        instance = super().update(instance, validated_data)
+        if contributor_changed:
+            instance.flaw.tasksync_bu_label_owners()
+
+        return instance
 
 
 @extend_schema_serializer(exclude_fields=["flaw", "relevant"])
@@ -2319,7 +2328,16 @@ class FlawLabelSerializer(TrackingMixinSerializer):
                     )
         validated_data.pop("type", None)
 
-        return super().update(instance, validated_data)
+        contributor_changed = (
+            instance.type == FlawLabel.LabelType.BU
+            and "contributor" in validated_data
+            and validated_data["contributor"] != instance.contributor
+        )
+        instance = super().update(instance, validated_data)
+        if contributor_changed:
+            instance.flaw.tasksync_bu_label_owners()
+
+        return instance
 
 
 @extend_schema_serializer(exclude_fields=["flaw", "relevant"])

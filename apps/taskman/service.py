@@ -14,12 +14,14 @@ from jira.exceptions import JIRAError
 from apps.trackers.jira.constants import JIRA_EMBARGO_SECURITY_LEVEL_NAME
 from apps.trackers.jira.query import JiraPriority
 from collectors.jiraffe.core import JiraQuerier
+from osidb.exceptions import JiraConnectionException, JiraUserMappingException
 from osidb.helpers import safe_get_response_content
-from osidb.models import Flaw, Impact, Profile
+from osidb.models import BULabel, Flaw, Impact, Profile
 
 from .constants import (
     JIRA_STORY_ISSUE_TYPE_ID,
     JIRA_SUMMARY_MAX_LENGTH,
+    JIRA_TASKMAN_CONTRIBUTORS_FIELD_ID,
     JIRA_TASKMAN_PROJECT_ID,
     JIRA_TASKMAN_PROJECT_KEY,
     JIRA_TASKMAN_URL,
@@ -188,6 +190,26 @@ class JiraTaskmanQuerier(JiraQuerier):
                 f"Jira response {safe_get_response_content(e.response)}"
             )
 
+    def _get_bu_contributor_ids(self, flaw: Flaw) -> List[str]:
+        """
+        Jira account IDs of the owners of the BU labels of the given flaw
+        """
+        owners = {
+            label.contributor.strip().removesuffix("@redhat.com")
+            for label in BULabel.objects.filter(flaw=flaw)
+        }
+        account_ids = []
+        for owner in sorted(owners - {""}):
+            try:
+                account_ids.append(Profile.kerberos_to_cloud_id(owner))
+            except JiraConnectionException:
+                raise
+            except JiraUserMappingException:
+                logger.warning(
+                    f"Cannot map BU label owner {owner} of flaw {flaw.uuid} to a Jira user"
+                )
+        return account_ids
+
     def _generate_task_data(self, flaw: Flaw):
         labels = [f"flawuuid:{str(flaw.uuid)}", f"impact:{flaw.impact}"]
         if flaw.major_incident_state in [
@@ -227,6 +249,12 @@ class JiraTaskmanQuerier(JiraQuerier):
                 else None,
             }
         }
+
+        if JIRA_TASKMAN_CONTRIBUTORS_FIELD_ID:
+            data["fields"][JIRA_TASKMAN_CONTRIBUTORS_FIELD_ID] = [
+                {"accountId": account_id}
+                for account_id in self._get_bu_contributor_ids(flaw)
+            ]
 
         return data
 

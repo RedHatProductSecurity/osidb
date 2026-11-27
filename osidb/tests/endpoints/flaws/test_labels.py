@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from rest_framework import status
 
@@ -347,6 +349,23 @@ class TestEndpointsFlawsLabels:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.json()["label"][0] == "Label 'test_context' already exists."
+
+    def test_update_bu_label_contributor_syncs_task(self, auth_client, test_api_uri):
+        """Test changing the BU label owner syncs the flaw task"""
+        flaw = Flaw.objects.first()
+        BULabelDefinition.objects.create(name="test_bu")
+        label = BULabel.objects.create(name="test_bu", flaw=flaw)
+        url = f"{test_api_uri}/flaws/{flaw.uuid}/labels/{label.uuid}"
+        body = {"label": "test_bu", "contributor": "someone"}
+        with patch.object(Flaw, "tasksync_bu_label_owners") as mock_sync:
+            response = auth_client().put(url, body, format="json")
+            assert response.status_code == status.HTTP_200_OK
+            mock_sync.assert_called_once()
+            # sending the same owner again changes nothing
+            mock_sync.reset_mock()
+            response = auth_client().put(url, body, format="json")
+            assert response.status_code == status.HTTP_200_OK
+            mock_sync.assert_not_called()
 
 
 class TestWorkflowLabels:
@@ -895,6 +914,23 @@ class TestFlawLabelsV2CRUD:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert FlawLabel.objects.filter(flaw=self.flaw).count() == 0
+
+    def test_update_bu_label_contributor_syncs_task(self, auth_client, test_api_v2_uri):
+        """Test changing the BU label owner syncs the flaw task"""
+        flaw = Flaw.objects.first()
+        BULabelDefinition.objects.create(name="test_bu")
+        label = BULabel.objects.create(name="test_bu", flaw=flaw)
+        url = f"{test_api_v2_uri}/flaws/{flaw.uuid}/labels/{label.uuid}"
+        body = {"name": "test_bu", "contributor": "someone"}
+        with patch.object(Flaw, "tasksync_bu_label_owners") as mock_sync:
+            response = auth_client().put(url, body, format="json")
+            assert response.status_code == status.HTTP_200_OK
+            mock_sync.assert_called_once()
+            # sending the same owner again changes nothing
+            mock_sync.reset_mock()
+            response = auth_client().put(url, body, format="json")
+            assert response.status_code == status.HTTP_200_OK
+            mock_sync.assert_not_called()
 
     def test_delete_label_without_write_returns_404(self, auth_client, test_api_v2_uri):
         """Read-only users get 404 (not 500) when deleting a label."""

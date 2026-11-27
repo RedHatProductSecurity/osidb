@@ -6,6 +6,7 @@ and subclass-specific functionality.
 """
 
 from datetime import datetime, timezone
+from unittest.mock import patch
 
 import pytest
 from django.core.exceptions import ValidationError
@@ -13,6 +14,7 @@ from django.db import IntegrityError
 from freezegun import freeze_time
 
 from osidb.models.affect import Affect
+from osidb.models.flaw.flaw import Flaw
 from osidb.models.flaw.label import (
     AliasLabel,
     BULabel,
@@ -664,6 +666,31 @@ class TestBULabel:
         affect.delete()
         BULabel.sync_for_flaw(flaw)
         assert not BULabel.objects.filter(flaw=flaw).exists()
+
+    def test_sync_for_flaw_deleting_owned_label_syncs_task(self):
+        """Test deleting a label that had an owner syncs the flaw task"""
+        BULabelDefinition.objects.create(name="team-a")
+        flaw = FlawFactory(embargoed=False)
+        affect = self._make_affect(flaw, self._make_stream("team-a"))
+        BULabel.sync_for_flaw(flaw)
+        BULabel.objects.filter(flaw=flaw).update(contributor="owner@example.com")
+        with patch.object(Flaw, "tasksync_bu_label_owners") as mock_sync:
+            affect.delete()
+            BULabel.sync_for_flaw(flaw)
+        assert not BULabel.objects.filter(flaw=flaw).exists()
+        mock_sync.assert_called_once()
+
+    def test_sync_for_flaw_deleting_ownerless_label_skips_task_sync(self):
+        """Test deleting a label without an owner does not sync the task"""
+        BULabelDefinition.objects.create(name="team-a")
+        flaw = FlawFactory(embargoed=False)
+        affect = self._make_affect(flaw, self._make_stream("team-a"))
+        BULabel.sync_for_flaw(flaw)
+        with patch.object(Flaw, "tasksync_bu_label_owners") as mock_sync:
+            affect.delete()
+            BULabel.sync_for_flaw(flaw)
+        assert not BULabel.objects.filter(flaw=flaw).exists()
+        mock_sync.assert_not_called()
 
     def test_sync_for_flaw_deleting_one_of_two_affects(self):
         """Test that the label stays while the team still has an affect"""

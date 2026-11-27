@@ -11,7 +11,8 @@ from django.contrib.auth.models import User
 from apps.taskman.constants import JIRA_SUMMARY_MAX_LENGTH
 from apps.taskman.service import JiraTaskmanQuerier
 from apps.trackers.jira.constants import JIRA_EMBARGO_SECURITY_LEVEL_NAME
-from osidb.models import Affect, Flaw, Profile
+from osidb.exceptions import JiraConnectionException, JiraUserMappingException
+from osidb.models import Affect, BULabel, BULabelDefinition, Flaw, Profile
 from osidb.tests.factories import AffectFactory, FlawFactory
 
 pytestmark = pytest.mark.unit
@@ -169,3 +170,77 @@ class TestTaskmanService(object):
         taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
         issue_data = taskman._generate_task_data(flaw)
         assert issue_data["fields"]["security"] is None
+
+    def test_bu_contributor_ids(self, jira_token, jira_email, monkeypatch):
+        """
+        Test the BU label owners are collected without duplicates and
+        empty owners and that owners unknown to Jira are skipped.
+        """
+
+        def fake_cloud_id(kerberos_id):
+            if kerberos_id == "unknown":
+                raise JiraUserMappingException("no such user")
+            return f"cloud-{kerberos_id}"
+
+        monkeypatch.setattr(
+            Profile, "kerberos_to_cloud_id", staticmethod(fake_cloud_id)
+        )
+        flaw = FlawFactory()
+        owners = {
+            "team_a": "abc@redhat.com",
+            "team_b": "xyz",
+            "team_c": "abc",
+            "team_d": "",
+            "team_e": "unknown",
+        }
+        for name, owner in owners.items():
+            BULabelDefinition.objects.create(name=name)
+            BULabel.objects.create(flaw=flaw, name=name, contributor=owner)
+        taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
+        assert taskman._get_bu_contributor_ids(flaw) == ["cloud-abc", "cloud-xyz"]
+
+    def test_bu_contributor_ids_connection_failure(
+        self, jira_token, jira_email, monkeypatch
+    ):
+        """
+        Test a Jira connection failure is not treated as an unknown user
+        so that the sync can be retried instead of losing the owner.
+        """
+
+        def fake_cloud_id(kerberos_id):
+            raise JiraConnectionException("no connection")
+
+        monkeypatch.setattr(
+            Profile, "kerberos_to_cloud_id", staticmethod(fake_cloud_id)
+        )
+        flaw = FlawFactory()
+        BULabelDefinition.objects.create(name="team_a")
+        BULabel.objects.create(flaw=flaw, name="team_a", contributor="bob")
+        taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
+        with pytest.raises(JiraConnectionException):
+            taskman._get_bu_contributor_ids(flaw)
+
+    def test_contributors_field(self, jira_token, jira_email, monkeypatch):
+        """
+        Test the BU label owners are sent as the Jira Contributors field
+        and that the field is left out when its id is not configured.
+        """
+        monkeypatch.setattr(
+            Profile,
+            "kerberos_to_cloud_id",
+            staticmethod(lambda kerberos_id: f"cloud-{kerberos_id}"),
+        )
+        flaw = FlawFactory()
+        BULabelDefinition.objects.create(name="team_a")
+        BULabel.objects.create(flaw=flaw, name="team_a", contributor="bob")
+        taskman = JiraTaskmanQuerier(token=jira_token, email=jira_email)
+        monkeypatch.setattr(
+            "apps.taskman.service.JIRA_TASKMAN_CONTRIBUTORS_FIELD_ID", "customfield_1"
+        )
+        data = taskman._generate_task_data(flaw)
+        assert data["fields"]["customfield_1"] == [{"accountId": "cloud-bob"}]
+        monkeypatch.setattr(
+            "apps.taskman.service.JIRA_TASKMAN_CONTRIBUTORS_FIELD_ID", ""
+        )
+        data = taskman._generate_task_data(flaw)
+        assert "customfield_1" not in data["fields"]

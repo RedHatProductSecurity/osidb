@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - implement affect-based trigger to keep BU labels in sync (OSIDB-5710)
+- sync BU label owners to the related OSIM task Contributors (OSIDB-5711)
 
 ### Changed
 - Bulk `PUT /affects/bulk` updates valid batches in one write and rejects the whole batch if any affect is invalid (OSIDB-4946)
