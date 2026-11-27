@@ -278,7 +278,7 @@ class TestE2E:
         # 6) validate users can promote flaws
         # 6.1) setup workflows for test
         workflow_framework = WorkflowFramework()
-        workflow_framework._workflows = []
+        monkeypatch.setattr(workflow_framework, "_workflows", [])
 
         state_new = {
             "name": "NEW",
@@ -385,7 +385,7 @@ class TestE2E:
 
         # 1) setup workflows for test
         workflow_framework = WorkflowFramework()
-        workflow_framework._workflows = []
+        monkeypatch.setattr(workflow_framework, "_workflows", [])
 
         state_new = {
             "name": "NEW",

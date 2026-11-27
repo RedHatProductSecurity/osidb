@@ -172,10 +172,11 @@ def flaw_metadata_update_local_updated_dt(sender, instance, **kwargs):
 def flaw_dependant_update_local_updated_dt(sender, instance, **kwargs):
     # these nested entities either feed flaw-level validators/alerts
     # or drive workflow so the full flaw save is necessary
+    flaw = Flaw.objects.get(pk=instance.flaw_id)
     with signal_pghistory_context(
         "flaw_dependant_update_local_updated_dt", sender=sender, instance=instance
     ):
-        instance.flaw.save(auto_timestamps=False, raise_validation_error=False)
+        flaw.save(auto_timestamps=False, raise_validation_error=False)
 
 
 @receiver(post_delete, sender=FlawLabel)

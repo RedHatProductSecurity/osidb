@@ -9,6 +9,7 @@ from freezegun import freeze_time
 from apps.bbsync.constants import RHSCL_BTS_KEY
 from apps.bbsync.models import BugzillaComponent, BugzillaProduct
 from collectors.bzimport.constants import FLAW_PLACEHOLDER_KEYWORD
+from osidb.acls import ACL
 from osidb.constants import BZ_ID_SENTINEL
 from osidb.core import generate_acls
 from osidb.models import (
@@ -659,6 +660,53 @@ class TestFlaw:
         og_local_updated_dt = f.local_updated_dt
         FlawCVSSFactory(flaw=f)
         assert Flaw.objects.get(pk=f.uuid).local_updated_dt > og_local_updated_dt
+
+    @pytest.mark.enable_signals
+    def test_cvss_save_does_not_revert_public_flaw_to_internal(self):
+        """
+        saving a CVSS loaded with a stale internal parent
+        must not write the stale ACLs back to the flaw
+        """
+        # 1. flaw in the DEFAULT workflow, still internal
+        flaw = FlawFactory(embargoed=False)
+        flaw.classification = {"workflow": "DEFAULT", "state": "NEW"}
+        flaw.owner = "Alice"
+        flaw.source = FlawSource.CUSTOMER
+        flaw.title = flaw.title or "Sample title"
+        flaw.task_key = "OSIM-1"
+        flaw.set_acls(ACL.INTERNAL)
+        flaw.cwe_id = ""
+        flaw.save(raise_validation_error=False)
+        flaw = Flaw.objects.get(pk=flaw.pk)
+        assert flaw.is_internal
+        assert flaw.workflow_state != "PRE_SECONDARY_ASSESSMENT"
+        # 2. CVSS for the flaw
+        cvss = FlawCVSSFactory(flaw=flaw)
+        # 3. load the CVSS together with the internal parent and keep it in memory
+        stale_flaw = Flaw.objects.get(pk=flaw.pk)
+        assert stale_flaw.is_internal
+        # 4. promote through a separate fresh flaw instance
+        fresh = Flaw.objects.get(pk=flaw.pk)
+        AffectFactory(
+            flaw=fresh,
+            affectedness=Affect.AffectAffectedness.AFFECTED,
+            resolution=Affect.AffectResolution.DELEGATED,
+        )
+        fresh.cwe_id = "CWE-79"
+        fresh.impact = Impact.LOW
+        fresh.cve_description = "some description"
+        fresh.save(raise_validation_error=False)
+        promoted = Flaw.objects.get(pk=flaw.pk)
+        assert promoted.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        assert promoted.is_public
+        # 5. save the stale CVSS
+        cvss = FlawCVSS.objects.get(pk=cvss.pk)
+        cvss.flaw = stale_flaw
+        cvss.save()
+        # 6. the flaw must stay public
+        reloaded = Flaw.objects.get(pk=flaw.pk)
+        assert reloaded.workflow_state == "PRE_SECONDARY_ASSESSMENT"
+        assert reloaded.is_public
 
     @pytest.mark.enable_signals
     def test_local_updated_dt_affect_cvss(self):
